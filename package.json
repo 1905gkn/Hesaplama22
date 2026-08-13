@@ -4,6 +4,13 @@
   "type": "module",
   "scripts": {
     "build": "bash scripts/build.sh",
-    "validate": "node scripts/validate-artifact.mjs"
+    "validate": "node scripts/validate-artifact.mjs && node scripts/verify-mekik2.mjs",
+    "verify:mekik2": "node scripts/verify-mekik2.mjs"
+  },
+  "dependencies": {
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.9"
   }
 }

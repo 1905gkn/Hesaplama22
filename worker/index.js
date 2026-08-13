@@ -8,7 +8,7 @@ const APP_ICON_192_BASE64 =
 const APP_ICON_512_BASE64 =
   "iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAMAAADDpiTIAAAAFVBMVEUXOCoqSChgXxenkgzhuQLxxQCLdwz5z7vsAAALBElEQVR42u2d23ajOhAFbSD+/08+uZ9blIkUULW6q97Ha8Gu2WrJMdxuIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiEpf7fdv2/TieanIc+75t252Ogcl+26vm/n+OvZgF207f8oDsGx2L6dMUcOC+0Tc5OLnXgrv/+f/MnlYB4/8hORUw/g4SKuDa30eycdD4+8mkgO0/wk7HdhZ3+k4uS45JwPofJ8MyYP3/huWXATd/v2TxDeHdb/x+y7GyAY5/Z7CuAeZ/DqsaYP5nsaYBrv+nseYc4Px/HivuBs3/TNYzwPO/c1ntTNAB8GwWGwPo25UQOtIuHADOZ6UxwAHgChYaA+hblRQ61h/zoO9UUlapAHcAV7HITsAJ8CrWmAMtgOtYogIsgOtYoQIsgCtZoAIsgCuJXwEWwLWErwAPAa8l/FkAfYPSQwf8ByyAqwleAY6AVxN8DKRvTwHoiL/FFeB6Qq8BrgDXE3oNoG9OCeiQv8FToBkEPgtyBJhB4CHAEWAGgYcAfw04g4OOuQ19a4pAx9zEGXAOYadABZhDWAHcBMwh7DZAAeYQVgB3gXMIuw9UgDmEFcBjgDmEPQhQgDmEFYC+MWWgg1YAGDpoBYChg1YAGDpoBYChg1YAGDpoBYChg1YAGDpoBYChg1YAGDpoBYChg1YAGDpoBYChg1YAGDpoBYChg1YAGDpoBYChg1YAGDpoBYChg1YAGDpoBYChg1YAGDpoBYChg+YFOM6DDnMEOmhcgNN/GXG/b888Hvu+hBB00PkE+JcMzyYE94AOOrcA72xbXAvooEsI8GbBI6QEdNB1BLi9rAjxfvVOB11KgBeiOUAH3SKtAM89EGotoINukViAZ7Y4CtBBt8gtQCAF6KBbZBcgjAJ00C3yCxDkQVh00C0qCBCiBOigW5QQIEIJ0EG3KCLA7aEAX1NFAPyZuHTQLcoIQBtAX36LOgLABtBX36KQAKwB9MW3qCQAOgnS196ilADkbpC+9Ba1BACfjU1feYtiAnBjAH3lLYoJwI0B9IW3qCYAtgjQ192inADUIkBfd4tyAlAVQF92i3oCQBVAX3aLegJAFUBfdYuCAjAbAfqqWxQUgPlJPH3R+M0IJAByIExfdIuKAiBjIH3RLSoKgKwB9DXj9yKSAMQaQF9zi7ACfPkZz+z7/th++TJ2Yh9AB51CgH9+3P4LCYghgA46mwAvjDugACkEeP7QQQWAw0A66JwCPLfA0FUDUyAddFYBno77wFUDUyAddFoBhgwApkA66LwCjJww3BUgkQAjc4ACZBLgqX8vMH8bQAedWoD+RUABUgnQXwEKkEuA7ilg/kEAHXRuAbpvrwIkE6B3DVCAZAI8FKC2AL1DgAIkE6D30xUgmQC991cBsgnQ+Y2QAhQXwIOgbAJ07gMVoLgAc8N/gQ4avxOhBPDvARRgNnTQ2QXoGwL9k7DiAvhHoekE6Ptw/yw8mwCdn+4PQ7IJ0PdlEDADKkCkr4P9cWg6Afp2gf48PJ0AfZ9NPCiODjq3AH0fTowAChDoz8KRBwXSQacWIP4mUAEuFSD+HkABrhSg86OZFwfRQWcWIPw3gS/QQScWoPNvQaCXxtBB5xWg8zchUAEowEUCdD8njHp1IB10UgH23gcEYe+No4NOKcDAkyKxN0fSQecT4HgMPB6Me3swHXQqAY79sY08HpB8fzgd9HICPL5m28aif+XOvTpYASK8LwDMXwECCAC+PF4BAgiA5q8AuABs/gpACwDnrwCsAOT8rwC8ABuevwKQAnDnfwoQQAC+/hWAFOARIn8FgAQIsPorACdAmPgVgBAgUPwKMF2Ae5C1XwEQATb64E8BQAHue6z//AowWYCIBaAAs2eAUBOgAhC7gFgK0EG3SCxALAXooFukFoD/KwAFgAWIUwJ00C2yCxDku0AFAL8OjrEM0EG3KCBADAPooFtUECCEAXTQLUoIEMEAOugWNQQIYAAddIsiAqA/C1SAAALgu0E66BZVBCAfDaAAEQSgfxxAX36LsAL8518fxz76WJAP/HXwwgJ8fso+LgH1hEAFOFGAFwaeDfYGOgbQQScSYODpkO+QiwAddCoBBh4Q+Qq5CNBBJxNgsATAnQAddDYBuh8S/gZ3HEQHnU+A3seEv8LNgXTQCQUY6gBsDqSDzijAiAHYdwJ00CkFOBZ6XDQddEoBhr5ggCqADjqnAJ1vDX8FmgPpoJMKMDIGMBVAB51VgIFFwBdHZhJgZBHw1bGZBBhYBJAKoIPOK8DAIkBUAB10XgEWqQA66MQCrFEBdNCJBRj4VgioADrozAI89Z8Iz68AOujUAqxQAXTQqQUY+FJoegXQQacWYIUKoIPOLcACFUAHnVuAgQPh2RVAB51cgPgbATro7AKEnwLooLMLEL4C6KDTC9BfAXP/OpAOOr0A0b8RoINOL0D0CqCDzi9A8Aqgg84vQPAKoIMuIEDsCqCDLiBA7Aqgg64gQOgKoIOuIEDoCqCDLiFA5Aqggy4hwMAfCE+rADroGgIErgA66BoCBK4AOugiAsStADroIgLErQA66CoC9FfApKcG0UFXESBsBdBBlxFgoAIUIJMAAxUw5dmBdNB1BAhaAXTQdQQIWgF00IUEiFkBdNCFBIhZAXTQlQQIWQF00JUECFkBdNClBOj/qej1FUAHXUqAiBVAB11LgIAVQAddS4CAFUAHXUyAeBVAB11MgHgVQAddTYBwFUAHXU2AcBVAB11OgGgVQAddToBoFUAHXU+AYBVAB11PgIHHRl1ZAXTQBQWI9fBIOuiCAsSqADpoXIDq0EErAAwdtALA0EErAAwdtALA0EErAAwdtALA0EErAAwdtALA0EErAAwdtALA0EErAAwdtALA0EErAAwdtALA0EErAAwdtALA0EErAAwdtALA0EErAAwdtALA0EErAAwdtALA0EErAAwdtALA0EErAAwdtALA0EErAAwdtALA0EErAAwdtALA0EErAAwdtALA0EErAAwdtALA0EErAAwdtALA0EErAAwdtALA0EErAAwdtALA0EG3OOgbU4T+l1kqQCrCCjDjxdky8uRqBUhFWAGufEK6/E3/+0sUIBVhBZjw4nR5Gnl3gQKkIqwAngTNgY65jQcBMwh7DOA+cA5hd4FuA+YQdhPgFDiHuDOgU+AU6JC/wyHgegKPAA4BMwg8AtxcAyZAR/w9rgFXE3oFcA24ntgrgGvA5dAB/wkr4FqiF4BnQRcT+RToDcfAKwk+Ar5gBVxJ/AKwAq5kgQKwAq5khQKwAq5jiQKwAq5jjQLwLOAqwp8BfELfqaTQsf4cK+AK1ikA58ArWGQCfIe+WwmhI+3DncDZrLID+MAx4FxWGgDecAw4k7UGAA04mxXzv939peBZHKsNAO8G0PctDWvmrwFnsWr+GnAO6+bvHHACi67/nwa4F/gd+9r539wN/o4l93//wTPBcdY7//sKR8FRlq//D1wGRshQ/x+4DPSTo/4/edD3czGSxX9zQ9jF+ps/FfgFOeNXgR+SN/5XBRwHv2dLHf8rmzXQYs83+unAjymT/hv3bfebwg+OvUDzf23Btu37UdWE49j35ztQM3sRERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERERkXX4CxhrO6vHRcSHAAAAAElFTkSuQmCC";
 const APP_MANIFEST = JSON.stringify({
-  name: "Rafex Hesaplama Portalı",
+  name: "Rafex Configurator",
   short_name: "Rafex",
   description: "Raf sistemleri hesaplama ve proje yönetim uygulaması",
   lang: "tr",
@@ -35,33 +35,475 @@ const APP_MANIFEST = JSON.stringify({
     },
   ],
 });
-const SERVICE_WORKER = `const CACHE="rafex-pwa-v4";const SHELL=["/manifest.webmanifest","/app-icon-192.png","/app-icon-512.png","/rafex-logo.png"];self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));self.addEventListener("fetch",event=>{const request=event.request,url=new URL(request.url);if(request.method!=="GET"||url.origin!==location.origin||url.pathname.startsWith("/api/"))return;if(request.mode==="navigate"){event.respondWith(fetch(request,{cache:"no-store"}));return}event.respondWith(fetch(request).then(response=>{if(response.ok)caches.open(CACHE).then(cache=>cache.put(request,response.clone()));return response}).catch(()=>caches.match(request))) });`;
+const SERVICE_WORKER = `const CACHE="rafex-pwa-v5";const SHELL=["/manifest.webmanifest","/app-icon-192.png","/app-icon-512.png","/rafex-logo.png"];self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));self.addEventListener("fetch",event=>{const request=event.request,url=new URL(request.url);if(request.method!=="GET"||url.origin!==location.origin||url.pathname.startsWith("/api/"))return;if(request.mode==="navigate"){event.respondWith(fetch(request,{cache:"no-store"}));return}event.respondWith(fetch(request).then(response=>{if(response.ok)caches.open(CACHE).then(cache=>cache.put(request,response.clone()));return response}).catch(()=>caches.match(request))) });`;
+
+const M2_AYAK2_FRONT_BASE64 = "__M2_AYAK2_FRONT_BASE64__";
+const B2B_TAKIM_BASE64 = "__B2B_TAKIM_BASE64__";
+const B2B_PALET_BASE64 = "__B2B_PALET_BASE64__";
+const B2B_TRAVERS_BASE64 = "__B2B_TRAVERS_BASE64__";
+const B2B_AYAK_BASE64 = "__B2B_AYAK_BASE64__";
+const B2B_VIEWER_BASE64 = "__B2B_VIEWER_BASE64__";
+const DRACO_DECODER_BASE64 = "__DRACO_DECODER_BASE64__";
+const DRACO_WASM_WRAPPER_BASE64 = "__DRACO_WASM_WRAPPER_BASE64__";
+const DRACO_DECODER_WASM_BASE64 = "__DRACO_DECODER_WASM_BASE64__";
 
 const MEKIK2_CSS = String.raw`
-.m2-layout{display:grid;grid-template-columns:340px minmax(0,1fr);gap:18px;margin-top:18px}.m2-controls{align-self:start;position:sticky;top:90px}.m2-kicker{display:inline-flex;align-items:center;gap:7px;padding:6px 9px;border-radius:999px;background:#f2c500;color:#17201b;font-size:9px;font-weight:900;letter-spacing:.12em}.m2-form{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:16px}.m2-form .input-field{margin:0}.m2-note{margin:15px 0 0;padding:12px;border-radius:10px;background:#eef4ef;color:#526158;font-size:11px;line-height:1.55}.m2-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}.m2-metric{padding:12px;border:1px solid var(--line);border-radius:10px;background:#fafbf9}.m2-metric small{display:block;color:var(--muted);font-size:8px;letter-spacing:.08em}.m2-metric b{display:block;margin-top:5px;color:var(--g);font-size:19px}.m2-visuals{display:grid;gap:14px}.m2-view{overflow:hidden;border:1px solid var(--line);border-radius:14px;background:#fff}.m2-view-head{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--line);background:#f8faf8}.m2-view-head h3{margin:0;font-size:14px}.m2-view-head span{color:var(--muted);font-size:9px}.m2-stage{padding:12px;background:linear-gradient(#f8faf8 1px,transparent 1px),linear-gradient(90deg,#f8faf8 1px,transparent 1px);background-size:20px 20px}.m2-stage svg{display:block;width:100%;height:auto;min-height:250px}.m2-frame{fill:none;stroke:#173c2d;stroke-width:4}.m2-rail{stroke:#7f8c84;stroke-width:2}.m2-beam{stroke:#f2c500;stroke-width:5}.m2-pallet{fill:#d6a25d;stroke:#8a5b24;stroke-width:1.5}.m2-load{fill:#214f3b;opacity:.92}.m2-dim{fill:#66736b;font:700 11px Arial}.m2-label{fill:#173c2d;font:800 13px Arial}.m2-arrow{fill:#f2c500}.m2-empty{fill:#fff;stroke:#cbd5ce;stroke-dasharray:5 5}.m2-legend{display:flex;gap:14px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid var(--line);color:var(--muted);font-size:9px}.m2-legend i{display:inline-block;width:10px;height:10px;margin-right:5px;border-radius:2px;vertical-align:-1px}.m2-lane-count{padding:9px 12px;border-radius:9px;background:#173c2d;color:#fff;text-align:center;margin-top:12px}.m2-lane-count small{display:block;color:#b8c8be;font-size:8px}.m2-lane-count b{font-size:26px}@media(max-width:1050px){.m2-layout{grid-template-columns:1fr}.m2-controls{position:static}}@media(max-width:720px){.m2-form,.m2-metrics{grid-template-columns:1fr 1fr}.m2-stage{padding:4px}.m2-stage svg{min-height:210px}}
+.m2-layout{--m2-pallet:#d6a25d;--m2-pallet-edge:#8a5b24;--m2-box:#214f3b;--m2-steel:#858d89;--m2-steel-dark:#4f5753;--m2-steel-light:#b7bdb9;display:grid;grid-template-columns:350px minmax(0,1fr);gap:18px;margin-top:18px}.m2-controls{align-self:start;position:sticky;top:90px}.m2-kicker{display:inline-flex;align-items:center;gap:7px;padding:6px 9px;border-radius:999px;background:#f2c500;color:#17201b;font-size:9px;font-weight:900;letter-spacing:.12em}.m2-form{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:16px}.m2-form .input-field{margin:0}.m2-note{margin:15px 0 0;padding:12px;border-radius:10px;background:#eef4ef;color:#526158;font-size:11px;line-height:1.55}.m2-source{display:block;margin-top:8px;color:#7b8780;font-size:9px;line-height:1.45}.m2-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.m2-metric{padding:12px;border:1px solid var(--line);border-radius:10px;background:#fafbf9}.m2-metric small{display:block;color:var(--muted);font-size:8px;letter-spacing:.08em}.m2-metric b{display:block;margin-top:5px;color:var(--g);font-size:17px}.m2-visuals{display:grid;gap:14px}.m2-view{overflow:hidden;border:1px solid var(--line);border-radius:14px;background:#fff}.m2-view-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line);background:#f8faf8}.m2-view-head h3{margin:0;font-size:14px}.m2-view-head span{color:var(--muted);font-size:9px}.m2-head-actions{display:flex;align-items:center;gap:9px}.m2-print{padding:7px 10px;border:1px solid #cdd7d1;border-radius:8px;background:#fff;color:#173c2d;font-size:9px}.m2-stage{padding:12px;background:linear-gradient(#f8faf8 1px,transparent 1px),linear-gradient(90deg,#f8faf8 1px,transparent 1px);background-size:20px 20px}.m2-stage svg{display:block;width:100%;height:auto;min-height:250px}.m2-side-stage{overflow:auto;background:#fbfcfb}.m2-side-stage svg{min-width:760px;min-height:430px}.m2-frame{fill:none;stroke:#173c2d;stroke-width:4}.m2-rail{stroke:#7f8c84;stroke-width:2}.m2-beam{stroke:#f2c500;stroke-width:5}.m2-pallet{fill:var(--m2-pallet);stroke:var(--m2-pallet-edge);stroke-width:1.5}.m2-load{fill:var(--m2-box);stroke:#173c2d;stroke-width:1;opacity:1}.m2-dim{fill:#66736b;font:700 11px Arial}.m2-label{fill:#173c2d;font:800 13px Arial}.m2-arrow{fill:#f2c500}.m2-empty{fill:#fff;stroke:#cbd5ce;stroke-dasharray:5 5}.m2-legend{display:flex;gap:14px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid var(--line);color:var(--muted);font-size:9px}.m2-legend i{display:inline-block;width:10px;height:10px;margin-right:5px;border-radius:2px;vertical-align:-1px}.m2-lane-count{padding:9px 12px;border-radius:9px;background:#173c2d;color:#fff;text-align:center;margin-top:12px}.m2-lane-count small{display:block;color:#b8c8be;font-size:8px}.m2-lane-count b{font-size:26px}@media(max-width:1050px){.m2-layout{grid-template-columns:1fr}.m2-controls{position:static}}@media(max-width:720px){.m2-form,.m2-metrics{grid-template-columns:1fr 1fr}.m2-stage{padding:4px}.m2-stage svg{min-height:210px}.m2-side-stage svg{min-height:390px}.m2-view-head{align-items:flex-start}.m2-head-actions{flex-direction:column;align-items:flex-end}}
+.m2-view{box-shadow:0 12px 34px rgba(23,60,45,.07)}.m2-stage{padding:18px;background:linear-gradient(rgba(228,235,230,.7) 1px,transparent 1px),linear-gradient(90deg,rgba(228,235,230,.7) 1px,transparent 1px),linear-gradient(180deg,#fbfdfb,#f5f8f6);background-size:24px 24px,24px 24px,auto}.m2-stage svg{min-height:0}.m2-front-stage{overflow:auto;padding:10px}.m2-front-stage svg{min-width:1050px}.m2-side-stage{overflow:hidden;padding:18px;background:linear-gradient(rgba(228,235,230,.55) 1px,transparent 1px),linear-gradient(90deg,rgba(228,235,230,.55) 1px,transparent 1px),#f7faf8;background-size:24px 24px}.m2-side-stage svg{min-width:0;min-height:0;max-height:none}.m2-clearance-key{background:#f2c500}.m2-metric--clearance{border-color:#ead36b;background:#fffbed}.m2-metric--clearance b{color:#7a5f00}.m2-pallet-toggle{padding:7px 11px;border:1px solid #173c2d;border-radius:8px;background:#173c2d;color:#fff;font-size:9px;white-space:nowrap}.m2-pallet-toggle[aria-pressed="false"]{background:#fff;color:#173c2d}@media(max-width:720px){.m2-stage,.m2-side-stage{padding:7px}.m2-front-stage{padding:4px}.m2-front-stage svg{min-width:960px}.m2-side-stage svg{min-width:0;min-height:0}.m2-view-head span{line-height:1.4}}
 `;
 
+// Release marker: pallet height + 80 mm traverse + 300 mm net clearance.
 const MEKIK2_SCRIPT = String.raw`
 function m2Value(id,min,max){var node=$(id),n=node?Number(node.value):min;if(!Number.isFinite(n))n=min;return Math.max(min,Math.min(max,Math.round(n)))}
+var M2_GLB={upright:{file:'AYAK M.glb',section:'HR 100 × 80',frontWidth:100,sideWidth:80,baseFrontWidth:141,baseSideWidth:132,baseHeight:4,originalHeight:6000},brace:{file:'AYAK2.glb',pitch:1050,thickness:40,rise:655},rail:{file:'RAY.glb',originalLength:7350,height:200,frontWidth:122,frontHeight:190,frontBracketHeight:250},traverse:{file:'TRAVERS MEKIKglb.glb',section:'40 × 80 × 2',profileHeight:80,profileDepth:40,profileThickness:2,profileLength:1342,profileInset:54,assemblyInset:12,connectorWidth:42,connectorDepth:63,connectorHeight:240,frontSupportToProfileTop:183,frontSupportToConnectorTop:23},pallet:{file:'PALET.glb',length:1200,palletHeight:166,boxHeight:800,totalHeight:966,frontSupportGap:4}};
+var M2_SHOW_SIDE_PALLETS=true;
+function m2TogglePallets(){M2_SHOW_SIDE_PALLETS=!M2_SHOW_SIDE_PALLETS;drawMekik2()}
 function renderMekik2(){
-  $('page').innerHTML='<section class="hero"><div><p>GÖRSEL DENEME ALANI</p><h2>Mekik 2 — Canlı Raf Çizimi</h2></div><div class="capacity"><small>TOPLAM KAPASİTE</small><b id="m2HeroCap">—</b></div></section><div class="m2-layout"><section class="card m2-controls"><span class="m2-kicker">DENEYSEL · CANLI</span><div class="card-title"><h3>Raf Ölçüleri</h3><span>Anında güncellenir</span></div><div class="m2-form"><label class="input-field">Göz sayısı<input id="m2Bays" type="number" min="1" max="12" value="4"></label><label class="input-field">Kat sayısı<input id="m2Levels" type="number" min="1" max="10" value="4"></label><label class="input-field">Derinlemesine palet<input id="m2Depth" type="number" min="1" max="30" value="8"></label><label class="input-field">Palet genişliği (mm)<input id="m2PalW" type="number" min="600" max="1800" value="1200" step="50"></label><label class="input-field">Palet derinliği (mm)<input id="m2PalD" type="number" min="600" max="1800" value="1000" step="50"></label><label class="input-field">Kat aralığı (mm)<input id="m2LevelH" type="number" min="800" max="3000" value="1700" step="50"></label></div><div class="m2-lane-count"><small>MEKİK KANALI</small><b id="m2Channels">—</b></div><div class="m2-metrics"><div class="m2-metric"><small>PALET</small><b id="m2Cap">—</b></div><div class="m2-metric"><small>GENİŞLİK</small><b id="m2Width">—</b></div><div class="m2-metric"><small>YÜKSEKLİK</small><b id="m2Height">—</b></div></div><p class="m2-note">Bu bölüm görsel yerleşim denemesidir. Ölçüler değiştikçe üst ve ön görünüş birlikte yenilenir; statik hesap veya mühendislik onayı yerine geçmez.</p></section><section class="m2-visuals"><div class="m2-view"><div class="m2-view-head"><h3>Üst Görünüş</h3><span>Palet kanalları ve giriş yönü</span></div><div class="m2-stage" id="m2Top"></div><div class="m2-legend"><span><i style="background:#d6a25d"></i>Palet</span><span><i style="background:#173c2d"></i>Taşıyıcı hat</span><span><i style="background:#f2c500"></i>Giriş yönü</span></div></div><div class="m2-view"><div class="m2-view-head"><h3>Ön Görünüş</h3><span>Göz ve kat dağılımı</span></div><div class="m2-stage" id="m2Front"></div><div class="m2-legend"><span><i style="background:#173c2d"></i>Dikme</span><span><i style="background:#f2c500"></i>Travers / ray</span><span><i style="background:#d6a25d"></i>Palet yükü</span></div></div></section></div>';
+  $('page').innerHTML='<section class="hero"><div><p>AYRI PARÇA ÖLÇÜLERİYLE</p><h2>Mekik — Teknik Görünüşler</h2></div><div class="capacity"><small>TOPLAM KAPASİTE</small><b id="m2HeroCap">—</b></div></section>'+
+    '<div class="m2-layout"><section class="card m2-controls"><span class="m2-kicker">DOĞRULANMIŞ GLB PARÇALARI</span><div class="card-title"><h3>Raf Ölçüleri</h3><span>Anında güncellenir</span></div>'+
+    '<div class="m2-form"><label class="input-field">Göz sayısı<input id="m2Bays" type="number" min="1" max="12" value="4"></label><label class="input-field">Kat sayısı<input id="m2Levels" type="number" min="1" max="15" value="4"></label><label class="input-field">Derinlemesine palet<input id="m2Depth" type="number" min="1" max="30" value="8"></label><label class="input-field">Ayak sayısı<input id="m2Feet" type="number" min="2" max="20" value="8"></label><label class="input-field">Palet genişliği (mm)<input id="m2PalW" type="number" min="600" max="1800" value="1300" step="50"></label><label class="input-field">Palet derinliği (mm)<input id="m2PalD" type="number" min="600" max="1800" value="1000" step="50"></label><label class="input-field">Palet yüksekliği (mm)<input id="m2LevelH" type="number" min="300" max="3000" value="1200" step="50"></label></div>'+
+    '<div class="m2-lane-count"><small>MEKİK KANALI</small><b id="m2Channels">—</b></div><div class="m2-metrics"><div class="m2-metric"><small>PALET</small><b id="m2Cap">—</b></div><div class="m2-metric"><small>TOPLAM AKS GENİŞLİĞİ</small><b id="m2Width">—</b></div><div class="m2-metric"><small>AYAK BOYU</small><b id="m2Height">—</b></div><div class="m2-metric"><small>RAY UZUNLUĞU</small><b id="m2RailLength">—</b></div><div class="m2-metric"><small>PALET YÜKSEKLİĞİ</small><b id="m2LoadHeight">—</b></div><div class="m2-metric m2-metric--clearance"><small>PALET ÜSTÜ BOŞLUK</small><b id="m2Clearance">—</b></div></div>'+
+    '<p class="m2-note">İlk ray kotu <b>430 mm</b>’dir. Kat adımı; girilen <b>palet yüksekliği + 300 mm net boşluk + 80 mm travers</b> olarak hesaplanır. Derinlikte paletler arasındaki standart boşluk <b>50 mm</b>’dir. Ayak boyu en üst paletin orta kotunda biter.</p><small class="m2-source">Parça ölçüleri: AYAK M · AYAK2 · RAY · TRAVERS MEKIK · PALET</small></section>'+
+    '<section class="m2-visuals"><div class="m2-view"><div class="m2-view-head"><h3>Üst Görünüş</h3><span>Palet kanalları ve giriş yönü</span></div><div class="m2-stage" id="m2Top"></div><div class="m2-legend"><span><i style="background:#d6a25d"></i>Palet</span><span><i style="background:#173c2d"></i>Taşıyıcı hat</span><span><i style="background:#f2c500"></i>Giriş yönü</span></div></div>'+
+    '<div class="m2-view"><div class="m2-view-head"><h3>Ön Görünüş</h3><span>GLB ön izdüşümü · okunabilir teknik ölçülendirme</span></div><div class="m2-stage m2-front-stage" id="m2Front"></div><div class="m2-legend"><span><i style="background:#173c2d"></i>Dikme</span><span><i style="background:#737c77"></i>Travers / ray</span><span><i style="background:#d6a25d"></i>Palet</span><span><i style="background:#214f3b"></i>Kutu</span><span><i class="m2-clearance-key"></i>Net boşluk</span></div></div>'+
+    '<div class="m2-view"><div class="m2-view-head"><h3>Yandan Görünüş</h3><div class="m2-head-actions"><span>Geniş kadraj · sayı arttıkça otomatik küçülür</span><button id="m2PalletToggle" class="m2-pallet-toggle" type="button" aria-pressed="true" onclick="m2TogglePallets()">Paletleri Gizle</button><button class="m2-print" type="button" onclick="m2PrintPdf()">PDF / Yazdır</button></div></div><div class="m2-stage m2-side-stage" id="m2Side"></div><div class="m2-legend"><span><i style="background:#858d89"></i>Ayak / diyagonal</span><span><i style="background:#626b67"></i>200 mm ray</span><span><i style="background:#d6a25d"></i>Palet</span><span><i style="background:#d6a25d"></i>Kutu</span><span><i class="m2-clearance-key"></i>300 mm palet üstü boşluk</span></div></div></section></div>';
   $('page').oninput=drawMekik2;$('page').onclick=null;drawMekik2();
 }
+function m2RackData(){
+  var bays=m2Value('m2Bays',1,50),levels=m2Value('m2Levels',1,15),depth=m2Value('m2Depth',1,60),feet=m2Value('m2Feet',2,60),palW=m2Value('m2PalW',600,1800),palD=m2Value('m2PalD',600,1800),palletMeasure=m2Value('m2LevelH',300,3000);
+  var firstRail=m2Value('m2FirstLevelHeight',0,5000),requestedLevelH=m2Value('m2LevelSpacing',380,5000),levelH=Math.max(palletMeasure+M2_GLB.traverse.profileHeight,requestedLevelH),clearance=Math.max(0,levelH-palletMeasure-M2_GLB.traverse.profileHeight),sideClearance=75,bayPitch=palW+sideClearance*2,pitch=palD+50,railLength=(feet-1)*pitch,lastRail=firstRail+(levels-1)*levelH;
+  var loadHeight=palletMeasure,boxHeight=Math.max(0,loadHeight-M2_GLB.pallet.palletHeight);
+  // Ayak boyu ve toplam olcu en ust paletin orta kotunda biter.
+  var frameHeight=lastRail+(palletMeasure/2),visualHeight=Math.max(frameHeight,lastRail+loadHeight);
+  return{bays:bays,levels:levels,depth:depth,feet:feet,palW:palW,palD:palD,palletMeasure:palletMeasure,sideClearance:sideClearance,bayPitch:bayPitch,totalWidth:bays*bayPitch,levelH:levelH,firstRail:firstRail,pitch:pitch,railLength:railLength,lastRail:lastRail,frameHeight:frameHeight,heightFormula:firstRail+' + ('+(levels-1)+' × '+levelH+') + ('+palletMeasure+' / 2)',visualHeight:visualHeight,loadHeight:loadHeight,boxHeight:boxHeight,clearance:clearance,capacity:bays*levels*depth};
+}
+function m2Rod(x1,y1,x2,y2,width,cls){return'<line x1="'+x1.toFixed(2)+'" y1="'+y1.toFixed(2)+'" x2="'+x2.toFixed(2)+'" y2="'+y2.toFixed(2)+'" stroke-width="'+Math.max(1.5,width).toFixed(2)+'" class="'+cls+'" stroke-linecap="round"/>'}
+function m2FrontConnector(x,y,w,h,mirror){
+  var innerX=mirror?x:x+w,outerX=mirror?x+w:x,round=Math.max(1.2,Math.min(4,w*.28));
+  var d=mirror?'M '+x.toFixed(2)+' '+y.toFixed(2)+' H '+(x+w-round).toFixed(2)+' Q '+(x+w).toFixed(2)+' '+y.toFixed(2)+' '+(x+w).toFixed(2)+' '+(y+round).toFixed(2)+' V '+(y+h-round).toFixed(2)+' Q '+(x+w).toFixed(2)+' '+(y+h).toFixed(2)+' '+(x+w-round).toFixed(2)+' '+(y+h).toFixed(2)+' H '+x.toFixed(2)+' Z':'M '+(x+w).toFixed(2)+' '+y.toFixed(2)+' H '+(x+round).toFixed(2)+' Q '+x.toFixed(2)+' '+y.toFixed(2)+' '+x.toFixed(2)+' '+(y+round).toFixed(2)+' V '+(y+h-round).toFixed(2)+' Q '+x.toFixed(2)+' '+(y+h).toFixed(2)+' '+(x+round).toFixed(2)+' '+(y+h).toFixed(2)+' H '+(x+w).toFixed(2)+' Z';
+  var out='<g class="m2-front-traverse-connector" data-glb-part="CC100 42x63x240" data-finish="RAL 1007"><path d="'+d+'" fill="#f2c500" stroke="#8a6f00" stroke-width=".85"/><line x1="'+innerX.toFixed(2)+'" y1="'+(y+1).toFixed(2)+'" x2="'+innerX.toFixed(2)+'" y2="'+(y+h-1).toFixed(2)+'" stroke="#6f5900" stroke-width="1.2"/><line x1="'+outerX.toFixed(2)+'" y1="'+(y+h*.08).toFixed(2)+'" x2="'+outerX.toFixed(2)+'" y2="'+(y+h*.92).toFixed(2)+'" stroke="#fff7b8" stroke-width=".7" opacity=".8"/></g>';
+  return out;
+}
+function m2FrontUpright(ux,postTop,postHeight,postW,ground,footW,footH,index){
+  return '<g class="m2-front-upright m2-front-upright--ayak2-glb" data-upright="'+index+'" data-glb-source="AYAK2.glb" data-projection="front" data-finish="hot-dip-galvanized" filter="url(#m2frontshadow)"><image href="data:image/png;base64,__M2_AYAK2_FRONT_BASE64__" x="'+(ux-footW/2).toFixed(2)+'" y="'+postTop.toFixed(2)+'" width="'+footW.toFixed(2)+'" height="'+postHeight.toFixed(2)+'" preserveAspectRatio="none"/></g>';
+}
+function m2SideSvg(data){
+  var W=1200,H=680,left=146,right=96,top=82,bottom=110;
+  var contentW=Math.max(data.railLength,M2_GLB.pallet.length),contentH=data.visualHeight,availW=W-left-right,availH=H-top-bottom;
+  var scale=Math.min(availW/contentW,availH/contentH,.28)*.86;
+  var railW=data.railLength*scale,drawH=contentH*scale,frameH=data.frameHeight;
+  var xRight=left+(availW+contentW*scale)/2,xRailLeft=xRight-railW,xContentLeft=xRight-contentW*scale,yGround=top+(availH+drawH)/2;
+  function X(mm){return xRight-mm*scale}
+  // Teknik görünüşte sıfır kotu zemindedir; kot arttıkça çizim yukarı gider.
+  function Y(mm){return yGround-mm*scale}
+  var steel=Math.max(2.1,M2_GLB.brace.thickness*scale),postW=Math.max(4.5,M2_GLB.upright.sideWidth*scale);
+  var baseW=Math.max(9,M2_GLB.upright.baseSideWidth*scale),baseH=Math.max(4,M2_GLB.upright.baseHeight*scale);
+  var railH=Math.max(6,M2_GLB.rail.height*scale),joint=Math.max(4,M2_GLB.traverse.profileDepth*scale);
+  var palletW=M2_GLB.pallet.length*scale,palletH=Math.max(5,M2_GLB.pallet.palletHeight*scale),boxH=Math.max(8,data.boxHeight*scale),palletX=X(0)-palletW;
+  // Kutu, paletle ayni yatay olcuyu kullanir; ayri bir ofset uygulanmaz.
+  var boxW=palletW,boxX=palletX,loadContactOverlap=.8;
+  var bracedFrameCount=Math.floor(data.feet/2);
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" role="img" data-last-pallet-mm="'+data.lastRail+'" data-frame-height-mm="'+data.frameHeight+'" data-vertical-direction="ground-bottom-levels-up" data-diagonal-layout="ayak-glb-frames" data-brace-rise-mm="'+M2_GLB.brace.rise+'" data-braced-frames="'+bracedFrameCount+'" aria-label="Zemini altta, katları yukarı sıralanan gerçekçi mekik raf yan görünüşü">';
+  svg+='<defs><linearGradient id="m2sidebg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f2f6f3"/></linearGradient><linearGradient id="m2steel" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4d5551"/><stop offset=".24" stop-color="#aab0ad"/><stop offset=".52" stop-color="#e1e5e2"/><stop offset=".78" stop-color="#8a928e"/><stop offset="1" stop-color="#404844"/></linearGradient><linearGradient id="m2rail" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fa6a2"/><stop offset=".22" stop-color="#69716d"/><stop offset=".68" stop-color="#454d49"/><stop offset="1" stop-color="#858d89"/></linearGradient><linearGradient id="m2wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#efc17e"/><stop offset=".45" stop-color="#d6a25d"/><stop offset="1" stop-color="#a66e31"/></linearGradient><linearGradient id="m2sidebox" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#efc17e"/><stop offset=".55" stop-color="#d6a25d"/><stop offset="1" stop-color="#a66e31"/></linearGradient><pattern id="m2railholes" width="14" height="8" patternUnits="userSpaceOnUse"><circle cx="3" cy="4" r="1.15" fill="#dce2de"/><circle cx="10" cy="4" r="1.15" fill="#dce2de"/></pattern><filter id="m2shadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="3" stdDeviation="2.4" flood-color="#17201b" flood-opacity=".2"/></filter><filter id="m2metalshadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="1.4" stdDeviation="1.2" flood-color="#17201b" flood-opacity=".18"/></filter><marker id="m2sidearrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto-start-reverse"><path d="M0,0 L0,6 L7,3 z" fill="#d5aa00"/></marker></defs>';
+  svg+='<rect x="8" y="8" width="1184" height="664" rx="20" fill="url(#m2sidebg)" stroke="#dfe7e2"/><rect x="24" y="20" width="354" height="34" rx="17" class="m2-side-badge"/><text x="45" y="42" class="m2-side-badge-text">GERÇEK ÖLÇEKLİ MONTAJ · '+data.feet+' AYAK · '+data.levels+' KAT</text><rect x="836" y="20" width="340" height="34" rx="17" class="m2-side-clearance-badge"/><text x="1006" y="42" text-anchor="middle" class="m2-side-clearance-badge-text">PALET ÜSTÜ BOŞLUK · '+fmt(data.clearance)+' mm</text>';
+
+  // Her katın yük bitişi ile sonraki ray başlangıcı arasındaki net boşluk.
+  if(data.levels>1){
+    for(var zone=0;zone<data.levels-1;zone++){
+      var zoneLoadTop=Y(data.firstRail+zone*data.levelH+data.loadHeight),zoneNextRail=Y(data.firstRail+(zone+1)*data.levelH);
+      svg+='<rect x="'+(palletX-6).toFixed(2)+'" y="'+Math.min(zoneLoadTop,zoneNextRail).toFixed(2)+'" width="'+(palletW+12).toFixed(2)+'" height="'+Math.max(1,Math.abs(zoneNextRail-zoneLoadTop)).toFixed(2)+'" rx="3" class="m2-side-clearance-zone"/>';
+    }
+  }
+
+  // AYAK M.glb orgusu katlardan bagimsizdir: diyagonaller modeldeki 655 mm
+  // yukselme adimiyla tabandan tepeye kesintisiz zikzak olarak ilerler.
+  var braceTop=80,braceBottom=Math.max(braceTop,frameH-80);
+  svg+='<g filter="url(#m2metalshadow)">';
+  for(var bay=0;bay<data.feet-1;bay+=2){
+    var xa=X(bay*data.pitch),xb=X((bay+1)*data.pitch);
+    svg+='<g class="m2-side-braced-frame" data-foot-pair="'+(bay+1)+'-'+(bay+2)+'">';
+    svg+=m2Rod(xa,Y(braceTop),xb,Y(braceTop),steel,'m2-side-brace');
+    svg+=m2Rod(xa,Y(braceBottom),xb,Y(braceBottom),steel,'m2-side-brace');
+    for(var braceStart=braceTop,braceIndex=0;braceStart<braceBottom;braceStart+=M2_GLB.brace.rise,braceIndex++){
+      var braceEnd=Math.min(braceBottom,braceStart+M2_GLB.brace.rise);
+      var reverse=((bay/2)+braceIndex)%2===1;
+      svg+=m2Rod(reverse?xb:xa,Y(braceStart),reverse?xa:xb,Y(braceEnd),steel,'m2-side-diagonal');
+    }
+    svg+='</g>';
+  }
+  svg+='</g>';
+
+  // RAY.glb: her kat boyunca tek parça ve son ayakta biten profil.
+  for(var level=0;level<data.levels;level++){
+    var railZ=data.firstRail+level*data.levelH,railY=Y(railZ)-railH/2;
+    svg+='<g class="m2-side-level" data-level="'+(level+1)+'" filter="url(#m2metalshadow)"><rect x="'+xRailLeft.toFixed(2)+'" y="'+railY.toFixed(2)+'" width="'+railW.toFixed(2)+'" height="'+railH.toFixed(2)+'" rx="2" class="m2-side-rail"/><line x1="'+(xRailLeft+2).toFixed(2)+'" y1="'+(railY+1.6).toFixed(2)+'" x2="'+(xRight-2).toFixed(2)+'" y2="'+(railY+1.6).toFixed(2)+'" class="m2-side-rail-highlight"/><rect x="'+(xRailLeft+3).toFixed(2)+'" y="'+(railY+railH*.34).toFixed(2)+'" width="'+Math.max(0,railW-6).toFixed(2)+'" height="'+Math.max(1.8,railH*.36).toFixed(2)+'" fill="url(#m2railholes)"/>';
+    for(var c=0;c<data.feet;c++){
+      var connectorX=X(c*data.pitch),connectorY=Y(railZ);
+      svg+='<rect x="'+(connectorX-joint/2).toFixed(2)+'" y="'+(connectorY-joint/2).toFixed(2)+'" width="'+joint.toFixed(2)+'" height="'+joint.toFixed(2)+'" rx="1" class="m2-side-connector"/><circle cx="'+connectorX.toFixed(2)+'" cy="'+connectorY.toFixed(2)+'" r="'+Math.max(.8,joint*.13).toFixed(2)+'" class="m2-side-bolt"/>';
+    }
+    svg+='</g>';
+  }
+
+  // PALET.glb: yalnız başlangıç ucunda; yük yüksekliği kat aralığına göre güvenli biçimde kısalır.
+  if(M2_SHOW_SIDE_PALLETS)for(var pl=0;pl<data.levels;pl++){
+    // Palet rayın üst yüzeyine oturur; yük paletin üstünde kalır.
+    // Küçük bindirme SVG kenar yumuşatmasından doğan boşluğu önler.
+    var pz=data.firstRail+pl*data.levelH,palletBottomY=Y(pz)-M2_GLB.pallet.frontSupportGap*scale,palletY=palletBottomY-palletH,boxY=palletY-boxH+loadContactOverlap;
+    svg+='<g class="m2-side-start-load" data-level="'+(pl+1)+'" data-load-style="plain-sharp" filter="url(#m2shadow)"><rect x="'+boxX.toFixed(2)+'" y="'+boxY.toFixed(2)+'" width="'+boxW.toFixed(2)+'" height="'+boxH.toFixed(2)+'" rx="0" class="m2-side-load"/><rect x="'+palletX.toFixed(2)+'" y="'+palletY.toFixed(2)+'" width="'+palletW.toFixed(2)+'" height="'+palletH.toFixed(2)+'" rx="0" class="m2-side-pallet"/></g>';
+  }
+
+  // AYAK M.glb: palet/yuk varken de on planda kalir.
+  for(var foot=0;foot<data.feet;foot++){
+    var fx=X(foot*data.pitch),postBottomY=Y(0),postTopY=Y(frameH),postH=frameH*scale;
+    svg+='<g class="m2-side-upright-front" filter="url(#m2metalshadow)"><rect x="'+(fx-postW/2).toFixed(2)+'" y="'+postTopY.toFixed(2)+'" width="'+postW.toFixed(2)+'" height="'+postH.toFixed(2)+'" rx="2" class="m2-side-post"/><line x1="'+(fx-postW*.18).toFixed(2)+'" y1="'+(postTopY+2).toFixed(2)+'" x2="'+(fx-postW*.18).toFixed(2)+'" y2="'+(postBottomY-2).toFixed(2)+'" class="m2-side-post-highlight"/>';
+    var holeStep=Math.max(100,Math.ceil((8/scale)/50)*50),holeR=Math.max(.7,Math.min(1.9,postW*.14));
+    for(var hz=120;hz<frameH-80;hz+=holeStep)svg+='<circle cx="'+fx.toFixed(2)+'" cy="'+Y(hz).toFixed(2)+'" r="'+holeR.toFixed(2)+'" class="m2-side-hole"/>';
+    var baseY=postBottomY-baseH;
+    svg+='<rect x="'+(fx-baseW/2).toFixed(2)+'" y="'+baseY.toFixed(2)+'" width="'+baseW.toFixed(2)+'" height="'+baseH.toFixed(2)+'" rx="2" class="m2-side-foot"/><circle cx="'+(fx-baseW*.28).toFixed(2)+'" cy="'+(baseY+baseH*.48).toFixed(2)+'" r="'+Math.max(.7,baseH*.12).toFixed(2)+'" class="m2-side-foot-bolt"/><circle cx="'+(fx+baseW*.28).toFixed(2)+'" cy="'+(baseY+baseH*.48).toFixed(2)+'" r="'+Math.max(.7,baseH*.12).toFixed(2)+'" class="m2-side-foot-bolt"/></g>';
+  }
+
+  // Ölçü çizgileri: palet üstü boşluk ve en üst palet orta kotu.
+  var floorLeft=Math.min(xRailLeft,palletX)-24,floorRight=xRight+24;
+  svg+='<line x1="'+floorLeft.toFixed(2)+'" y1="'+yGround.toFixed(2)+'" x2="'+floorRight.toFixed(2)+'" y2="'+yGround.toFixed(2)+'" class="m2-side-ground"/><text x="'+floorLeft.toFixed(2)+'" y="'+(yGround-13).toFixed(2)+'" class="m2-side-title">ZEMİN · AYAK TABANLARI ALTTA</text>';
+  var topPalletMidY=Y(data.frameHeight),lastPalletDimX=Math.max(42,xContentLeft-112),lastPalletMid=(yGround+topPalletMidY)/2;
+  svg+='<g class="m2-side-last-pallet-dimension" data-measure-mm="'+data.frameHeight+'"><line x1="'+lastPalletDimX.toFixed(2)+'" y1="'+yGround.toFixed(2)+'" x2="'+lastPalletDimX.toFixed(2)+'" y2="'+topPalletMidY.toFixed(2)+'" class="m2-side-dimension" marker-start="url(#m2sidearrow)" marker-end="url(#m2sidearrow)"/><line x1="'+(lastPalletDimX-5).toFixed(2)+'" y1="'+yGround.toFixed(2)+'" x2="'+(xContentLeft-5).toFixed(2)+'" y2="'+yGround.toFixed(2)+'" class="m2-side-witness"/><line x1="'+(lastPalletDimX-5).toFixed(2)+'" y1="'+topPalletMidY.toFixed(2)+'" x2="'+(xContentLeft-5).toFixed(2)+'" y2="'+topPalletMidY.toFixed(2)+'" class="m2-side-witness"/><text x="'+(lastPalletDimX-9).toFixed(2)+'" y="'+(lastPalletMid-3).toFixed(2)+'" text-anchor="end" class="m2-side-dimtitle">AYAK UZUNLUĞU</text><text x="'+(lastPalletDimX-9).toFixed(2)+'" y="'+(lastPalletMid+12).toFixed(2)+'" text-anchor="end" class="m2-side-dimvalue">'+fmt(data.frameHeight)+' mm</text></g>';
+  if(data.levels>1){
+    var clearY1=Y(data.firstRail+data.loadHeight),clearY2=Y(data.firstRail+data.levelH),clearDimX=Math.min(W-164,xRight+18),clearMid=(clearY1+clearY2)/2;
+    svg+='<line x1="'+clearDimX.toFixed(2)+'" y1="'+clearY1.toFixed(2)+'" x2="'+clearDimX.toFixed(2)+'" y2="'+clearY2.toFixed(2)+'" class="m2-side-clearance-line" marker-start="url(#m2sidearrow)" marker-end="url(#m2sidearrow)"/><rect x="'+(clearDimX+8).toFixed(2)+'" y="'+(clearMid-13).toFixed(2)+'" width="138" height="26" rx="13" class="m2-side-clearance-pill"/><text x="'+(clearDimX+77).toFixed(2)+'" y="'+(clearMid+4).toFixed(2)+'" text-anchor="middle" class="m2-side-clearance-text">'+fmt(data.clearance)+' mm ÜST BOŞLUK</text>';
+  }
+  var labelStep=Math.max(1,Math.ceil(18/Math.max(1,data.levelH*scale)));
+  for(var label=0;label<data.levels;label++){
+    if(label%labelStep!==0&&label!==data.levels-1)continue;
+    var ly=Y(data.firstRail+label*data.levelH);
+    svg+='<line x1="'+(xRailLeft-11).toFixed(2)+'" y1="'+ly.toFixed(2)+'" x2="'+(xRailLeft-3).toFixed(2)+'" y2="'+ly.toFixed(2)+'" class="m2-side-tick"/><text x="'+(xRailLeft-16).toFixed(2)+'" y="'+(ly+4).toFixed(2)+'" text-anchor="end" class="m2-side-dimtext">K'+(label+1)+' · '+fmt(data.firstRail+label*data.levelH)+' mm</text>';
+  }
+  var captionY=Math.min(H-70,yGround+27),lineY=Math.min(H-42,yGround+55),lineTextY=Math.min(H-18,lineY+21);
+  svg+='<text x="'+xRight.toFixed(2)+'" y="'+captionY.toFixed(2)+'" text-anchor="end" class="m2-side-title">BAŞLANGIÇ · PALET/YÜK YALNIZ BU UÇTA</text><line x1="'+xRailLeft.toFixed(2)+'" y1="'+lineY.toFixed(2)+'" x2="'+xRight.toFixed(2)+'" y2="'+lineY.toFixed(2)+'" class="m2-side-dimension" marker-start="url(#m2sidearrow)" marker-end="url(#m2sidearrow)"/><text x="'+((xRailLeft+xRight)/2).toFixed(2)+'" y="'+lineTextY.toFixed(2)+'" text-anchor="middle" class="m2-side-dimtext">'+fmt(data.railLength)+' mm KESİNTİSİZ RAY · '+data.feet+' AYAK · '+data.levels+' KAT</text>';
+  svg+='<style>.m2-side-badge{fill:#173c2d}.m2-side-badge-text{fill:#fff;font:800 12px Arial;letter-spacing:.055em}.m2-side-clearance-badge{fill:#fff4b5;stroke:#d5aa00}.m2-side-clearance-badge-text{fill:#5e4b00;font:800 11px Arial;letter-spacing:.035em}.m2-side-brace{stroke:#626b67}.m2-side-diagonal{stroke:#818a85}.m2-side-rail{fill:url(#m2rail);stroke:#303834;stroke-width:1.15}.m2-side-rail-highlight{stroke:#d9deda;stroke-width:1;opacity:.82}.m2-side-connector{fill:#343c38;stroke:#202622;stroke-width:.6}.m2-side-bolt{fill:#d7ddd9;stroke:#2d3431;stroke-width:.45}.m2-side-post{fill:url(#m2steel);stroke:#414945;stroke-width:1}.m2-side-post-highlight{stroke:#f0f3f1;stroke-width:1;opacity:.76}.m2-side-hole{fill:#26302b;stroke:#eef2ef;stroke-width:.55}.m2-side-foot{fill:url(#m2steel);stroke:#343c38;stroke-width:1}.m2-side-foot-bolt{fill:#27312c;stroke:#dce2de;stroke-width:.45}.m2-side-pallet{fill:url(#m2wood);stroke:#81521f;stroke-width:1.25}.m2-side-load{fill:url(#m2sidebox);stroke:#8a5b24;stroke-width:1.3}.m2-side-ground{stroke:#17201b;stroke-width:2.2}.m2-side-dimension,.m2-side-clearance-line{stroke:#d5aa00;stroke-width:1.8}.m2-side-witness{stroke:#d5aa00;stroke-width:1;stroke-dasharray:3 3;opacity:.75}.m2-side-dimtitle{fill:#173c2d;font:800 9px Arial;letter-spacing:.035em}.m2-side-dimvalue{fill:#6b5600;font:900 12px Arial}.m2-side-tick{stroke:#96a19b;stroke-width:1}.m2-side-title{fill:#173c2d;font:800 11px Arial;letter-spacing:.045em}.m2-side-dimtext{fill:#5f6c64;font:700 10px Arial}.m2-side-clearance-zone{fill:#f2c500;opacity:.13;stroke:#d5aa00;stroke-width:.7;stroke-dasharray:4 3}.m2-side-clearance-pill{fill:#fff9d9;stroke:#d5aa00;stroke-width:1}.m2-side-clearance-text{fill:#5e4b00;font:800 10px Arial}</style></svg>';
+  return svg;
+}
 function drawMekik2(){
-  var bays=m2Value('m2Bays',1,12),levels=m2Value('m2Levels',1,10),depth=m2Value('m2Depth',1,30),palW=m2Value('m2PalW',600,1800),palD=m2Value('m2PalD',600,1800),levelH=m2Value('m2LevelH',800,3000),capacity=bays*levels*depth,shownBays=Math.min(bays,6),shownDepth=Math.min(depth,10),shownLevels=Math.min(levels,6);
-  $('m2HeroCap').textContent=fmt(capacity)+' palet';$('m2Channels').textContent=fmt(bays*levels);$('m2Cap').textContent=fmt(capacity);$('m2Width').textContent=fmt(bays*palW)+' mm';$('m2Height').textContent=fmt(levels*levelH)+' mm';
-  var top='<svg viewBox="0 0 760 380" role="img" aria-label="Mekik raf üst görünüşü"><defs><marker id="m2arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" class="m2-arrow"/></marker></defs><text x="30" y="30" class="m2-label">GİRİŞ / MEKİK YÖNÜ</text><line x1="42" y1="48" x2="125" y2="48" class="m2-beam" marker-end="url(#m2arrow)"/>';
-  var left=70,topY=72,totalW=650,totalH=260,gap=8,laneW=(totalW-gap*(shownBays-1))/shownBays,cellH=totalH/shownDepth;
-  for(var b=0;b<shownBays;b++){var x=left+b*(laneW+gap);top+='<rect x="'+x+'" y="'+topY+'" width="'+laneW+'" height="'+totalH+'" rx="4" class="m2-empty"/><line x1="'+(x+5)+'" y1="'+topY+'" x2="'+(x+5)+'" y2="'+(topY+totalH)+'" class="m2-rail"/><line x1="'+(x+laneW-5)+'" y1="'+topY+'" x2="'+(x+laneW-5)+'" y2="'+(topY+totalH)+'" class="m2-rail"/>';for(var d=0;d<shownDepth;d++){var py=topY+d*cellH+3;top+='<rect x="'+(x+10)+'" y="'+py+'" width="'+(laneW-20)+'" height="'+Math.max(8,cellH-6)+'" rx="2" class="m2-pallet"/>'}top+='<text x="'+(x+laneW/2)+'" y="352" text-anchor="middle" class="m2-dim">Göz '+(b+1)+'</text>'}
-  if(bays>shownBays)top+='<text x="730" y="205" text-anchor="end" class="m2-label">+'+(bays-shownBays)+' göz</text>';if(depth>shownDepth)top+='<text x="380" y="368" text-anchor="middle" class="m2-dim">Çizimde ilk '+shownDepth+' palet gösteriliyor · toplam '+depth+'</text>';top+='</svg>';$('m2Top').innerHTML=top;
-  var front='<svg viewBox="0 0 760 360" role="img" aria-label="Mekik raf ön görünüşü">',fLeft=62,fTop=40,fW=660,fH=270,bayW=fW/shownBays,levelGap=fH/shownLevels;
-  for(var u=0;u<=shownBays;u++){var ux=fLeft+u*bayW;front+='<line x1="'+ux+'" y1="'+fTop+'" x2="'+ux+'" y2="'+(fTop+fH)+'" class="m2-frame"/>'}for(var l=0;l<shownLevels;l++){var y=fTop+fH-l*levelGap;front+='<line x1="'+fLeft+'" y1="'+y+'" x2="'+(fLeft+fW)+'" y2="'+y+'" class="m2-beam"/>';for(var bb=0;bb<shownBays;bb++){var px=fLeft+bb*bayW+bayW*.17,py=y-levelGap*.67;front+='<rect x="'+px+'" y="'+py+'" width="'+(bayW*.66)+'" height="'+(levelGap*.48)+'" rx="3" class="m2-pallet"/><rect x="'+(px+4)+'" y="'+(py+4)+'" width="'+(bayW*.66-8)+'" height="'+Math.max(8,levelGap*.25)+'" rx="2" class="m2-load"/>'}}front+='<line x1="'+fLeft+'" y1="'+fTop+'" x2="'+(fLeft+fW)+'" y2="'+fTop+'" class="m2-beam"/><text x="'+fLeft+'" y="335" class="m2-dim">'+fmt(bays*palW)+' mm toplam genişlik</text><text x="'+(fLeft+fW)+'" y="335" text-anchor="end" class="m2-dim">'+fmt(levels*levelH)+' mm toplam yükseklik</text>';if(levels>shownLevels)front+='<text x="380" y="25" text-anchor="middle" class="m2-label">+'+(levels-shownLevels)+' kat şematik olarak sıkıştırıldı</text>';front+='</svg>';$('m2Front').innerHTML=front;
+  var data=m2RackData(),bays=data.bays,levels=data.levels,depth=data.depth,palW=data.palW;
+  $('m2HeroCap').textContent=fmt(data.capacity)+' palet';$('m2Channels').textContent=fmt(bays*levels);$('m2Cap').textContent=fmt(data.capacity);$('m2Width').textContent=fmt(data.totalWidth)+' mm';$('m2Height').textContent=fmt(data.frameHeight)+' mm';$('m2RailLength').textContent=fmt(data.railLength)+' mm';$('m2LoadHeight').textContent=fmt(data.loadHeight)+' mm';$('m2Clearance').textContent=fmt(data.clearance)+' mm';
+  var palletToggle=$('m2PalletToggle');if(palletToggle){palletToggle.textContent=M2_SHOW_SIDE_PALLETS?'Paletleri Gizle':'Paletleri Göster';palletToggle.setAttribute('aria-pressed',M2_SHOW_SIDE_PALLETS?'true':'false')}
+
+  // Üst görünüş: kullanıcının onayladığı eski teknik pafta düzeni.
+  // Gözler yatay, palet derinliği dikey; AYAK / ARABAĞ bölümleri sağda,
+  // toplam derinlik ve genişlik ölçüleri çizimin dışında gösterilir.
+  var topScale=Math.min(.085,560/data.totalWidth,360/data.railLength),topLeft=238,topY=104;
+  var totalW=data.totalWidth*topScale,totalH=data.railLength*topScale,topBayW=data.bayPitch*topScale,topCellH=totalH/depth;
+  var topProfileW=Math.max(5,Math.min(11,M2_GLB.upright.frontWidth*topScale)),topPalletW=data.palW*topScale,topPalletH=Math.max(8,Math.min(data.palD*topScale,topCellH-8));
+  var topPlan=typeof m2Plan==='function'?m2Plan(data.railLength,false):null,topSequence=[];
+  if(topPlan){
+    for(var tp=0;tp<Math.max(topPlan.feet.length,topPlan.braces.length);tp++){
+      if(topPlan.feet[tp])topSequence.push({type:'foot',length:topPlan.feet[tp]});
+      if(topPlan.braces[tp])topSequence.push({type:'brace',length:topPlan.braces[tp]});
+    }
+  }else{
+    var topFootSections=Math.max(1,Math.ceil(data.feet/2)),topPartCount=topFootSections+Math.max(0,topFootSections-1),topUsed=0;
+    for(var tsi=0;tsi<topPartCount;tsi++){
+      var topPartLength=tsi===topPartCount-1?data.railLength-topUsed:Math.round((data.railLength/topPartCount)/50)*50;
+      topSequence.push({type:tsi%2===0?'foot':'brace',length:topPartLength});topUsed+=topPartLength;
+    }
+  }
+  function topDimLine(x1,y1,x2,y2){return'<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" class="m2-dimension"/><line x1="'+(x1-4)+'" y1="'+y1+'" x2="'+(x1+4)+'" y2="'+y1+'" class="m2-dimension"/><line x1="'+(x2-4)+'" y1="'+y2+'" x2="'+(x2+4)+'" y2="'+y2+'" class="m2-dimension"/>'}
+  function topFootSvg(x,y,w,h){
+    var plateH=Math.max(1.4,Math.min(3,h*.08)),inset=Math.max(.8,w*.22),railW=Math.max(1,w-inset*2),lip=Math.max(.7,w*.18);
+    return'<g class="m2-top-foot" aria-label="Galvaniz ayak profili"><rect x="'+(x+inset).toFixed(2)+'" y="'+y.toFixed(2)+'" width="'+railW.toFixed(2)+'" height="'+h.toFixed(2)+'" rx="1" fill="#d7d9d9" stroke="#59636b" stroke-width=".7"/><line x1="'+(x+w/2).toFixed(2)+'" y1="'+(y+plateH).toFixed(2)+'" x2="'+(x+w/2).toFixed(2)+'" y2="'+(y+h-plateH).toFixed(2)+'" stroke="#8b949a" stroke-width=".55"/><path d="M'+(x+inset).toFixed(2)+' '+(y+plateH).toFixed(2)+'h'+(-lip).toFixed(2)+'M'+(x+inset+railW).toFixed(2)+' '+(y+plateH).toFixed(2)+'h'+lip.toFixed(2)+'M'+(x+inset).toFixed(2)+' '+(y+h-plateH).toFixed(2)+'h'+(-lip).toFixed(2)+'M'+(x+inset+railW).toFixed(2)+' '+(y+h-plateH).toFixed(2)+'h'+lip.toFixed(2)+'" fill="none" stroke="#59636b" stroke-width=".7"/><rect x="'+x.toFixed(2)+'" y="'+y.toFixed(2)+'" width="'+w.toFixed(2)+'" height="'+plateH.toFixed(2)+'" rx=".5" fill="#c8cbcc" stroke="#59636b" stroke-width=".7"/><rect x="'+x.toFixed(2)+'" y="'+(y+h-plateH).toFixed(2)+'" width="'+w.toFixed(2)+'" height="'+plateH.toFixed(2)+'" rx=".5" fill="#c8cbcc" stroke="#59636b" stroke-width=".7"/></g>';
+  }
+  var top='<svg viewBox="0 0 1040 540" role="img" data-top-layout="legacy-technical" aria-label="Eski teknik pafta düzeninde mekik raf üst görünüşü"><text x="520" y="26" text-anchor="middle" class="m2-label" style="font-size:14px">Üst Görünüş</text><text x="520" y="43" text-anchor="middle" class="m2-dim" style="font-size:9px">Derinlik ↓ · Gözler → · Palet '+fmt(data.palW)+' × '+fmt(data.palD)+' mm</text>';
+  top+='<rect x="'+topLeft+'" y="'+topY+'" width="'+totalW.toFixed(2)+'" height="'+totalH.toFixed(2)+'" fill="#fff" stroke="#cbd5df"/>';
+  for(var tr=0;tr<depth;tr++)for(var tb=0;tb<bays;tb++){
+    var tpx=topLeft+tb*topBayW+data.sideClearance*topScale+2,tpy=topY+tr*topCellH+(topCellH-topPalletH)/2,tpw=Math.max(5,topPalletW-4);
+    top+='<g class="m2-pallet-model" data-pallet-row="'+(tr+1)+'" data-load-style="plain-sharp"><rect x="'+(tpx+1.5).toFixed(2)+'" y="'+(tpy+1.5).toFixed(2)+'" width="'+tpw.toFixed(2)+'" height="'+topPalletH.toFixed(2)+'" rx="0" fill="#9b682d" opacity=".22"/><rect x="'+tpx.toFixed(2)+'" y="'+tpy.toFixed(2)+'" width="'+tpw.toFixed(2)+'" height="'+topPalletH.toFixed(2)+'" rx="0" fill="#d7a44f" stroke="#744719" stroke-width="1" class="m2-pallet-surface"/></g>';
+    if(tr===0||tr===depth-1)top+='<text x="'+(tpx+tpw/2).toFixed(2)+'" y="'+(tpy+topPalletH/2).toFixed(2)+'" dy=".35em" text-anchor="middle" class="m2-lane-flow-marker" style="font-size:'+Math.max(17,Math.min(28,topPalletH*.48)).toFixed(2)+'px">⇅</text>';
+  }
+  var topSectionY=topY;
+  for(var ts=0;ts<topSequence.length;ts++){
+    var topPart=topSequence[ts],topSectionH=topPart.length*topScale;
+    if(topPart.type==='foot'){
+      for(var tc=0;tc<=bays;tc++)top+=topFootSvg(topLeft+tc*topBayW-topProfileW/2,topSectionY,topProfileW,topSectionH);
+    }else{
+      for(var tbc=0;tbc<=bays;tbc++){
+        var topBraceX=topLeft+tbc*topBayW;
+        top+='<line x1="'+(topBraceX-1.2).toFixed(2)+'" y1="'+topSectionY.toFixed(2)+'" x2="'+(topBraceX-1.2).toFixed(2)+'" y2="'+(topSectionY+topSectionH).toFixed(2)+'" class="m2-straight-brace"/><line x1="'+(topBraceX+1.2).toFixed(2)+'" y1="'+topSectionY.toFixed(2)+'" x2="'+(topBraceX+1.2).toFixed(2)+'" y2="'+(topSectionY+topSectionH).toFixed(2)+'" class="m2-straight-brace"/>';
+      }
+    }
+    var topLabelSize=Math.max(8,Math.min(11,topSectionH*.38)),topLabelClass=topPart.type==='foot'?'foot':'brace',topLabel=topPart.type==='foot'?'AYAK':'ARABAĞ';
+    if(topPart.type==='brace')top+='<line x1="'+(topLeft+totalW+13).toFixed(2)+'" y1="'+(topSectionY+3).toFixed(2)+'" x2="'+(topLeft+totalW+13).toFixed(2)+'" y2="'+(topSectionY+topSectionH-3).toFixed(2)+'" class="m2-dimension" stroke-dasharray="3 2"/>';
+    top+='<text x="'+(topLeft+totalW+28).toFixed(2)+'" y="'+(topSectionY+topSectionH/2).toFixed(2)+'" class="m2-part-label '+topLabelClass+'" style="font-size:'+topLabelSize.toFixed(2)+'px">'+topLabel+' '+fmt(topPart.length)+' mm</text>';
+    topSectionY+=topSectionH;
+  }
+  var topBottomDimY=topY+totalH+48;
+  top+=topDimLine(86,topY,86,topY+totalH)+'<text x="73" y="'+(topY+totalH/2).toFixed(2)+'" transform="rotate(-90 73 '+(topY+totalH/2).toFixed(2)+')" text-anchor="middle" class="m2-dim" style="font-size:11px">Derinlik: '+fmt(data.railLength)+' mm</text>';
+  top+=topDimLine(topLeft,topBottomDimY,topLeft+totalW,topBottomDimY)+'<text x="'+(topLeft+totalW/2).toFixed(2)+'" y="'+(topBottomDimY+22).toFixed(2)+'" text-anchor="middle" class="m2-dim" style="font-size:11px">'+bays+' göz · toplam genişlik '+fmt(data.totalWidth)+' mm</text></svg>';
+  $('m2Top').innerHTML=top;
+
+  // Ön görünüş: fiziksel ölçüler tek ölçekle çizilir; sayı arttıkça tüm model küçülür.
+  var FW=1260,FH=760,fLeftMargin=250,fRightMargin=230,fTopMargin=130,fBottomMargin=150,fAvailW=FW-fLeftMargin-fRightMargin,fAvailH=FH-fTopMargin-fBottomMargin;
+  var physicalW=data.totalWidth,physicalH=data.visualHeight,fScale=Math.min(fAvailW/physicalW,fAvailH/physicalH,.22)*.94;
+  var fDrawW=physicalW*fScale,fDrawH=physicalH*fScale,fLeft=fLeftMargin+(fAvailW-fDrawW)/2,fGround=fTopMargin+(fAvailH+fDrawH)/2,fBayW=data.bayPitch*fScale;
+  function FY(mm){return fGround-mm*fScale}
+  var fPostW=Math.max(9,M2_GLB.upright.frontWidth*fScale),fRailFrontW=Math.max(5,M2_GLB.rail.frontWidth*fScale),fRailFrontH=Math.max(12,M2_GLB.rail.frontBracketHeight*fScale),fTraverseH=Math.max(4,M2_GLB.traverse.profileHeight*fScale),fConnectorW=Math.max(4,M2_GLB.traverse.connectorWidth*fScale),fConnectorH=Math.max(18,M2_GLB.traverse.connectorHeight*fScale),fPalletH=Math.max(7,M2_GLB.pallet.palletHeight*fScale),fBoxH=Math.max(6,data.boxHeight*fScale),fFootW=Math.max(16,M2_GLB.upright.baseFrontWidth*fScale),fFootH=Math.max(7,M2_GLB.upright.baseHeight*fScale);
+  var front='<svg viewBox="0 0 '+FW+' '+FH+'" role="img" data-glb-parts="AYAK2.glb|RAY.glb|TRAVERS MEKIKglb.glb|PALET.glb" data-front-layout="glb-assembled" data-upright-finish="galvanized" data-upright-style="ayak2-glb-front-projection" data-traverse-finish="yellow" data-pallet-style="side-view-matched" data-level-dimension-labels="plain-unboxed" data-dimension-witness-style="dashed-to-target" aria-label="AYAK2 GLB ayaklarının ön izdüşümünü kullanan gerçek ölçekli mekik raf ön görünüşü"><defs><linearGradient id="m2frontsteel" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#606a6e"/><stop offset=".24" stop-color="#eef1ef"/><stop offset=".52" stop-color="#9da6a4"/><stop offset=".8" stop-color="#f5f6f5"/><stop offset="1" stop-color="#606a6e"/></linearGradient><linearGradient id="m2frontsteelweb" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7d878b"/><stop offset=".18" stop-color="#dfe4e2"/><stop offset=".5" stop-color="#a6afad"/><stop offset=".78" stop-color="#f3f5f4"/><stop offset="1" stop-color="#747e82"/></linearGradient><linearGradient id="m2frontbase" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f1f4f2"/><stop offset=".5" stop-color="#adb6b3"/><stop offset="1" stop-color="#697377"/></linearGradient><linearGradient id="m2frontrail" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#aeb5b1"/><stop offset=".42" stop-color="#626b67"/><stop offset="1" stop-color="#343c38"/></linearGradient><linearGradient id="m2fronttraverse" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff07a"/><stop offset=".45" stop-color="#f2c500"/><stop offset="1" stop-color="#c99700"/></linearGradient><linearGradient id="m2frontwood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#edbd78"/><stop offset=".5" stop-color="#d69c50"/><stop offset="1" stop-color="#a96d2c"/></linearGradient><filter id="m2frontshadow" x="-25%" y="-25%" width="150%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#17201b" flood-opacity=".2"/></filter><marker id="m2frontarrow" markerWidth="5" markerHeight="5" refX="4.5" refY="2.5" orient="auto-start-reverse"><path d="M0,0 L0,5 L5,2.5 z" fill="#d5aa00"/></marker></defs><style>.m2-front-upright-shadow{fill:#4d585c;stroke:#374146;stroke-width:1.1}.m2-front-upright-flanges{fill:url(#m2frontsteel);stroke:#4b5559;stroke-width:.75}.m2-front-upright-web{fill:url(#m2frontsteelweb);stroke:#596368;stroke-width:.55}.m2-front-upright-highlight{stroke:#fff;stroke-width:.75;opacity:.78}.m2-front-upright-slot{fill:#354045;stroke:#f4f6f5;stroke-width:.35}.m2-front-base-top{fill:url(#m2frontbase);stroke:#3c464a;stroke-width:.9}.m2-front-base-face{fill:#707a7e;stroke:#3c464a;stroke-width:.9}.m2-front-anchor-bolt{fill:#303a3f;stroke:#eef1ef;stroke-width:.65}</style><rect x="12" y="10" width="736" height="368" rx="16" fill="#f9fbfa" stroke="#dfe7e2"/><rect x="24" y="20" width="356" height="28" rx="14" fill="#173c2d"/><text x="202" y="39" text-anchor="middle" fill="#fff" font-family="Arial" font-size="10" font-weight="800">GLB MONTAJ DÜZENİ · '+bays+' GÖZ · '+levels+' KAT</text>';
+  front=front.replace('data-front-layout="glb-assembled"','data-front-layout="glb-exact-traverse" data-pallet-width-mm="'+data.palW+'" data-bay-pitch-mm="'+data.bayPitch+'" data-traverse-connector-mm="42x240"').replace('width="736" height="368"','width="1236" height="738"').replace('GLB MONTAJ DÜZENİ','GERÇEK GLB ÖN İZDÜŞÜMÜ');
+  // Galvaniz ayaklar arka taşıyıcı katmandadır. Sarı travers ve bağlantı
+  // braketleri daha sonra çizilerek hem ekranda hem A4 görünüşünde önde kalır.
+  for(var u=0;u<=bays;u++){
+    var ux=fLeft+u*fBayW,postTop=FY(data.frameHeight),postHeight=data.frameHeight*fScale;
+    front+=m2FrontUpright(ux,postTop,postHeight,fPostW,fGround,fFootW,fFootH,u+1);
+  }
+  // RAY.glb önden yalnız 122 x 190 mm uç kesitleriyle görünür. TRAVERS
+  // MEKIKglb.glb ise 80 mm profil ve 42 x 240 mm CC100 bağlantı plakalarıdır.
+  for(var l=0;l<levels;l++){
+    var railZ=data.firstRail+l*data.levelH,supportY=FY(railZ),profileY=supportY+M2_GLB.traverse.frontSupportToProfileTop*fScale,connectorY=supportY+M2_GLB.traverse.frontSupportToConnectorTop*fScale,palletBottomY=supportY-M2_GLB.pallet.frontSupportGap*fScale;
+    front+='<g class="m2-front-level" data-level="'+(l+1)+'" data-mounting="pallet-on-upper-support-traverse-profile-below">';
+    for(var bb=0;bb<bays;bb++){
+      var bayX=fLeft+bb*fBayW,loadW=data.palW*fScale,px=bayX+data.sideClearance*fScale,palletY=palletBottomY-fPalletH,boxY=palletY-fBoxH;
+      var profileX=bayX+M2_GLB.traverse.profileInset*fScale,profileW=fBayW-M2_GLB.traverse.profileInset*2*fScale,leftConnectorX=bayX+M2_GLB.traverse.assemblyInset*fScale,rightConnectorX=bayX+fBayW-(M2_GLB.traverse.assemblyInset+M2_GLB.traverse.connectorWidth)*fScale;
+      var railLeftX=px+loadW*.12,railRightX=px+loadW*.88-fRailFrontW;
+      // Yük arkada; RAL 1007 ray uçları, travers profili ve braketler önde.
+      front+='<g class="m2-front-load" data-pallet-style="side-view-matched" data-load-style="plain-sharp" filter="url(#m2frontshadow)"><rect x="'+px.toFixed(2)+'" y="'+boxY.toFixed(2)+'" width="'+loadW.toFixed(2)+'" height="'+fBoxH.toFixed(2)+'" rx="0" fill="#d7a44f" stroke="#744719" stroke-width="1.3"/><rect x="'+px.toFixed(2)+'" y="'+palletY.toFixed(2)+'" width="'+loadW.toFixed(2)+'" height="'+fPalletH.toFixed(2)+'" rx="0" fill="url(#m2frontwood)" stroke="#7d4d1e" stroke-width="1.25"/></g>';
+      front+='<g class="m2-front-ray-ends" data-support-height-mm="250" data-finish="RAL 1007"><rect x="'+railLeftX.toFixed(2)+'" y="'+supportY.toFixed(2)+'" width="'+fRailFrontW.toFixed(2)+'" height="'+fRailFrontH.toFixed(2)+'" rx="1" fill="url(#m2fronttraverse)" stroke="#8a6f00" stroke-width=".75"/><rect x="'+railRightX.toFixed(2)+'" y="'+supportY.toFixed(2)+'" width="'+fRailFrontW.toFixed(2)+'" height="'+fRailFrontH.toFixed(2)+'" rx="1" fill="url(#m2fronttraverse)" stroke="#8a6f00" stroke-width=".75"/></g>';
+      front+='<g class="m2-front-traverse" data-finish="RAL 1007" data-profile-height-mm="80" data-connector-mm="42x240" data-orientation="connectors-up-profile-below"><rect x="'+profileX.toFixed(2)+'" y="'+profileY.toFixed(2)+'" width="'+profileW.toFixed(2)+'" height="'+fTraverseH.toFixed(2)+'" rx="1" fill="#f2c500" stroke="#8a6f00" stroke-width=".85"/><line x1="'+(profileX+2).toFixed(2)+'" y1="'+(profileY+1).toFixed(2)+'" x2="'+(profileX+profileW-2).toFixed(2)+'" y2="'+(profileY+1).toFixed(2)+'" stroke="#fff7b8" stroke-width=".7" opacity=".9"/>';
+      front+=m2FrontConnector(leftConnectorX,connectorY,fConnectorW,fConnectorH,false)+m2FrontConnector(rightConnectorX,connectorY,fConnectorW,fConnectorH,true)+'</g>';
+    }
+    front+='</g>';
+  }
+  front+='<line x1="'+(fLeft-18).toFixed(2)+'" y1="'+fGround.toFixed(2)+'" x2="'+(fLeft+fDrawW+18).toFixed(2)+'" y2="'+fGround.toFixed(2)+'" stroke="#17201b" stroke-width="2"/>';
+  // Üst yatay ölçüler: palet gerçek genişliği, 75 + 75 mm yan boşluk ve bölüm genişliği.
+  var fFirstPalletX=fLeft+data.sideClearance*fScale,fPalletDrawW=data.palW*fScale,fTopRailY=FY(data.lastRail),fTopLoadY=fTopRailY-M2_GLB.pallet.frontSupportGap*fScale-fPalletH-fBoxH;
+  var fPalletDimY=Math.max(69,fTopLoadY-16),fBayDimY=Math.max(55,fPalletDimY-23),fFirstBayRight=fLeft+fBayW;
+  front+='<g class="m2-front-width-dimensions"><line x1="'+fLeft.toFixed(2)+'" y1="'+fBayDimY.toFixed(2)+'" x2="'+fFirstBayRight.toFixed(2)+'" y2="'+fBayDimY.toFixed(2)+'" stroke="#b57d00" stroke-width="2.2" marker-start="url(#m2frontarrow)" marker-end="url(#m2frontarrow)"/><line x1="'+fLeft.toFixed(2)+'" y1="'+(fBayDimY+2).toFixed(2)+'" x2="'+fLeft.toFixed(2)+'" y2="'+(fTopLoadY-2).toFixed(2)+'" stroke="#b57d00" stroke-width="1.5" stroke-dasharray="3 3"/><line x1="'+fFirstBayRight.toFixed(2)+'" y1="'+(fBayDimY+2).toFixed(2)+'" x2="'+fFirstBayRight.toFixed(2)+'" y2="'+(fTopLoadY-2).toFixed(2)+'" stroke="#b57d00" stroke-width="1.5" stroke-dasharray="3 3"/><rect x="'+((fLeft+fFirstBayRight)/2-110).toFixed(2)+'" y="'+(fBayDimY-12).toFixed(2)+'" width="220" height="24" rx="12" fill="#173c2d"/><text x="'+((fLeft+fFirstBayRight)/2).toFixed(2)+'" y="'+(fBayDimY+4).toFixed(2)+'" text-anchor="middle" fill="#fff" font-family="Arial" font-size="10.5" font-weight="900">KOLON ARALIĞI · '+fmt(data.bayPitch)+' mm</text>';
+  front+='<line x1="'+fFirstPalletX.toFixed(2)+'" y1="'+fPalletDimY.toFixed(2)+'" x2="'+(fFirstPalletX+fPalletDrawW).toFixed(2)+'" y2="'+fPalletDimY.toFixed(2)+'" stroke="#d5aa00" stroke-width="1.6" marker-start="url(#m2frontarrow)" marker-end="url(#m2frontarrow)"/><line x1="'+fFirstPalletX.toFixed(2)+'" y1="'+(fPalletDimY+2).toFixed(2)+'" x2="'+fFirstPalletX.toFixed(2)+'" y2="'+(fTopLoadY-2).toFixed(2)+'" stroke="#d5aa00" stroke-dasharray="3 3"/><line x1="'+(fFirstPalletX+fPalletDrawW).toFixed(2)+'" y1="'+(fPalletDimY+2).toFixed(2)+'" x2="'+(fFirstPalletX+fPalletDrawW).toFixed(2)+'" y2="'+(fTopLoadY-2).toFixed(2)+'" stroke="#d5aa00" stroke-dasharray="3 3"/><rect x="'+((fFirstPalletX*2+fPalletDrawW)/2-57).toFixed(2)+'" y="'+(fPalletDimY-10).toFixed(2)+'" width="114" height="20" rx="10" fill="#fff9d9" stroke="#d5aa00"/><text x="'+(fFirstPalletX+fPalletDrawW/2).toFixed(2)+'" y="'+(fPalletDimY+3.5).toFixed(2)+'" text-anchor="middle" fill="#5e4b00" font-family="Arial" font-size="9" font-weight="900">PALET · '+fmt(data.palW)+' mm</text><rect x="'+((fLeft+fFirstBayRight)/2-64).toFixed(2)+'" y="'+(fBayDimY-33).toFixed(2)+'" width="128" height="20" rx="10" fill="#fff" stroke="#d5aa00"/><text x="'+((fLeft+fFirstBayRight)/2).toFixed(2)+'" y="'+(fBayDimY-19.5).toFixed(2)+'" text-anchor="middle" fill="#5e4b00" font-family="Arial" font-size="8.5" font-weight="900">YAN BOŞLUK · 75 + 75 mm</text></g>';
+
+  // Soldaki teknik zincirde kat adlari ayri etiketler olarak degil, ilgili
+  // dogrudan olcunun basinda gosterilir.
+  var fDimX=Math.max(204,fLeft-42),fDimTextX=fDimX-10,fWitnessEndX=fLeft-3;
+  front+='<text x="'+(fDimX-72).toFixed(2)+'" y="'+(FY(data.lastRail)-24).toFixed(2)+'" text-anchor="middle" fill="#173c2d" font-family="Arial" font-size="12" font-weight="900">KOT ARALIKLARI</text>';
+  front+='<line x1="'+fDimX.toFixed(2)+'" y1="'+fGround.toFixed(2)+'" x2="'+fDimX.toFixed(2)+'" y2="'+FY(data.lastRail).toFixed(2)+'" stroke="#d5aa00" stroke-width="2.2"/>';
+  for(var fl=0;fl<levels;fl++){
+    var fLevelY=FY(data.firstRail+fl*data.levelH),fPreviousLevelY=fl===0?fGround:FY(data.firstRail+(fl-1)*data.levelH),fIntervalMid=(fPreviousLevelY+fLevelY)/2,fIntervalValue=fl===0?data.firstRail:data.levelH,fIntervalLabel=fl===0?'ZEMİN · '+fmt(fIntervalValue)+' mm':'K'+fl+' · '+fmt(fIntervalValue)+' mm';
+    front+='<g class="m2-front-level-interval" data-from="'+(fl===0?'ZEMİN':'K'+fl)+'" data-to="K'+(fl+1)+'" data-measure-mm="'+fIntervalValue+'"><line x1="'+fDimX.toFixed(2)+'" y1="'+fPreviousLevelY.toFixed(2)+'" x2="'+fDimX.toFixed(2)+'" y2="'+fLevelY.toFixed(2)+'" stroke="#d5aa00" stroke-width="1.8" marker-start="url(#m2frontarrow)" marker-end="url(#m2frontarrow)"/><line x1="'+(fDimX+4).toFixed(2)+'" y1="'+fPreviousLevelY.toFixed(2)+'" x2="'+fWitnessEndX.toFixed(2)+'" y2="'+fPreviousLevelY.toFixed(2)+'" class="m2-front-dimension-witness" stroke="#d5aa00" stroke-width="1" stroke-dasharray="3 4"/><line x1="'+(fDimX+4).toFixed(2)+'" y1="'+fLevelY.toFixed(2)+'" x2="'+fWitnessEndX.toFixed(2)+'" y2="'+fLevelY.toFixed(2)+'" class="m2-front-dimension-witness" stroke="#d5aa00" stroke-width="1" stroke-dasharray="3 4"/><text x="'+fDimTextX.toFixed(2)+'" y="'+(fIntervalMid+3.5).toFixed(2)+'" text-anchor="end" fill="#173c2d" font-family="Arial" font-size="9" font-weight="900">'+fIntervalLabel+'</text></g>';
+  }
+  // Sağ dış ölçü, zeminden en üst paletin orta kotuna kadar olan toplamı gösterir.
+  var fOverallY=FY(data.frameHeight),fOverallX=Math.min(FW-134,fLeft+fDrawW+43),fOverallMid=(fGround+fOverallY)/2;
+  front+='<g class="m2-front-overall-dimension" data-measure-mm="'+data.frameHeight+'"><line x1="'+fOverallX.toFixed(2)+'" y1="'+fGround.toFixed(2)+'" x2="'+fOverallX.toFixed(2)+'" y2="'+fOverallY.toFixed(2)+'" stroke="#d5aa00" stroke-width="2.4" marker-start="url(#m2frontarrow)" marker-end="url(#m2frontarrow)"/><line x1="'+(fLeft+fDrawW+5).toFixed(2)+'" y1="'+fGround.toFixed(2)+'" x2="'+(fOverallX-4).toFixed(2)+'" y2="'+fGround.toFixed(2)+'" stroke="#d5aa00" stroke-dasharray="3 3"/><line x1="'+(fLeft+fDrawW+5).toFixed(2)+'" y1="'+fOverallY.toFixed(2)+'" x2="'+(fOverallX-4).toFixed(2)+'" y2="'+fOverallY.toFixed(2)+'" stroke="#d5aa00" stroke-dasharray="3 3"/><rect x="'+(fOverallX+8).toFixed(2)+'" y="'+(fOverallMid-26).toFixed(2)+'" width="128" height="52" rx="8" fill="#173c2d"/><text x="'+(fOverallX+72).toFixed(2)+'" y="'+(fOverallMid-7).toFixed(2)+'" text-anchor="middle" fill="#d8e7de" font-family="Arial" font-size="11" font-weight="900">AYAK UZUNLUĞU</text><text x="'+(fOverallX+72).toFixed(2)+'" y="'+(fOverallMid+14).toFixed(2)+'" text-anchor="middle" fill="#fff" font-family="Arial" font-size="16" font-weight="900">'+fmt(data.frameHeight)+' mm</text></g>';
+  if(levels>1){
+    var fcY1=FY(data.firstRail+data.levelH-M2_GLB.traverse.profileHeight),fcY2=FY(data.firstRail+data.loadHeight),fcX=fLeft+fDrawW+12,fcMid=(fcY1+fcY2)/2;
+    front+='<g class="m2-front-clearance-dimension"><line x1="'+fcX.toFixed(2)+'" y1="'+fcY1.toFixed(2)+'" x2="'+fcX.toFixed(2)+'" y2="'+fcY2.toFixed(2)+'" stroke="#d5aa00" stroke-width="1.5" marker-start="url(#m2frontarrow)" marker-end="url(#m2frontarrow)"/><rect x="'+(fcX-113).toFixed(2)+'" y="'+(fcMid-9).toFixed(2)+'" width="105" height="18" rx="9" fill="#fff9d9" stroke="#d5aa00"/><text x="'+(fcX-60.5).toFixed(2)+'" y="'+(fcMid+3.5).toFixed(2)+'" text-anchor="middle" fill="#5e4b00" font-family="Arial" font-size="8.5" font-weight="900">ÜST BOŞLUK · '+fmt(data.clearance)+' mm</text></g>';
+  }
+  // En sık kullanılan üç ölçüyü çizimin altında formülüyle birlikte tekrar et.
+  var fCardY=FH-70;
+  front+='<g class="m2-front-dimension-summary"><rect x="24" y="'+fCardY+'" width="300" height="52" rx="9" fill="#fff" stroke="#dfe7e2"/><rect x="340" y="'+fCardY+'" width="430" height="52" rx="9" fill="#fff9d9" stroke="#d5aa00"/><rect x="786" y="'+fCardY+'" width="450" height="52" rx="9" fill="#173c2d"/><text x="42" y="'+(fCardY+18)+'" fill="#68736c" font-family="Arial" font-size="11" font-weight="800">İLK KAT YÜKSEKLİĞİ</text><text x="42" y="'+(fCardY+41)+'" fill="#173c2d" font-family="Arial" font-size="19" font-weight="900">'+fmt(data.firstRail)+' mm</text><text x="360" y="'+(fCardY+18)+'" fill="#6b5600" font-family="Arial" font-size="11" font-weight="800">İKİ PALET ARASI DİKEY MESAFE</text><text x="360" y="'+(fCardY+41)+'" fill="#5e4b00" font-family="Arial" font-size="18" font-weight="900">'+fmt(data.levelH)+' mm · net üst boşluk '+fmt(data.clearance)+' mm</text><text x="806" y="'+(fCardY+18)+'" fill="#c7d9ce" font-family="Arial" font-size="11" font-weight="800">TOPLAM: '+fmt(data.firstRail)+' + ('+(levels-1)+' × '+fmt(data.levelH)+') + '+fmt(data.loadHeight/2)+'</text><text x="806" y="'+(fCardY+41)+'" fill="#fff" font-family="Arial" font-size="19" font-weight="900">'+fmt(data.frameHeight)+' mm · AYAK UZUNLUĞU</text></g></svg>';
+  $('m2Front').innerHTML=front;
+  $('m2Side').innerHTML=m2SideSvg(data);
+}
+function m2PrintPdf(){
+  var data=m2RackData(),popup=window.open('','_blank');
+  if(!popup){alert('PDF penceresi açılamadı. Açılır pencereye izin verip tekrar deneyin.');return}
+  var views=[['Üst Görünüş',$('m2Top').innerHTML],['Ön Görünüş',$('m2Front').innerHTML],['Yandan Görünüş',$('m2Side').innerHTML]],content='';
+  for(var i=0;i<views.length;i++)content+='<section><h2>'+views[i][0]+'</h2>'+views[i][1]+'</section>';
+  popup.document.write('<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>Mekik Teknik Görünüş</title><style>@page{size:A4 landscape;margin:9mm}*{box-sizing:border-box}body{margin:0;color:#17201b;font:11px Arial}header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #214f3b;padding-bottom:7px;margin-bottom:7px}h1{font-size:18px;margin:0}header p{margin:3px 0 0;color:#68736c}header b{text-align:right;line-height:1.45}section{break-inside:avoid;border:1px solid #dfe5e0;border-radius:8px;margin:0 0 6px;padding:6px}section h2{font-size:11px;margin:0 0 3px}svg{display:block;width:100%;height:46mm}.m2-pallet{fill:#d6a25d;stroke:#8a5b24}.m2-load{fill:#214f3b;stroke:#173c2d}.m2-frame{stroke:#173c2d;fill:none}.m2-rail{stroke:#7f8c84}.m2-beam{stroke:#f2c500}.m2-empty{fill:#fff;stroke:#cbd5ce}.m2-dim,.m2-label{font-family:Arial}</style></head><body><header><div><h1>Mekik Teknik Görünüş</h1><p>AYAK M · AYAK2 · RAY · TRAVERS MEKIK · PALET</p></div><b>'+data.levels+' kat · ilk kat '+fmt(data.firstRail)+' mm<br>kat arası '+fmt(data.levelH)+' mm · palet yüksekliği '+fmt(data.loadHeight)+' mm</b></header>'+content+'</body></html>');
+  popup.document.close();popup.focus();setTimeout(function(){popup.print()},350);
 }
 `;
 
+function insertBeforeLastScriptClose(htmlSource, scriptSource) {
+  const marker = "</script>";
+  const markerIndex = htmlSource.lastIndexOf(marker);
+  if (markerIndex === -1) return htmlSource;
+  return (
+    htmlSource.slice(0, markerIndex) +
+    scriptSource +
+    htmlSource.slice(markerIndex)
+  );
+}
+
 function addMekik2(htmlSource) {
-  if (htmlSource.includes('data-page="mekik2"')) return htmlSource;
-  return htmlSource
+  // portal.html already owns the complete Mekik 2 experience: the full rack
+  // inputs, free-placement editor and landscape A4 project sheet.  Appending a
+  // second renderer here re-declared renderMekik2/drawMekik2 and silently
+  // replaced that complete page with a reduced technical-view-only screen.
+  // Keep the complete portal implementation authoritative when it is present.
+  if (
+    htmlSource.includes('data-page="mekik2"') &&
+    htmlSource.includes('m2-floor-editor') &&
+    htmlSource.includes('id="m2A4Sheet"') &&
+    htmlSource.includes('id="m2PlanStatus"')
+  ) {
+    // Preserve the complete portal page, but keep the user's approved GLB
+    // dimensioned front view.  Namespace the technical renderer so it cannot
+    // replace the portal's controls, side view, layout editor or A4 report.
+    const frontRenderer = MEKIK2_SCRIPT
+      .replaceAll("renderMekik2", "m2TechnicalRenderMekik2")
+      .replaceAll("drawMekik2", "m2TechnicalDrawMekik2")
+      .replaceAll("$(", "m2TechnicalNode(")
+      .replaceAll("__M2_AYAK2_FRONT_BASE64__", M2_AYAK2_FRONT_BASE64);
+    const frontBridge = String.raw`
+var m2TechnicalNodes=Object.create(null),m2TechnicalFrontCapture=null;
+function m2TechnicalNode(id){
+  if(id==='m2Front')return m2TechnicalFrontCapture||document.getElementById('m2Front')||{innerHTML:''};
+  if(!m2TechnicalNodes[id])m2TechnicalNodes[id]={value:0,textContent:'',innerHTML:'',setAttribute:function(){}};
+  return m2TechnicalNodes[id];
+}
+function m2TechnicalFrontValues(drawing){
+  drawing=drawing||{};
+  M2_GLB.upright.frontWidth=Math.max(70,Math.min(110,Number(drawing.footType)||100));
+  return {
+    m2Bays:Number(drawing.bays)||4,
+    m2Levels:Number(drawing.levels)||4,
+    m2Depth:Number(drawing.depth)||5,
+    m2Feet:Math.max(2,Number(drawing.plan&&drawing.plan.feet&&drawing.plan.feet.length)||2),
+    m2PalW:Number(drawing.palW)||1200,
+    m2PalD:Number(drawing.palD)||800,
+    m2LevelH:Math.max(300,Number(drawing.palletHeight)||(Number(drawing.levelH)||1580)-380),
+    m2FirstLevelHeight:Math.max(0,Number(drawing.firstRailHeight)||430),
+    m2LevelSpacing:Math.max(380,Number(drawing.levelH)||1580)
+  };
+}
+function m2SyncTechnicalFrontInputs(drawing){
+  drawing=drawing||(typeof m2LastDrawing==='undefined'||!m2LastDrawing?{}:m2LastDrawing);
+  var values=m2TechnicalFrontValues(drawing);
+  Object.keys(values).forEach(function(id){m2TechnicalNode(id).value=values[id]});
+}
+var m2TechnicalFrontForReport=false;
+function m2PdfDetailsEnabled(){
+  return Boolean(document.querySelector('.m2PdfPalletDetails:checked')||(document.getElementById('m2ReportFrontDetails')&&document.getElementById('m2ReportFrontDetails').checked));
+}
+function m2TechnicalFrontSvgForDrawing(drawing){
+  var forReport=m2TechnicalFrontForReport;
+  var capture={innerHTML:''},previousCapture=m2TechnicalFrontCapture;
+  m2TechnicalFrontCapture=capture;
+  try{
+    m2SyncTechnicalFrontInputs(drawing);
+    m2TechnicalDrawMekik2();
+    if(!capture.innerHTML)return '';
+    var template=document.createElement('template');
+    template.innerHTML=capture.innerHTML.trim();
+    var svg=template.content.querySelector('svg');
+    if(!svg)return capture.innerHTML;
+    var showComplete=Boolean(document.getElementById('m2ReportCompleteFront')&&document.getElementById('m2ReportCompleteFront').checked);
+    var showDetails=forReport&&m2PdfDetailsEnabled();
+    svg.setAttribute('viewBox',!forReport?'0 0 1260 800':showComplete?'0 0 1260 800':showDetails?'80 20 1120 760':'80 20 1120 700');
+    svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+    svg.setAttribute('data-a4-current-front','true');
+    svg.querySelectorAll('rect[x="12"][y="10"],rect[x="24"][y="20"]').forEach(function(node){node.remove()});
+    svg.querySelectorAll('text').forEach(function(node){if((node.textContent||'').indexOf('GERÇEK GLB ÖN İZDÜŞÜMÜ')!==-1)node.remove()});
+    svg.querySelectorAll('[filter]').forEach(function(node){node.removeAttribute('filter')});
+    svg.querySelectorAll('.m2-front-traverse-detail').forEach(function(node){node.remove()});
+    if(!forReport){
+      svg.querySelectorAll('.m2-front-level-interval text').forEach(function(label){label.setAttribute('font-size','12');label.setAttribute('font-weight','900');label.setAttribute('style','paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round')});
+      svg.querySelectorAll('text').forEach(function(label){var size=Number(label.getAttribute('font-size'));if(size&&size<11)label.setAttribute('font-size','11');if((label.textContent||'').trim()==='KOT ARALIKLARI'){label.setAttribute('font-size','15');label.setAttribute('font-weight','900')}});
+    }
+    if(!showDetails)svg.querySelectorAll('.m2-front-dimension-summary,.m2-front-clearance-dimension').forEach(function(node){node.remove()});
+    var showPalletDetails=m2PdfDetailsEnabled();
+    if(forReport&&!showPalletDetails){
+      var widthGroup=svg.querySelector('.m2-front-width-dimensions');
+      if(widthGroup){
+        Array.from(widthGroup.querySelectorAll('text')).forEach(function(label){
+          var value=(label.textContent||'').trim();
+          if(value.indexOf('PALET ·')===0){
+            var node=label.previousElementSibling;
+            label.remove();
+            for(var count=0;node&&count<4;count++){var previous=node.previousElementSibling;node.remove();node=previous;}
+          }else if(value.indexOf('YAN BOŞLUK ·')===0){
+            var box=label.previousElementSibling;
+            label.remove();
+            if(box)box.remove();
+          }
+        });
+      }
+    }
+    if(forReport){
+      svg.setAttribute('data-pdf-level-intervals','emphasized');
+      svg.setAttribute('data-pdf-colours','pallet-and-bracket-forced');
+      svg.querySelectorAll('.m2-front-load').forEach(function(load){
+        var parts=load.querySelectorAll('rect');
+        if(parts[0])parts[0].setAttribute('style','fill:#d7a44f !important;stroke:#744719 !important');
+        if(parts[1])parts[1].setAttribute('style','fill:#b67835 !important;stroke:#704318 !important');
+      });
+      svg.querySelectorAll('.m2-front-traverse-connector path,.m2-front-ray-ends rect,.m2-front-traverse > rect').forEach(function(part){part.setAttribute('style','fill:#f2c500 !important;stroke:#8a6f00 !important')});
+      svg.querySelectorAll('.m2-front-level-interval line').forEach(function(line){line.setAttribute('stroke','#9a6b00');line.setAttribute('stroke-width','3.2')});
+      svg.querySelectorAll('.m2-front-level-interval text').forEach(function(label){label.setAttribute('fill','#111827');label.setAttribute('font-size','13');label.setAttribute('font-weight','900');label.setAttribute('style','paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round')});
+      svg.querySelectorAll('text').forEach(function(label){if((label.textContent||'').trim()==='KOT ARALIKLARI'){label.setAttribute('fill','#173c2d');label.setAttribute('font-size','15');label.setAttribute('font-weight','900')}});
+    }
+    return svg.outerHTML;
+  }finally{
+    m2TechnicalFrontCapture=previousCapture;
+  }
+}
+function m2TechnicalSideSvgForDrawing(drawing){
+  drawing=drawing||{};
+  var liveMatches=typeof m2LastDrawing!=='undefined'&&m2LastDrawing&&Number(drawing.bays)===Number(m2LastDrawing.bays)&&Number(drawing.levels)===Number(m2LastDrawing.levels)&&Number(drawing.depth)===Number(m2LastDrawing.depth)&&Number(drawing.railLength)===Number(m2LastDrawing.railLength);
+  if(liveMatches){
+    var liveSide=document.querySelector('#m2Side svg');
+    if(liveSide){var liveCopy=liveSide.cloneNode(true);liveCopy.setAttribute('data-a4-current-side','true');liveCopy.setAttribute('preserveAspectRatio','xMidYMid meet');if(!document.querySelector('.m2PdfPalletDetails:checked'))liveCopy.querySelectorAll('.m2-side-spacing-badge,.m2-side-gap-dimension,.m2-side-gap-summary-text').forEach(function(node){node.remove()});return liveCopy.outerHTML;}
+  }
+  var canvasWidth=920,canvasHeight=610,railLength=Math.max(1,Number(drawing.railLength)||4500),sideUprightHeight=Math.max(1,Number(drawing.sideUprightHeight)||Number(drawing.totalRackHeight)||5570),totalRackHeight=Math.max(1,Number(drawing.totalRackHeight)||sideUprightHeight),modelLeft=125,maxProjectionWidth=680,modelTopPadding=96,modelBottomReserve=128,maxProjectionHeight=canvasHeight-modelTopPadding-modelBottomReserve,sideMarginX=Math.max(85,Math.max(70,Math.min(110,Number(drawing.footType)||90))*1.275),sideMarginTop=90,sideMarginBottom=110,contentHeight=Math.max(sideUprightHeight,totalRackHeight),scale=Math.min(maxProjectionWidth/railLength,maxProjectionHeight/contentHeight),w=(railLength+sideMarginX*2)*scale,h=(contentHeight+sideMarginTop+sideMarginBottom)*scale,topLoadY=modelTopPadding+Math.max(0,(maxProjectionHeight-totalRackHeight*scale)/2),x0=modelLeft-sideMarginX*scale,y0=topLoadY-sideMarginTop*scale,modelRight=modelLeft+railLength*scale,modelBottom=topLoadY+contentHeight*scale,dimY=canvasHeight-42,palletHeight=Number(drawing.palletHeight)||1200;
+  var line='<line x1="'+modelLeft+'" y1="'+dimY+'" x2="'+modelRight+'" y2="'+dimY+'" class="m2-side-dimension-line"/><line x1="'+modelLeft+'" y1="'+(dimY-5)+'" x2="'+modelLeft+'" y2="'+(dimY+5)+'" class="m2-side-dimension-tick"/><line x1="'+modelRight+'" y1="'+(dimY-5)+'" x2="'+modelRight+'" y2="'+(dimY+5)+'" class="m2-side-dimension-tick"/>';
+  var fallback='<svg viewBox="0 0 '+canvasWidth+' '+canvasHeight+'" role="img" data-a4-current-side="true" data-side-auto-framing="last-pallet-top-safe" preserveAspectRatio="xMidYMid meet" aria-label="Güncel mekik raf yandan görünüşü"><text x="390" y="25" text-anchor="middle" class="m2-label" style="font-size:14px">Yandan Görünüş</text><g class="m2-side-spacing-badge"><rect x="700" y="14" width="200" height="28" rx="14"/><text x="800" y="32" text-anchor="middle">PALET YÜKSEKLİĞİ · '+fmt(palletHeight)+' mm</text></g><g class="m2-set-projection m2-side-live-projection">'+m2MekikSetProjection('side',drawing,x0,y0,w,h)+'</g>'+line+'<text x="'+((modelLeft+modelRight)/2)+'" y="'+(dimY+15)+'" text-anchor="middle" class="m2-dim" style="font-size:9px;font-weight:900">'+fmt(railLength)+' mm · RAY SON AYAKTA BİTER</text></svg>';
+  if(!document.querySelector('.m2PdfPalletDetails:checked')){var template=document.createElement('template');template.innerHTML=fallback;template.content.querySelectorAll('.m2-side-spacing-badge').forEach(function(node){node.remove()});var cleaned=template.content.querySelector('svg');if(cleaned)return cleaned.outerHTML;}
+  return fallback;
+}
+function m2SharedScaleReportSvg(drawing,mode,showAllFrontBays){
+  drawing=drawing||{};
+  var front=mode==='front',realBays=Math.max(1,Number(drawing.bays)||1),shownBays=front?(showAllFrontBays?realBays:Math.min(4,realBays)):realBays;
+  var palletWidth=Math.max(600,Number(drawing.palW)||1200),realTotalWidth=Math.max(1,Number(drawing.totalWidth)||realBays*(palletWidth+150));
+  var projectedDrawing=front?Object.assign({},drawing,{bays:shownBays}):Object.assign({},drawing,{reportSideProfileMm:40});
+  // The report front must be the exact same technical drawing shown in the
+  // main front view.  Render a second copy with only the visible bay count
+  // changed; every other dimension, profile, level and colour stays intact.
+  // Do not substitute the lighter layout projection, because that produces a
+  // visually different rack even when its numeric inputs match.
+  var projection;
+  if(front){
+    var previousReportMode=m2TechnicalFrontForReport,exactFront='';
+    m2TechnicalFrontForReport=true;
+    try{exactFront=m2TechnicalFrontSvgForDrawing(projectedDrawing)}finally{m2TechnicalFrontForReport=previousReportMode}
+    projection=exactFront?exactFront.replace('<svg ','<svg x="70" y="26" width="1120" height="680" data-report-front-copy="'+(showAllFrontBays?'complete':'representative')+'" '):m2MekikSetProjection('front',projectedDrawing,70,26,1120,680);
+  }else{
+    // The side renderer naturally fills more of its own viewBox than the
+    // technical front renderer.  Use the same top alignment and normalize its
+    // occupied height so an equal rack height has an equal printed height.
+    projection=m2MekikSetProjection('side',projectedDrawing,138,68,984,598);
+  }
+  var primary=front?fmt(realBays)+' BÖLÜMDEN OLUŞUR · TOPLAM ÖLÇÜ '+fmt(realTotalWidth)+' mm':'GERÇEK PROJE · YANDAN GÖRÜNÜŞ · TOPLAM ÖLÇÜ '+fmt(Math.max(1,Number(drawing.railLength)||1))+' mm';
+  var secondary=front?'':(fmt(Math.max(1,Number(drawing.levels)||1))+' KAT · '+fmt(Math.max(1,Number(drawing.depth)||1))+' PALET DERİNLİK');
+  return '<svg viewBox="0 0 1260 820" role="img" preserveAspectRatio="xMidYMid meet" data-report-shared-scale="true" data-report-view="'+mode+'" data-projection-viewport="'+(front?'70 26 1120 680':'138 68 984 598')+'"'+(front?' data-real-bays="'+realBays+'" data-shown-bays="'+shownBays+'" data-real-total-width-mm="'+realTotalWidth+'"':' data-side-diagonal-profile-mm="40" data-side-diagonal-spacing="ayak2-glb-600mm-nodes-1200mm-v-repeat" data-side-diagonal-layer="in-front-of-rails"')+' aria-label="'+(front?fmt(realBays)+' bölümlü rafın ön görünüşü':'Rafın yandan görünüşü')+'"><rect x="8" y="8" width="1244" height="804" rx="18" fill="#fff" stroke="#d9e1dc"/><g class="m2-report-shared-projection">'+projection+'</g><g class="m2-report-actual-summary"><rect x="70" y="728" width="1120" height="68" rx="12" fill="#173c2d"/><text x="630" y="'+(front?'768':'754')+'" text-anchor="middle" fill="#fff" font-family="Arial" font-size="18" font-weight="900">'+primary+'</text>'+(secondary?'<text x="630" y="780" text-anchor="middle" fill="#cfe0d6" font-family="Arial" font-size="13" font-weight="800">'+secondary+'</text>':'')+'</g></svg>';
+}
+var m2CompleteReportElevationSvg=typeof m2ReportElevationSvg==='function'?m2ReportElevationSvg:null;
+if(m2CompleteReportElevationSvg){
+  m2ReportElevationSvg=function(drawing,mode,showAllFrontBays){
+    if(typeof m2ActiveModule!=='undefined'&&m2ActiveModule==='b2b')return m2CompleteReportElevationSvg(drawing,mode);
+    if(mode==='front'||mode==='side')return m2SharedScaleReportSvg(drawing,mode,showAllFrontBays===true);
+    return m2CompleteReportElevationSvg(drawing,mode);
+  };
+}
+var m2CompleteDrawMekik2=drawMekik2;
+var m2DrawingEnhancedFront=false;
+drawMekik2=function(event){
+  if(m2DrawingEnhancedFront)return m2CompleteDrawMekik2(event);
+  m2DrawingEnhancedFront=true;
+  try{
+  m2CompleteDrawMekik2(event);
+  if(typeof m2ActiveModule!=='undefined'&&m2ActiveModule!=='mekik2')return;
+  if(!document.getElementById('m2Front')||typeof m2LastDrawing==='undefined'||!m2LastDrawing)return;
+  var currentFront=m2TechnicalFrontSvgForDrawing(m2LastDrawing);
+  if(currentFront)document.getElementById('m2Front').innerHTML=currentFront;
+  var frontSvg=document.querySelector('#m2Front svg');
+  if(frontSvg)frontSvg.setAttribute('data-preserved-enhanced-front','true');
+  if(typeof m2FitView==='function')requestAnimationFrame(function(){requestAnimationFrame(function(){m2FitView('front',true)})});
+  if(typeof m2ScheduleReportRefresh==='function')m2ScheduleReportRefresh();else if(typeof m2RenderA4Report==='function')m2RenderA4Report();
+  }finally{m2DrawingEnhancedFront=false;}
+};
+`;
+    return insertBeforeLastScriptClose(
+      htmlSource.replace("</style>", MEKIK2_CSS + "</style>"),
+      frontRenderer + frontBridge,
+    );
+  }
+  const htmlWithNavigation = htmlSource
     .replace("</style>", MEKIK2_CSS + "</style>")
     .replace(
       '<button data-page="konsol">',
@@ -74,8 +516,8 @@ function addMekik2(htmlSource) {
     .replace(
       "else if(name==='mekik')renderShuttle();else if(name==='admin'",
       "else if(name==='mekik')renderShuttle();else if(name==='mekik2'){try{renderMekik2()}catch(error){$('page').innerHTML='<section class=\"hero\"><div><p>GÖRSEL DENEME ALANI</p><h2>Mekik 2</h2></div></section><section class=\"card\" style=\"margin-top:18px\"><h3>Görsel yeniden yükleniyor</h3><p>Sayfayı bir kez yenileyin. Sorun devam ederse: '+esc(error&&error.message?error.message:'Bilinmeyen hata')+'</p></section>'}}else if(name==='admin'",
-    )
-    .replace("</script>", MEKIK2_SCRIPT + "</script>");
+    );
+  return insertBeforeLastScriptClose(htmlWithNavigation, MEKIK2_SCRIPT);
 }
 const json = (data, status = 200, extra = {}) =>
   new Response(JSON.stringify(data), {
@@ -93,7 +535,122 @@ const binary = (base64, type) =>
       },
     },
   );
+function b2bExpandedGlb(base64, moduleCount, palletCount) {
+  const source = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+  const sourceView = new DataView(source.buffer, source.byteOffset, source.byteLength);
+  if (sourceView.getUint32(0, true) !== 0x46546c67 || sourceView.getUint32(4, true) !== 2)
+    throw new Error("Geçersiz B2B GLB kaynağı.");
+  const jsonLength = sourceView.getUint32(12, true), jsonStart = 20,
+    jsonEnd = jsonStart + jsonLength,
+    document = JSON.parse(new TextDecoder().decode(source.subarray(jsonStart, jsonEnd)).trim()),
+    binaryChunk = source.subarray(jsonEnd),
+    sourceNodes = Array.isArray(document.nodes) ? document.nodes : [],
+    sceneIndex = Number.isInteger(document.scene) ? document.scene : 0,
+    sourceRoots = [...(document.scenes?.[sceneIndex]?.nodes || [])],
+    expandedNodes = [], expandedRoots = [],
+    clearWidth = palletCount === 4 ? 3600 : 2700,
+    sectionPitch = clearWidth + 120;
+  let originalNodes = sourceNodes, originalRoots = sourceRoots;
+  if (palletCount === 4) {
+    const meshXBounds = (meshIndex) => {
+      const ranges = (document.meshes?.[meshIndex]?.primitives || []).map((primitive) => {
+        const accessor = document.accessors?.[primitive.attributes?.POSITION];
+        return accessor?.min && accessor?.max ? [Number(accessor.min[0]), Number(accessor.max[0])] : null;
+      }).filter(Boolean);
+      return ranges.length
+        ? [Math.min(...ranges.map((range) => range[0])), Math.max(...ranges.map((range) => range[1]))]
+        : [0, 0];
+    };
+    const loadIndexes = new Set(Array.from({ length: 24 }, (_, index) => 80 + index));
+    const spanScale = 3600 / 2692, rightShift = 3600 - 2692, sourceClearLeft = 126.70318603515625;
+    const fourPalletNodes = [];
+    sourceNodes.forEach((sourceNode, index) => {
+      if (loadIndexes.has(index)) return;
+      const node = structuredClone(sourceNode), meshIndex = node.mesh;
+      if (Number.isInteger(meshIndex)) {
+        const [xMin, xMax] = meshXBounds(meshIndex), width = xMax - xMin, center = (xMin + xMax) / 2;
+        if (width > 1000) {
+          node.scale = [spanScale, 1, 1];
+          node.translation = [sourceClearLeft * (1 - spanScale), 0, 0];
+        } else if (center > 1500) {
+          node.translation = [rightShift, 0, 0];
+        }
+      }
+      fourPalletNodes.push(node);
+    });
+    const levelSources = [80, 89, 90, 91, 92, 101, 102, 103];
+    const palletShifts = [9, 889, 1769, 2649];
+    levelSources.forEach((sourceIndex) => {
+      palletShifts.forEach((shift, position) => {
+        const node = structuredClone(sourceNodes[sourceIndex]);
+        node.name = `${node.name || "B2B yük"} 4'lü-${position + 1}`;
+        node.translation = [shift, 0, 0];
+        fourPalletNodes.push(node);
+      });
+    });
+    originalNodes = fourPalletNodes;
+    originalRoots = fourPalletNodes.map((_, index) => index);
+  }
+  for (let moduleIndex = 0; moduleIndex < moduleCount; moduleIndex++) {
+    const nodeOffset = expandedNodes.length;
+    const clones = originalNodes.map((sourceNode) => {
+      const node = structuredClone(sourceNode);
+      if (Array.isArray(node.children)) node.children = node.children.map((child) => child + nodeOffset);
+      return node;
+    });
+    expandedNodes.push(...clones);
+    const parentIndex = expandedNodes.length;
+    expandedNodes.push({
+      name: `B2B section ${moduleIndex + 1}`,
+      translation: [moduleIndex * sectionPitch, 0, 0],
+      children: originalRoots.map((root) => root + nodeOffset),
+    });
+    expandedRoots.push(parentIndex);
+  }
+  document.nodes = expandedNodes;
+  document.scenes[sceneIndex].nodes = expandedRoots;
+  document.extras = {
+    ...(document.extras || {}),
+    rafex: {
+      ...(document.extras?.rafex || {}),
+      moduleCount,
+      palletsPerModule: palletCount,
+      palletsPerLevel: moduleCount * palletCount,
+    },
+  };
+  let jsonBytes = new TextEncoder().encode(JSON.stringify(document));
+  const paddedJsonLength = Math.ceil(jsonBytes.length / 4) * 4;
+  if (paddedJsonLength !== jsonBytes.length) {
+    const padded = new Uint8Array(paddedJsonLength);
+    padded.fill(0x20); padded.set(jsonBytes); jsonBytes = padded;
+  }
+  const totalLength = 12 + 8 + jsonBytes.length + binaryChunk.length,
+    output = new Uint8Array(totalLength), outputView = new DataView(output.buffer);
+  outputView.setUint32(0, 0x46546c67, true);
+  outputView.setUint32(4, 2, true);
+  outputView.setUint32(8, totalLength, true);
+  outputView.setUint32(12, jsonBytes.length, true);
+  outputView.setUint32(16, 0x4e4f534a, true);
+  output.set(jsonBytes, 20);
+  output.set(binaryChunk, 20 + jsonBytes.length);
+  return new Response(output, {
+    headers: {
+      "content-type": "model/gltf-binary",
+      "cache-control": "public, max-age=86400",
+      "x-content-type-options": "nosniff",
+    },
+  });
+}
 const now = () => new Date().toISOString();
+const b2bTypeLetter = (value) => {
+  let number = Math.max(1, Number(value) || 1), label = "";
+  while (number > 0) {
+    number -= 1;
+    label = String.fromCharCode(65 + (number % 26)) + label;
+    number = Math.floor(number / 26);
+  }
+  return label;
+};
 const b64 = (bytes) => btoa(String.fromCharCode(...new Uint8Array(bytes)));
 const unb64 = (text) => Uint8Array.from(atob(text), (c) => c.charCodeAt(0));
 const random = (n = 32) => {
@@ -145,6 +702,9 @@ async function ensureDb(db) {
       "CREATE TABLE IF NOT EXISTS mekik2_rack_types (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, type_no INTEGER NOT NULL, name TEXT NOT NULL, drawing TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(user_id,type_no), FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)",
     ),
     db.prepare(
+      "CREATE TABLE IF NOT EXISTS b2b_rack_types (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, type_no INTEGER NOT NULL, name TEXT NOT NULL, drawing TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(user_id,type_no), FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)",
+    ),
+    db.prepare(
       "CREATE TABLE IF NOT EXISTS app_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)",
     ),
     db.prepare(
@@ -159,10 +719,16 @@ async function ensureDb(db) {
     db.prepare(
       "CREATE INDEX IF NOT EXISTS mekik2_rack_types_user_idx ON mekik2_rack_types(user_id,type_no)",
     ),
+    db.prepare(
+      "CREATE INDEX IF NOT EXISTS b2b_rack_types_user_idx ON b2b_rack_types(user_id,type_no)",
+    ),
   ]);
   const userColumns = await db.prepare("PRAGMA table_info(users)").all();
   if (!userColumns.results.some((column) => column.name === "full_name")) {
     await db.prepare("ALTER TABLE users ADD COLUMN full_name TEXT").run();
+  }
+  if (!userColumns.results.some((column) => column.name === "default_language")) {
+    await db.prepare("ALTER TABLE users ADD COLUMN default_language TEXT NOT NULL DEFAULT 'tr' CHECK(default_language IN ('tr','en','fr'))").run();
   }
   const rackReset = await db.prepare("SELECT value FROM app_settings WHERE key='mekik2_types_reset_v101'").first();
   if (!rackReset) {
@@ -183,7 +749,7 @@ async function currentUser(request, db) {
   if (!token) return null;
   return await db
     .prepare(
-      "SELECT u.id,u.full_name,u.username,u.role,u.active FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.active=1",
+      "SELECT u.id,u.full_name,u.username,u.role,u.active,u.default_language FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.active=1",
     )
     .bind(await sha(token), now())
     .first();
@@ -337,7 +903,8 @@ async function api(request, env, path) {
       username = String(x.username || "")
         .trim()
         .toLowerCase(),
-      password = String(x.password || "");
+      password = String(x.password || ""),
+      defaultLanguage = ['tr','en','fr'].includes(x.defaultLanguage) ? x.defaultLanguage : 'tr';
     if (
       fullName.length < 3 ||
       fullName.length > 80 ||
@@ -355,9 +922,9 @@ async function api(request, env, path) {
       created = now();
     await db
       .prepare(
-        "INSERT INTO users(full_name,username,password_hash,password_salt,role,active,created_at) VALUES(?,?,?,?,?,1,?)",
+        "INSERT INTO users(full_name,username,password_hash,password_salt,role,active,created_at,default_language) VALUES(?,?,?,?,?,1,?,?)",
       )
-      .bind(fullName, username, p.hash, p.salt, "super", created)
+      .bind(fullName, username, p.hash, p.salt, "super", created, defaultLanguage)
       .run();
     return json({ ok: true });
   }
@@ -392,6 +959,7 @@ async function api(request, env, path) {
           full_name: user.full_name,
           username: user.username,
           role: user.role,
+          default_language: user.default_language || 'tr',
         },
       },
       200,
@@ -468,6 +1036,31 @@ async function api(request, env, path) {
     if (!Number(result.meta.changes)) return json({ error: "Raf tipi bulunamadı." }, 404);
     return json({ ok: true });
   }
+  if (path === "/api/b2b-types" && request.method === "DELETE") {
+    const result = await db.prepare("DELETE FROM b2b_rack_types WHERE user_id=?").bind(user.id).run();
+    return json({ ok: true, deleted: Number(result.meta.changes || 0) });
+  }
+  if (path === "/api/b2b-types" && request.method === "GET") {
+    const rows = await db.prepare("SELECT id,type_no,name,drawing,created_at FROM b2b_rack_types WHERE user_id=? ORDER BY type_no").bind(user.id).all();
+    return json({ types: rows.results.map((row) => ({ id:row.id, typeNo:row.type_no, name:b2bTypeLetter(row.type_no), drawing:JSON.parse(row.drawing), createdAt:row.created_at })) });
+  }
+  if (path === "/api/b2b-types" && request.method === "POST") {
+    const x = await body(request), drawing = x.drawing;
+    if (!drawing || !drawing.plan || !Array.isArray(drawing.plan.feet) || !Array.isArray(drawing.plan.braces) || !Number(drawing.totalWidth) || !Number(drawing.railLength))
+      return json({ error: "Kaydedilecek geçerli bir B2B raf hesabı bulunamadı." }, 400);
+    const serialized = JSON.stringify(drawing);
+    if (serialized.length > 250000) return json({ error: "B2B raf tipi kaydı çok büyük." }, 413);
+    const next = await db.prepare("SELECT COALESCE(MAX(type_no),0)+1 AS no FROM b2b_rack_types WHERE user_id=?").bind(user.id).first();
+    const typeNo = Number(next.no), name = b2bTypeLetter(typeNo), createdAt = now();
+    const result = await db.prepare("INSERT INTO b2b_rack_types(user_id,type_no,name,drawing,created_at) VALUES(?,?,?,?,?)").bind(user.id,typeNo,name,serialized,createdAt).run();
+    return json({ id:result.meta.last_row_id, typeNo, name, drawing, createdAt }, 201);
+  }
+  const b2bTypeMatch = path.match(/^\/api\/b2b-types\/(\d+)$/);
+  if (b2bTypeMatch && request.method === "DELETE") {
+    const result = await db.prepare("DELETE FROM b2b_rack_types WHERE id=? AND user_id=?").bind(Number(b2bTypeMatch[1]),user.id).run();
+    if (!Number(result.meta.changes)) return json({ error: "B2B raf tipi bulunamadı." }, 404);
+    return json({ ok:true });
+  }
   if (path === "/api/todos" && request.method === "GET") {
     const rows = await db
       .prepare(
@@ -525,7 +1118,7 @@ async function api(request, env, path) {
     if (user.role !== "super") return json({ error: "Yetkisiz." }, 403);
     const rows = await db
       .prepare(
-        "SELECT id,full_name,username,role,active,created_at FROM users WHERE username NOT LIKE 'deleted_%' ORDER BY id",
+        "SELECT id,full_name,username,role,active,created_at,default_language FROM users WHERE username NOT LIKE 'deleted_%' ORDER BY id",
       )
       .all();
     return json({ users: rows.results });
@@ -537,7 +1130,8 @@ async function api(request, env, path) {
       username = String(x.username || "")
         .trim()
         .toLowerCase(),
-      password = String(x.password || "");
+      password = String(x.password || ""),
+      defaultLanguage = ['tr','en','fr'].includes(x.defaultLanguage) ? x.defaultLanguage : 'tr';
     if (
       fullName.length < 3 ||
       fullName.length > 80 ||
@@ -555,9 +1149,9 @@ async function api(request, env, path) {
     try {
       await db
         .prepare(
-          "INSERT INTO users(full_name,username,password_hash,password_salt,role,active,created_at) VALUES(?,?,?,?,?,1,?)",
+          "INSERT INTO users(full_name,username,password_hash,password_salt,role,active,created_at,default_language) VALUES(?,?,?,?,?,1,?,?)",
         )
-        .bind(fullName, username, p.hash, p.salt, "user", now())
+        .bind(fullName, username, p.hash, p.salt, "user", now(), defaultLanguage)
         .run();
     } catch {
       return json({ error: "Bu kullanıcı adı kullanılıyor." }, 409);
@@ -607,6 +1201,14 @@ async function api(request, env, path) {
       } catch {
         return json({ error: "Bu kullanıcı adı kullanılıyor." }, 409);
       }
+    }
+    if (typeof x.defaultLanguage === "string") {
+      if (!['tr','en','fr'].includes(x.defaultLanguage))
+        return json({ error: "Geçersiz program dili." }, 400);
+      await db
+        .prepare("UPDATE users SET default_language=? WHERE id=?")
+        .bind(x.defaultLanguage, id)
+        .run();
     }
     if (x.password) {
       if (String(x.password).length < 8)
@@ -717,6 +1319,31 @@ export default {
       return binary(APP_ICON_512_BASE64, "image/png");
     if (path === "/rafex-logo.png")
       return binary(RAFEX_LOGO_BASE64, "image/png");
+    if (path === "/b2b-takim.glb")
+      return binary(B2B_TAKIM_BASE64, "model/gltf-binary");
+    if (path === "/b2b-palet.glb")
+      return binary(B2B_PALET_BASE64, "model/gltf-binary");
+    if (path === "/b2b-travers.glb")
+      return binary(B2B_TRAVERS_BASE64, "model/gltf-binary");
+    if (path === "/b2b-ayak.glb")
+      return binary(B2B_AYAK_BASE64, "model/gltf-binary");
+    if (path === "/b2b-viewer.js")
+      return new Response(
+        Uint8Array.from(atob(B2B_VIEWER_BASE64), (c) => c.charCodeAt(0)),
+        {
+          headers: {
+            "content-type": "text/javascript; charset=utf-8",
+            "cache-control": "no-store",
+            "x-content-type-options": "nosniff",
+          },
+        },
+      );
+    if (path === "/draco/draco_decoder.js")
+      return binary(DRACO_DECODER_BASE64, "text/javascript; charset=utf-8");
+    if (path === "/draco/draco_wasm_wrapper.js")
+      return binary(DRACO_WASM_WRAPPER_BASE64, "text/javascript; charset=utf-8");
+    if (path === "/draco/draco_decoder.wasm")
+      return binary(DRACO_DECODER_WASM_BASE64, "application/wasm");
     if (path.startsWith("/api/")) return api(request, env, path);
     if (path !== "/" && path !== "/index.html")
       return new Response("Not found", { status: 404 });
@@ -726,7 +1353,7 @@ export default {
         "cache-control": "no-store",
         "x-content-type-options": "nosniff",
         "content-security-policy":
-          "default-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; frame-ancestors 'none'",
+          "default-src 'self'; style-src 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://ajax.googleapis.com https://www.gstatic.com; img-src 'self' data: blob:; connect-src 'self' blob: https://ajax.googleapis.com https://www.gstatic.com; worker-src 'self' blob:; manifest-src 'self'; frame-ancestors 'none'",
       },
     });
   },
