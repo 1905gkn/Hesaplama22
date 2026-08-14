@@ -16,7 +16,7 @@ const SOURCE_TRAVERSE_X_OFFSET = 79.15549;
 const SOURCE_TRAVERSE_FRONT_OFFSET = 81.59595;
 const SOURCE_TRAVERSE_BACK_OFFSET = 1077.32687;
 const SOURCE_LOAD_BOTTOM = 227.79448;
-const ASSET_VERSION = "b2b-batch-report-508";
+const ASSET_VERSION = "b2b-heterogeneous-modules-510";
 const COLORS = {
   ral5010: 0x005078,
   ral5015: 0x287ab5,
@@ -167,6 +167,7 @@ class B2BViewer {
     const sectionWidth = count === 4 && width === 800 ? 3600 : calculated;
     return {
       moduleCount: clamp(Math.round(Number(next.moduleCount) || 4), 1, 50),
+      moduleOptions: Array.isArray(next.moduleOptions) ? next.moduleOptions.map((item) => ({ ...item })) : null,
       palletCount: count,
       palletWidth: width,
       palletDepth: depth,
@@ -202,43 +203,40 @@ class B2BViewer {
   }
 
   update(next = {}, initial = false) {
-    this.options = this.normalizeOptions({ ...this.options, ...next });
-    if (!this.models) return;
-    while (this.content.children.length) this.content.remove(this.content.children[0]);
-    this.dimensionLabels = [];
-
-    const sectionScale = this.options.sectionWidth / SOURCE_SECTION_WIDTH;
-    const sectionPitch = this.options.sectionWidth + 120;
-    const frameDepth = Math.max(100, this.options.palletDepth - this.options.frontPalletGap - this.options.rearPalletGap);
-    const depthScale = frameDepth / SOURCE_FRAME_DEPTH;
-    const rowCount = this.options.rowType === "double" ? 2 : 1;
-    const targetHeight = Math.max(500, this.uprightHeight());
-    const verticalScale = targetHeight / 5006.16;
-    for (let rowIndex = 0; rowIndex < rowCount; rowIndex += 1) {
-      const row = new THREE.Group();
-      row.name = `B2B ${rowIndex + 1}. sıra`;
-      row.position.y = rowIndex * (frameDepth + this.options.rowGap);
-      for (let moduleIndex = 0; moduleIndex < this.options.moduleCount; moduleIndex += 1) {
-        const section = new THREE.Group();
-        section.name = `B2B Bölüm ${moduleIndex + 1}`;
-        const frame = this.models.module.clone(true);
-        this.stripFrameSupports(frame);
-        frame.scale.set(sectionScale, depthScale, verticalScale);
-        this.applyRackMaterials(frame);
-        section.add(frame);
-        this.addTraverses(section, sectionScale, depthScale);
-        if (this.options.showPallets) this.addLoads(section, sectionScale);
-        section.position.x = moduleIndex * sectionPitch;
-        row.add(section);
-      }
+    this.options=this.normalizeOptions({...this.options,...next});
+    if(!this.models)return;
+    while(this.content.children.length)this.content.remove(this.content.children[0]);
+    this.dimensionLabels=[];
+    const baseOptions=this.options;
+    const moduleSpecs=Array.isArray(baseOptions.moduleOptions)&&baseOptions.moduleOptions.length
+      ? baseOptions.moduleOptions.map((item)=>this.normalizeOptions({...baseOptions,...item,moduleCount:1,moduleOptions:null}))
+      : Array.from({length:baseOptions.moduleCount},()=>baseOptions);
+    const baseFrameDepth=Math.max(100,baseOptions.palletDepth-baseOptions.frontPalletGap-baseOptions.rearPalletGap);
+    const rowCount=baseOptions.rowType==="double"?2:1;
+    const positions=[];let cursor=0,totalRackWidth=0;
+    moduleSpecs.forEach((spec,index)=>{
+      const sectionScale=spec.sectionWidth/SOURCE_SECTION_WIDTH,frameWidth=2942.650634765625*sectionScale;
+      positions.push(cursor);totalRackWidth=cursor+frameWidth;cursor+=spec.sectionWidth+120;
+    });
+    for(let rowIndex=0;rowIndex<rowCount;rowIndex+=1){
+      const row=new THREE.Group();row.name=`B2B ${rowIndex+1}. sıra`;row.position.y=rowIndex*(baseFrameDepth+baseOptions.rowGap);
+      moduleSpecs.forEach((spec,moduleIndex)=>{
+        this.options=spec;
+        const sectionScale=spec.sectionWidth/SOURCE_SECTION_WIDTH;
+        const frameDepth=Math.max(100,spec.palletDepth-spec.frontPalletGap-spec.rearPalletGap),depthScale=frameDepth/SOURCE_FRAME_DEPTH;
+        const targetHeight=Math.max(500,this.uprightHeight()),verticalScale=targetHeight/5006.16;
+        const section=new THREE.Group();section.name=`B2B Değişken Bölüm ${moduleIndex+1}`;
+        const frame=this.models.module.clone(true);this.stripFrameSupports(frame);frame.scale.set(sectionScale,depthScale,verticalScale);this.applyRackMaterials(frame);section.add(frame);
+        this.addTraverses(section,sectionScale,depthScale);if(spec.showPallets)this.addLoads(section,sectionScale);
+        section.position.x=positions[moduleIndex];row.add(section);
+      });
       this.content.add(row);
     }
-    if (rowCount === 2 && this.options.straightTieCount > 0) this.addStraightTies(sectionPitch, frameDepth, sectionScale, targetHeight);
-    this.content.rotation.x = Math.PI / 2;
-    this.addDimensions(sectionPitch);
-    this.content.updateMatrixWorld(true);
-    this.addGround();
-    this.fitCamera(initial ? "perspective" : this.view);
+    this.options=baseOptions;
+    if(rowCount===2&&baseOptions.straightTieCount>0)this.addStraightTies(cursor,baseFrameDepth,baseOptions.sectionWidth/SOURCE_SECTION_WIDTH,Math.max(500,this.uprightHeight()));
+    this.content.rotation.x=Math.PI/2;
+    this.addDimensions(baseOptions.sectionWidth+120,totalRackWidth);
+    this.content.updateMatrixWorld(true);this.addGround();this.fitCamera(initial?"perspective":this.view);
   }
 
   applyRackMaterials(root) {
@@ -421,14 +419,14 @@ class B2BViewer {
     return this.loadBottom(level) + this.palletHeightAt(level) + this.clearanceAt(level);
   }
 
-  addDimensions(sectionPitch) {
+  addDimensions(sectionPitch, rackWidthOverride = null) {
     const layer = new THREE.Group();
     layer.name = "B2B 3D Ölçüler";
     const dimensionGroup = (name) => { const group=new THREE.Group();group.name=name;layer.add(group);return group; };
     const levelsLayer=dimensionGroup("Kat ölçüleri"),markersLayer=dimensionGroup("Kot ölçüleri"),eyeLayer=dimensionGroup("Göz ölçüsü"),widthLayer=dimensionGroup("Genişlik ölçüsü"),depthLayer=dimensionGroup("Derinlik ölçüsü");
     const sectionScale = this.options.sectionWidth / SOURCE_SECTION_WIDTH;
     const frameWidth = 2942.650634765625 * sectionScale;
-    const rackWidth = (this.options.moduleCount - 1) * sectionPitch + frameWidth;
+    const rackWidth = Number(rackWidthOverride) > 0 ? Number(rackWidthOverride) : (this.options.moduleCount - 1) * sectionPitch + frameWidth;
     const rowCount = this.options.rowType === "double" ? 2 : 1;
     const frameDepth = Math.max(100, this.options.palletDepth - this.options.frontPalletGap - this.options.rearPalletGap);
     const rackDepth = rowCount * frameDepth + (rowCount - 1) * this.options.rowGap;

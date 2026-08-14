@@ -1,8 +1,10 @@
 (() => {
-  const VERSION = "front-side-capture-v8";
+  const VERSION = "front-side-capture-v9";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
+  let combinedVariantCache = null;
+  let combinedVariantPending = null;
 
   const number = (value, fallback = 0) => {
     const parsed = Number(value);
@@ -246,13 +248,50 @@
     return true;
   }
 
+  function availableVariantEntries(){
+    if(typeof m2SavedRackTypes==="undefined"||!Array.isArray(m2SavedRackTypes))return [];
+    const entries=m2SavedRackTypes.filter((entry)=>entry?.drawing?.b2bLayout);
+    const countOf=(entry)=>number(entry?.drawing?.b2bLayout?.palletCount??entry?.drawing?.b2b?.palletCount??entry?.drawing?.bays,0);
+    return [4,3,2,1].map((count)=>entries.find((entry)=>countOf(entry)===count)).filter(Boolean);
+  }
+
+  async function captureCombinedVariants(){
+    const enabled=document.getElementById("m2ReportCompleteFront")?.checked===true;
+    const entries=enabled?availableVariantEntries():[];
+    if(entries.length<2){combinedVariantCache=null;return null;}
+    const signature=entries.map((entry)=>stableKey(entry.drawing)).join("|");
+    if(combinedVariantCache?.signature===signature)return combinedVariantCache;
+    if(combinedVariantPending)return combinedVariantPending;
+    combinedVariantPending=(async()=>{
+      const moduleOptions=entries.map((entry)=>viewerOptions(entry.drawing));
+      const base={...moduleOptions[0],moduleCount:moduleOptions.length,moduleOptions,showPallets:true};
+      const capture=window.RafexB2BViewer?.captureViews;
+      if(typeof capture!=="function")throw new Error("Birleşik B2B 3D yakalama servisi hazır değil.");
+      const result=await capture(base,{width:1800,height:900,frontDimensions:{levels:true,markers:true,eye:false,width:true,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"});
+      combinedVariantCache={signature,front:result.front,side:result.side};return combinedVariantCache;
+    })().finally(()=>{combinedVariantPending=null;});
+    return combinedVariantPending;
+  }
+
+  function applyCombinedVariantViews(){
+    if(!combinedVariantCache)return;
+    document.querySelectorAll(".rafex-combined-fronts").forEach((host)=>{
+      host.innerHTML=`<div class="rafex-report-3d-frame rafex-true-combined"><img src="${combinedVariantCache.front}" alt="Birleşik B2B modülleri 3D önden görünüş"></div>`;
+    });
+    document.querySelectorAll(".rafex-combined-side").forEach((host)=>{
+      host.innerHTML=`<b>YAN GÖRÜNÜŞ</b><div class="rafex-report-3d-frame"><img src="${combinedVariantCache.side}" alt="Birleşik B2B modülleri 3D yan görünüş"></div>`;
+    });
+  }
+
   function applyCachedViews() {
     reportCards().forEach(({ card, view }) => replaceCardView(card, view));
+    applyCombinedVariantViews();
   }
 
   async function ensureReportViews() {
     const keys = [...new Set(reportCards().map(({ card }) => cardKey(card)).filter(Boolean))];
     for (const key of keys) await captureDrawing(key);
+    await captureCombinedVariants();
     applyCachedViews();
   }
 
@@ -396,6 +435,8 @@
       .rafex-combined-page .m2-corporate-type-grid { grid-template-rows:minmax(0,1fr) !important; }
       .rafex-combined-type-card { grid-template-columns:9% minmax(0,72%) minmax(0,19%) !important; }
       .rafex-combined-fronts { display:flex; min-width:0; min-height:0; overflow:hidden; background:#fff; }
+      .rafex-combined-fronts .rafex-true-combined { width:100%; height:100%; display:grid; place-items:center; overflow:hidden; background:#fff; }
+      .rafex-combined-fronts .rafex-true-combined img { display:block; width:100%; height:100%; object-fit:contain; }
       .rafex-combined-front { flex:var(--rafex-variant-weight,1) 1 0; border-left:0 !important; min-width:0; overflow:hidden; }
       .rafex-combined-front + .rafex-combined-front { margin-left:-1px; }
       .rafex-combined-front .rafex-report-3d-frame { overflow:hidden; }
