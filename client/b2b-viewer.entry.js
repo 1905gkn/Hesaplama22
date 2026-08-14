@@ -16,7 +16,7 @@ const SOURCE_TRAVERSE_X_OFFSET = 79.15549;
 const SOURCE_TRAVERSE_FRONT_OFFSET = 81.59595;
 const SOURCE_TRAVERSE_BACK_OFFSET = 1077.32687;
 const SOURCE_LOAD_BOTTOM = 227.79448;
-const ASSET_VERSION = "b2b-heterogeneous-modules-510";
+const ASSET_VERSION = "b2b-shared-upright-widths-514";
 const COLORS = {
   ral5010: 0x005078,
   ral5015: 0x287ab5,
@@ -213,10 +213,12 @@ class B2BViewer {
       : Array.from({length:baseOptions.moduleCount},()=>baseOptions);
     const baseFrameDepth=Math.max(100,baseOptions.palletDepth-baseOptions.frontPalletGap-baseOptions.rearPalletGap);
     const rowCount=baseOptions.rowType==="double"?2:1;
-    const positions=[];let cursor=0,totalRackWidth=0;
+    const positions=[],widthSegments=[];let cursor=0,totalRackWidth=0;
+    const sharedUprightWidth=75;
     moduleSpecs.forEach((spec,index)=>{
       const sectionScale=spec.sectionWidth/SOURCE_SECTION_WIDTH,frameWidth=2942.650634765625*sectionScale;
-      positions.push(cursor);totalRackWidth=cursor+frameWidth;cursor+=spec.sectionWidth+120;
+      positions.push(cursor);widthSegments.push({from:cursor,to:cursor+frameWidth,count:spec.palletCount,width:frameWidth});
+      totalRackWidth=cursor+frameWidth;cursor+=frameWidth-sharedUprightWidth;
     });
     for(let rowIndex=0;rowIndex<rowCount;rowIndex+=1){
       const row=new THREE.Group();row.name=`B2B ${rowIndex+1}. sıra`;
@@ -236,7 +238,7 @@ class B2BViewer {
     this.options=baseOptions;
     if(rowCount===2&&baseOptions.straightTieCount>0)this.addStraightTies(cursor,baseFrameDepth,baseOptions.sectionWidth/SOURCE_SECTION_WIDTH,Math.max(500,this.uprightHeight()));
     this.content.rotation.x=Math.PI/2;
-    this.addDimensions(baseOptions.sectionWidth+120,totalRackWidth);
+    this.addDimensions(baseOptions.sectionWidth+120,totalRackWidth,widthSegments);
     this.content.updateMatrixWorld(true);this.addGround();this.fitCamera(initial?"perspective":this.view);
   }
 
@@ -420,7 +422,7 @@ class B2BViewer {
     return this.loadBottom(level) + this.palletHeightAt(level) + this.clearanceAt(level);
   }
 
-  addDimensions(sectionPitch, rackWidthOverride = null) {
+  addDimensions(sectionPitch, rackWidthOverride = null, widthSegments = null) {
     const layer = new THREE.Group();
     layer.name = "B2B 3D Ölçüler";
     const dimensionGroup = (name) => { const group=new THREE.Group();group.name=name;layer.add(group);return group; };
@@ -457,7 +459,11 @@ class B2BViewer {
 
     const eyeStart = SOURCE_CLEAR_LEFT * sectionScale;
     if (this.options.dimensions.eye) this.addHorizontalDimension(eyeLayer, eyeStart, eyeStart + this.options.sectionWidth, rackDepth + 360, 0, `GÖZ  ·  ${this.dimensionValue(this.options.sectionWidth)}`);
-    if (this.options.dimensions.width) this.addHorizontalDimension(widthLayer, 0, rackWidth, rackDepth + 650, 0, `GENİŞLİK  ·  ${this.dimensionValue(rackWidth)}`);
+    if (this.options.dimensions.width) {
+      if (Array.isArray(widthSegments) && widthSegments.length > 1) {
+        widthSegments.forEach((segment) => this.addHorizontalDimension(widthLayer, segment.from, segment.to, rackDepth + 650, 0, `${segment.count}’Lİ MODÜL  ·  ${this.dimensionValue(segment.width)}`, 560));
+      } else this.addHorizontalDimension(widthLayer, 0, rackWidth, rackDepth + 650, 0, `GENİŞLİK  ·  ${this.dimensionValue(rackWidth)}`);
+    }
     if (this.options.dimensions.depth) this.addDepthDimension(depthLayer, rackWidth + 420, 0, rackDepth, 0, `DERİNLİK  ·  ${this.dimensionValue(rackDepth)}`);
     this.content.add(layer);
   }
