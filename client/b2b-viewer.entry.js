@@ -672,6 +672,13 @@ async function captureB2BViews(options = {}, settings = {}) {
 
     const take = (view, dimensions) => {
       viewer.update({ ...options, dimensions }, false);
+      viewer.dimensionLabels.forEach((label) => {
+        const baseScale = label?.userData?.baseScale;
+        if (!baseScale || label.userData.rafexCaptureScaleApplied) return;
+        baseScale.multiplyScalar(1.85);
+        label.scale.copy(baseScale);
+        label.userData.rafexCaptureScaleApplied = true;
+      });
       viewer.setView(view);
       viewer.controls.update();
       viewer.renderer.render(viewer.scene, viewer.camera);

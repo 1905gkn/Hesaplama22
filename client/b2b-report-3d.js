@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v5";
+  const VERSION = "front-side-capture-v6";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -182,7 +182,7 @@
       const result = await capture(viewerOptions(drawing), {
         width: 1200,
         height: 760,
-        frontDimensions: { levels: true, markers: true, eye: true, width: false, depth: true },
+        frontDimensions: { levels: true, markers: true, eye: true, width: true, depth: false },
         sideDimensions: { levels: false, markers: false, eye: false, width: false, depth: true },
         side: "right",
       });
@@ -256,11 +256,37 @@
     applyCachedViews();
   }
 
+  function renderAvailableVariants() {
+    const toggle = document.getElementById("m2ReportCompleteFront");
+    const label = document.getElementById("m2ReportVariantsLabel");
+    if (label) label.textContent = "4–3–2–1 GÖSTER";
+    if (!toggle?.checked || typeof m2SavedRackTypes === "undefined") return;
+    const language = document.getElementById("m2ReportLanguage")?.value || "tr";
+    const labels = typeof m2ReportDictionary === "function" ? m2ReportDictionary(language) : {};
+    const candidates = Array.isArray(m2SavedRackTypes) ? m2SavedRackTypes.filter((entry) => entry?.drawing?.b2bLayout) : [];
+    const countOf = (entry) => number(entry?.drawing?.b2bLayout?.palletCount ?? entry?.drawing?.b2b?.palletCount ?? entry?.drawing?.bays, 0);
+    const variants = [4, 3, 2, 1].map((count) => candidates.find((entry) => countOf(entry) === count)).filter(Boolean);
+    if (!variants.length) return;
+    const makeCards = (view) => variants.map((entry) => {
+      const drawing = entry.drawing;
+      const visual = view === "front" ? m2B2BReportPerspectiveSvg(drawing, labels, false) : m2B2BSideElevationSvg(drawing, labels);
+      const title = typeof esc === "function" ? esc(entry.name || "Raf Tipi") : (entry.name || "Raf Tipi");
+      return `<div class="m2-report-elevation"><b>${title}</b>${visual}</div>`;
+    }).join("");
+    [["m2ReportFronts", "front"], ["m2ReportSides", "side"]].forEach(([id, view]) => {
+      const host = document.getElementById(id);
+      if (!host) return;
+      host.style.setProperty("--m2-report-count", String(variants.length));
+      host.innerHTML = makeCards(view);
+    });
+  }
+
   function installReportHooks() {
     try {
       const originalRender = m2RenderA4Report;
       m2RenderA4Report = function (...args) {
         const result = originalRender.apply(this, args);
+        renderAvailableVariants();
         applyCachedViews();
         queueMicrotask(() => ensureReportViews());
         return result;
@@ -283,21 +309,29 @@
 
     try {
       const originalPrint = m2PrintA4Report;
+      let printInProgress = false;
       m2PrintA4Report = async function (...args) {
+        if (printInProgress) return;
+        printInProgress = true;
+        const releasePrint = () => { printInProgress = false; };
+        const releaseTimer = window.setTimeout(releasePrint, 15000);
+        window.addEventListener("afterprint", () => {
+          window.clearTimeout(releaseTimer);
+          releasePrint();
+        }, { once: true });
         const corporate = document.getElementById("m2ReportType")?.value === "corporate";
         try {
           if (corporate) m2RenderCorporateReport();
           else m2RenderA4Report();
           await ensureReportViews();
-          if (corporate) m2RenderCorporateReport();
-          else m2RenderA4Report();
           applyCachedViews();
+          return originalPrint.apply(this, args);
         } catch (error) {
           console.error("B2B PDF 3D görünüşleri yazdırma öncesi tamamlanamadı", error);
+          window.clearTimeout(releaseTimer);
+          releasePrint();
+          return originalPrint.apply(this, args);
         }
-        const result = originalPrint.apply(this, args);
-        applyCachedViews();
-        return result;
       };
     } catch (error) {
       console.error("B2B PDF yazdırma bağlantısı kurulamadı", error);
@@ -342,6 +376,12 @@
       .m2-corporate-view .rafex-report-3d-frame img,
       #m2CorporatePrint .m2-corporate-view .rafex-report-3d-frame img {
         display:block; width:100%; height:100%; object-fit:contain; object-position:center;
+      }
+      #m2ReportFronts, #m2ReportSides {
+        grid-template-columns:repeat(var(--m2-report-count, 1), minmax(0, 1fr)) !important;
+      }
+      @media print {
+        #m2A4PrintSheet { overflow:hidden !important; contain:layout paint; }
       }
     `;
     document.head.appendChild(style);
