@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v6";
+  const VERSION = "front-side-capture-v7";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -204,8 +204,8 @@
 
   function reportCards() {
     const items = [];
-    document.querySelectorAll("#m2ReportFronts .m2-report-elevation").forEach((card) => items.push({ card, view: "front" }));
-    document.querySelectorAll("#m2ReportSides .m2-report-elevation").forEach((card) => items.push({ card, view: "side" }));
+    document.querySelectorAll("#m2ReportFronts .m2-report-elevation").forEach((card) => items.push({ card, view: card.dataset.rafexCaptureView || "front" }));
+    document.querySelectorAll("#m2ReportSides .m2-report-elevation").forEach((card) => items.push({ card, view: card.dataset.rafexCaptureView || "side" }));
     document.querySelectorAll("#m2CorporatePreview .m2-corporate-view, #m2CorporatePrint .m2-corporate-view").forEach((card) => {
       const view = card.querySelector("svg[data-rafex-capture-view]")?.dataset.rafexCaptureView;
       if (view === "front" || view === "side") items.push({ card, view });
@@ -257,28 +257,25 @@
   }
 
   function renderAvailableVariants() {
-    const toggle = document.getElementById("m2ReportCompleteFront");
-    const label = document.getElementById("m2ReportVariantsLabel");
-    if (label) label.textContent = "4–3–2–1 GÖSTER";
-    if (!toggle?.checked || typeof m2SavedRackTypes === "undefined") return;
-    const language = document.getElementById("m2ReportLanguage")?.value || "tr";
-    const labels = typeof m2ReportDictionary === "function" ? m2ReportDictionary(language) : {};
-    const candidates = Array.isArray(m2SavedRackTypes) ? m2SavedRackTypes.filter((entry) => entry?.drawing?.b2bLayout) : [];
-    const countOf = (entry) => number(entry?.drawing?.b2bLayout?.palletCount ?? entry?.drawing?.b2b?.palletCount ?? entry?.drawing?.bays, 0);
-    const variants = [4, 3, 2, 1].map((count) => candidates.find((entry) => countOf(entry) === count)).filter(Boolean);
-    if (!variants.length) return;
-    const makeCards = (view) => variants.map((entry) => {
-      const drawing = entry.drawing;
-      const visual = view === "front" ? m2B2BReportPerspectiveSvg(drawing, labels, false) : m2B2BSideElevationSvg(drawing, labels);
-      const title = typeof esc === "function" ? esc(entry.name || "Raf Tipi") : (entry.name || "Raf Tipi");
-      return `<div class="m2-report-elevation"><b>${title}</b>${visual}</div>`;
+    const toggle=document.getElementById("m2ReportCompleteFront"),label=document.getElementById("m2ReportVariantsLabel"),sheet=document.getElementById("m2A4Sheet");
+    if(label)label.textContent="4–3–2–1 GÖSTER";
+    const enabled=toggle?.checked===true;
+    sheet?.classList.toggle("rafex-variants-active",enabled);
+    if(!enabled||typeof m2SavedRackTypes==="undefined")return;
+    const language=document.getElementById("m2ReportLanguage")?.value||"tr";
+    const labels=typeof m2ReportDictionary==="function"?m2ReportDictionary(language):{};
+    const candidates=Array.isArray(m2SavedRackTypes)?m2SavedRackTypes.filter((entry)=>entry?.drawing?.b2bLayout):[];
+    const countOf=(entry)=>number(entry?.drawing?.b2bLayout?.palletCount??entry?.drawing?.b2b?.palletCount??entry?.drawing?.bays,0);
+    const variants=[4,3,2,1].map((count)=>candidates.find((entry)=>countOf(entry)===count)).filter(Boolean);
+    if(!variants.length){sheet?.classList.remove("rafex-variants-active");return;}
+    const cards=variants.map((entry)=>{
+      const drawing=entry.drawing,title=typeof esc==="function"?esc(entry.name||"Raf Tipi"):(entry.name||"Raf Tipi");
+      const front=m2B2BReportPerspectiveSvg(drawing,labels,false),side=m2B2BSideElevationSvg(drawing,labels);
+      return `<div class="rafex-variant-pair"><b class="rafex-variant-title">${title}</b><div class="m2-report-elevation" data-rafex-capture-view="front">${front}</div><div class="m2-report-elevation" data-rafex-capture-view="side">${side}</div></div>`;
     }).join("");
-    [["m2ReportFronts", "front"], ["m2ReportSides", "side"]].forEach(([id, view]) => {
-      const host = document.getElementById(id);
-      if (!host) return;
-      host.style.setProperty("--m2-report-count", String(variants.length));
-      host.innerHTML = makeCards(view);
-    });
+    const fronts=document.getElementById("m2ReportFronts"),sides=document.getElementById("m2ReportSides");
+    if(fronts){fronts.style.setProperty("--m2-report-count",String(variants.length));fronts.innerHTML=cards;}
+    if(sides)sides.innerHTML="";
   }
 
   function installReportHooks() {
@@ -380,8 +377,26 @@
       #m2ReportFronts, #m2ReportSides {
         grid-template-columns:repeat(var(--m2-report-count, 1), minmax(0, 1fr)) !important;
       }
+      .m2-corporate-view .rafex-report-3d-frame img,
+      #m2CorporatePrint .m2-corporate-view .rafex-report-3d-frame img {
+        max-width:100%; max-height:100%; padding:6px; box-sizing:border-box;
+      }
+      #m2A4Sheet.rafex-variants-active .m2-a4-floor,
+      #m2A4Sheet.rafex-variants-active .m2-a4-side { display:none !important; }
+      #m2A4Sheet.rafex-variants-active .m2-a4-front {
+        grid-column:1 / -1 !important; grid-row:1 / 4 !important; min-width:0; min-height:0;
+      }
+      #m2A4Sheet.rafex-variants-active #m2ReportFronts {
+        display:grid !important; grid-template-columns:repeat(var(--m2-report-count, 1),minmax(0,1fr)) !important;
+        gap:6px; width:100%; height:100%; align-items:stretch;
+      }
+      .rafex-variant-pair { display:grid; grid-template-rows:auto minmax(0,1.45fr) minmax(0,1fr); gap:4px; min-width:0; min-height:0; background:#fff; border:1px solid #d7e0e6; border-radius:6px; padding:5px; overflow:hidden; }
+      .rafex-variant-title { text-align:center; font-size:10px; color:#073357; }
+      .rafex-variant-pair .m2-report-elevation { min-width:0; min-height:0; height:100%; overflow:hidden; background:#fff; }
       @media print {
         #m2A4PrintSheet { overflow:hidden !important; contain:layout paint; }
+        #m2A4PrintSheet.rafex-variants-active .m2-a4-floor,
+        #m2A4PrintSheet.rafex-variants-active .m2-a4-side { display:none !important; }
       }
     `;
     document.head.appendChild(style);

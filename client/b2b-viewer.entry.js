@@ -16,7 +16,7 @@ const SOURCE_TRAVERSE_X_OFFSET = 79.15549;
 const SOURCE_TRAVERSE_FRONT_OFFSET = 81.59595;
 const SOURCE_TRAVERSE_BACK_OFFSET = 1077.32687;
 const SOURCE_LOAD_BOTTOM = 227.79448;
-const ASSET_VERSION = "b2b-detail-3d-white-506";
+const ASSET_VERSION = "b2b-batch-report-508";
 const COLORS = {
   ral5010: 0x005078,
   ral5015: 0x287ab5,
@@ -541,7 +541,7 @@ class B2BViewer {
     canvas.width = labelWidth * scale; canvas.height = labelHeight * scale;
     const context = canvas.getContext("2d");
     context.scale(scale, scale); context.font = "900 66px Arial";
-    context.fillStyle = "rgba(57,169,232,.99)"; context.beginPath(); context.roundRect(0, 0, labelWidth, labelHeight, 24); context.fill();
+    context.fillStyle = "rgba(4,42,78,.98)"; context.beginPath(); context.roundRect(0, 0, labelWidth, labelHeight, 24); context.fill();
     context.strokeStyle = "#0b6fa9"; context.lineWidth = 5; context.stroke();
     context.fillStyle = "#fff"; context.textAlign = "center"; context.textBaseline = "middle"; context.fillText(text, labelWidth / 2, labelHeight / 2);
     const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace; texture.anisotropy = Math.min(16, this.renderer.capabilities.getMaxAnisotropy());
