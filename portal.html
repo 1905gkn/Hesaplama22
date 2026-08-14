@@ -17,7 +17,7 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/app-icon-192.png" sizes="192x192" />
     <link rel="apple-touch-icon" href="/app-icon-192.png" />
-    <script defer src="/b2b-viewer.js?v=b2b-custom-tunnel-ties-366"></script>
+    <script defer src="/b2b-viewer.js?v=b2b-double-row-side-ties-367"></script>
     <title>Rafex Configurator</title>
     <style>
       :root {
@@ -4064,16 +4064,35 @@
         return `<svg viewBox="0 0 200 112" role="img" aria-label="${front ? "Önden" : "Yandan"} görünüş"><rect width="200" height="112" fill="#fff"/><text x="100" y="7" text-anchor="middle" font-size="5.5" font-family="Arial" font-weight="700" fill="#64748b">${note}</text><g class="m2-set-projection">${m2MekikSetProjection(front ? "front" : "side", drawing, 0, 9, 200, 94)}</g><text x="100" y="109" text-anchor="middle" font-size="6" font-family="Arial" font-weight="700" fill="#26313b">${fmt(front ? drawing.totalWidth : drawing.railLength)} mm</text></svg>`;
       }
       function m2B2BReportPerspectiveSvg(drawing, labels=m2ReportDictionary("tr"), showVariants=false) {
-        const layout=drawing.b2bLayout||{},selected=Math.max(1,Math.min(4,Math.round(Number(layout.palletCount)||1))),counts=showVariants?Array.from({length:selected},(_,index)=>selected-index):[selected],panelW=250,totalW=panelW*counts.length,levels=Math.max(1,Math.round(Number(drawing.levels)||1)),rowCount=Math.max(1,Number(layout.rowCount)||1),ground=(drawing.b2b?.firstPalletPosition||drawing.footLoadStart||"ground")==="ground",frameDepth=Math.max(1,Number(layout.frameDepth)||1100),uprightHeight=Math.max(1,Number(drawing.sideUprightHeight)||Number(drawing.totalRackHeight)||Number(drawing.footLy)||5000),topPallet=Math.max(uprightHeight,Number(drawing.totalRackHeight)||uprightHeight),blue="#1378db",cyan="#55b5da",upright="#006391",beam="#e0c600",pallet="#d8a44d",wood="#a96928";
+        const layout=drawing.b2bLayout||{},selected=Math.max(1,Math.min(4,Math.round(Number(layout.palletCount)||1))),counts=showVariants?Array.from({length:selected},(_,index)=>selected-index):[selected],panelW=250,totalW=panelW*counts.length,levels=Math.max(1,Math.round(Number(drawing.levels)||1)),rowCount=Math.max(1,Number(layout.rowCount)||1),ground=(drawing.b2b?.firstPalletPosition||drawing.footLoadStart||"ground")==="ground",frameDepth=Math.max(1,Number(layout.frameDepth)||1100),uprightHeight=Math.max(1,Number(drawing.sideUprightHeight)||Number(drawing.totalRackHeight)||Number(drawing.footLy)||5000),topPallet=Math.max(uprightHeight,Number(drawing.totalRackHeight)||uprightHeight),tiePlan=b2bStraightTiePlan(drawing),blue="#1378db",cyan="#55b5da",upright="#006391",beam="#e0c600",pallet="#d8a44d",wood="#a96928",galvanized="#b9c0c3";
         const labelBox=(x,y,w,text)=>`<g><rect x="${x}" y="${y}" width="${w}" height="14" rx="2" fill="${cyan}" stroke="#267ca5" stroke-width=".6"/><text x="${x+w/2}" y="${y+9.5}" text-anchor="middle" font-size="6.7" font-family="Arial" font-weight="900" fill="#fff">${esc(text)}</text></g>`;
         const panels=counts.map((count,index)=>{
-          const ox=index*panelW,section=Math.round(m2B2BSectionWidth(layout,count)),rackX=ox+72,rackY=26,rackW=112,rackH=112,rearDx=rowCount===2?15:0,rearDy=rowCount===2?-8:0,levelStep=rackH/Math.max(1,levels),palletGap=3,palletW=(rackW-10-(count-1)*palletGap)/count,palletH=Math.min(17,levelStep*.7),depthText=rowCount===2?`2 × ${fmt(frameDepth)} mm`:`${fmt(frameDepth)} mm`;
+          const ox=index*panelW,section=Math.round(m2B2BSectionWidth(layout,count)),rackX=ox+65,rackY=29,rackW=112,rackH=108,rearDx=rowCount===2?25:0,rearDy=rowCount===2?-12:0,levelStep=rackH/Math.max(1,levels),palletGap=3,palletW=(rackW-10-(count-1)*palletGap)/count,palletH=Math.min(17,levelStep*.7),depthText=rowCount===2?`2 × ${fmt(frameDepth)} mm`:`${fmt(frameDepth)} mm`;
           let structure="";
-          for(let row=rowCount-1;row>=0;row--){const dx=row*rearDx,dy=row*rearDy;structure+=`<line x1="${rackX+dx}" y1="${rackY+dy}" x2="${rackX+dx}" y2="${rackY+rackH+dy}" stroke="${upright}" stroke-width="5"/><line x1="${rackX+rackW+dx}" y1="${rackY+dy}" x2="${rackX+rackW+dx}" y2="${rackY+rackH+dy}" stroke="${upright}" stroke-width="5"/>`;for(let level=0;level<levels;level++){const y=rackY+rackH-(level+1)*levelStep+dy+(levelStep-palletH)/2;if(!(ground&&level===0))structure+=`<line x1="${rackX+dx}" y1="${y+palletH+2}" x2="${rackX+rackW+dx}" y2="${y+palletH+2}" stroke="${beam}" stroke-width="4"/>`;for(let p=0;p<count;p++){const px=rackX+5+p*(palletW+palletGap)+dx;structure+=`<rect x="${px}" y="${y}" width="${palletW}" height="${palletH}" rx="1" fill="${pallet}" stroke="${wood}" stroke-width=".8"/><rect x="${px}" y="${y+palletH-3}" width="${palletW}" height="3" fill="${wood}"/>`;}}}
+          for(let row=rowCount-1;row>=0;row--){const dx=row*rearDx,dy=row*rearDy;structure+=`<line x1="${rackX+dx}" y1="${rackY+dy}" x2="${rackX+dx}" y2="${rackY+rackH+dy}" stroke="${upright}" stroke-width="5"/><line x1="${rackX+rackW+dx}" y1="${rackY+dy}" x2="${rackX+rackW+dx}" y2="${rackY+rackH+dy}" stroke="${upright}" stroke-width="5"/>`;for(let level=0;level<levels;level++){const y=rackY+rackH-(level+1)*levelStep+dy+(levelStep-palletH)/2;if(!(ground&&level===0))structure+=`<line x1="${rackX+dx}" y1="${y+palletH+2}" x2="${rackX+rackW+dx}" y2="${y+palletH+2}" stroke="${beam}" stroke-width="4"/>`;for(let p=0;p<count;p++){const px=rackX+5+p*(palletW+palletGap)+dx;structure+=`<rect x="${px}" y="${y}" width="${palletW}" height="${palletH}" rx="1" fill="${pallet}" stroke="${wood}" stroke-width=".8"/><rect x="${px}" y="${y+palletH-3}" width="${palletW}" height="3" fill="${wood}"/>`;}}if(rowCount===2&&row===1){structure+=`<path d="M${rackX+rackW+dx} ${rackY+dy}L${rackX+rackW+dx-rearDx} ${rackY+dy-rearDy}M${rackX+rackW+dx} ${rackY+rackH+dy}L${rackX+rackW+dx-rearDx} ${rackY+rackH+dy-rearDy}" fill="none" stroke="${galvanized}" stroke-width="2"/>`;}}
+          if(rowCount===2&&tiePlan.count){tiePlan.positions.forEach((height)=>{const ratio=Math.max(0,Math.min(1,height/uprightHeight)),y=rackY+rackH-ratio*rackH;structure+=`<line x1="${rackX+rackW}" y1="${y}" x2="${rackX+rackW+rearDx}" y2="${y+rearDy}" stroke="${galvanized}" stroke-width="4" stroke-linecap="square"/>`;});}
           let levelDims="";for(let level=1;level<levels;level++){const y=rackY+rackH-level*levelStep;levelDims+=`<line x1="${rackX-17}" y1="${y}" x2="${rackX-4}" y2="${y}" stroke="${blue}" stroke-width=".8"/><circle cx="${rackX-17}" cy="${y}" r="1.2" fill="${blue}"/>`;}
           return `<g>${index?`<line x1="${ox}" y1="6" x2="${ox}" y2="164" stroke="#d5e1e8"/>`:""}<text x="${ox+panelW/2}" y="10" text-anchor="middle" font-size="8" font-family="Arial" font-weight="900" fill="#173c2d">${count} ${esc(labels.palletUnit||"PALET")} · ${rowCount===2?"B2B":"TEK SIRA"}</text>${structure}${levelDims}<line x1="${rackX-17}" y1="${rackY}" x2="${rackX-17}" y2="${rackY+rackH}" stroke="${blue}" stroke-width=".8"/><path d="M${rackX-20} ${rackY+3}L${rackX-17} ${rackY}L${rackX-14} ${rackY+3}M${rackX-20} ${rackY+rackH-3}L${rackX-17} ${rackY+rackH}L${rackX-14} ${rackY+rackH-3}" fill="none" stroke="${blue}" stroke-width=".8"/>${labelBox(ox+5,17,61,`${labels.upright||"AYAK"} · ${fmt(uprightHeight)} mm`)}${labelBox(ox+5,34,61,`${labels.topPallet||"ÜST PALET"} · ${fmt(topPallet)} mm`)}<line x1="${rackX}" y1="${rackY+rackH+8}" x2="${rackX+rackW}" y2="${rackY+rackH+8}" stroke="${blue}" stroke-width=".8"/>${labelBox(ox+73,148,110,`${labels.eye||"GÖZ"} · ${fmt(section)} mm`)}<line x1="${rackX+rackW+3}" y1="${rackY+rackH+2}" x2="${rackX+rackW+rearDx+25}" y2="${rackY+rackH+rearDy+13}" stroke="${blue}" stroke-width=".8"/>${labelBox(ox+184,125,61,`${labels.depth||"DERİNLİK"} · ${depthText}`)}</g>`;
         }).join("");
         return `<svg viewBox="0 0 ${totalW} 166" role="img" aria-label="${esc(labels.front||"Önden görünüş")}"><rect width="${totalW}" height="166" fill="#fff"/>${panels}</svg>`;
+      }
+      function m2B2BSideElevationSvg(drawing, labels=m2ReportDictionary("tr")) {
+        const layout=drawing.b2bLayout||{},rowCount=Math.max(1,Number(layout.rowCount)||1),levels=Math.max(1,Math.round(Number(drawing.levels)||1)),ground=(drawing.b2b?.firstPalletPosition||drawing.footLoadStart||"ground")==="ground",frameDepth=Math.max(1,Number(layout.frameDepth)||1100),rowGap=Math.max(0,Number(layout.rowGap)||200),uprightHeight=Math.max(1,Number(drawing.sideUprightHeight)||Number(drawing.totalRackHeight)||Number(drawing.footLy)||5000),tiePlan=b2bStraightTiePlan(drawing),upright="#006391",beam="#e0c600",pallet="#d8a44d",wood="#a96928",galvanized="#b9c0c3",canvasW=200,canvasH=150,modelTop=13,modelBottom=132,modelH=modelBottom-modelTop,frameW=rowCount===2?42:62,gapW=rowCount===2?12:0,totalModelW=rowCount*frameW+(rowCount-1)*gapW,left=(canvasW-totalModelW)/2,levelStep=modelH/levels,palletH=Math.min(21,levelStep*.72);
+        let structure="";
+        for(let row=0;row<rowCount;row++){
+          const x=left+row*(frameW+gapW),right=x+frameW;
+          structure+=`<line x1="${x}" y1="${modelTop}" x2="${x}" y2="${modelBottom}" stroke="${upright}" stroke-width="4"/><line x1="${right}" y1="${modelTop}" x2="${right}" y2="${modelBottom}" stroke="${upright}" stroke-width="4"/>`;
+          for(let level=0;level<levels;level++){
+            const cellTop=modelBottom-(level+1)*levelStep,y=cellTop+(levelStep-palletH)/2;
+            if(!(ground&&level===0))structure+=`<line x1="${x}" y1="${y+palletH+1.5}" x2="${right}" y2="${y+palletH+1.5}" stroke="${beam}" stroke-width="3"/>`;
+            structure+=`<rect x="${x-8}" y="${y}" width="${frameW+16}" height="${palletH}" rx="1" fill="${pallet}" stroke="${wood}" stroke-width=".7"/><rect x="${x-8}" y="${y+palletH-3}" width="${frameW+16}" height="3" fill="${wood}"/>`;
+            const braceTop=cellTop+2,braceBottom=cellTop+levelStep-2;
+            structure+=`<path d="M${x+2} ${braceBottom}L${right-2} ${braceTop}" fill="none" stroke="${galvanized}" stroke-width="2"/>`;
+          }
+        }
+        if(rowCount===2&&tiePlan.count){const innerLeft=left+frameW,innerRight=innerLeft+gapW;tiePlan.positions.forEach((height)=>{const ratio=Math.max(0,Math.min(1,height/uprightHeight)),y=modelBottom-ratio*modelH;structure+=`<rect x="${innerLeft-1}" y="${y-2.2}" width="${innerRight-innerLeft+2}" height="4.4" rx=".7" fill="${galvanized}" stroke="#7d898e" stroke-width=".6"/>`;});}
+        const depthText=rowCount===2?`${fmt(frameDepth)} + ${fmt(rowGap)} + ${fmt(frameDepth)} mm`:`${fmt(frameDepth)} mm`;
+        return `<svg viewBox="0 0 ${canvasW} ${canvasH}" role="img" aria-label="${rowCount===2?"Arka arkaya iki ayrı B2B raf yandan görünüşü":"Tek sıra B2B raf yandan görünüşü"}"><rect width="${canvasW}" height="${canvasH}" fill="#fff"/><text x="100" y="7" text-anchor="middle" font-size="5.5" font-family="Arial" font-weight="800" fill="#64748b">${rowCount===2?"2 AYRI RAF · GALVANİZ DÜZ ARABAĞ":"TEK SIRA RAF"}</text>${structure}<line x1="${left}" y1="141" x2="${left+totalModelW}" y2="141" stroke="#1378db" stroke-width=".8"/><line x1="${left}" y1="137" x2="${left}" y2="144" stroke="#1378db" stroke-width=".8"/><line x1="${left+totalModelW}" y1="137" x2="${left+totalModelW}" y2="144" stroke="#1378db" stroke-width=".8"/><text x="100" y="148" text-anchor="middle" font-size="6" font-family="Arial" font-weight="800" fill="#26313b">${esc(labels.depth||"DERİNLİK")} · ${depthText}</text></svg>`;
       }
       function m2RenderReportImages() {
         const host = $("m2ReportImages"); if (!host) return;
@@ -4126,7 +4145,7 @@
           if (!usedTypeMap.has(key)) usedTypeMap.set(key, entry);
         });
         const types = [...typeMap.values()], usedTypes = [...usedTypeMap.values()], visibleFrontTypes = usedTypes, visibleSideTypes = usedTypes,language=$("m2ReportLanguage")?.value||"tr",labels=m2ReportDictionary(language),showVariants=$("m2ReportCompleteFront")?.checked===true;
-        const cards = (mode, entries) => entries.map((entry) => {const drawing=entry.drawing||entry,visual=drawing.b2bLayout&&mode==="front"?m2B2BReportPerspectiveSvg(drawing,labels,showVariants):m2ReportElevationSvg(drawing,mode);return `<div class="m2-report-elevation"><b>${esc(entry.name || "Raf Tipi")}</b>${visual}</div>`;}).join("") || `<div class="m2-report-elevation"><b>RAF TİPİ BEKLENİYOR</b></div>`;
+        const cards = (mode, entries) => entries.map((entry) => {const drawing=entry.drawing||entry,visual=drawing.b2bLayout?(mode==="front"?m2B2BReportPerspectiveSvg(drawing,labels,showVariants):m2B2BSideElevationSvg(drawing,labels)):m2ReportElevationSvg(drawing,mode);return `<div class="m2-report-elevation"><b>${esc(entry.name || "Raf Tipi")}</b>${visual}</div>`;}).join("") || `<div class="m2-report-elevation"><b>RAF TİPİ BEKLENİYOR</b></div>`;
         if ($("m2ReportFronts")) {
           $("m2ReportFronts").style.setProperty("--m2-report-count", String(Math.max(1, visibleFrontTypes.length)));
           $("m2ReportFronts").innerHTML = cards("front", visibleFrontTypes);
@@ -4248,7 +4267,7 @@
         pages.push(`<section class="m2-corporate-page">${m2CorporateHeader(t.layout)}<div class="m2-corporate-floor">${floorSvg}</div></section>`);
         const typeAccents=["#1d5f8a","#2b78a0","#3f8fae","#5b7897"];
         for(let start=0;start<types.length;start+=3){
-          const cards=types.slice(start,start+3).map((entry,index)=>{const d=entry.drawing||entry,palletCount=(d.b2bLayout?(Number(d.b2bLayout.palletCount)||0)*Math.max(0,Number(d.levels)||0)*Math.max(1,Number(d.b2bLayout.rowCount)||1):Math.max(0,Number(d.bays)||0)*Math.max(0,Number(d.levels)||0)*Math.max(0,Number(d.depth)||0))*Math.max(1,Number(entry.rackCount)||1),unitCount=Math.max(1,Number(entry.rackCount)||1),frontVisual=d.b2bLayout?m2B2BReportPerspectiveSvg(d,t,$("m2ReportCompleteFront")?.checked===true):m2ReportElevationSvg(d,"front"),sideVisual=m2ReportElevationSvg(d,"side");return `<article class="m2-corporate-type-card" style="--m2-type-color:${typeAccents[index]}"><strong><span>${esc(entry.name)}</span><small>${fmt(palletCount)} ${esc(t.palletUnit)}</small><small class="m2-corporate-unit-count">${fmt(unitCount)} ${esc(String(t.unitEach).toUpperCase())}</small></strong><div class="m2-corporate-view"><b>${t.front}</b>${frontVisual}</div><div class="m2-corporate-view"><b>${t.side}</b>${sideVisual}</div></article>`;}).join("");
+          const cards=types.slice(start,start+3).map((entry,index)=>{const d=entry.drawing||entry,palletCount=(d.b2bLayout?(Number(d.b2bLayout.palletCount)||0)*Math.max(0,Number(d.levels)||0)*Math.max(1,Number(d.b2bLayout.rowCount)||1):Math.max(0,Number(d.bays)||0)*Math.max(0,Number(d.levels)||0)*Math.max(0,Number(d.depth)||0))*Math.max(1,Number(entry.rackCount)||1),unitCount=Math.max(1,Number(entry.rackCount)||1),frontVisual=d.b2bLayout?m2B2BReportPerspectiveSvg(d,t,$("m2ReportCompleteFront")?.checked===true):m2ReportElevationSvg(d,"front"),sideVisual=d.b2bLayout?m2B2BSideElevationSvg(d,t):m2ReportElevationSvg(d,"side");return `<article class="m2-corporate-type-card" style="--m2-type-color:${typeAccents[index]}"><strong><span>${esc(entry.name)}</span><small>${fmt(palletCount)} ${esc(t.palletUnit)}</small><small class="m2-corporate-unit-count">${fmt(unitCount)} ${esc(String(t.unitEach).toUpperCase())}</small></strong><div class="m2-corporate-view"><b>${t.front}</b>${frontVisual}</div><div class="m2-corporate-view"><b>${t.side}</b>${sideVisual}</div></article>`;}).join("");
           pages.push(`<section class="m2-corporate-page">${m2CorporateHeader(`${t.sections} · ${Math.floor(start/3)+1}`)}<div class="m2-corporate-type-grid">${cards}</div></section>`);
         }
         const palletTotal=m2LayoutState.racks.reduce((sum,r)=>sum+(r.b2bLayout?(Number(r.b2bLayout.palletCount)||0)*(Number(r.levels)||0)*(Number(r.b2bLayout.rowCount)||1):(Number(r.bays)||0)*(Number(r.levels)||0)*(Number(r.depth)||0)),0), images=m2ReportImages.filter(Boolean).map((src,index)=>`<img src="${src}" alt="${t.images} ${index+1}">`).join("");
@@ -6719,4 +6738,404 @@
       updateDynTotals = function () {
         if (!$("gt")) return;
         $("gt").textContent =
-          `${groups.reduce((s, g)
+          `${groups.reduce((s, g) => s + g.rows, 0)} sıra · ${groups.reduce((s, g) => s + g.bays, 0)} bölüm`;
+        $("dft").textContent =
+          `${driveFeet.reduce((s, f) => s + f.units, 0)} adet · ${driveFeet.length} tip`;
+        $("bt").textContent = `${braces.length} tip`;
+      };
+      renderDyn = function () {
+        if (!$("groups")) return;
+        $("groups").innerHTML = groups
+          .map(
+            (g, i) =>
+              `<div class="dynrow"><b>${i + 1}</b><label class="input-field">Ayak sıra<input type="number" value="${g.rows || ""}" oninput="groups[${i}].rows=+this.value||0;updateDynTotals()"></label><label class="input-field">Ara bölüm<input type="number" value="${g.bays || ""}" oninput="groups[${i}].bays=+this.value||0;updateDynTotals()"></label><button class="x" onclick="if(groups.length>1){groups.splice(${i},1);renderDyn()}">×</button></div>`,
+          )
+          .join("");
+        $("driveFeetRows").innerHTML = driveFeet
+          .map(
+            (f, i) =>
+              `<div class="dynrow"><b>${i + 1}</b><label class="input-field">Derinlik (mm)<input type="number" value="${f.depth || ""}" oninput="driveFeet[${i}].depth=+this.value||0;updateDynTotals()"></label><label class="input-field">Ayak adet<input type="number" value="${f.units || ""}" oninput="driveFeet[${i}].units=+this.value||0;updateDynTotals()"></label><button class="x" onclick="if(driveFeet.length>1){driveFeet.splice(${i},1);renderDyn()}">×</button></div>`,
+          )
+          .join("");
+        $("braces").innerHTML = braces
+          .map(
+            (b, i) =>
+              `<div class="dynrow"><b>${i + 1}</b><label class="input-field">Ölçü (mm)<input type="number" value="${b.length || ""}" oninput="braces[${i}].length=+this.value||0"></label><label class="input-field">Ünite<input type="number" value="${b.units || ""}" oninput="braces[${i}].units=+this.value||0"></label><button class="x" onclick="if(braces.length>1){braces.splice(${i},1);renderDyn()}">×</button></div>`,
+          )
+          .join("");
+        updateDynTotals();
+      };
+      resultData = function () {
+        const v = (id) => Math.max(0, +$(id).value || 0),
+          d = v("depth"),
+          k = v("levels"),
+          e = v("extra"),
+          tr = groups.reduce((s, g) => s + g.rows, 0),
+          tb = groups.reduce((s, g) => s + g.bays, 0),
+          l = driveFeet.reduce((s, f) => s + f.units, 0),
+          p = d * tb * (k + 1);
+        return {
+          tr,
+          tb,
+          p,
+          items: [
+            ...driveFeet.map((f, i) => [
+              `${i + 1}. ayak — ${fmt(f.depth)} mm`,
+              tr * f.units,
+            ]),
+            ["Kılavuz ray sayısı", tr],
+            ["Palet rayı sayısı", tb * 2 * k],
+            ["Üst travers sayısı", tb * l * 2],
+            ["Palet dayama travers sayısı", tb * (k + 1)],
+            ["Drive-in konsol sayısı", l * 4 * k * tb + e * 2 * k * tb],
+            ["Üst çapraz sayısı", tb],
+            ["Derinliğine profil sayısı", tr],
+            ["L parçası", tr * l * 2 + tr * e],
+            ...braces.map((b, i) => [
+              `${i + 1}. arabağ — ${fmt(b.length)} mm`,
+              b.units * k * tr,
+            ]),
+            ["Ağır çapraz set sayısı", Math.floor(tr / 4)],
+          ],
+          inputs: {
+            depth: d,
+            legs: l,
+            levels: k,
+            extra: e,
+            groups,
+            braces,
+            feet: driveFeet,
+          },
+        };
+      };
+      const historyProjectBodyBeforeDriveFeet = historyProjectBody;
+      historyProjectBody = function (p, x, inp) {
+        if (p.module !== "drive-in")
+          return historyProjectBodyBeforeDriveFeet(p, x, inp);
+        const gs = inp.groups || [],
+          bs = inp.braces || [],
+          fs = inp.feet || [],
+          items = x.items || [];
+        return `<div class="history-inputs"><div><small>DERİNLİK</small><b>${fmt(inp.depth || 0)} palet</b></div><div><small>AYAK ADEDİ</small><b>${fmt(inp.legs || 0)}</b></div><div><small>KAT</small><b>${fmt(inp.levels || 0)}</b></div><div><small>EKSTRA PROFİL</small><b>${fmt(inp.extra || 0)}</b></div></div><div class="history-groups"><b>Sıra grupları:</b> ${gs.map((g, n) => `${n + 1}. grup ${g.rows} sıra / ${g.bays} bölüm`).join(" · ") || "—"}<br><b>Ayak derinlikleri:</b> ${fs.map((f, n) => `${n + 1}. ayak ${fmt(f.depth)} mm × ${f.units} adet`).join(" · ") || `${fmt(inp.legs || 0)} adet (eski kayıt)`}<br><b>Arabağlar:</b> ${bs.map((b, n) => `${n + 1}. arabağ ${fmt(b.length)} mm × ${b.units} ünite`).join(" · ") || "—"}</div><div class="table"><div class="trow"><span>Malzeme</span><b>Adet</b></div>${items.map((r) => `<div class="trow"><span>${esc(r[0])}</span><b>${fmt(r[1])}</b></div>`).join("")}</div>`;
+      };
+      const copyProjectBeforeDriveFeet = copyProject;
+      copyProject = function (id) {
+        const p = projects.find((x) => Number(x.id) === Number(id));
+        if (!p || p.module !== "drive-in")
+          return copyProjectBeforeDriveFeet(id);
+        const inp = p.payload?.inputs || {},
+          set = (field, value) => {
+            $(field).value = value ?? "";
+          };
+        $("historyModal").classList.remove("open");
+        showPage("drive");
+        set("pn", p.project_name + " - Kopya");
+        set("depth", inp.depth);
+        set("levels", inp.levels);
+        set("extra", inp.extra);
+        groups = (inp.groups || []).map((g) => ({
+          rows: Number(g.rows) || 0,
+          bays: Number(g.bays) || 0,
+        }));
+        driveFeet = (inp.feet || []).map((f) => ({
+          depth: Number(f.depth) || 0,
+          units: Number(f.units) || 0,
+        }));
+        braces = (inp.braces || []).map((b) => ({
+          length: Number(b.length) || 0,
+          units: Number(b.units) || 0,
+        }));
+        if (!groups.length) groups = [{ rows: 0, bays: 0 }];
+        if (!driveFeet.length)
+          driveFeet = [{ depth: 0, units: Number(inp.legs) || 0 }];
+        if (!braces.length) braces = [{ length: 0, units: 0 }];
+        renderDyn();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      };
+      listUsers = async function () {
+        const [userData, projectData] = await Promise.all([
+          req("/api/users"),
+          req("/api/projects"),
+        ]);
+        adminUsers = userData.users;
+        projects = projectData.projects;
+        $("userTable").innerHTML =
+          `<table class="users"><thead><tr><th>Ad Soyad</th><th>Kullanıcı</th><th>Rol</th><th>Durum</th><th>Varsayılan Dil</th><th>İşlem</th></tr></thead><tbody>${adminUsers
+            .map((x) => {
+              const projectCount = projects.filter(
+                (p) => Number(p.created_by) === Number(x.id),
+              ).length;
+              return `<tr><td><b>${esc(x.full_name || "—")}</b></td><td>${esc(x.username)}</td><td>${x.role === "super" ? "Süper" : "Kullanıcı"}</td><td><span class="badge ${x.active ? "" : "off"}">${x.active ? "Aktif" : "Pasif"}</span></td><td><select class="user-language-select" aria-label="${esc(x.username)} varsayılan dili" onchange="setUserDefaultLanguage(${x.id},this.value)"><option value="tr" ${x.default_language === "tr" ? "selected" : ""}>Türkçe</option><option value="en" ${x.default_language === "en" ? "selected" : ""}>English</option><option value="fr" ${x.default_language === "fr" ? "selected" : ""}>Français</option></select></td><td><div class="user-actions"><button class="small-btn project-btn" onclick="openUserProjects(${x.id})">Projeler (${projectCount})</button><button class="small-btn" onclick="changeFullName(${x.id})">Ad Soyad</button>${x.role === "super" ? "" : `<button class="small-btn" onclick="toggleUser(${x.id},${!x.active})">${x.active ? "Pasifleştir" : "Aktifleştir"}</button><button class="small-btn" onclick="resetPass(${x.id})">Şifre Değiştir</button><button class="small-btn danger" onclick="deleteUser(${x.id},'${esc(x.username)}')">Sil</button>`}</div></td></tr>`;
+            })
+            .join("")}</tbody></table>`;
+        applyTranslations($("userTable"));
+      };
+      async function setUserDefaultLanguage(id, language) {
+        try {
+          await req("/api/users/" + id, { method: "PATCH", body: JSON.stringify({ defaultLanguage: language }) });
+          const target = adminUsers.find((user) => Number(user.id) === Number(id));
+          if (target) target.default_language = language;
+          if (Number(me?.id) === Number(id)) {
+            me.default_language = language;
+            await changeProgramLanguage(language, false);
+          }
+        } catch (error) {
+          alert(error.message);
+          await listUsers();
+        }
+      }
+      const openHistoryBeforeUserProjects = openHistory;
+      openHistory = function () {
+        const title = document.querySelector("#historyModal .modal-head h2");
+        if (title) title.textContent = "Proje Geçmişi";
+        return openHistoryBeforeUserProjects();
+      };
+      async function openUserProjects(userId) {
+        await loadProjects();
+        if ($("historyFilters")) $("historyFilters").hidden = true;
+          const selected = projects.filter(
+            (p) => p.module !== "mekik" && Number(p.created_by) === Number(userId),
+          ),
+          owner = adminUsers.find((x) => Number(x.id) === Number(userId)),
+          title = document.querySelector("#historyModal .modal-head h2");
+        if (title)
+          title.textContent = `${owner?.full_name || owner?.username || "Kullanıcı"} — Projeler`;
+        $("historyList").innerHTML = selected.length
+          ? selected
+              .map((p, i) => {
+                const x = p.payload || {},
+                  inp = x.inputs || {},
+                  system = historyModuleName(p.module),
+                  metric =
+                    p.module === "ayak"
+                      ? `${fmt(x.p || 0)} kg`
+                      : p.module === "mekik2"
+                        ? `${fmt((x.drawing?.bays || 0) * (x.drawing?.levels || 0) * (x.drawing?.depth || 0))} palet`
+                      : `${fmt(x.p || 0)} palet`;
+                return `<div class="history-item" id="up${p.id}"><button class="history-summary" onclick="document.getElementById('up${p.id}').classList.toggle('open')"><b>${String(p.serial_no).padStart(4, "0")}</b><span><b>${esc(p.project_name)}</b><small>${esc(system)} · ${new Date(p.created_at).toLocaleString("tr-TR")}</small></span><small class="history-user">${esc(p.username)}</small><b>${metric}</b></button><div class="history-detail"><div class="user-project-head"><span class="badge">${esc(system)}</span><span><button class="small-btn" onclick="event.stopPropagation();copyProject(${p.id})">Projeyi Kopyala</button><button class="small-btn danger" onclick="event.stopPropagation();deleteUserProject(${p.id},${userId})">Projeyi Sil</button></span></div>${historyProjectBody(p, x, inp)}</div></div>`;
+              })
+              .join("")
+          : '<div class="empty"><div><b>Proje kaydı bulunmuyor</b><p>Bu kullanıcının henüz kaydettiği bir proje yok.</p></div></div>';
+        $("historyModal").classList.add("open");
+      }
+      async function deleteUserProject(projectId, userId) {
+        const p = projects.find((x) => Number(x.id) === Number(projectId));
+        if (
+          !p ||
+          !confirm(
+            `${p.project_name} projesini kalıcı olarak silmek istediğinize emin misiniz?`,
+          )
+        )
+          return;
+        try {
+          await req("/api/projects/" + projectId, {
+            method: "DELETE",
+            body: "{}",
+          });
+          await openUserProjects(userId);
+          await listUsers();
+        } catch (e) {
+          alert(e.message);
+        }
+      }
+      extraStyle.textContent +=
+        ".user-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.user-actions .project-btn{background:#e7f2e9;font-weight:800}.small-btn.danger{color:#a23838}.user-project-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.user-project-head>span:last-child{display:flex;gap:7px}@media(max-width:720px){.user-project-head{align-items:flex-start;flex-direction:column}.users{min-width:760px}}";
+      let deferredInstallPrompt = null;
+      function isRafexStandalone() {
+        return (
+          window.matchMedia("(display-mode: standalone)").matches ||
+          window.navigator.standalone === true
+        );
+      }
+      function updateInstallAppButton() {
+        const button = $("installAppButton");
+        if (button) button.classList.toggle("hidden", isRafexStandalone());
+      }
+      window.addEventListener("beforeinstallprompt", (event) => {
+        event.preventDefault();
+        deferredInstallPrompt = event;
+        updateInstallAppButton();
+      });
+      window.addEventListener("appinstalled", () => {
+        deferredInstallPrompt = null;
+        updateInstallAppButton();
+      });
+      async function installRafexApp() {
+        if (isRafexStandalone()) return;
+        if (deferredInstallPrompt) {
+          deferredInstallPrompt.prompt();
+          await deferredInstallPrompt.userChoice;
+          deferredInstallPrompt = null;
+          updateInstallAppButton();
+          return;
+        }
+        const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+        alert(
+          ios
+            ? "iPhone'da Safari alt menüsündeki Paylaş simgesine dokunun, ardından “Ana Ekrana Ekle” seçeneğini seçin."
+            : "Tarayıcı menüsünü açıp “Uygulamayı yükle” veya “Ana ekrana ekle” seçeneğini seçin.",
+        );
+      }
+      if ("serviceWorker" in navigator)
+        window.addEventListener("load", () =>
+          navigator.serviceWorker
+            .register("/service-worker.js")
+            .catch(() => {}),
+        );
+      updateInstallAppButton();
+      extraStyle.textContent +=
+        ".install-app{background:var(--y);color:var(--ink);white-space:nowrap}@media(max-width:620px){.top{height:auto;min-height:72px;padding-top:10px;padding-bottom:10px;gap:8px}.top-actions{align-items:stretch;flex-direction:column}.top-actions button{padding:8px 10px;font-size:10px}}@media(display-mode:standalone){body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}}";
+      function syncMobileTabs(name) {
+        document
+          .querySelectorAll("#mobileTabs [data-mobile-page]")
+          .forEach((button) =>
+            button.classList.toggle(
+              "active",
+              button.dataset.mobilePage === name,
+            ),
+          );
+      }
+      function toggleMobileMenu() {
+        const side = document.querySelector(".side");
+        if (side) {
+          const open = side.classList.toggle("mobile-open");
+          side.setAttribute("aria-hidden", open ? "false" : "true");
+        }
+      }
+      function closeMobileMenu() {
+        const side = document.querySelector(".side");
+        if (side) {
+          side.classList.remove("mobile-open");
+          side.setAttribute("aria-hidden", "true");
+        }
+      }
+      const showPageMobileBase = showPage;
+      showPage = function (name) {
+        closeMobileMenu();
+        showPageMobileBase(name);
+        syncMobileTabs(name);
+      };
+      $("mobileTabs").addEventListener("click", (event) => {
+        const button = event.target.closest("[data-mobile-page]");
+        if (button) showPage(button.dataset.mobilePage);
+      });
+      $("nav").addEventListener("click", (event) => {
+        if (event.target.closest("[data-page]")) closeMobileMenu();
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeMobileMenu();
+      });
+      extraStyle.textContent +=
+        '.mobile-tabs,.mobile-app-logo,.mobile-scrim{display:none}@media(max-width:720px){body{background:#edf1ed;overscroll-behavior-y:none}.auth{display:block;min-height:100dvh;background:linear-gradient(160deg,var(--g2),var(--g))}.auth-side{min-height:100dvh;padding:calc(24px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom))}.auth-card{padding:28px 22px;border:0;border-radius:24px;box-shadow:0 24px 70px #07150e55}.auth-card:before{content:"R";display:grid;place-items:center;width:58px;height:58px;margin:0 0 24px;background:var(--y);color:var(--ink);border-radius:17px;font-size:34px;font-weight:900}.shell{display:block;min-height:100dvh}.side{display:block;position:fixed;inset:0 auto 0 0;z-index:60;width:min(320px,86vw);height:100dvh;padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));overflow-y:auto;background:var(--g2);box-shadow:16px 0 50px #07150e55;transform:translateX(-110%);transition:transform .24s ease}.side.mobile-open{transform:translateX(0)}.side .nav{display:block;overflow:visible}.side .nav button{min-width:0}.side .userbox{position:static;margin-top:24px}.content{min-height:100dvh;padding-bottom:calc(74px + env(safe-area-inset-bottom))}.top{position:sticky;top:0;z-index:30;height:calc(64px + env(safe-area-inset-top));min-height:0;padding:env(safe-area-inset-top) 14px 0;display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:10px;background:#fff;border:0;box-shadow:0 1px 0 #dfe5e0}.mobile-app-logo{display:grid;place-items:center;width:36px;height:36px;background:var(--y);color:var(--ink);border-radius:11px;font-size:21px;font-weight:900}.top h1{min-width:0;overflow:hidden;font-size:17px;text-overflow:ellipsis;white-space:nowrap}.top-actions{display:flex;align-items:center;flex-direction:row}.history-top{width:38px;height:38px;padding:0;font-size:0;border-radius:12px}.history-top:before{content:"↺";font-size:23px}.install-app:not(.hidden){position:fixed;right:14px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:38;padding:10px 13px;border:1px solid #d2b000;box-shadow:0 8px 24px #17201b33}.page{padding:14px 12px 24px}.hero,.welcome-hero{padding:20px;border-radius:18px;box-shadow:0 8px 28px #173c2d1c}.hero h2{font-size:25px}.card,.dashboard-card,.todo-card,.world-card{border:0;border-radius:18px;box-shadow:0 7px 24px #17201b0d}.calc-grid{gap:12px;margin-top:12px}.card{padding:16px}.form-grid{grid-template-columns:1fr 1fr;gap:8px}.input-field input{min-height:44px;font-size:16px}.dynrow{grid-template-columns:25px minmax(0,1fr) minmax(0,1fr) 32px;padding:8px 7px}.dynrow .input-field input{min-height:40px}.add,.calc{min-height:48px}.summary{grid-template-columns:1fr 1fr 1fr}.summary div{padding:11px 8px}.summary b{font-size:17px}.foot-option{grid-template-columns:58px minmax(0,1fr) 72px;padding:10px 8px}.modal{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}.modal-card{width:100%;height:100%;max-height:none;border-radius:0}.mobile-tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;grid-template-columns:repeat(5,1fr);height:calc(68px + env(safe-area-inset-bottom));padding:5px 4px env(safe-area-inset-bottom);background:#fff;border-top:1px solid #dfe5e0;box-shadow:0 -8px 28px #17201b12}.mobile-tabs button{display:grid;place-items:center;align-content:center;gap:2px;min-width:0;padding:4px 2px;background:transparent;color:#7b857f;border-radius:12px}.mobile-tabs button b{display:grid;place-items:center;width:28px;height:28px;font-size:18px}.mobile-tabs button span{max-width:100%;overflow:hidden;font-size:9px;text-overflow:ellipsis;white-space:nowrap}.mobile-tabs button.active{color:var(--g);background:#edf4ef}.mobile-tabs button.active b{color:var(--g);font-weight:900}.mobile-scrim{position:fixed;inset:0;z-index:50;display:block;pointer-events:none;background:#07150e88;opacity:0;transition:opacity .2s}.side.mobile-open~.mobile-scrim{pointer-events:auto;opacity:1}}@media(max-width:390px){.form-grid{grid-template-columns:1fr}.summary{grid-template-columns:1fr 1fr}.summary div:last-child{grid-column:1/-1}.world-grid{grid-template-columns:1fr 1fr}.top h1{font-size:15px}}';
+      extraStyle.textContent +=
+        '@media(max-width:720px){.auth-card:before{content:"";display:block;width:170px;height:78px;margin:0 0 24px;background:#fff url("/rafex-logo.png") center/contain no-repeat;color:transparent;border-radius:0;font-size:0}.mobile-app-logo{display:block;width:38px;height:38px;padding:4px;object-fit:contain;background:#fff;border:1px solid #edf0ed;border-radius:11px}}';
+      toggleMobileMenu = function () {
+        const side = document.querySelector(".side");
+        if (side) side.classList.toggle("mobile-open");
+      };
+      closeMobileMenu = function () {
+        const side = document.querySelector(".side");
+        if (side) side.classList.remove("mobile-open");
+      };
+      const UI_TRANSLATIONS = {
+        en: {
+          "Hesaplama Portalı":"Calculation Portal","Raf sistemleri için merkezi hesaplama, proje kaydı ve kullanıcı yönetim platformu.":"Central calculation, project storage and user management platform for racking systems.",
+          "Program Dili":"Program Language","Giriş Yap":"Sign In","İlk Kurulum":"Initial Setup","İlk süper kullanıcı hesabını oluşturun. Bu ekran yalnızca bir kez görünür.":"Create the first super-user account. This screen appears only once.","Süper Kullanıcı Oluştur":"Create Super User","Size tanımlanan kullanıcı adı ve şifreyle devam edin.":"Continue with the username and password assigned to you.","Süper kullanıcı oluşturuldu. Şimdi giriş yapın.":"Super user created. You can now sign in.",
+          "Ad Soyad":"Full Name","Kullanıcı adı":"Username","Kullanıcı Adı":"Username","Şifre":"Password","Geçici şifre":"Temporary Password","Çıkış Yap":"Sign Out","Süper Kullanıcı":"Super User","Kullanıcı":"User","Süper":"Super","Aktif":"Active","Pasif":"Inactive","Pasifleştir":"Deactivate","Aktifleştir":"Activate","Şifre Değiştir":"Change Password","Sil":"Delete","İşlem":"Actions","Durum":"Status","Rol":"Role","Hesap yönetimi":"Account management","Yeni Kullanıcı":"New User","Kullanıcılar":"Users","Kullanıcı Oluştur":"Create User","Varsayılan Dil":"Default Language","Projeler":"Projects",
+          "Ana Sayfa":"Home","Ayak Hesaplama":"Upright Calculation","Travers Hesaplama":"Crossbeam Calculation","Konsol Kollu":"Cantilever","Kullanıcı Yönetimi":"User Management","Uygulamayı Yükle":"Install App","Proje Geçmişi":"Project History","Menü":"Menu","Uygulama menüsü":"Application menu",
+          "Proje tipi":"Project type","Tüm proje tipleri":"All project types","Sıralama":"Sort","En yeni kayıt":"Newest first","Proje tipine göre":"By project type","Proje adına göre":"By project name","Projeyi Kopyala":"Copy Project","Projeyi Sil":"Delete Project","Proje kaydı bulunmuyor":"No project records","Bu kullanıcının henüz kaydettiği bir proje yok.":"This user has not saved a project yet.",
+          "RAFEX HESAPLAMA PORTALI":"RAFEX CALCULATION PORTAL","Merhaba":"Hello","GÜNÜN HAVA DURUMU":"TODAY'S WEATHER","Yükleniyor…":"Loading…","Alınamadı":"Unavailable","GÜNCEL VERİLER":"LIVE DATA","Bağlantı kurulamadı":"Connection failed","Güncel gösterge kuru":"Current reference rate","Hava durumu verisi şu anda kullanılamıyor.":"Weather data is currently unavailable.","Kur verisi şu anda kullanılamıyor.":"Exchange-rate data is currently unavailable.","Hissedilen":"Feels like","Rüzgâr":"Wind","Açık":"Clear","Parçalı bulutlu":"Partly cloudy","Kapalı":"Cloudy","Sisli":"Foggy","Yağmurlu":"Rainy","Karlı":"Snowy","Sağanak":"Showers","Gök gürültülü":"Thunderstorms","Değişken":"Variable",
+          "KİŞİSEL LİSTE":"PERSONAL LIST","Yapılacaklar ve Notlar":"Tasks and Notes","Yeni not veya yapılacak iş yazın…":"Write a new note or task…","Yeni yapılacak iş":"New task","Ekle":"Add","Liste yükleniyor…":"Loading list…","Bekleyen":"Pending","Tamamlanan":"Completed","Henüz not eklenmedi.":"No notes added yet.",
+          "RAF SİSTEMLERİ":"RACKING SYSTEMS","SON HESAP":"LATEST RESULT","Proje Girdileri":"Project Inputs","Hesapla ile kaydedilir":"Saved when calculated","Proje adı":"Project name","Derinlemesine palet":"Pallets in depth","Sıradaki ayak":"Uprights in row","Zemin hariç kat":"Levels excluding ground","Ekstra profil":"Extra profile","Ayak sıraları ve ara bölümler":"Upright rows and intermediate sections","Sıra grubu ekle":"Add row group","Arabağ ölçüleri":"Tie-beam dimensions","Arabağ ekle":"Add tie beam","Hesapla ve Kaydet":"Calculate and Save","Malzeme Listesi":"Material List","Bekleniyor":"Waiting","Hesaplama bekleniyor":"Waiting for calculation","Proje bilgilerini doldurup Hesapla butonuna basın.":"Complete the project information and press Calculate.",
+          "Mekik Raf Hesabı":"Shuttle Rack Calculation","Mekik 2 Raf Konfigüratörü":"Shuttle 2 Rack Configurator","Raf Tipleri":"Rack Types","Yeni Raf Tipi":"New Rack Type","Raf Tipini Kaydet":"Save Rack Type","Tüm Tipleri Sil":"Delete All Types","Tip":"Type","Adet":"Quantity","Toplam":"Total","Önerilen Ayak":"Recommended Upright","Önerilen Ray tipi":"Recommended Rail Type","Ray Yüksekliği":"Rail Height","Önerilen Travers":"Recommended Crossbeam","Manuel Seç":"Select Manually","Palet ağırlığına göre otomatik önerilir.":"Automatically recommended by pallet weight.",
+          "Üst Görünüş":"Top View","Önden Görünüş":"Front View","Yandan Görünüş":"Side View","Göz ve kat dağılımı":"Bay and level layout","Paletleri Gizle":"Hide Pallets","Paletleri Göster":"Show Pallets","PDF / Yazdır":"PDF / Print","PDF Oluştur":"Create PDF","Projeyi Kaydet":"Save Project","Önizlemeyi Güncelle":"Refresh Preview","Alana sığdır":"Fit to Area","Palet Arası Mesafeleri Özelleştir":"Customize Pallet Spacing","Kat Arası Mesafeleri Özelleştir":"Customize Level Spacing","PDF’te Detay Göster":"Show Details in PDF","PDF’te Detayı Gizle":"Hide Details in PDF","DETAY BİLGİ:":"DETAILS:","GÖSTER":"SHOW","GİZLE":"HIDE",
+          "Yatay A4 Proje Sayfası":"Landscape A4 Project Sheet","Yerleşim, tip görünüşleri, proje fotoğrafları ve firma bilgileri":"Layout, type views, project images and company information","ÇIKTI TİPİ":"OUTPUT TYPE","Özet Çıktı":"Summary Output","Detay / Kurumsal Çıktı":"Detailed / Corporate Output","ÜRÜN DÖKÜMÜ TOPLU":"COMBINED BILL OF MATERIALS","ÇIKTI DİLİ":"OUTPUT LANGUAGE","PROJENİN TAMAMINI GÖSTER":"SHOW ENTIRE PROJECT","SERBEST YERLEŞİM":"FREE LAYOUT","ÖNDEN GÖRÜNÜŞLER":"FRONT VIEWS","YAN GÖRÜNÜŞLER":"SIDE VIEWS","MEKİK RAF PROJESİ":"SHUTTLE RACK PROJECT","TEKNİK YERLEŞİM":"TECHNICAL LAYOUT","Kurumsal Teknik Sunum":"Corporate Technical Presentation","Ürün Dökümü":"Bill of Materials",
+          "Alanı Düzenle":"Edit Area","Alanı Tamamla":"Complete Area","Tüm Kenar Ölçülerini Göster":"Show All Edge Dimensions","Tüm Kenar Ölçülerini Gizle":"Hide All Edge Dimensions","Ölçü Ekle":"Add Dimension","Yazı Ekle":"Add Text","Düzenleme modu kapatıldı.":"Edit mode disabled.","Kaydet":"Save","İptal":"Cancel","Kapat":"Close","Temizle":"Clear","Geri Al":"Undo","Silmek istediğin öğeye tıkla.":"Click the item you want to delete.",
+          "KOLON ARALIĞI":"COLUMN SPACING","AYAK UZUNLUĞU":"UPRIGHT LENGTH","BÖLÜM GENİŞLİĞİ":"SECTION WIDTH","TOPLAM GENİŞLİK":"TOTAL WIDTH","TOPLAM DERİNLİK":"TOTAL DEPTH","ÜST BOŞLUK":"TOP CLEARANCE","Derinlik":"Depth","Genişlik":"Width","Yükseklik":"Height","Bölüm":"Section","Göz":"Bay","Kat":"Level","Palet":"Pallet","Ayak":"Upright","Arabağ":"Tie Beam","Ray":"Rail","Travers":"Crossbeam","Ağırlık":"Weight","Uzunluk":"Length","Ölçü":"Dimension","Birim":"Unit","Kalınlık":"Thickness","Toplam Palet Sayısı":"Total Pallet Count","Kapasite":"Capacity",
+          "İşlem başarısız":"Operation failed","Sunucu yanıtı alınamadı. Lütfen sayfayı yenileyip tekrar deneyin.":"No response was received from the server. Refresh the page and try again.","Oturum gerekli.":"Sign-in required.","Yetkisiz.":"Unauthorized.","Kullanıcı adı veya şifre hatalı.":"Incorrect username or password.","Bu kullanıcı adı kullanılıyor.":"This username is already in use.","Şifre güncellendi. Kullanıcının açık oturumları kapatıldı.":"Password updated. The user's active sessions have been closed.","Geçersiz program dili.":"Invalid program language.","Yeni şifre (en az 8 karakter):":"New password (at least 8 characters):","Yeni kullanıcı adı:":"New username:","Ad Soyad:":"Full Name:","PDF penceresi açılamadı. Açılır pencereye izin verip tekrar deneyin.":"The PDF window could not be opened. Allow pop-ups and try again.","kullanıcısını silmek istediğinize emin misiniz? Eski proje kayıtları korunacaktır.":"Are you sure you want to delete this user? Existing project records will be preserved."
+        },
+        fr: {
+          "Hesaplama Portalı":"Portail de calcul","Raf sistemleri için merkezi hesaplama, proje kaydı ve kullanıcı yönetim platformu.":"Plateforme centralisée de calcul, d’enregistrement de projets et de gestion des utilisateurs pour les systèmes de rayonnage.",
+          "Program Dili":"Langue du programme","Giriş Yap":"Se connecter","İlk Kurulum":"Configuration initiale","İlk süper kullanıcı hesabını oluşturun. Bu ekran yalnızca bir kez görünür.":"Créez le premier compte super-utilisateur. Cet écran n’apparaît qu’une seule fois.","Süper Kullanıcı Oluştur":"Créer le super-utilisateur","Size tanımlanan kullanıcı adı ve şifreyle devam edin.":"Continuez avec le nom d’utilisateur et le mot de passe qui vous ont été attribués.","Süper kullanıcı oluşturuldu. Şimdi giriş yapın.":"Le super-utilisateur a été créé. Vous pouvez maintenant vous connecter.",
+          "Ad Soyad":"Nom complet","Kullanıcı adı":"Nom d’utilisateur","Kullanıcı Adı":"Nom d’utilisateur","Şifre":"Mot de passe","Geçici şifre":"Mot de passe temporaire","Çıkış Yap":"Se déconnecter","Süper Kullanıcı":"Super-utilisateur","Kullanıcı":"Utilisateur","Süper":"Super","Aktif":"Actif","Pasif":"Inactif","Pasifleştir":"Désactiver","Aktifleştir":"Activer","Şifre Değiştir":"Modifier le mot de passe","Sil":"Supprimer","İşlem":"Actions","Durum":"État","Rol":"Rôle","Hesap yönetimi":"Gestion des comptes","Yeni Kullanıcı":"Nouvel utilisateur","Kullanıcılar":"Utilisateurs","Kullanıcı Oluştur":"Créer l’utilisateur","Varsayılan Dil":"Langue par défaut","Projeler":"Projets",
+          "Ana Sayfa":"Accueil","Ayak Hesaplama":"Calcul des montants","Travers Hesaplama":"Calcul des traverses","Konsol Kollu":"Cantilever","Kullanıcı Yönetimi":"Gestion des utilisateurs","Uygulamayı Yükle":"Installer l’application","Proje Geçmişi":"Historique des projets","Menü":"Menu","Uygulama menüsü":"Menu de l’application",
+          "Proje tipi":"Type de projet","Tüm proje tipleri":"Tous les types de projet","Sıralama":"Tri","En yeni kayıt":"Plus récent","Proje tipine göre":"Par type de projet","Proje adına göre":"Par nom de projet","Projeyi Kopyala":"Copier le projet","Projeyi Sil":"Supprimer le projet","Proje kaydı bulunmuyor":"Aucun projet enregistré","Bu kullanıcının henüz kaydettiği bir proje yok.":"Cet utilisateur n’a encore enregistré aucun projet.",
+          "RAFEX HESAPLAMA PORTALI":"PORTAIL DE CALCUL RAFEX","Merhaba":"Bonjour","GÜNÜN HAVA DURUMU":"MÉTÉO DU JOUR","Yükleniyor…":"Chargement…","Alınamadı":"Indisponible","GÜNCEL VERİLER":"DONNÉES ACTUELLES","Bağlantı kurulamadı":"Connexion impossible","Güncel gösterge kuru":"Taux indicatif actuel","Hava durumu verisi şu anda kullanılamıyor.":"Les données météo sont actuellement indisponibles.","Kur verisi şu anda kullanılamıyor.":"Les taux de change sont actuellement indisponibles.","Hissedilen":"Ressenti","Rüzgâr":"Vent","Açık":"Dégagé","Parçalı bulutlu":"Partiellement nuageux","Kapalı":"Couvert","Sisli":"Brumeux","Yağmurlu":"Pluvieux","Karlı":"Neigeux","Sağanak":"Averses","Gök gürültülü":"Orageux","Değişken":"Variable",
+          "KİŞİSEL LİSTE":"LISTE PERSONNELLE","Yapılacaklar ve Notlar":"Tâches et notes","Yeni not veya yapılacak iş yazın…":"Saisissez une nouvelle note ou tâche…","Yeni yapılacak iş":"Nouvelle tâche","Ekle":"Ajouter","Liste yükleniyor…":"Chargement de la liste…","Bekleyen":"En attente","Tamamlanan":"Terminé","Henüz not eklenmedi.":"Aucune note ajoutée.",
+          "RAF SİSTEMLERİ":"SYSTÈMES DE RAYONNAGE","SON HESAP":"DERNIER RÉSULTAT","Proje Girdileri":"Données du projet","Hesapla ile kaydedilir":"Enregistré lors du calcul","Proje adı":"Nom du projet","Derinlemesine palet":"Palettes en profondeur","Sıradaki ayak":"Montants par rangée","Zemin hariç kat":"Niveaux hors sol","Ekstra profil":"Profil supplémentaire","Ayak sıraları ve ara bölümler":"Rangées de montants et sections intermédiaires","Sıra grubu ekle":"Ajouter un groupe de rangées","Arabağ ölçüleri":"Dimensions des entretoises","Arabağ ekle":"Ajouter une entretoise","Hesapla ve Kaydet":"Calculer et enregistrer","Malzeme Listesi":"Liste des matériaux","Bekleniyor":"En attente","Hesaplama bekleniyor":"Calcul en attente","Proje bilgilerini doldurup Hesapla butonuna basın.":"Renseignez le projet puis appuyez sur Calculer.",
+          "Mekik Raf Hesabı":"Calcul du rayonnage navette","Mekik 2 Raf Konfigüratörü":"Configurateur de rayonnage Navette 2","Raf Tipleri":"Types de rayonnage","Yeni Raf Tipi":"Nouveau type de rayonnage","Raf Tipini Kaydet":"Enregistrer le type","Tüm Tipleri Sil":"Supprimer tous les types","Tip":"Type","Adet":"Quantité","Toplam":"Total","Önerilen Ayak":"Montant recommandé","Önerilen Ray tipi":"Type de rail recommandé","Ray Yüksekliği":"Hauteur du rail","Önerilen Travers":"Traverse recommandée","Manuel Seç":"Sélection manuelle","Palet ağırlığına göre otomatik önerilir.":"Recommandation automatique selon le poids de la palette.",
+          "Üst Görünüş":"Vue de dessus","Önden Görünüş":"Vue de face","Yandan Görünüş":"Vue latérale","Göz ve kat dağılımı":"Répartition des travées et niveaux","Paletleri Gizle":"Masquer les palettes","Paletleri Göster":"Afficher les palettes","PDF / Yazdır":"PDF / Imprimer","PDF Oluştur":"Créer le PDF","Projeyi Kaydet":"Enregistrer le projet","Önizlemeyi Güncelle":"Actualiser l’aperçu","Alana sığdır":"Ajuster à la zone","Palet Arası Mesafeleri Özelleştir":"Personnaliser l’espacement des palettes","Kat Arası Mesafeleri Özelleştir":"Personnaliser l’espacement des niveaux","PDF’te Detay Göster":"Afficher les détails dans le PDF","PDF’te Detayı Gizle":"Masquer les détails dans le PDF","DETAY BİLGİ:":"DÉTAILS :","GÖSTER":"AFFICHER","GİZLE":"MASQUER",
+          "Yatay A4 Proje Sayfası":"Feuille de projet A4 paysage","Yerleşim, tip görünüşleri, proje fotoğrafları ve firma bilgileri":"Implantation, vues des types, photos du projet et informations société","ÇIKTI TİPİ":"TYPE DE SORTIE","Özet Çıktı":"Sortie récapitulative","Detay / Kurumsal Çıktı":"Sortie détaillée / entreprise","ÜRÜN DÖKÜMÜ TOPLU":"NOMENCLATURE REGROUPÉE","ÇIKTI DİLİ":"LANGUE DE SORTIE","PROJENİN TAMAMINI GÖSTER":"AFFICHER TOUT LE PROJET","SERBEST YERLEŞİM":"IMPLANTATION LIBRE","ÖNDEN GÖRÜNÜŞLER":"VUES DE FACE","YAN GÖRÜNÜŞLER":"VUES LATÉRALES","MEKİK RAF PROJESİ":"PROJET DE RAYONNAGE NAVETTE","TEKNİK YERLEŞİM":"IMPLANTATION TECHNIQUE","Kurumsal Teknik Sunum":"Présentation technique d’entreprise","Ürün Dökümü":"Nomenclature",
+          "Alanı Düzenle":"Modifier la zone","Alanı Tamamla":"Fermer la zone","Tüm Kenar Ölçülerini Göster":"Afficher toutes les cotes de bord","Tüm Kenar Ölçülerini Gizle":"Masquer toutes les cotes de bord","Ölçü Ekle":"Ajouter une cote","Yazı Ekle":"Ajouter un texte","Düzenleme modu kapatıldı.":"Mode d’édition désactivé.","Kaydet":"Enregistrer","İptal":"Annuler","Kapat":"Fermer","Temizle":"Effacer","Geri Al":"Annuler la dernière action","Silmek istediğin öğeye tıkla.":"Cliquez sur l’élément à supprimer.",
+          "KOLON ARALIĞI":"ESPACEMENT DES COLONNES","AYAK UZUNLUĞU":"LONGUEUR DU MONTANT","BÖLÜM GENİŞLİĞİ":"LARGEUR DE SECTION","TOPLAM GENİŞLİK":"LARGEUR TOTALE","TOPLAM DERİNLİK":"PROFONDEUR TOTALE","ÜST BOŞLUK":"JEU SUPÉRIEUR","Derinlik":"Profondeur","Genişlik":"Largeur","Yükseklik":"Hauteur","Bölüm":"Section","Göz":"Travée","Kat":"Niveau","Palet":"Palette","Ayak":"Montant","Arabağ":"Entretoise","Ray":"Rail","Travers":"Traverse","Ağırlık":"Poids","Uzunluk":"Longueur","Ölçü":"Cote","Birim":"Unité","Kalınlık":"Épaisseur","Toplam Palet Sayısı":"Nombre total de palettes","Kapasite":"Capacité",
+          "İşlem başarısız":"Échec de l’opération","Sunucu yanıtı alınamadı. Lütfen sayfayı yenileyip tekrar deneyin.":"Aucune réponse du serveur. Actualisez la page et réessayez.","Oturum gerekli.":"Connexion requise.","Yetkisiz.":"Non autorisé.","Kullanıcı adı veya şifre hatalı.":"Nom d’utilisateur ou mot de passe incorrect.","Bu kullanıcı adı kullanılıyor.":"Ce nom d’utilisateur est déjà utilisé.","Şifre güncellendi. Kullanıcının açık oturumları kapatıldı.":"Mot de passe mis à jour. Les sessions actives de l’utilisateur ont été fermées.","Geçersiz program dili.":"Langue du programme non valide.","Yeni şifre (en az 8 karakter):":"Nouveau mot de passe (8 caractères minimum) :","Yeni kullanıcı adı:":"Nouveau nom d’utilisateur :","Ad Soyad:":"Nom complet :","PDF penceresi açılamadı. Açılır pencereye izin verip tekrar deneyin.":"Impossible d’ouvrir la fenêtre PDF. Autorisez les fenêtres contextuelles et réessayez.","kullanıcısını silmek istediğinize emin misiniz? Eski proje kayıtları korunacaktır.":"Voulez-vous vraiment supprimer cet utilisateur ? Les anciens projets seront conservés."
+        }
+      };
+      const i18nOriginalText = new WeakMap(), i18nOriginalAttributes = new WeakMap();
+      function translatedUiText(source, language = appLanguage) {
+        if (language === "tr" || !source) return source;
+        const dictionary = UI_TRANSLATIONS[language] || UI_TRANSLATIONS.en;
+        const leading = source.match(/^\s*/)?.[0] || "", trailing = source.match(/\s*$/)?.[0] || "", core = source.trim();
+        if (!core) return source;
+        if (dictionary[core]) return leading + dictionary[core] + trailing;
+        let result = core;
+        Object.keys(dictionary).filter((key) => key.length >= 5 && result.includes(key)).sort((a,b) => b.length-a.length).forEach((key) => { result = result.split(key).join(dictionary[key]); });
+        const patterns = language === "fr" ? [
+          [/(\d+)\s+göz/g,"$1 travées"],[/(\d+)\s+kat/g,"$1 niveaux"],[/(\d+)\s+palet/g,"$1 palettes"],[/(\d+)\s+adet/g,"$1 unités"],[/ilk kat/gi,"premier niveau"],[/kat arası/gi,"espacement des niveaux"],[/palet yüksekliği/gi,"hauteur de palette"],[/toplam ölçü/gi,"dimension totale"],[/bölümden oluşur/gi,"sections"],[/projesini kalıcı olarak silmek istediğinize emin misiniz\?/gi,"Voulez-vous vraiment supprimer définitivement ce projet ?"]
+        ] : [
+          [/(\d+)\s+göz/g,"$1 bays"],[/(\d+)\s+kat/g,"$1 levels"],[/(\d+)\s+palet/g,"$1 pallets"],[/(\d+)\s+adet/g,"$1 units"],[/ilk kat/gi,"first level"],[/kat arası/gi,"level spacing"],[/palet yüksekliği/gi,"pallet height"],[/toplam ölçü/gi,"total dimension"],[/bölümden oluşur/gi,"sections"],[/projesini kalıcı olarak silmek istediğinize emin misiniz\?/gi,"Are you sure you want to permanently delete this project?"]
+        ];
+        patterns.forEach(([pattern,replacement]) => { result = result.replace(pattern,replacement); });
+        return leading + result + trailing;
+      }
+      function applyTranslations(root = document.body) {
+        if (!root || root.closest?.(".m2-corporate-preview,#m2CorporatePrint")) return;
+        const elements = root.nodeType === 1 ? [root, ...root.querySelectorAll("*")] : [];
+        elements.forEach((element) => {
+          if (element.matches("script,style,.m2-corporate-preview,#m2CorporatePrint") || element.closest(".m2-corporate-preview,#m2CorporatePrint")) return;
+          ["placeholder","title","aria-label"].forEach((attribute) => {
+            if (!element.hasAttribute(attribute)) return;
+            let originals = i18nOriginalAttributes.get(element); if (!originals) { originals = {}; i18nOriginalAttributes.set(element, originals); }
+            if (!(attribute in originals)) originals[attribute] = element.getAttribute(attribute);
+            element.setAttribute(attribute, translatedUiText(originals[attribute], appLanguage));
+          });
+          [...element.childNodes].filter((node) => node.nodeType === Node.TEXT_NODE).forEach((node) => {
+            if (!i18nOriginalText.has(node)) i18nOriginalText.set(node, node.nodeValue);
+            node.nodeValue = translatedUiText(i18nOriginalText.get(node), appLanguage);
+          });
+        });
+      }
+      async function changeProgramLanguage(language, fromSessionControl = false) {
+        appLanguage = ["tr","en","fr"].includes(language) ? language : "tr";
+        localStorage.setItem("rafexProgramLanguage", appLanguage);
+        document.documentElement.lang = appLanguage;
+        document.title = appLanguage === "en" ? "Rafex Configurator" : appLanguage === "fr" ? "Configurateur Rafex" : "Rafex Configurator";
+        if ($("authLanguage")) $("authLanguage").value = appLanguage;
+        if ($("programLanguage")) $("programLanguage").value = appLanguage;
+        if ($("m2ReportLanguage")) {
+          $("m2ReportLanguage").value = appLanguage;
+          if (typeof m2RefreshActiveReport === "function") m2RefreshActiveReport();
+        }
+        applyTranslations(document.body);
+      }
+      const i18nObserver = new MutationObserver((mutations) => {
+        i18nObserver.disconnect();
+        mutations.forEach((mutation) => mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE) applyTranslations(node);
+          else if (node.nodeType === Node.TEXT_NODE && node.parentElement && !node.parentElement.closest("script,style,.m2-corporate-preview,#m2CorporatePrint")) {
+            if (!i18nOriginalText.has(node)) i18nOriginalText.set(node,node.nodeValue);
+            node.nodeValue = translatedUiText(i18nOriginalText.get(node),appLanguage);
+          }
+        }));
+        i18nObserver.observe(document.body,{childList:true,subtree:true});
+      });
+      i18nObserver.observe(document.body,{childList:true,subtree:true});
+      const nativeAlert = window.alert.bind(window), nativeConfirm = window.confirm.bind(window), nativePrompt = window.prompt.bind(window);
+      window.alert = (message) => nativeAlert(translatedUiText(String(message)));
+      window.confirm = (message) => nativeConfirm(translatedUiText(String(message)));
+      window.prompt = (message, value) => nativePrompt(translatedUiText(String(message)), value);
+      changeProgramLanguage(appLanguage, false);
+      boot();
+    </script>
+  </body>
+</html>

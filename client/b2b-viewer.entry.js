@@ -16,7 +16,7 @@ const SOURCE_TRAVERSE_X_OFFSET = 79.15549;
 const SOURCE_TRAVERSE_FRONT_OFFSET = 81.59595;
 const SOURCE_TRAVERSE_BACK_OFFSET = 1077.32687;
 const SOURCE_LOAD_BOTTOM = 227.79448;
-const ASSET_VERSION = "b2b-crisp-skyblue-measures-350";
+const ASSET_VERSION = "b2b-double-row-side-ties-360";
 const COLORS = {
   ral5010: 0x005078,
   ral5015: 0x287ab5,
@@ -282,10 +282,15 @@ class B2BViewer {
       for (let index = 0; index < this.options.straightTieCount; index += 1) {
         const height = this.options.straightTiePositions[index] || targetHeight * (index + 1) / (this.options.straightTieCount + 1);
         [leftX, rightX].forEach((x) => {
-          const tie = new THREE.Mesh(new THREE.BoxGeometry(tieWidth, tieDepth, tieHeight), material.clone());
+          const tie = new THREE.Group();
           tie.name = `Düz Arabağ ${index + 1}`;
+          const web = new THREE.Mesh(new THREE.BoxGeometry(tieWidth, tieDepth, tieHeight * .62), material.clone());
+          const topFlange = new THREE.Mesh(new THREE.BoxGeometry(tieWidth, tieDepth, tieHeight * .14), material.clone());
+          const bottomFlange = new THREE.Mesh(new THREE.BoxGeometry(tieWidth, tieDepth, tieHeight * .14), material.clone());
+          topFlange.position.z = tieHeight * .38; bottomFlange.position.z = -tieHeight * .38;
+          [web, topFlange, bottomFlange].forEach((part) => { part.castShadow = true; part.receiveShadow = true; tie.add(part); });
           tie.position.set(moduleX + x, frameDepth + gap / 2, -height);
-          tie.castShadow = true; tie.receiveShadow = true; layer.add(tie);
+          layer.add(tie);
         });
       }
     }

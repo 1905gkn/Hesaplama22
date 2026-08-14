@@ -18,7 +18,8 @@ assert.match(portal, /position === "ground" \? `Zemin \+ \$\{fmt\(Math\.max\(0, 
 assert.match(portal, /m2ActiveModule !== "b2b"/, "B2B proje kaydı eski mekik ayak-arabağ kombinasyonu şartına takılmamalı");
 assert.match(b2bViewer, /addStraightTies\(sectionPitch, frameDepth, sectionScale, targetHeight\)/, "Çift sıra B2B 3D görünümünde düz arabağlar yerleştirilmeli");
 assert.match(portal, /if\(count===1\)return\[Math\.round\(height\/2\)\][\s\S]*if\(count===2\)return\[Math\.round\(height\*\.4\),Math\.round\(height\*\.8\)\]/, "Düz arabağlar 2 metrede ortaya, 5 metrede yaklaşık 2 ve 4 metreye yerleşmeli");
-assert.match(b2bViewer, /new THREE\.BoxGeometry\(tieWidth, tieDepth, tieHeight\)/, "Çift sıra düz arabağı 200 mm genişlikte galvaniz parça olarak çizilmeli");
+assert.match(b2bViewer, /tieWidth = 200[\s\S]*new THREE\.BoxGeometry\(tieWidth, tieDepth, tieHeight \* \.62\)/, "Çift sıra düz arabağı 200 mm genişlikte galvaniz kanal parça olarak çizilmeli");
+assert.match(portal, /function m2B2BSideElevationSvg\(drawing,[\s\S]*2 AYRI RAF · GALVANİZ DÜZ ARABAĞ/, "B2B PDF yandan görünüşü iki ayrı rafı ve aradaki düz arabağları göstermeli");
 assert.match(portal, /class="card m2-floor-editor"/, "Serbest Yerleşim Alanı korunmalı");
 assert.match(portal, /function renderMekik2\(\)[\s\S]*?<p>GÖRSEL DENEME ALANI<\/p><h2>Mekik — Canlı Raf Çizimi<\/h2>/, "Yeni Mekik kendi özgün üst başlığını doğrudan üretmeli");
 assert.match(portal, /function renderMekik2\(\)[\s\S]*?<section class="card">[\s\S]*?<h3>Raf Ölçüleri<\/h3>/, "Yeni Mekik Raf Ölçüleri kartını doğrudan üretmeli");
@@ -39,7 +40,7 @@ assert.match(portal, /option value="ral5010">RAL 5010<\/option><option value="pg
 assert.match(portal, /option value="ral1007">RAL 1007<\/option><option value="ral2004">RAL 2004<\/option>/, "B2B travers rengi RAL 1007 ve RAL 2004 seçeneklerini sunmalı");
 assert.match(portal, /id="b2bPalletDialog"[\s\S]*?id="b2bSpecialPalletWidth"[\s\S]*?id="b2bSpecialPalletDepth"/, "Özel palet seçimi genişlik ve derinlik ekranını açmalı");
 assert.match(portal, /class="b2b-tunnel-picker"[\s\S]*?id="b2bTunnels"/, "Tünel bölümleri açılır listeden seçilmeli");
-assert.match(portal, /script defer src="\/b2b-viewer\.js\?v=b2b-custom-tunnel-ties-366"/, "B2B 3D görüntüleyicisi aynı siteden ve önbellekten bağımsız yüklenmeli");
+assert.match(portal, /script defer src="\/b2b-viewer\.js\?v=b2b-double-row-side-ties-367"/, "B2B 3D görüntüleyicisi aynı siteden ve önbellekten bağımsız yüklenmeli");
 assert.match(portal, /id="b2bMain3DCanvas"[\s\S]*?RafexB2BViewer\.mount\(canvas, b2b3DOptions\(\)\)/, "B2B varsayılan olarak doğrudan GLB sahnesini etkileşimli 3D tuvale bağlamalı");
 assert.match(portal, /window\.RafexB2BViewer\?\.update\(options\)/, "B2B 3D görünümü palet ve bölüm girişleri değişince güncellenmeli");
 assert.match(portal, /KATTA TOPLAM \$\{fmt\(options\.moduleCount \* geometry\.count \* \(options\.rowType === "double" \? 2 : 1\)\)\} PALET/, "B2B 3D özeti kattaki toplam palet sayısını sıra sayısıyla göstermeli");
@@ -727,7 +728,7 @@ const composedPortal = addContext.addMekik2(portal);
 assert.match(composedPortal, /Ayak \/ düz arabağ dağılımı/, "Raf ölçüleri paneli korunmalı");
 assert.match(composedPortal, /Serbest Yerleşim Alanı/, "Serbest yerleşim korunmalı");
 assert.match(composedPortal, /Yatay A4 Proje Sayfası/, "Yatay A4 raporu korunmalı");
-assert.match(composedPortal, /<script defer src="\/b2b-viewer\.js\?v=b2b-custom-tunnel-ties-366"><\/script>/, "B2B 3D betiği yerel kaynakta temiz ve değişmeden kalmalı");
+assert.match(composedPortal, /<script defer src="\/b2b-viewer\.js\?v=b2b-double-row-side-ties-367"><\/script>/, "B2B 3D betiği yerel kaynakta temiz ve değişmeden kalmalı");
 assert.ok(composedPortal.indexOf("var m2TechnicalNodes") > composedPortal.lastIndexOf("<script>"), "Mekik ön görünüş bağlantısı ana uygulama betiğinin içinde olmalı");
 assert.match(composedPortal, /function m2TechnicalRenderMekik2\(\)/, "Teknik ön görünüş ayrı ad alanında çalışmalı");
 assert.match(composedPortal, /data-preserved-enhanced-front/, "GLB ölçülü ön görünüş korunmalı");
