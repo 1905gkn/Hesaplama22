@@ -19,12 +19,12 @@ const sourcePath = process.argv[2];
 const outputPath = process.argv[3];
 let source = fs.readFileSync(sourcePath, 'utf8');
 
-const rowNeedle = '      row.position.y = rowIndex * (frameDepth + this.options.rowGap);';
-if (!source.includes(rowNeedle)) throw new Error('B2B ikinci sıra yerleşim satırı bulunamadı.');
-source = source.replace(rowNeedle, `      // Çift sırada ikinci ürün ilk ürünün kopyası gibi aynı yöne bakmaz.\n      // İç arka yüzleri birbirine bakacak şekilde gerçek back-to-back yerleşir.\n      if (rowIndex === 0) {\n        row.position.y = 0;\n      } else {\n        row.scale.y = -1;\n        row.position.y = frameDepth * 2 + this.options.rowGap;\n      }`);
+// Çift sıra yönü artık kaynak 3D üreticisinde uygulanıyor.
+if (!source.includes('row.scale.y=-1')) throw new Error('B2B çift sıra yönü kaynakta bulunamadı.');
 
 
-source = source.replace('const ASSET_VERSION = "b2b-true-3d-combined-511";', 'const ASSET_VERSION = "b2b-true-3d-combined-511";');
+
+source = source.replace('const ASSET_VERSION = "b2b-true-3d-combined-512";', 'const ASSET_VERSION = "b2b-true-3d-combined-512";');
 fs.writeFileSync(outputPath, source);
 NODE
 
@@ -70,7 +70,7 @@ let portalSource = fs.readFileSync(portalPath, 'utf8')
   .replaceAll('__M2_PALETLI_SIDE_BASE64__', fs.readFileSync(paletliPath).toString('base64'))
   .replaceAll('__M2_AYAK2_FRONT_BASE64__', ayak2FrontBase64)
   .replaceAll('__M2_PALLET_DEFINITION_BASE64__', fs.readFileSync(palletDefinitionPath).toString('base64'))
-  .replaceAll('b2b-double-row-side-ties-367', 'b2b-true-3d-combined-511');
+  .replaceAll('b2b-double-row-side-ties-367', 'b2b-true-3d-combined-512');
 portalSource = portalSource.replace(/<\/body>\s*<\/html>\s*$/i, `<script data-rafex-b2b-visual-fixes="back-to-back-reference-v2">\n${b2bVisualFixes}\n</script>\n<script data-rafex-b2b-report-3d="front-side-capture-v5">\n${b2bReport3d}\n</script>\n</body>\n</html>`);
 if (!portalSource.includes('data-rafex-b2b-visual-fixes="back-to-back-reference-v2"') || !portalSource.includes('data-rafex-b2b-report-3d="front-side-capture-v5"')) {
   throw new Error('B2B 3D görünüş betikleri portala eklenemedi.');

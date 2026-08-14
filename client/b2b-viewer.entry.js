@@ -219,7 +219,8 @@ class B2BViewer {
       positions.push(cursor);totalRackWidth=cursor+frameWidth;cursor+=spec.sectionWidth+120;
     });
     for(let rowIndex=0;rowIndex<rowCount;rowIndex+=1){
-      const row=new THREE.Group();row.name=`B2B ${rowIndex+1}. sıra`;row.position.y=rowIndex*(baseFrameDepth+baseOptions.rowGap);
+      const row=new THREE.Group();row.name=`B2B ${rowIndex+1}. sıra`;
+      if(rowIndex===0){row.position.y=0;}else{row.scale.y=-1;row.position.y=baseFrameDepth*2+baseOptions.rowGap;}
       moduleSpecs.forEach((spec,moduleIndex)=>{
         this.options=spec;
         const sectionScale=spec.sectionWidth/SOURCE_SECTION_WIDTH;
