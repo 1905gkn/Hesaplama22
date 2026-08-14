@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v9";
+  const VERSION = "front-side-capture-v10";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -248,18 +248,22 @@
     return true;
   }
 
-  function availableVariantEntries(){
-    if(typeof m2SavedRackTypes==="undefined"||!Array.isArray(m2SavedRackTypes))return [];
-    const entries=m2SavedRackTypes.filter((entry)=>entry?.drawing?.b2bLayout);
-    const countOf=(entry)=>number(entry?.drawing?.b2bLayout?.palletCount??entry?.drawing?.b2b?.palletCount??entry?.drawing?.bays,0);
-    return [4,3,2,1].map((count)=>entries.find((entry)=>countOf(entry)===count)).filter(Boolean);
+  function visibleVariantDrawings(){
+    const cards=[...document.querySelectorAll(".rafex-combined-front, .rafex-variant-pair .m2-report-elevation[data-rafex-capture-view='front'], #m2ReportFronts>.m2-report-elevation")];
+    const found=new Map();
+    cards.forEach((card)=>{
+      const key=cardKey(card),drawing=reportDrawings.get(key);if(!key||!drawing)return;
+      const count=number(drawing?.b2bLayout?.palletCount??drawing?.b2b?.palletCount??drawing?.bays,0);
+      if(count>0&&!found.has(count))found.set(count,{key,drawing,count});
+    });
+    return [4,3,2,1].map((count)=>found.get(count)).filter(Boolean);
   }
 
   async function captureCombinedVariants(){
     const enabled=document.getElementById("m2ReportCompleteFront")?.checked===true;
-    const entries=enabled?availableVariantEntries():[];
+    const entries=enabled?visibleVariantDrawings():[];
     if(entries.length<2){combinedVariantCache=null;return null;}
-    const signature=entries.map((entry)=>stableKey(entry.drawing)).join("|");
+    const signature=entries.map((entry)=>entry.key).join("|");
     if(combinedVariantCache?.signature===signature)return combinedVariantCache;
     if(combinedVariantPending)return combinedVariantPending;
     combinedVariantPending=(async()=>{
@@ -281,6 +285,11 @@
     document.querySelectorAll(".rafex-combined-side").forEach((host)=>{
       host.innerHTML=`<b>YAN GÖRÜNÜŞ</b><div class="rafex-report-3d-frame"><img src="${combinedVariantCache.side}" alt="Birleşik B2B modülleri 3D yan görünüş"></div>`;
     });
+    const sheet=document.getElementById("m2A4Sheet"),fronts=document.getElementById("m2ReportFronts");
+    if(sheet?.classList.contains("rafex-variants-active")&&fronts){
+      fronts.style.setProperty("--m2-report-count","1");
+      fronts.innerHTML=`<div class="rafex-summary-combined"><div><b>ÖNDEN GÖRÜNÜŞ</b><div class="rafex-report-3d-frame"><img src="${combinedVariantCache.front}" alt="Birleşik B2B modülleri 3D önden görünüş"></div></div><div><b>YAN GÖRÜNÜŞ</b><div class="rafex-report-3d-frame"><img src="${combinedVariantCache.side}" alt="Birleşik B2B modülleri 3D yan görünüş"></div></div></div>`;
+    }
   }
 
   function applyCachedViews() {
@@ -298,21 +307,21 @@
   function renderAvailableVariants() {
     const toggle=document.getElementById("m2ReportCompleteFront"),label=document.getElementById("m2ReportVariantsLabel"),sheet=document.getElementById("m2A4Sheet");
     if(label)label.textContent="4–3–2–1 GÖSTER";
-    const enabled=toggle?.checked===true;
-    sheet?.classList.toggle("rafex-variants-active",enabled);
-    if(!enabled||typeof m2SavedRackTypes==="undefined")return;
-    const language=document.getElementById("m2ReportLanguage")?.value||"tr";
-    const labels=typeof m2ReportDictionary==="function"?m2ReportDictionary(language):{};
-    const candidates=Array.isArray(m2SavedRackTypes)?m2SavedRackTypes.filter((entry)=>entry?.drawing?.b2bLayout):[];
-    const countOf=(entry)=>number(entry?.drawing?.b2bLayout?.palletCount??entry?.drawing?.b2b?.palletCount??entry?.drawing?.bays,0);
-    const variants=[4,3,2,1].map((count)=>candidates.find((entry)=>countOf(entry)===count)).filter(Boolean);
-    if(!variants.length){sheet?.classList.remove("rafex-variants-active");return;}
-    const cards=variants.map((entry)=>{
-      const drawing=entry.drawing,title=typeof esc==="function"?esc(entry.name||"Raf Tipi"):(entry.name||"Raf Tipi");
-      const front=m2B2BReportPerspectiveSvg(drawing,labels,false),side=m2B2BSideElevationSvg(drawing,labels);
-      return `<div class="rafex-variant-pair"><b class="rafex-variant-title">${title}</b><div class="m2-report-elevation" data-rafex-capture-view="front">${front}</div><div class="m2-report-elevation" data-rafex-capture-view="side">${side}</div></div>`;
-    }).join("");
+    const enabled=toggle?.checked===true;sheet?.classList.toggle("rafex-variants-active",enabled);
+    if(!enabled)return;
     const fronts=document.getElementById("m2ReportFronts"),sides=document.getElementById("m2ReportSides");
+    const original=[...(fronts?.querySelectorAll(".m2-report-elevation")||[])];
+    const variants=original.map((card)=>{
+      const key=cardKey(card),drawing=reportDrawings.get(key);if(!key||!drawing)return null;
+      const count=number(drawing?.b2bLayout?.palletCount??drawing?.b2b?.palletCount??drawing?.bays,0);
+      return {key,drawing,count,title:card.querySelector("b")?.textContent||"Raf Tipi"};
+    }).filter(Boolean).sort((a,b)=>b.count-a.count);
+    if(variants.length<2){sheet?.classList.remove("rafex-variants-active");return;}
+    const language=document.getElementById("m2ReportLanguage")?.value||"tr",labels=typeof m2ReportDictionary==="function"?m2ReportDictionary(language):{};
+    const cards=variants.map((entry)=>{
+      const front=m2B2BReportPerspectiveSvg(entry.drawing,labels,false),side=m2B2BSideElevationSvg(entry.drawing,labels);
+      return `<div class="rafex-variant-pair"><b class="rafex-variant-title">${entry.title}</b><div class="m2-report-elevation" data-rafex-capture-view="front">${front}</div><div class="m2-report-elevation" data-rafex-capture-view="side">${side}</div></div>`;
+    }).join("");
     if(fronts){fronts.style.setProperty("--m2-report-count",String(variants.length));fronts.innerHTML=cards;}
     if(sides)sides.innerHTML="";
   }
@@ -437,6 +446,10 @@
       .rafex-combined-fronts { display:flex; min-width:0; min-height:0; overflow:hidden; background:#fff; }
       .rafex-combined-fronts .rafex-true-combined { width:100%; height:100%; display:grid; place-items:center; overflow:hidden; background:#fff; }
       .rafex-combined-fronts .rafex-true-combined img { display:block; width:100%; height:100%; object-fit:contain; }
+      .rafex-summary-combined { display:grid; grid-template-columns:minmax(0,4fr) minmax(0,1fr); gap:6px; width:100%; height:100%; min-width:0; min-height:0; }
+      .rafex-summary-combined>div { display:grid; grid-template-rows:18px minmax(0,1fr); min-width:0; min-height:0; overflow:hidden; background:#fff; }
+      .rafex-summary-combined b { display:grid; place-items:center; background:#dceaf1; color:#0b2b45; font-size:8px; }
+      .rafex-summary-combined .rafex-report-3d-frame,.rafex-summary-combined img { width:100%; height:100%; min-width:0; min-height:0; object-fit:contain; }
       .rafex-combined-front { flex:var(--rafex-variant-weight,1) 1 0; border-left:0 !important; min-width:0; overflow:hidden; }
       .rafex-combined-front + .rafex-combined-front { margin-left:-1px; }
       .rafex-combined-front .rafex-report-3d-frame { overflow:hidden; }
