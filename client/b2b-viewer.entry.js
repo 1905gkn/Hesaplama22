@@ -16,7 +16,7 @@ const SOURCE_TRAVERSE_X_OFFSET = 79.15549;
 const SOURCE_TRAVERSE_FRONT_OFFSET = 81.59595;
 const SOURCE_TRAVERSE_BACK_OFFSET = 1077.32687;
 const SOURCE_LOAD_BOTTOM = 227.79448;
-const ASSET_VERSION = "b2b-constant-upright-thickness-516";
+const ASSET_VERSION = "b2b-centered-upright-thickness-517";
 const COLORS = {
   ral5010: 0x005078,
   ral5015: 0x287ab5,
@@ -252,7 +252,11 @@ class B2BViewer {
     root.traverse((object)=>{
       if(!object.isMesh)return;
       const name=(object.name||"").toLocaleUpperCase("tr-TR");
-      if(name.includes("AYAK")||name.includes("HRTD")||name.includes("UPRIGHT"))object.scale.x*=compensation;
+      if(!(name.includes("AYAK")||name.includes("HRTD")||name.includes("UPRIGHT"))||!object.geometry)return;
+      const geometry=object.geometry.clone();geometry.computeBoundingBox();
+      const centerX=(geometry.boundingBox.min.x+geometry.boundingBox.max.x)/2;
+      geometry.translate(-centerX,0,0);geometry.scale(compensation,1,1);geometry.translate(centerX,0,0);
+      object.geometry=geometry;
     });
   }
 
@@ -476,7 +480,7 @@ class B2BViewer {
     if (this.options.dimensions.eye) this.addHorizontalDimension(eyeLayer, eyeStart, eyeStart + this.options.sectionWidth, rackDepth + 360, 0, `GÖZ  ·  ${this.dimensionValue(this.options.sectionWidth)}`);
     if (this.options.dimensions.width) {
       if (Array.isArray(widthSegments) && widthSegments.length > 1) {
-        widthSegments.forEach((segment,index) => this.addHorizontalDimension(widthLayer, segment.from, segment.to, rackDepth + 650 + index * 260, 0, `${segment.count}’Lİ MODÜL  ·  ${this.dimensionValue(segment.width)}`));
+        widthSegments.forEach((segment,index) => this.addHorizontalDimension(widthLayer, segment.from, segment.to, rackDepth + 650 + index * 520, 0, `${segment.count}’Lİ MODÜL  ·  ${this.dimensionValue(segment.width)}`));
       } else this.addHorizontalDimension(widthLayer, 0, rackWidth, rackDepth + 650, 0, `GENİŞLİK  ·  ${this.dimensionValue(rackWidth)}`);
     }
     if (this.options.dimensions.depth) this.addDepthDimension(depthLayer, rackWidth + 420, 0, rackDepth, 0, `DERİNLİK  ·  ${this.dimensionValue(rackDepth)}`);
