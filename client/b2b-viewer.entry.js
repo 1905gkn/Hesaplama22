@@ -16,7 +16,7 @@ const SOURCE_TRAVERSE_X_OFFSET = 79.15549;
 const SOURCE_TRAVERSE_FRONT_OFFSET = 81.59595;
 const SOURCE_TRAVERSE_BACK_OFFSET = 1077.32687;
 const SOURCE_LOAD_BOTTOM = 227.79448;
-const ASSET_VERSION = "b2b-shared-upright-widths-514";
+const ASSET_VERSION = "b2b-clean-shared-uprights-515";
 const COLORS = {
   ral5010: 0x005078,
   ral5015: 0x287ab5,
@@ -213,12 +213,17 @@ class B2BViewer {
       : Array.from({length:baseOptions.moduleCount},()=>baseOptions);
     const baseFrameDepth=Math.max(100,baseOptions.palletDepth-baseOptions.frontPalletGap-baseOptions.rearPalletGap);
     const rowCount=baseOptions.rowType==="double"?2:1;
-    const positions=[],widthSegments=[];let cursor=0,totalRackWidth=0;
-    const sharedUprightWidth=75;
+    const positions=[],widthSegments=[];let totalRackWidth=0;
     moduleSpecs.forEach((spec,index)=>{
-      const sectionScale=spec.sectionWidth/SOURCE_SECTION_WIDTH,frameWidth=2942.650634765625*sectionScale;
-      positions.push(cursor);widthSegments.push({from:cursor,to:cursor+frameWidth,count:spec.palletCount,width:frameWidth});
-      totalRackWidth=cursor+frameWidth;cursor+=frameWidth-sharedUprightWidth;
+      const sectionScale=spec.sectionWidth/SOURCE_SECTION_WIDTH,frameWidth=2942.650634765625*sectionScale,leftAxis=SOURCE_CLEAR_LEFT*sectionScale;
+      let moduleX=0;
+      if(index>0){
+        const previous=moduleSpecs[index-1],previousScale=previous.sectionWidth/SOURCE_SECTION_WIDTH;
+        const previousRightAxis=positions[index-1]+SOURCE_CLEAR_LEFT*previousScale+previous.sectionWidth;
+        moduleX=previousRightAxis-leftAxis;
+      }
+      positions.push(moduleX);widthSegments.push({from:moduleX,to:moduleX+frameWidth,count:spec.palletCount,width:frameWidth});
+      totalRackWidth=Math.max(totalRackWidth,moduleX+frameWidth);
     });
     for(let rowIndex=0;rowIndex<rowCount;rowIndex+=1){
       const row=new THREE.Group();row.name=`B2B ${rowIndex+1}. sıra`;
@@ -236,7 +241,7 @@ class B2BViewer {
       this.content.add(row);
     }
     this.options=baseOptions;
-    if(rowCount===2&&baseOptions.straightTieCount>0)this.addStraightTies(cursor,baseFrameDepth,baseOptions.sectionWidth/SOURCE_SECTION_WIDTH,Math.max(500,this.uprightHeight()));
+    if(rowCount===2&&baseOptions.straightTieCount>0)this.addStraightTies(0,baseFrameDepth,baseOptions.sectionWidth/SOURCE_SECTION_WIDTH,Math.max(500,this.uprightHeight()),moduleSpecs,positions);
     this.content.rotation.x=Math.PI/2;
     this.addDimensions(baseOptions.sectionWidth+120,totalRackWidth,widthSegments);
     this.content.updateMatrixWorld(true);this.addGround();this.fitCamera(initial?"perspective":this.view);
@@ -275,7 +280,7 @@ class B2BViewer {
     removals.sort((a, b) => this.depth(b) - this.depth(a)).forEach((object) => object.parent?.remove(object));
   }
 
-  addStraightTies(sectionPitch, frameDepth, sectionScale, targetHeight) {
+  addStraightTies(sectionPitch, frameDepth, sectionScale, targetHeight, moduleSpecs = null, modulePositions = null) {
     const gap = Math.max(1, this.options.rowGap);
     const layer = new THREE.Group();
     layer.name = "B2B Düz Arabağlar · SAC ARA BAĞ GLB";
@@ -315,20 +320,21 @@ class B2BViewer {
       return tie;
     };
 
-    for (let moduleIndex = 0; moduleIndex < this.options.moduleCount; moduleIndex += 1) {
-      const moduleX = moduleIndex * sectionPitch;
-      const leftX = SOURCE_CLEAR_LEFT * sectionScale;
-      const rightX = leftX + this.options.sectionWidth;
-      for (let index = 0; index < this.options.straightTieCount; index += 1) {
-        const height = this.options.straightTiePositions[index] || targetHeight * (index + 1) / (this.options.straightTieCount + 1);
-        [leftX, rightX].forEach((x) => {
-          const tie = makeTie();
-          tie.name = `Düz Arabağ ${index + 1} · SAC ARA BAĞ`;
-          tie.position.set(moduleX + x, frameDepth + gap / 2, -height);
-          layer.add(tie);
+    const originalOptions=this.options,seen=new Set();
+    const specs=Array.isArray(moduleSpecs)&&moduleSpecs.length?moduleSpecs:Array.from({length:this.options.moduleCount},()=>this.options);
+    specs.forEach((spec,moduleIndex)=>{
+      this.options=spec;
+      const localScale=spec.sectionWidth/SOURCE_SECTION_WIDTH,moduleX=Array.isArray(modulePositions)?modulePositions[moduleIndex]:moduleIndex*sectionPitch;
+      const leftX=SOURCE_CLEAR_LEFT*localScale,rightX=leftX+spec.sectionWidth,moduleHeight=Math.max(500,this.uprightHeight());
+      for(let index=0;index<spec.straightTieCount;index+=1){
+        const height=spec.straightTiePositions[index]||moduleHeight*(index+1)/(spec.straightTieCount+1);
+        [leftX,rightX].forEach((x)=>{
+          const worldX=moduleX+x,key=`${Math.round(worldX)}:${Math.round(height)}`;if(seen.has(key))return;seen.add(key);
+          const tie=makeTie();tie.name=`Düz Arabağ ${index+1} · SAC ARA BAĞ`;tie.position.set(worldX,frameDepth+gap/2,-height);layer.add(tie);
         });
       }
-    }
+    });
+    this.options=originalOptions;
     this.content.add(layer);
   }
 
@@ -461,7 +467,7 @@ class B2BViewer {
     if (this.options.dimensions.eye) this.addHorizontalDimension(eyeLayer, eyeStart, eyeStart + this.options.sectionWidth, rackDepth + 360, 0, `GÖZ  ·  ${this.dimensionValue(this.options.sectionWidth)}`);
     if (this.options.dimensions.width) {
       if (Array.isArray(widthSegments) && widthSegments.length > 1) {
-        widthSegments.forEach((segment) => this.addHorizontalDimension(widthLayer, segment.from, segment.to, rackDepth + 650, 0, `${segment.count}’Lİ MODÜL  ·  ${this.dimensionValue(segment.width)}`, 560));
+        widthSegments.forEach((segment,index) => this.addHorizontalDimension(widthLayer, segment.from, segment.to, rackDepth + 650 + index * 260, 0, `${segment.count}’Lİ MODÜL  ·  ${this.dimensionValue(segment.width)}`));
       } else this.addHorizontalDimension(widthLayer, 0, rackWidth, rackDepth + 650, 0, `GENİŞLİK  ·  ${this.dimensionValue(rackWidth)}`);
     }
     if (this.options.dimensions.depth) this.addDepthDimension(depthLayer, rackWidth + 420, 0, rackDepth, 0, `DERİNLİK  ·  ${this.dimensionValue(rackDepth)}`);
