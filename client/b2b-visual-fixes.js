@@ -78,7 +78,7 @@
       positions.slice(0, count).forEach((mm, index) => {
         const y = bottom - (bottom - top) * Math.max(0, Math.min(1, Number(mm) / Math.max(1, uprightHeight)));
         const x1 = left.innerX, x2 = right.innerX, span = x2 - x1;
-        ties += `<g class="rafex-b2b-straight-tie" data-tie-index="${index + 1}" data-reference-shape="formed-channel-with-end-plates"><rect x="${x1 - 8}" y="${y - 5}" width="${span + 16}" height="10" rx="2" fill="#c4c9cb" stroke="#586268" stroke-width="1.5"/><rect x="${x1 - 10}" y="${y - 13}" width="18" height="26" rx="2" fill="#aeb6b9" stroke="#586268" stroke-width="1.5"/><rect x="${x2 - 8}" y="${y - 13}" width="18" height="26" rx="2" fill="#aeb6b9" stroke="#586268" stroke-width="1.5"/><path d="M${x1 + 2} ${y - 5}v-7h${Math.max(8, span - 4)}v7M${x1 + 2} ${y + 5}v7h${Math.max(8, span - 4)}v-7" fill="none" stroke="#7b858a" stroke-width="2"/></g>`;
+        const mountLeft = x1 + 5, mountRight = x2 - 5, mountSpan = mountRight - mountLeft;\n        ties += `<g class="rafex-b2b-straight-tie" data-tie-index="${index + 1}" data-reference-shape="sac-arabag-glb-hole-face-mounted"><rect x="${mountLeft}" y="${y - 7}" width="${mountSpan}" height="14" rx="2" fill="#b8c0c3" stroke="#566168" stroke-width="1.5"/><path d="M${mountLeft + 2} ${y - 3}H${mountRight - 2}M${mountLeft + 2} ${y + 3}H${mountRight - 2}" stroke="#e8edef" stroke-width="1.5"/><rect x="${mountLeft - 7}" y="${y - 16}" width="14" height="32" rx="2" fill="#aeb6b9" stroke="#4e5a60" stroke-width="1.5"/><rect x="${mountRight - 7}" y="${y - 16}" width="14" height="32" rx="2" fill="#aeb6b9" stroke="#4e5a60" stroke-width="1.5"/><circle cx="${mountLeft}" cy="${y - 7}" r="2.4" fill="#344047"/><circle cx="${mountLeft}" cy="${y + 7}" r="2.4" fill="#344047"/><circle cx="${mountRight}" cy="${y - 7}" r="2.4" fill="#344047"/><circle cx="${mountRight}" cy="${y + 7}" r="2.4" fill="#344047"/></g>`;
       });
     }
     const totalDepth = rowCount === 2 ? frameDepth * 2 + rowGap : frameDepth;
@@ -89,14 +89,14 @@
   }
 
   function rafexB2BFrontElevationSvg(drawing, labels, showVariants) {
-    const { rowCount, levels, palletCount, palletWidth, sectionWidth } = b2bVisualState(drawing);
+    const { rowCount, levels, palletCount, sectionWidth, uprightHeight, tiePlan } = b2bVisualState(drawing);
     const canvasW = 920, canvasH = 600, left = 92, right = 828, top = 76, bottom = 520;
     const width = right - left, height = bottom - top, bayW = width / palletCount;
-    let body = "";
+    let body = "", tieEnds = "";
     if (rowCount === 2) body += `<rect x="${left + 7}" y="${top - 7}" width="${width}" height="${height}" fill="none" stroke="#c4c9cc" stroke-width="5" opacity=".7"/>`;
     for (let column = 0; column <= palletCount; column += 1) {
       const x = left + column * bayW;
-      body += `<rect x="${x - 5}" y="${top}" width="10" height="${height}" rx="2" fill="#aeb8bd" stroke="#566168" stroke-width="1.5"/>`;
+      body += `<rect x="${x - 5}" y="${top}" width="10" height="${height}" rx="2" fill="#0b4975" stroke="#063353" stroke-width="1.5"/>`;
     }
     for (let level = 0; level < levels; level += 1) {
       const y = bottom - 25 - (height - 48) * (level / Math.max(1, levels - 1));
@@ -106,17 +106,35 @@
         body += `<rect x="${loadX}" y="${y - loadH - 5}" width="${loadW}" height="${loadH}" fill="#e7dfcf" stroke="#807a70" stroke-width="1.5"/><rect x="${loadX}" y="${y - 5}" width="${loadW}" height="7" fill="#c58b42" stroke="#744719" stroke-width="1.2"/>`;
       }
     }
-    return `<svg viewBox="0 0 ${canvasW} ${canvasH}" role="img" data-rafex-front-version="orthographic-match-3d-v2" data-row-count="${rowCount}"><style>.rf-title{font:900 18px Arial;fill:#1f2933}.rf-sub{font:800 11px Arial;fill:#53606a}.rf-dim{font:900 12px Arial;fill:#27343d}</style><text x="460" y="28" text-anchor="middle" class="rf-title">ÖNDEN GÖRÜNÜŞ · 3D İLE AYNI MODÜL</text><text x="460" y="48" text-anchor="middle" class="rf-sub">${rowCount === 2 ? "B2B çift sıra · arka sıra önden aynı eksene gelir" : "B2B tek sıra"}</text>${body}<line x1="${left - 25}" y1="${bottom + 2}" x2="${right + 25}" y2="${bottom + 2}" stroke="#313b41" stroke-width="3"/><text x="460" y="565" text-anchor="middle" class="rf-dim">${localFmt(palletCount)} palet / bölüm · travers ${localFmt(sectionWidth)} mm</text></svg>`;
+    if (rowCount === 2 && Number(tiePlan.count) > 0) {
+      const count = Math.max(1, Number(tiePlan.count) || 1);
+      const positions = Array.isArray(tiePlan.positions) && tiePlan.positions.length ? tiePlan.positions : Array.from({ length: count }, (_, index) => uprightHeight * (index + 1) / (count + 1));
+      positions.slice(0, count).forEach((mm, index) => {
+        const y = bottom - height * Math.max(0, Math.min(1, Number(mm) / Math.max(1, uprightHeight)));
+        for (let column = 0; column <= palletCount; column += 1) {
+          const x = left + column * bayW;
+          tieEnds += `<g class="rafex-b2b-front-tie-end" data-tie-index="${index + 1}" data-mount="upright-hole-face"><rect x="${x - 11}" y="${y - 15}" width="22" height="30" rx="2" fill="#aeb6b9" stroke="#4e5a60" stroke-width="1.5"/><circle cx="${x}" cy="${y - 7}" r="2.5" fill="#344047"/><circle cx="${x}" cy="${y + 7}" r="2.5" fill="#344047"/></g>`;
+        }
+      });
+    }
+    const tieText = rowCount === 2 && Number(tiePlan.count) ? ` · DÜZ ARABAĞ ${localFmt(tiePlan.length || 0)} mm / ${localFmt(tiePlan.count)} KOT` : "";
+    return `<svg viewBox="0 0 ${canvasW} ${canvasH}" role="img" data-rafex-front-version="sac-arabag-hole-face-v3" data-row-count="${rowCount}"><style>.rf-title{font:900 18px Arial;fill:#1f2933}.rf-sub{font:800 11px Arial;fill:#53606a}.rf-dim{font:900 12px Arial;fill:#27343d}</style><text x="460" y="28" text-anchor="middle" class="rf-title">ÖNDEN GÖRÜNÜŞ · 3D İLE AYNI MODÜL</text><text x="460" y="48" text-anchor="middle" class="rf-sub">${rowCount === 2 ? "B2B çift sıra · arabağ uç plakaları ayak deliklerinde" : "B2B tek sıra"}</text>${body}${tieEnds}<line x1="${left - 25}" y1="${bottom + 2}" x2="${right + 25}" y2="${bottom + 2}" stroke="#313b41" stroke-width="3"/><text x="460" y="565" text-anchor="middle" class="rf-dim">${localFmt(palletCount)} palet / bölüm · travers ${localFmt(sectionWidth)} mm${tieText}</text></svg>`;
   }
 
   function refreshLiveSide() {
     try {
       if (typeof m2ActiveModule === "undefined" || m2ActiveModule !== "b2b" || typeof m2LastDrawing === "undefined" || !m2LastDrawing) return;
-      const host = document.getElementById("m2Side");
-      if (!host) return;
-      host.innerHTML = rafexB2BSideElevationSvg(m2LastDrawing);
-      host.dataset.rafexReferenceView = "back-to-back-two-complete-racks";
-      requestAnimationFrame(() => { try { if (typeof m2ApplyViewZoom === "function") m2ApplyViewZoom("side"); } catch {} });
+      const sideHost = document.getElementById("m2Side");
+      const frontHost = document.getElementById("m2Front");
+      if (sideHost) {
+        sideHost.innerHTML = rafexB2BSideElevationSvg(m2LastDrawing);
+        sideHost.dataset.rafexReferenceView = "sac-arabag-hole-face-mounted";
+      }
+      if (frontHost) {
+        frontHost.innerHTML = rafexB2BFrontElevationSvg(m2LastDrawing);
+        frontHost.dataset.rafexReferenceView = "sac-arabag-end-plates-on-uprights";
+      }
+      requestAnimationFrame(() => { try { if (typeof m2ApplyViewZoom === "function") { m2ApplyViewZoom("side"); m2ApplyViewZoom("front"); } } catch {} });
     } catch (error) { console.error("B2B referans yan görünüşü oluşturulamadı", error); }
   }
 
@@ -146,7 +164,7 @@
     const originalShowView = m2ShowView;
     m2ShowView = function (name, ...args) {
       const result = originalShowView.call(this, name, ...args);
-      if (name === "side") queueMicrotask(refreshLiveSide);
+      if (name === "side" || name === "front") queueMicrotask(refreshLiveSide);
       return result;
     };
   } catch {}
