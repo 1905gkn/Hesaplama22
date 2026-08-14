@@ -8,6 +8,22 @@ async function proxyApi(request) {
   const headers = new Headers(request.headers);
   headers.set("host", target.host);
 
+  // The legacy worker rejects state-changing requests when Origin does not
+  // match its own origin. Requests arriving through Vercel naturally carry
+  // the Vercel origin, so normalize browser security headers before proxying.
+  if (headers.has("origin")) headers.set("origin", target.origin);
+  if (headers.has("referer")) {
+    try {
+      const referer = new URL(headers.get("referer"));
+      headers.set(
+        "referer",
+        new URL(referer.pathname + referer.search, LEGACY_API_ORIGIN).toString(),
+      );
+    } catch {
+      headers.delete("referer");
+    }
+  }
+
   return fetch(target, {
     method: request.method,
     headers,
