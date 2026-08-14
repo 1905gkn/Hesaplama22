@@ -16,7 +16,7 @@ const SOURCE_TRAVERSE_X_OFFSET = 79.15549;
 const SOURCE_TRAVERSE_FRONT_OFFSET = 81.59595;
 const SOURCE_TRAVERSE_BACK_OFFSET = 1077.32687;
 const SOURCE_LOAD_BOTTOM = 227.79448;
-const ASSET_VERSION = "b2b-clean-shared-uprights-515";
+const ASSET_VERSION = "b2b-constant-upright-thickness-516";
 const COLORS = {
   ral5010: 0x005078,
   ral5015: 0x287ab5,
@@ -234,7 +234,7 @@ class B2BViewer {
         const frameDepth=Math.max(100,spec.palletDepth-spec.frontPalletGap-spec.rearPalletGap),depthScale=frameDepth/SOURCE_FRAME_DEPTH;
         const targetHeight=Math.max(500,this.uprightHeight()),verticalScale=targetHeight/5006.16;
         const section=new THREE.Group();section.name=`B2B Değişken Bölüm ${moduleIndex+1}`;
-        const frame=this.models.module.clone(true);this.stripFrameSupports(frame);frame.scale.set(sectionScale,depthScale,verticalScale);this.applyRackMaterials(frame);section.add(frame);
+        const frame=this.models.module.clone(true);this.stripFrameSupports(frame);frame.scale.set(sectionScale,depthScale,verticalScale);this.preserveUprightThickness(frame,sectionScale);this.applyRackMaterials(frame);section.add(frame);
         this.addTraverses(section,sectionScale,depthScale);if(spec.showPallets)this.addLoads(section,sectionScale);
         section.position.x=positions[moduleIndex];row.add(section);
       });
@@ -245,6 +245,15 @@ class B2BViewer {
     this.content.rotation.x=Math.PI/2;
     this.addDimensions(baseOptions.sectionWidth+120,totalRackWidth,widthSegments);
     this.content.updateMatrixWorld(true);this.addGround();this.fitCamera(initial?"perspective":this.view);
+  }
+
+  preserveUprightThickness(root,sectionScale){
+    const compensation=1/Math.max(.18,sectionScale);
+    root.traverse((object)=>{
+      if(!object.isMesh)return;
+      const name=(object.name||"").toLocaleUpperCase("tr-TR");
+      if(name.includes("AYAK")||name.includes("HRTD")||name.includes("UPRIGHT"))object.scale.x*=compensation;
+    });
   }
 
   applyRackMaterials(root) {
