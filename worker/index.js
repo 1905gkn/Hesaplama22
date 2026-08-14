@@ -42,6 +42,7 @@ const B2B_TAKIM_BASE64 = "__B2B_TAKIM_BASE64__";
 const B2B_PALET_BASE64 = "__B2B_PALET_BASE64__";
 const B2B_TRAVERS_BASE64 = "__B2B_TRAVERS_BASE64__";
 const B2B_AYAK_BASE64 = "__B2B_AYAK_BASE64__";
+const B2B_STRAIGHT_TIE_BASE64 = "__B2B_STRAIGHT_TIE_BASE64__";
 const B2B_VIEWER_BASE64 = "__B2B_VIEWER_BASE64__";
 const DRACO_DECODER_BASE64 = "__DRACO_DECODER_BASE64__";
 const DRACO_WASM_WRAPPER_BASE64 = "__DRACO_WASM_WRAPPER_BASE64__";
@@ -1327,6 +1328,8 @@ export default {
       return binary(B2B_TRAVERS_BASE64, "model/gltf-binary");
     if (path === "/b2b-ayak.glb")
       return binary(B2B_AYAK_BASE64, "model/gltf-binary");
+    if (path === "/b2b-sac-arabag.glb")
+      return binary(B2B_STRAIGHT_TIE_BASE64, "model/gltf-binary");
     if (path === "/b2b-viewer.js")
       return new Response(
         Uint8Array.from(atob(B2B_VIEWER_BASE64), (c) => c.charCodeAt(0)),

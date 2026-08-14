@@ -160,4 +160,31 @@
   } catch {}
 
   queueMicrotask(refreshLiveSide);
+
+  const B2B_RELEASE_VERSION = "__B2B_BUILD_VERSION__";
+  const B2B_RELEASE_TIME = "__B2B_BUILD_TIME__";
+  function rafexB2BReleaseBadge() {
+    const top = document.querySelector(".top");
+    const page = document.getElementById("page");
+    if (!top || !page) return;
+    let badge = document.getElementById("rafexB2BReleaseBadge");
+    if (!badge) {
+      const style = document.createElement("style");
+      style.textContent = `
+        #rafexB2BReleaseBadge{display:none;align-items:center;gap:10px;margin-left:auto;padding:7px 11px;border:1px solid #d7b8be;border-radius:10px;background:#fff7f8;color:#430c15;line-height:1.15}
+        #rafexB2BReleaseBadge b{display:block;font-size:11px}
+        #rafexB2BReleaseBadge small{display:block;margin-top:2px;color:#80636a;font-size:9px}
+        #rafexB2BReleaseBadge[data-active="true"]{display:flex}
+        @media(max-width:720px){#rafexB2BReleaseBadge{padding:6px 8px}#rafexB2BReleaseBadge small{display:none}}
+      `;
+      document.head.appendChild(style);
+      badge = document.createElement("div");
+      badge.id = "rafexB2BReleaseBadge";
+      badge.innerHTML = `<span>●</span><span><b>Son sürüm · ${B2B_RELEASE_VERSION}</b><small>Yüklenme: ${new Date(B2B_RELEASE_TIME).toLocaleString("tr-TR",{timeZone:"Europe/Istanbul",dateStyle:"short",timeStyle:"medium"})}</small></span>`;
+      (top.querySelector(".top-actions") || top).appendChild(badge);
+    }
+    badge.dataset.active = page.classList.contains("b2b-mode") ? "true" : "false";
+  }
+  new MutationObserver(rafexB2BReleaseBadge).observe(document.getElementById("page"), { attributes:true, attributeFilter:["class"] });
+  queueMicrotask(rafexB2BReleaseBadge);
 })();

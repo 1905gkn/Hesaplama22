@@ -16,7 +16,7 @@ const SOURCE_TRAVERSE_X_OFFSET = 79.15549;
 const SOURCE_TRAVERSE_FRONT_OFFSET = 81.59595;
 const SOURCE_TRAVERSE_BACK_OFFSET = 1077.32687;
 const SOURCE_LOAD_BOTTOM = 227.79448;
-const ASSET_VERSION = "b2b-double-row-side-ties-360";
+const ASSET_VERSION = "b2b-sac-arabag-glb-501";
 const COLORS = {
   ral5010: 0x005078,
   ral5015: 0x287ab5,
@@ -120,20 +120,22 @@ class B2BViewer {
           loader.loadAsync(source("b2b-palet")),
           loader.loadAsync(source("b2b-travers")),
           loader.loadAsync(source("b2b-ayak")),
+          loader.loadAsync(source("b2b-sac-arabag")),
         ]).finally(() => draco.dispose());
       }
-      const [module, pallet, traverse, foot] = await sharedModelsPromise;
+      const [module, pallet, traverse, foot, straightTie] = await sharedModelsPromise;
       if (this.destroyed) return;
       this.models = {
         module: module.scene.clone(true),
         pallet: pallet.scene.clone(true),
         traverse: traverse.scene.clone(true),
         foot: foot.scene.clone(true),
+        straightTie: straightTie.scene.clone(true),
       };
       this.stripBuiltInLoads(this.models.module);
       this.update(this.options, true);
       this.emit("b2b-viewer-ready", {
-        sources: ["TAKIM (1)", "PALET(2)", "TRAVERS(2)", "AYAK2(1)"],
+        sources: ["TAKIM (1)", "PALET(2)", "TRAVERS(2)", "AYAK2(1)", "SAC ARA BAĞ"],
       });
     } catch (error) {
       sharedModelsPromise = null;
@@ -273,22 +275,49 @@ class B2BViewer {
   }
 
   addStraightTies(sectionPitch, frameDepth, sectionScale, targetHeight) {
-    const gap = Math.max(1, this.options.rowGap), tieDepth = Math.max(20, gap), tieWidth = 200, tieHeight = 45;
-    const material = new THREE.MeshStandardMaterial({ color:COLORS.galvanized, metalness:.28, roughness:.62 });
+    const gap = Math.max(1, this.options.rowGap);
     const layer = new THREE.Group();
-    layer.name = "B2B Düz Arabağlar";
+    layer.name = "B2B Düz Arabağlar · SAC ARA BAĞ GLB";
+
+    const makeTie = () => {
+      const source = this.models.straightTie.clone(true);
+      const bounds = new THREE.Box3().setFromObject(source);
+      const center = bounds.getCenter(new THREE.Vector3());
+      const size = bounds.getSize(new THREE.Vector3());
+      source.position.sub(center);
+      source.rotation.z = Math.PI / 2;
+      source.scale.set(1, (gap + 140) / Math.max(1, size.x), 1);
+      source.traverse((part) => {
+        if (!part.isMesh) return;
+        part.castShadow = true;
+        part.receiveShadow = true;
+        const materials = Array.isArray(part.material) ? part.material : [part.material];
+        const galvanized = materials.map((base) => {
+          const material = base.clone();
+          material.color.setHex(COLORS.galvanized);
+          material.metalness = 0.52;
+          material.roughness = 0.34;
+          material.envMapIntensity = 0.42;
+          return material;
+        });
+        part.material = Array.isArray(part.material) ? galvanized : galvanized[0];
+      });
+      const tie = new THREE.Group();
+      tie.userData.source = "SAC ARA BAĞ.glb";
+      tie.userData.sourceSize = { x:size.x, y:size.y, z:size.z };
+      tie.add(source);
+      return tie;
+    };
+
     for (let moduleIndex = 0; moduleIndex < this.options.moduleCount; moduleIndex += 1) {
-      const moduleX = moduleIndex * sectionPitch, leftX = SOURCE_CLEAR_LEFT * sectionScale, rightX = leftX + this.options.sectionWidth;
+      const moduleX = moduleIndex * sectionPitch;
+      const leftX = SOURCE_CLEAR_LEFT * sectionScale;
+      const rightX = leftX + this.options.sectionWidth;
       for (let index = 0; index < this.options.straightTieCount; index += 1) {
         const height = this.options.straightTiePositions[index] || targetHeight * (index + 1) / (this.options.straightTieCount + 1);
         [leftX, rightX].forEach((x) => {
-          const tie = new THREE.Group();
-          tie.name = `Düz Arabağ ${index + 1}`;
-          const web = new THREE.Mesh(new THREE.BoxGeometry(tieWidth, tieDepth, tieHeight * .62), material.clone());
-          const topFlange = new THREE.Mesh(new THREE.BoxGeometry(tieWidth, tieDepth, tieHeight * .14), material.clone());
-          const bottomFlange = new THREE.Mesh(new THREE.BoxGeometry(tieWidth, tieDepth, tieHeight * .14), material.clone());
-          topFlange.position.z = tieHeight * .38; bottomFlange.position.z = -tieHeight * .38;
-          [web, topFlange, bottomFlange].forEach((part) => { part.castShadow = true; part.receiveShadow = true; tie.add(part); });
+          const tie = makeTie();
+          tie.name = `Düz Arabağ ${index + 1} · SAC ARA BAĞ`;
           tie.position.set(moduleX + x, frameDepth + gap / 2, -height);
           layer.add(tie);
         });
