@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v3";
+  const VERSION = "front-side-capture-v4";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -180,8 +180,8 @@
       const capture = window.RafexB2BViewer?.captureViews;
       if (typeof capture !== "function") throw new Error("B2B 3D görüntü yakalama servisi hazır değil.");
       const result = await capture(viewerOptions(drawing), {
-        width: 760,
-        height: 1120,
+        width: 1200,
+        height: 760,
         frontDimensions: { levels: true, markers: true, eye: true, width: false, depth: true },
         sideDimensions: { levels: false, markers: false, eye: false, width: false, depth: true },
         side: "right",

@@ -16,7 +16,7 @@ const SOURCE_TRAVERSE_X_OFFSET = 79.15549;
 const SOURCE_TRAVERSE_FRONT_OFFSET = 81.59595;
 const SOURCE_TRAVERSE_BACK_OFFSET = 1077.32687;
 const SOURCE_LOAD_BOTTOM = 227.79448;
-const ASSET_VERSION = "b2b-sac-arabag-centered-503";
+const ASSET_VERSION = "b2b-real-3d-sections-505";
 const COLORS = {
   ral5010: 0x005078,
   ral5015: 0x287ab5,
@@ -646,6 +646,48 @@ class B2BViewer {
   }
 }
 
+
+async function captureB2BViews(options = {}, settings = {}) {
+  const width = Math.max(640, Math.round(Number(settings.width) || 1200));
+  const height = Math.max(480, Math.round(Number(settings.height) || 760));
+  const host = document.createElement("div");
+  host.setAttribute("aria-hidden", "true");
+  host.style.cssText = `position:fixed;left:-100000px;top:0;width:${width}px;height:${height}px;overflow:hidden;pointer-events:none`;
+  const canvas = document.createElement("canvas");
+  canvas.style.cssText = "display:block;width:100%;height:100%";
+  host.appendChild(canvas);
+  document.body.appendChild(host);
+
+  let viewer;
+  try {
+    const ready = new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error("B2B 3D kesiti zaman aşımına uğradı.")), 20000);
+      canvas.addEventListener("b2b-viewer-ready", () => { clearTimeout(timeout); resolve(); }, { once:true });
+      canvas.addEventListener("b2b-viewer-error", (event) => { clearTimeout(timeout); reject(new Error(event.detail?.message || "B2B 3D kesiti oluşturulamadı.")); }, { once:true });
+    });
+    viewer = new B2BViewer(canvas, options);
+    await ready;
+    viewer.setAutoRotate(false);
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+    const take = (view, dimensions) => {
+      viewer.update({ ...options, dimensions }, false);
+      viewer.setView(view);
+      viewer.controls.update();
+      viewer.renderer.render(viewer.scene, viewer.camera);
+      return canvas.toDataURL("image/png");
+    };
+
+    return {
+      front: take("front", settings.frontDimensions || { levels:true, markers:true, eye:true, width:false, depth:false }),
+      side: take("side", settings.sideDimensions || { levels:false, markers:false, eye:false, width:false, depth:true }),
+    };
+  } finally {
+    viewer?.destroy();
+    host.remove();
+  }
+}
+
 let active = null;
 window.RafexB2BViewer = {
   mount(canvas, options) {
@@ -672,6 +714,9 @@ window.RafexB2BViewer = {
   destroy() {
     active?.destroy();
     active = null;
+  },
+  captureViews(options, settings) {
+    return captureB2BViews(options, settings);
   },
 };
 

@@ -24,7 +24,7 @@ if (!source.includes(rowNeedle)) throw new Error('B2B ikinci sıra yerleşim sat
 source = source.replace(rowNeedle, `      // Çift sırada ikinci ürün ilk ürünün kopyası gibi aynı yöne bakmaz.\n      // İç arka yüzleri birbirine bakacak şekilde gerçek back-to-back yerleşir.\n      if (rowIndex === 0) {\n        row.position.y = 0;\n      } else {\n        row.scale.y = -1;\n        row.position.y = frameDepth * 2 + this.options.rowGap;\n      }`);
 
 
-source = source.replace('const ASSET_VERSION = "b2b-sac-arabag-views-504";', 'const ASSET_VERSION = "b2b-sac-arabag-views-504";');
+source = source.replace('const ASSET_VERSION = "b2b-real-3d-sections-505";', 'const ASSET_VERSION = "b2b-real-3d-sections-505";');
 fs.writeFileSync(outputPath, source);
 NODE
 
@@ -35,7 +35,7 @@ NODE
   --target=es2022 \
   --outfile="$viewer_bundle"
 
-node - "$project_root/portal.html" "$project_root/assets/mekik-corridor-front.png" "$project_root/assets/ray-side.png" "$project_root/assets/travers-side.png" "$project_root/assets/ayak-side.png" "$project_root/assets/paletli-side.png" "$project_root/assets/ayak2-front.png" "$project_root/assets/pallet-definition.png" "$project_root/assets/b2b-takim.glb" "$project_root/assets/b2b-palet.glb" "$project_root/assets/b2b-travers.glb" "$project_root/assets/b2b-ayak.glb" "$project_root/assets/b2b-sac-arabag.glb" "$viewer_bundle" "$project_root/client/b2b-visual-fixes.js" "$project_root/node_modules/three/examples/jsm/libs/draco/gltf/draco_decoder.js" "$project_root/node_modules/three/examples/jsm/libs/draco/gltf/draco_wasm_wrapper.js" "$project_root/node_modules/three/examples/jsm/libs/draco/gltf/draco_decoder.wasm" "$dist_root/server/index.js" <<'NODE'
+node - "$project_root/portal.html" "$project_root/assets/mekik-corridor-front.png" "$project_root/assets/ray-side.png" "$project_root/assets/travers-side.png" "$project_root/assets/ayak-side.png" "$project_root/assets/paletli-side.png" "$project_root/assets/ayak2-front.png" "$project_root/assets/pallet-definition.png" "$project_root/assets/b2b-takim.glb" "$project_root/assets/b2b-palet.glb" "$project_root/assets/b2b-travers.glb" "$project_root/assets/b2b-ayak.glb" "$project_root/assets/b2b-sac-arabag.glb" "$viewer_bundle" "$project_root/client/b2b-visual-fixes.js" "$project_root/client/b2b-report-3d.js" "$project_root/node_modules/three/examples/jsm/libs/draco/gltf/draco_decoder.js" "$project_root/node_modules/three/examples/jsm/libs/draco/gltf/draco_wasm_wrapper.js" "$project_root/node_modules/three/examples/jsm/libs/draco/gltf/draco_decoder.wasm" "$dist_root/server/index.js" <<'NODE'
 const fs = require('node:fs');
 const portalPath = process.argv[2];
 const corridorFrontPath = process.argv[3];
@@ -49,10 +49,11 @@ const b2bAyakPath = process.argv[13];
 const b2bStraightTiePath = process.argv[14];
 const b2bViewerPath = process.argv[15];
 const b2bVisualFixesPath = process.argv[16];
-const dracoDecoderPath = process.argv[17];
-const dracoWasmWrapperPath = process.argv[18];
-const dracoDecoderWasmPath = process.argv[19];
-const workerPath = process.argv[20];
+const b2bReport3dPath = process.argv[17];
+const dracoDecoderPath = process.argv[18];
+const dracoWasmWrapperPath = process.argv[19];
+const dracoDecoderWasmPath = process.argv[20];
+const workerPath = process.argv[21];
 const corridorFrontBase64 = fs.readFileSync(corridorFrontPath).toString('base64');
 const ayak2FrontBase64 = fs.readFileSync(ayak2FrontPath).toString('base64');
 const b2bBuildVersion = (process.env.VERCEL_GIT_COMMIT_SHA || "local").slice(0, 7);
@@ -60,6 +61,7 @@ const b2bBuildTime = new Date().toISOString();
 const b2bVisualFixes = fs.readFileSync(b2bVisualFixesPath, 'utf8')
   .replaceAll('__B2B_BUILD_VERSION__', b2bBuildVersion)
   .replaceAll('__B2B_BUILD_TIME__', b2bBuildTime);
+const b2bReport3d = fs.readFileSync(b2bReport3dPath, 'utf8');
 let portalSource = fs.readFileSync(portalPath, 'utf8')
   .replaceAll('__MEKIK_CORRIDOR_FRONT_BASE64__', corridorFrontBase64)
   .replaceAll('__M2_RAY_SIDE_BASE64__', fs.readFileSync(rayPath).toString('base64'))
@@ -68,10 +70,10 @@ let portalSource = fs.readFileSync(portalPath, 'utf8')
   .replaceAll('__M2_PALETLI_SIDE_BASE64__', fs.readFileSync(paletliPath).toString('base64'))
   .replaceAll('__M2_AYAK2_FRONT_BASE64__', ayak2FrontBase64)
   .replaceAll('__M2_PALLET_DEFINITION_BASE64__', fs.readFileSync(palletDefinitionPath).toString('base64'))
-  .replaceAll('b2b-double-row-side-ties-367', 'b2b-sac-arabag-views-504');
-portalSource = portalSource.replace(/<\/body>\s*<\/html>\s*$/i, `<script data-rafex-b2b-visual-fixes="back-to-back-reference-v2">\n${b2bVisualFixes}\n</script>\n</body>\n</html>`);
-if (!portalSource.includes('data-rafex-b2b-visual-fixes="back-to-back-reference-v2"')) {
-  throw new Error('B2B görsel düzeltme betiği portala eklenemedi.');
+  .replaceAll('b2b-double-row-side-ties-367', 'b2b-real-3d-sections-505');
+portalSource = portalSource.replace(/<\/body>\s*<\/html>\s*$/i, `<script data-rafex-b2b-visual-fixes="back-to-back-reference-v2">\n${b2bVisualFixes}\n</script>\n<script data-rafex-b2b-report-3d="front-side-capture-v4">\n${b2bReport3d}\n</script>\n</body>\n</html>`);
+if (!portalSource.includes('data-rafex-b2b-visual-fixes="back-to-back-reference-v2"') || !portalSource.includes('data-rafex-b2b-report-3d="front-side-capture-v4"')) {
+  throw new Error('B2B 3D görünüş betikleri portala eklenemedi.');
 }
 const unresolvedAsset = portalSource.match(/__[A-Z0-9_]+_BASE64__/);
 if (unresolvedAsset) {
