@@ -9,15 +9,36 @@ cp "$project_root/worker/index.js" "$dist_root/server/index.js"
 cp "$project_root/.openai/hosting.json" "$dist_root/.openai/hosting.json"
 cp "$project_root/drizzle/"*.sql "$dist_root/.openai/drizzle/"
 
+viewer_source="$project_root/client/b2b-viewer.entry.js"
+patched_viewer="$dist_root/b2b-viewer.patched.entry.js"
 viewer_bundle="$dist_root/b2b-viewer.js"
-"$project_root/node_modules/.bin/esbuild" "$project_root/client/b2b-viewer.entry.js" \
+
+node - "$viewer_source" "$patched_viewer" <<'NODE'
+const fs = require('node:fs');
+const sourcePath = process.argv[2];
+const outputPath = process.argv[3];
+let source = fs.readFileSync(sourcePath, 'utf8');
+
+const rowNeedle = '      row.position.y = rowIndex * (frameDepth + this.options.rowGap);';
+if (!source.includes(rowNeedle)) throw new Error('B2B ikinci sıra yerleşim satırı bulunamadı.');
+source = source.replace(rowNeedle, `      // Çift sırada ikinci ürün ilk ürünün kopyası gibi aynı yöne bakmaz.\n      // İç arka yüzleri birbirine bakacak şekilde gerçek back-to-back yerleşir.\n      if (rowIndex === 0) {\n        row.position.y = 0;\n      } else {\n        row.scale.y = -1;\n        row.position.y = frameDepth * 2 + this.options.rowGap;\n      }`);
+
+const tieMethod = /  addStraightTies\(sectionPitch, frameDepth, sectionScale, targetHeight\) \{[\s\S]*?\n  \}\n\n  addTraverses\(/;
+if (!tieMethod.test(source)) throw new Error('B2B düz arabağ metodu bulunamadı.');
+source = source.replace(tieMethod, `  addStraightTies(sectionPitch, frameDepth, sectionScale, targetHeight) {\n    const gap = Math.max(20, this.options.rowGap);\n    const tieWidth = 200;\n    const bodyDepth = gap + 36;\n    const material = new THREE.MeshStandardMaterial({ color:COLORS.galvanized, metalness:.52, roughness:.34 });\n    const darkMaterial = new THREE.MeshStandardMaterial({ color:0x596268, metalness:.62, roughness:.3 });\n    const layer = new THREE.Group();\n    layer.name = "B2B Düz Arabağlar · Referans Form";\n\n    const makeTie = () => {\n      const tie = new THREE.Group();\n      tie.userData.referenceShape = "formed-channel-with-end-plates";\n\n      // 1. görseldeki gibi açık kanallı galvaniz gövde.\n      const web = new THREE.Mesh(new THREE.BoxGeometry(tieWidth, bodyDepth, 12), material.clone());\n      const leftLip = new THREE.Mesh(new THREE.BoxGeometry(16, bodyDepth, 62), material.clone());\n      const rightLip = new THREE.Mesh(new THREE.BoxGeometry(16, bodyDepth, 62), material.clone());\n      leftLip.position.set(-tieWidth / 2 + 8, 0, 25);\n      rightLip.position.set(tieWidth / 2 - 8, 0, 25);\n\n      // İki rafın iç ayaklarına oturan geniş uç plakaları.\n      const plateSize = tieWidth + 54;\n      const frontPlate = new THREE.Mesh(new THREE.BoxGeometry(plateSize, 18, 92), material.clone());\n      const rearPlate = new THREE.Mesh(new THREE.BoxGeometry(plateSize, 18, 92), material.clone());\n      frontPlate.position.y = -(gap / 2 + 9);\n      rearPlate.position.y = gap / 2 + 9;\n\n      // Uç plakalarındaki bağlantı başları parçanın gerçek bir bağlantı elemanı gibi okunmasını sağlar.\n      const boltGeometry = new THREE.CylinderGeometry(8, 8, 22, 16);\n      [-1, 1].forEach((side) => {\n        [-55, 55].forEach((boltX) => {\n          const bolt = new THREE.Mesh(boltGeometry, darkMaterial.clone());\n          bolt.position.set(boltX, side * (gap / 2 + 9), 8);\n          tie.add(bolt);\n        });\n      });\n\n      [web, leftLip, rightLip, frontPlate, rearPlate].forEach((part) => tie.add(part));\n      tie.traverse((part) => { if (part.isMesh) { part.castShadow = true; part.receiveShadow = true; } });\n      return tie;\n    };\n\n    for (let moduleIndex = 0; moduleIndex < this.options.moduleCount; moduleIndex += 1) {\n      const moduleX = moduleIndex * sectionPitch;\n      const leftX = SOURCE_CLEAR_LEFT * sectionScale;\n      const rightX = leftX + this.options.sectionWidth;\n      for (let index = 0; index < this.options.straightTieCount; index += 1) {\n        const height = this.options.straightTiePositions[index] || targetHeight * (index + 1) / (this.options.straightTieCount + 1);\n        [leftX, rightX].forEach((x) => {\n          const tie = makeTie();\n          tie.name = \`Düz Arabağ \${index + 1} · Referans Form\`;\n          tie.position.set(moduleX + x, frameDepth + gap / 2, -height);\n          layer.add(tie);\n        });\n      }\n    }\n    this.content.add(layer);\n  }\n\n  addTraverses(`);
+
+source = source.replace('const ASSET_VERSION = "b2b-double-row-side-ties-360";', 'const ASSET_VERSION = "b2b-back-to-back-reference-401";');
+fs.writeFileSync(outputPath, source);
+NODE
+
+"$project_root/node_modules/.bin/esbuild" "$patched_viewer" \
   --bundle \
   --format=iife \
   --minify \
   --target=es2022 \
   --outfile="$viewer_bundle"
 
-node - "$project_root/portal.html" "$project_root/assets/mekik-corridor-front.png" "$project_root/assets/ray-side.png" "$project_root/assets/travers-side.png" "$project_root/assets/ayak-side.png" "$project_root/assets/paletli-side.png" "$project_root/assets/ayak2-front.png" "$project_root/assets/pallet-definition.png" "$project_root/assets/b2b-takim.glb" "$project_root/assets/b2b-palet.glb" "$project_root/assets/b2b-travers.glb" "$project_root/assets/b2b-ayak.glb" "$viewer_bundle" "$project_root/node_modules/three/examples/jsm/libs/draco/gltf/draco_decoder.js" "$project_root/node_modules/three/examples/jsm/libs/draco/gltf/draco_wasm_wrapper.js" "$project_root/node_modules/three/examples/jsm/libs/draco/gltf/draco_decoder.wasm" "$dist_root/server/index.js" <<'NODE'
+node - "$project_root/portal.html" "$project_root/assets/mekik-corridor-front.png" "$project_root/assets/ray-side.png" "$project_root/assets/travers-side.png" "$project_root/assets/ayak-side.png" "$project_root/assets/paletli-side.png" "$project_root/assets/ayak2-front.png" "$project_root/assets/pallet-definition.png" "$project_root/assets/b2b-takim.glb" "$project_root/assets/b2b-palet.glb" "$project_root/assets/b2b-travers.glb" "$project_root/assets/b2b-ayak.glb" "$viewer_bundle" "$project_root/client/b2b-visual-fixes.js" "$project_root/node_modules/three/examples/jsm/libs/draco/gltf/draco_decoder.js" "$project_root/node_modules/three/examples/jsm/libs/draco/gltf/draco_wasm_wrapper.js" "$project_root/node_modules/three/examples/jsm/libs/draco/gltf/draco_decoder.wasm" "$dist_root/server/index.js" <<'NODE'
 const fs = require('node:fs');
 const portalPath = process.argv[2];
 const corridorFrontPath = process.argv[3];
@@ -29,20 +50,27 @@ const b2bPaletPath = process.argv[11];
 const b2bTraversPath = process.argv[12];
 const b2bAyakPath = process.argv[13];
 const b2bViewerPath = process.argv[14];
-const dracoDecoderPath = process.argv[15];
-const dracoWasmWrapperPath = process.argv[16];
-const dracoDecoderWasmPath = process.argv[17];
-const workerPath = process.argv[18];
+const b2bVisualFixesPath = process.argv[15];
+const dracoDecoderPath = process.argv[16];
+const dracoWasmWrapperPath = process.argv[17];
+const dracoDecoderWasmPath = process.argv[18];
+const workerPath = process.argv[19];
 const corridorFrontBase64 = fs.readFileSync(corridorFrontPath).toString('base64');
 const ayak2FrontBase64 = fs.readFileSync(ayak2FrontPath).toString('base64');
-const portalSource = fs.readFileSync(portalPath, 'utf8')
+const b2bVisualFixes = fs.readFileSync(b2bVisualFixesPath, 'utf8');
+let portalSource = fs.readFileSync(portalPath, 'utf8')
   .replaceAll('__MEKIK_CORRIDOR_FRONT_BASE64__', corridorFrontBase64)
   .replaceAll('__M2_RAY_SIDE_BASE64__', fs.readFileSync(rayPath).toString('base64'))
   .replaceAll('__M2_TRAVERS_SIDE_BASE64__', fs.readFileSync(traversPath).toString('base64'))
   .replaceAll('__M2_AYAK_SIDE_BASE64__', fs.readFileSync(ayakPath).toString('base64'))
   .replaceAll('__M2_PALETLI_SIDE_BASE64__', fs.readFileSync(paletliPath).toString('base64'))
   .replaceAll('__M2_AYAK2_FRONT_BASE64__', ayak2FrontBase64)
-  .replaceAll('__M2_PALLET_DEFINITION_BASE64__', fs.readFileSync(palletDefinitionPath).toString('base64'));
+  .replaceAll('__M2_PALLET_DEFINITION_BASE64__', fs.readFileSync(palletDefinitionPath).toString('base64'))
+  .replaceAll('b2b-double-row-side-ties-367', 'b2b-back-to-back-reference-401');
+portalSource = portalSource.replace(/<\/body>\s*<\/html>\s*$/i, `<script data-rafex-b2b-visual-fixes="back-to-back-reference-v2">\n${b2bVisualFixes}\n</script>\n</body>\n</html>`);
+if (!portalSource.includes('data-rafex-b2b-visual-fixes="back-to-back-reference-v2"')) {
+  throw new Error('B2B görsel düzeltme betiği portala eklenemedi.');
+}
 const unresolvedAsset = portalSource.match(/__[A-Z0-9_]+_BASE64__/);
 if (unresolvedAsset) {
   throw new Error(`Çözümlenmemiş görsel yer tutucusu: ${unresolvedAsset[0]}`);
