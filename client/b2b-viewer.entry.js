@@ -16,7 +16,7 @@ const SOURCE_TRAVERSE_X_OFFSET = 79.15549;
 const SOURCE_TRAVERSE_FRONT_OFFSET = 81.59595;
 const SOURCE_TRAVERSE_BACK_OFFSET = 1077.32687;
 const SOURCE_LOAD_BOTTOM = 227.79448;
-const ASSET_VERSION = "b2b-sac-arabag-glb-501";
+const ASSET_VERSION = "b2b-sac-arabag-hole-face-502";
 const COLORS = {
   ral5010: 0x005078,
   ral5015: 0x287ab5,
@@ -286,7 +286,7 @@ class B2BViewer {
       const size = bounds.getSize(new THREE.Vector3());
       source.position.sub(center);
       source.rotation.z = Math.PI / 2;
-      source.scale.set(1, (gap + 140) / Math.max(1, size.x), 1);
+      source.scale.set(1, gap / Math.max(1, size.x), 1);
       source.traverse((part) => {
         if (!part.isMesh) return;
         part.castShadow = true;
@@ -305,6 +305,8 @@ class B2BViewer {
       const tie = new THREE.Group();
       tie.userData.source = "SAC ARA BAĞ.glb";
       tie.userData.sourceSize = { x:size.x, y:size.y, z:size.z };
+      tie.userData.mountingSpan = gap;
+      tie.userData.mounting = "upright-hole-face-to-upright-hole-face";
       tie.add(source);
       return tie;
     };
