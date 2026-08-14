@@ -16,7 +16,7 @@ const SOURCE_TRAVERSE_X_OFFSET = 79.15549;
 const SOURCE_TRAVERSE_FRONT_OFFSET = 81.59595;
 const SOURCE_TRAVERSE_BACK_OFFSET = 1077.32687;
 const SOURCE_LOAD_BOTTOM = 227.79448;
-const ASSET_VERSION = "b2b-real-3d-sections-505";
+const ASSET_VERSION = "b2b-detail-3d-white-506";
 const COLORS = {
   ral5010: 0x005078,
   ral5015: 0x287ab5,
@@ -57,8 +57,8 @@ class B2BViewer {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xf7eff1);
-    this.scene.fog = new THREE.Fog(0xf7eff1, 32000, 70000);
+    this.scene.background = new THREE.Color(0xffffff);
+    this.scene.fog = new THREE.Fog(0xffffff, 32000, 70000);
     this.camera = new THREE.PerspectiveCamera(28, 1, 5, 200000);
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
@@ -87,7 +87,7 @@ class B2BViewer {
     this.scene.add(this.content);
     this.ground = new THREE.Mesh(
       new THREE.PlaneGeometry(1, 1),
-      new THREE.MeshStandardMaterial({ color: 0xe8dcdf, roughness: 0.95, metalness: 0 }),
+      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, metalness: 0 }),
     );
     this.ground.rotation.x = -Math.PI / 2;
     this.ground.receiveShadow = true;

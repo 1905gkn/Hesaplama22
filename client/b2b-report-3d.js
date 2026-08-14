@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v4";
+  const VERSION = "front-side-capture-v5";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -206,6 +206,10 @@
     const items = [];
     document.querySelectorAll("#m2ReportFronts .m2-report-elevation").forEach((card) => items.push({ card, view: "front" }));
     document.querySelectorAll("#m2ReportSides .m2-report-elevation").forEach((card) => items.push({ card, view: "side" }));
+    document.querySelectorAll("#m2CorporatePreview .m2-corporate-view, #m2CorporatePrint .m2-corporate-view").forEach((card) => {
+      const view = card.querySelector("svg[data-rafex-capture-view]")?.dataset.rafexCaptureView;
+      if (view === "front" || view === "side") items.push({ card, view });
+    });
     return items;
   }
 
@@ -266,19 +270,34 @@
     }
 
     try {
+      const originalCorporateRender = m2RenderCorporateReport;
+      m2RenderCorporateReport = function (...args) {
+        const result = originalCorporateRender.apply(this, args);
+        applyCachedViews();
+        queueMicrotask(() => ensureReportViews());
+        return result;
+      };
+    } catch (error) {
+      console.error("B2B detay çıktı 3D önizleme bağlantısı kurulamadı", error);
+    }
+
+    try {
       const originalPrint = m2PrintA4Report;
       m2PrintA4Report = async function (...args) {
-        if (document.getElementById("m2ReportType")?.value !== "corporate") {
-          try {
-            m2RenderA4Report();
-            await ensureReportViews();
-            m2RenderA4Report();
-            applyCachedViews();
-          } catch (error) {
-            console.error("B2B PDF 3D görünüşleri yazdırma öncesi tamamlanamadı", error);
-          }
+        const corporate = document.getElementById("m2ReportType")?.value === "corporate";
+        try {
+          if (corporate) m2RenderCorporateReport();
+          else m2RenderA4Report();
+          await ensureReportViews();
+          if (corporate) m2RenderCorporateReport();
+          else m2RenderA4Report();
+          applyCachedViews();
+        } catch (error) {
+          console.error("B2B PDF 3D görünüşleri yazdırma öncesi tamamlanamadı", error);
         }
-        return originalPrint.apply(this, args);
+        const result = originalPrint.apply(this, args);
+        applyCachedViews();
+        return result;
       };
     } catch (error) {
       console.error("B2B PDF yazdırma bağlantısı kurulamadı", error);
@@ -299,7 +318,7 @@
         display:grid;
         place-items:center;
         overflow:hidden;
-        background:#f7eff1;
+        background:#fff;
       }
       .m2-report-elevation .rafex-report-3d-frame img,
       #m2A4PrintSheet .m2-report-elevation .rafex-report-3d-frame img {
@@ -311,8 +330,18 @@
         object-fit:contain;
         object-position:center;
       }
-      .m2-report-elevation[data-rafex-3d-ready="true"] {
-        background:#f7eff1;
+      .m2-report-elevation[data-rafex-3d-ready="true"],
+      .m2-corporate-view[data-rafex-3d-ready="true"] {
+        background:#fff;
+      }
+      .m2-corporate-view .rafex-report-3d-frame,
+      #m2CorporatePrint .m2-corporate-view .rafex-report-3d-frame {
+        width:100%; height:100%; min-width:0; min-height:0; display:grid;
+        place-items:center; overflow:hidden; background:#fff;
+      }
+      .m2-corporate-view .rafex-report-3d-frame img,
+      #m2CorporatePrint .m2-corporate-view .rafex-report-3d-frame img {
+        display:block; width:100%; height:100%; object-fit:contain; object-position:center;
       }
     `;
     document.head.appendChild(style);
