@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v7";
+  const VERSION = "front-side-capture-v8";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -393,6 +393,14 @@
       .rafex-variant-pair { display:grid; grid-template-rows:auto minmax(0,1.45fr) minmax(0,1fr); gap:4px; min-width:0; min-height:0; background:#fff; border:1px solid #d7e0e6; border-radius:6px; padding:5px; overflow:hidden; }
       .rafex-variant-title { text-align:center; font-size:10px; color:#073357; }
       .rafex-variant-pair .m2-report-elevation { min-width:0; min-height:0; height:100%; overflow:hidden; background:#fff; }
+      .rafex-combined-page .m2-corporate-type-grid { grid-template-rows:minmax(0,1fr) !important; }
+      .rafex-combined-type-card { grid-template-columns:9% minmax(0,72%) minmax(0,19%) !important; }
+      .rafex-combined-fronts { display:flex; min-width:0; min-height:0; overflow:hidden; background:#fff; }
+      .rafex-combined-front { flex:var(--rafex-variant-weight,1) 1 0; border-left:0 !important; min-width:0; overflow:hidden; }
+      .rafex-combined-front + .rafex-combined-front { margin-left:-1px; }
+      .rafex-combined-front .rafex-report-3d-frame { overflow:hidden; }
+      .rafex-combined-front:not(:first-child) .rafex-report-3d-frame img { transform:scale(1.18); transform-origin:center right; }
+      .rafex-combined-side { border-left:1px solid #c6d2dc !important; }
       @media print {
         #m2A4PrintSheet { overflow:hidden !important; contain:layout paint; }
         #m2A4PrintSheet.rafex-variants-active .m2-a4-floor,
