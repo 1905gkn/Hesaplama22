@@ -548,7 +548,8 @@ class B2BViewer {
     this.addLine(layer, [new THREE.Vector3(from + arrow, y - arrow, -height), left, new THREE.Vector3(from + arrow, y + arrow, -height)]);
     this.addLine(layer, [new THREE.Vector3(to - arrow, y - arrow, -height), right, new THREE.Vector3(to - arrow, y + arrow, -height)]);
     this.addPoint(layer, left); this.addPoint(layer, right);
-    this.addDimensionLabelAt(layer, (from + to) / 2, y - 180, -height, label, 680);
+    const labelWidth = Math.max(360, Math.min(680, (to - from) / 2.15));
+    this.addDimensionLabelAt(layer, (from + to) / 2, y - 180, -height, label, labelWidth);
   }
 
   addDepthDimension(layer, x, from, to, height, label) {
@@ -570,7 +571,8 @@ class B2BViewer {
     const canvas = document.createElement("canvas"), scale = 4, dimensionScale = 1.5, labelWidth = width * dimensionScale, labelHeight = 112 * dimensionScale;
     canvas.width = labelWidth * scale; canvas.height = labelHeight * scale;
     const context = canvas.getContext("2d");
-    context.scale(scale, scale); context.font = "900 84px Arial";
+    const fontSize = String(text).startsWith("ÜST PALET KOTU") ? 62 : 84;
+    context.scale(scale, scale); context.font = `900 ${fontSize}px Arial`;
     context.fillStyle = "rgba(4,42,78,.98)"; context.beginPath(); context.roundRect(0, 0, labelWidth, labelHeight, 24); context.fill();
     context.strokeStyle = "#0b6fa9"; context.lineWidth = 5; context.stroke();
     context.fillStyle = "#fff"; context.textAlign = "center"; context.textBaseline = "middle"; context.fillText(text, labelWidth / 2, labelHeight / 2);
