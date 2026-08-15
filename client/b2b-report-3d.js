@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v10";
+  const VERSION = "front-side-capture-v11";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -181,10 +181,11 @@
     const task = (async () => {
       const capture = window.RafexB2BViewer?.captureViews;
       if (typeof capture !== "function") throw new Error("B2B 3D görüntü yakalama servisi hazır değil.");
-      const result = await capture(viewerOptions(drawing), {
+      const options=viewerOptions(drawing);
+      const result = await capture(options, {
         width: 1200,
         height: 760,
-        frontDimensions: { levels: true, markers: true, eye: true, width: true, depth: false },
+        frontDimensions: { levels: true, markers: true, eye: true, width: options.dimensions?.width===true, depth: false },
         sideDimensions: { levels: false, markers: false, eye: false, width: false, depth: true },
         side: "right",
       });
@@ -271,7 +272,7 @@
       const base={...moduleOptions[0],moduleCount:moduleOptions.length,moduleOptions,showPallets:true};
       const capture=window.RafexB2BViewer?.captureViews;
       if(typeof capture!=="function")throw new Error("Birleşik B2B 3D yakalama servisi hazır değil.");
-      const result=await capture(base,{width:1800,height:900,frontDimensions:{levels:true,markers:true,eye:false,width:true,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"});
+      const result=await capture(base,{width:1800,height:900,frontDimensions:{levels:true,markers:true,eye:false,width:base.dimensions?.width===true,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"});
       combinedVariantCache={signature,front:result.front,side:result.side};return combinedVariantCache;
     })().finally(()=>{combinedVariantPending=null;});
     return combinedVariantPending;

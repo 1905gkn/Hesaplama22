@@ -2271,7 +2271,7 @@
       let b2bCameraAzimuth = 35, b2bCameraElevation = 28, b2bAutoRotate = false, b2bPalletTraverseGap = 200;
       let b2bFirstFloorGap = 200, b2bLastPalletOverlap = 600, b2bLastOverlapManual = false;
       let b2bPalletOverhang = 50, b2bTraverseHeightOverride = null, b2bShowPallets = true;
-      let b2bDimensionVisibility = { levels:true, markers:true, eye:true, width:true, depth:true }, b2bInputDebounceTimer=null, b2b3DUpdateTimer=null;
+      let b2bDimensionVisibility = { levels:true, markers:true, eye:true, width:false, depth:true }, b2bInputDebounceTimer=null, b2b3DUpdateTimer=null;
       function b2bSchedule3DUpdate(delay=140){clearTimeout(b2b3DUpdateTimer);b2b3DUpdateTimer=setTimeout(()=>{b2b3DUpdateTimer=null;b2bInstallMain3D();b2bUpdateMain3D();},delay);}
       // B2B dış ölçüsü travers + iki gerçek ayak genişliğidir. Profil bilgisi
       // henüz oluşmadıysa da kullanıcıya gösterilen başlangıç ayağı 100 mm'dir.
@@ -2403,9 +2403,11 @@
         const traverseHeight = b2bTraverseHeight();
         const levelStep = palletHeight + b2bPalletTraverseGap + traverseHeight;
         const firstLoadBottom = $("b2bFirstPalletPosition")?.value === "traverse" ? b2bFirstFloorGap + traverseHeight : 0;
-        const automaticFootHeight = firstLoadBottom + (levels - 1) * levelStep + b2bLastPalletOverlap;
-        const manual = $("b2bFootHeightMode")?.value === "manual" && Number($("b2bFootHeight")?.value) > 0;
-        return { inputLevels, levels, traverseLevels:inputLevels, groundPallet, palletHeight, traverseHeight, levelStep, firstLoadBottom, automaticFootHeight, footHeight:manual ? Number($("b2bFootHeight").value) : automaticFootHeight };
+        const rawAutomaticFootHeight=firstLoadBottom+(levels-1)*levelStep+b2bLastPalletOverlap;
+        const automaticFootHeight=Math.ceil(rawAutomaticFootHeight/50)*50;
+        const manual=$("b2bFootHeightMode")?.value==="manual"&&Number($("b2bFootHeight")?.value)>0;
+        const footHeight=manual?Math.ceil(Number($("b2bFootHeight").value)/50)*50:automaticFootHeight;
+        return {inputLevels,levels,traverseLevels:inputLevels,groundPallet,palletHeight,traverseHeight,levelStep,firstLoadBottom,automaticFootHeight,footHeight};
       }
       function b2bStraightTieCount(heightMm) {
         // Yalnız çift sırada, karşılıklı ayakları bağlayan 200 mm galvaniz düz arabağ adedi.
@@ -2854,7 +2856,7 @@
       }
       function m2Rack3DOptions(rack) {
         const layout=rack?.b2bLayout||{},rowCount=Number(layout.rowCount)||1,customLevels=Array.isArray(rack?.b2b?.customLevels)?rack.b2b.customLevels:[],traverseHeight=Math.max(50,Number(rack?.traverseHeight)||b2bTraverseHeight()),palletHeights=customLevels.map((item)=>Math.max(300,Number(item.palletHeight)||Number(rack?.palletHeight)||1200)),levelClearances=customLevels.map((item,index)=>Math.max(0,(Number(item.interval)||0)-(palletHeights[index]||1200)-traverseHeight)),footHeight=Math.max(500,Number(rack?.sideUprightHeight)||Number(rack?.totalRackHeight)||Number(rack?.footLy)||0);
-        return {...b2b3DOptions(),moduleCount:1,palletCount:Number(layout.palletCount)||3,palletWidth:Number(layout.palletWidth)||800,palletDepth:Number(layout.palletDepth)||1200,palletHeight:Number(rack?.palletHeight)||1200,levels:Number(rack?.levels)||4,rowType:rowCount===2?"double":"single",rowGap:Number(layout.rowGap)||200,levelClearances,palletHeights,tunnelHeight:Math.max(0,Number(rack?.b2b?.tunnelHeight)||0),straightTieCount:rowCount===2?b2bStraightTieCount(footHeight):0,straightTiePositions:rowCount===2?b2bStraightTiePositions(footHeight):[],dimensions:{levels:false,markers:false,eye:false,width:true,depth:true},showPallets:true};
+        return {...b2b3DOptions(),moduleCount:1,palletCount:Number(layout.palletCount)||3,palletWidth:Number(layout.palletWidth)||800,palletDepth:Number(layout.palletDepth)||1200,palletHeight:Number(rack?.palletHeight)||1200,levels:Number(rack?.levels)||4,rowType:rowCount===2?"double":"single",rowGap:Number(layout.rowGap)||200,levelClearances,palletHeights,tunnelHeight:Math.max(0,Number(rack?.b2b?.tunnelHeight)||0),straightTieCount:rowCount===2?b2bStraightTieCount(footHeight):0,straightTiePositions:rowCount===2?b2bStraightTiePositions(footHeight):[],dimensions:{levels:false,markers:false,eye:false,width:b2bDimensionVisibility.width===true,depth:b2bDimensionVisibility.depth!==false},showPallets:true};
       }
       function m2CustomizeLevelData() {
         return [...document.querySelectorAll("#m2CustomizeLevelRows .m2-custom-level-row")].map((row)=>({interval:Math.max(0,Number(row.querySelector('[data-custom-interval]')?.value)||0),palletHeight:Math.max(300,Number(row.querySelector('[data-custom-pallet]')?.value)||1200)}));
@@ -4266,7 +4268,8 @@
           const variants=ordered.length?ordered:types;
           const frontViews=variants.map((entry,index)=>{const d=entry.drawing||entry,weight=Math.max(1,Number(d?.b2bLayout?.palletCount)||1);return `<div class="m2-corporate-view rafex-combined-front" data-rafex-variant-index="${index}" style="--rafex-variant-weight:${weight}"><b>${esc(entry.name)}</b>${d.b2bLayout?m2B2BReportPerspectiveSvg(d,t,false):m2ReportElevationSvg(d,"front")}</div>`;}).join("");
           const first=variants[0],sideDrawing=first?.drawing||first,sideVisual=sideDrawing?.b2bLayout?m2B2BSideElevationSvg(sideDrawing,t):m2ReportElevationSvg(sideDrawing,"side");
-          const card=`<article class="m2-corporate-type-card rafex-combined-type-card" style="--m2-type-color:${typeAccents[0]}"><strong><span>4–3–2–1 · BİRLEŞİK RAF BLOĞU</span><small>${variants.map((entry)=>esc(entry.name)).join(" + ")}</small></strong><div class="rafex-combined-fronts">${frontViews}</div><div class="m2-corporate-view rafex-combined-side"><b>${t.side}</b>${sideVisual}</div></article>`;
+          const moduleSummary=variants.map((entry)=>{const d=entry.drawing||entry,count=Number(d?.b2bLayout?.palletCount)||Number(d?.b2b?.palletCount)||Number(d?.bays)||0,clear=Number(d?.b2bLayout?.sectionWidth)||Number(d?.totalWidth)||0;return `${count}’lü - ${fmt(clear)}`;}).join(" · ");
+          const card=`<article class="m2-corporate-type-card rafex-combined-type-card" style="--m2-type-color:${typeAccents[0]}"><strong><span>${moduleSummary}</span></strong><div class="rafex-combined-fronts">${frontViews}</div><div class="m2-corporate-view rafex-combined-side"><b>${t.side}</b>${sideVisual}</div></article>`;
           pages.push(`<section class="m2-corporate-page rafex-combined-page">${m2CorporateHeader(t.sections)}<div class="m2-corporate-type-grid">${card}</div></section>`);
         }else{
           for(let start=0;start<types.length;start+=3){

@@ -16,7 +16,7 @@ const SOURCE_TRAVERSE_X_OFFSET = 79.15549;
 const SOURCE_TRAVERSE_FRONT_OFFSET = 81.59595;
 const SOURCE_TRAVERSE_BACK_OFFSET = 1077.32687;
 const SOURCE_LOAD_BOTTOM = 227.79448;
-const ASSET_VERSION = "b2b-centered-upright-thickness-517";
+const ASSET_VERSION = "b2b-dimension-rules-518";
 const COLORS = {
   ral5010: 0x005078,
   ral5015: 0x287ab5,
@@ -187,13 +187,13 @@ class B2BViewer {
       frontPalletGap: clamp(Number.isFinite(Number(next.frontPalletGap)) ? Number(next.frontPalletGap) : 50, 0, 1000),
       rearPalletGap: clamp(Number.isFinite(Number(next.rearPalletGap)) ? Number(next.rearPalletGap) : 50, 0, 1000),
       traverseHeight: clamp(Number(next.traverseHeight) || 140, 50, 500),
-      footHeight: Number(next.footHeight) > 0 ? clamp(Number(next.footHeight), 500, 30000) : null,
+      footHeight: Number(next.footHeight) > 0 ? clamp(Math.ceil(Number(next.footHeight) / 50) * 50, 500, 30000) : null,
       showPallets: next.showPallets !== false,
       dimensions: {
         levels: next.dimensions?.levels !== false,
         markers: next.dimensions?.markers !== false,
         eye: next.dimensions?.eye !== false,
-        width: next.dimensions?.width !== false,
+        width: next.dimensions?.width === true,
         depth: next.dimensions?.depth !== false,
       },
       sectionWidth,
@@ -222,7 +222,8 @@ class B2BViewer {
         const previousRightAxis=positions[index-1]+SOURCE_CLEAR_LEFT*previousScale+previous.sectionWidth;
         moduleX=previousRightAxis-leftAxis;
       }
-      positions.push(moduleX);widthSegments.push({from:moduleX,to:moduleX+frameWidth,count:spec.palletCount,width:frameWidth});
+      const dimensionFrom=moduleX+leftAxis-120,dimensionWidth=spec.sectionWidth+240;
+      positions.push(moduleX);widthSegments.push({from:dimensionFrom,to:dimensionFrom+dimensionWidth,count:spec.palletCount,width:dimensionWidth,clearWidth:spec.sectionWidth});
       totalRackWidth=Math.max(totalRackWidth,moduleX+frameWidth);
     });
     for(let rowIndex=0;rowIndex<rowCount;rowIndex+=1){
@@ -456,7 +457,7 @@ class B2BViewer {
     const traverseCount = this.options.firstPalletPosition === "traverse" ? this.options.levels : Math.max(0, this.options.levels - 1);
 
     if (this.options.dimensions.levels && traverseCount > 0) {
-      this.addVerticalDimension(levelsLayer, lineX, frontY, 0, this.traverseTop(0), `ZEMİN → T1 ÜSTÜ  ·  ${this.dimensionValue(this.traverseTop(0))}`, 0);
+      this.addVerticalDimension(levelsLayer, lineX, frontY, 0, this.traverseTop(0), `Z+TRAVERS  ·  ${this.dimensionValue(this.traverseTop(0))}`, 0);
       for (let level = 1; level < traverseCount; level += 1) {
         this.addVerticalDimension(
           levelsLayer,
@@ -464,7 +465,7 @@ class B2BViewer {
           frontY,
           this.traverseTop(level - 1),
           this.traverseBottom(level),
-          `T${level} ÜSTÜ → T${level + 1} ALTI  ·  ${this.dimensionValue(this.traverseBottom(level) - this.traverseTop(level - 1))}`,
+          `K${level}  ·  ${this.dimensionValue(this.traverseBottom(level) - this.traverseTop(level - 1))}`,
           0,
         );
       }
