@@ -4222,7 +4222,7 @@
       function m2CorporateUsedTypes() {
         const map = new Map();
         m2LayoutState.racks.forEach((rack, index) => {
-          const name = rack.typeName || `Tip ${index + 1}`, key = `${rack.widthMm}|${rack.depthMm}|${rack.bays}|${rack.levels}|${rack.depth}|${rack.b2bLayout?.palletCount||0}|${rack.b2bLayout?.rowCount||0}`;
+          const name = rack.typeName || `Tip ${index + 1}`, key = `${name}|${rack.widthMm}|${rack.depthMm}|${rack.bays}|${rack.levels}|${rack.depth}|${rack.b2bLayout?.palletCount||0}|${rack.b2bLayout?.rowCount||0}`;
           if (!map.has(key)) map.set(key, { name, rackCount:0, footTeamCount:0, drawing:{...rack,totalWidth:rack.widthMm,railLength:rack.depthMm,plan:rack.plan} });
           const entry=map.get(key),rowCount=Math.max(1,Number(rack.b2bLayout?.rowCount)||1);entry.rackCount+=1;entry.footTeamCount+=rack.b2bLayout?2*rowCount-(rack.sharedFootWith?rowCount:0):0;
         });
@@ -4293,8 +4293,7 @@
         pages.push(`<section class="m2-corporate-page">${m2CorporateHeader(t.layout)}<div class="m2-corporate-floor">${floorSvg}</div></section>`);
         const typeAccents=["#1d5f8a","#2b78a0","#3f8fae","#5b7897"], combineVariants=$("m2ReportCompleteFront")?.checked===true&&types.length>1;
         if(combineVariants){
-          const ordered=[4,3,2,1].map((count)=>types.find((entry)=>Number((entry.drawing||entry)?.b2bLayout?.palletCount||0)===count)).filter(Boolean);
-          const variants=ordered.length?ordered:types;
+          const variants=[...types].sort((left,right)=>Number((right.drawing||right)?.b2bLayout?.palletCount||0)-Number((left.drawing||left)?.b2bLayout?.palletCount||0));
           const frontViews=variants.map((entry,index)=>{const d=entry.drawing||entry,weight=Math.max(1,Number(d?.b2bLayout?.palletCount)||1);return `<div class="m2-corporate-view rafex-combined-front" data-rafex-variant-index="${index}" style="--rafex-variant-weight:${weight}"><b>${esc(entry.name)}</b>${d.b2bLayout?m2B2BReportPerspectiveSvg(d,t,false):m2ReportElevationSvg(d,"front")}</div>`;}).join("");
           const first=variants[0],sideDrawing=first?.drawing||first,sideVisual=sideDrawing?.b2bLayout?m2B2BSideElevationSvg(sideDrawing,t):m2ReportElevationSvg(sideDrawing,"side");
           const moduleSummary=variants.map((entry)=>{const d=entry.drawing||entry,count=Number(d?.b2bLayout?.palletCount)||Number(d?.b2b?.palletCount)||Number(d?.bays)||0,clear=Number(d?.b2bLayout?.sectionWidth)||Number(d?.totalWidth)||0;return `${count}’lü - ${Math.round(clear)}`;}).join(" · ");
