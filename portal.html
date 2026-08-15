@@ -3685,7 +3685,7 @@
         if (nearest.direction === "bottom") nextY -= delta;
         if (nearest.direction === "top") nextY += delta;
         if (!m2MoveRackOrJoinedGroup(rack,nextX,nextY)) $("m2FloorStatus").textContent = "Girilen mesafe birleşik raf grubunu alan dışına çıkarıyor veya başka bir rafla çakıştırıyor.";
-        else $("m2FloorStatus").textContent = `Birleşik grup birlikte kaydırıldı; rafların ayak dış parçaları arasındaki mesafe ${fmt(displayMm)} mm yapıldı.`;
+        else {m2RememberEditedDistance(rack,"gap");$("m2FloorStatus").textContent = `Birleşik grup birlikte kaydırıldı; rafların ayak dış parçaları arasındaki mesafe ${fmt(displayMm)} mm yapıldı.`;}
         m2RenderLayout();
       }
       function m2OpenMeasureEditor(title, currentMm, apply) {
@@ -3719,7 +3719,7 @@
         const rack=m2MeasurementRack();if(!rack)return;const nearest=m2NearestColumnGap(rack);if(!nearest)return;
         const desiredPx=Math.max(0,Number(rawValue)||0)*m2LayoutState.scale,delta=desiredPx-nearest.distance;let nextX=rack.x,nextY=rack.y;
         if(nearest.direction==="right")nextX-=delta;if(nearest.direction==="left")nextX+=delta;if(nearest.direction==="bottom")nextY-=delta;if(nearest.direction==="top")nextY+=delta;
-        if(!m2MoveRackOrJoinedGroup(rack,nextX,nextY))$("m2FloorStatus").textContent="Girilen kolon mesafesi raf grubunu alan dışına çıkarıyor veya başka bir engelle çakıştırıyor.";else $("m2FloorStatus").textContent=`Kolon ile raf arası ${fmt(Math.max(0,Number(rawValue)||0))} mm yapıldı.`;m2RenderLayout();
+        if(!m2MoveRackOrJoinedGroup(rack,nextX,nextY))$("m2FloorStatus").textContent="Girilen kolon mesafesi raf grubunu alan dışına çıkarıyor veya başka bir engelle çakıştırıyor.";else {m2RememberEditedDistance(rack,"gap");$("m2FloorStatus").textContent=`Kolon ile raf arası ${fmt(Math.max(0,Number(rawValue)||0))} mm yapıldı.`;}m2RenderLayout();
       }
       function m2WallMeasurements(rack) {
         const box = m2CombinedRackBounds(rack), verticalWalls = [], horizontalWalls = [];
@@ -3764,7 +3764,7 @@
         if (direction === "top") nextY += desiredPx - current.px;
         if (direction === "bottom") nextY -= desiredPx - current.px;
         if (!m2MoveRackOrJoinedGroup(rack,nextX,nextY)) $("m2FloorStatus").textContent = "Girilen duvar mesafesi birleşik raf grubunu alan dışına çıkarıyor veya başka bir rafla çakıştırıyor.";
-        else $("m2FloorStatus").textContent = `Birleşik grup birlikte kaydırıldı; ${direction === "left" ? "sol" : direction === "right" ? "sağ" : direction === "top" ? "üst" : "alt"} duvar mesafesi ${fmt(Math.round(desiredPx / m2LayoutState.scale))} mm yapıldı.`;
+        else {m2RememberEditedDistance(rack,direction);$("m2FloorStatus").textContent = `Birleşik grup birlikte kaydırıldı; ${direction === "left" ? "sol" : direction === "right" ? "sağ" : direction === "top" ? "üst" : "alt"} duvar mesafesi ${fmt(Math.round(desiredPx / m2LayoutState.scale))} mm yapıldı.`;}
         m2RenderLayout();
       }
       function m2CreateRectangle() {
@@ -4098,6 +4098,7 @@
       function m2MeasurementRack(){const selected=m2SelectedRack();if(selected)return selected;const ids=Object.keys(m2PinnedDimensionsByRack).filter((id)=>Object.values(m2PinnedDimensionsByRack[id]||{}).some(Boolean)),pinned=m2LayoutState.racks.find((item)=>String(item.id)===ids.at(-1));if(pinned)return pinned;return m2ActiveModule==="b2b"?(m2LayoutState.racks[0]||null):null;}
       function m2ClearPinnedDimensions(rackId=null){if(rackId!=null)delete m2PinnedDimensionsByRack[String(rackId)];else m2PinnedDimensionsByRack={};m2PinnedDimensions=m2EmptyPinnedDimensions();}
       function m2TogglePinnedDimension(direction,checked){const rack=m2MeasurementRack();if(!rack)return;const key=String(rack.id),state={...m2PinnedForRack(rack.id),[direction]:Boolean(checked)};if(Object.values(state).some(Boolean))m2PinnedDimensionsByRack[key]=state;else delete m2PinnedDimensionsByRack[key];m2PinnedDimensions=state;m2LayoutState.pinnedRackId=rack.id;$("m2FloorStatus").textContent=checked?"Bu raftaki ölçü sabitlendi; diğer rafların ölçüleri korunuyor.":"Bu raftaki ölçünün sabitlemesi kaldırıldı.";m2RenderLayout();}
+      function m2RememberEditedDistance(rack,direction){if(!rack)return;const key=String(rack.id),state={...m2PinnedForRack(rack.id),[direction]:true};m2PinnedDimensionsByRack[key]=state;m2PinnedDimensions=state;m2LayoutState.pinnedRackId=rack.id;}
       
       function m2RotateRack() {
         const rack = m2SelectedRack();
@@ -4602,7 +4603,8 @@
           }
         }
         const selectedRack=m2SelectedRack(),measurementRack=m2MeasurementRack();
-        m2LayoutState.racks.forEach((rack)=>{const pinned=m2PinnedForRack(rack.id);if(!Object.values(pinned).some(Boolean))return;html+=m2WallDistanceGuides(rack,pinned)+(pinned.gap?m2RackDistanceGuide(rack)+m2ColumnDistanceGuide(rack):"");});
+        if(selectedRack)html+=m2WallDistanceGuides(selectedRack,{left:true,right:true,top:true,bottom:true,gap:true})+m2RackDistanceGuide(selectedRack)+m2ColumnDistanceGuide(selectedRack);
+        m2LayoutState.racks.forEach((rack)=>{if(rack.id===selectedRack?.id)return;const pinned=m2PinnedForRack(rack.id);if(!Object.values(pinned).some(Boolean))return;html+=m2WallDistanceGuides(rack,pinned)+(pinned.gap?m2RackDistanceGuide(rack)+m2ColumnDistanceGuide(rack):"");});
         const selectedSymbol=m2LayoutSymbols.find((symbol)=>symbol.id===m2SelectedSymbolId);if(selectedSymbol)html+=m2SymbolDistanceGuides(selectedSymbol);
         html += m2MetricRuler();
         layer.innerHTML = html;
@@ -4637,6 +4639,7 @@
         const sharedFootButton=$("m2SharedFootLabelButton");if(sharedFootButton){sharedFootButton.textContent=m2ShowSharedFootLabels?"Ortak Ayağı Gizle":"Ortak Ayağı Göster";sharedFootButton.classList.toggle("active",!m2ShowSharedFootLabels);sharedFootButton.setAttribute("aria-pressed",String(!m2ShowSharedFootLabels));}
         const wallEditor = $("m2WallEditor");
         if (wallEditor) {
+          wallEditor.hidden=false;if(m2ActiveModule==="b2b")wallEditor.style.display="grid";else wallEditor.style.display="";
           if (!measurementRack) wallEditor.innerHTML = m2ActiveModule==="b2b"?`<div class="m2-wall-editor-title"><span>RAF / DUVAR UZAKLIKLARI</span></div><div class="m2-wall-editor-empty">Uzaklıkları görmek için yerleşime bir raf bloğu ekle.</div>`:"";
           else {
             const measurements = m2WallMeasurements(measurementRack), labels = { left: "Sol duvar", right: "Sağ duvar", top: "Üst duvar", bottom: "Alt duvar" }, nearest = m2NearestRackGap(measurementRack), nearestColumn=m2NearestColumnGap(measurementRack), rackPinned=m2PinnedForRack(measurementRack.id), samePinnedRack=Object.values(rackPinned).some(Boolean);
