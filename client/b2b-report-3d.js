@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v25";
+  const VERSION = "front-side-capture-v26";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -196,16 +196,12 @@
     const task = (async () => {
       const capture = window.RafexB2BViewer?.captureViews;
       if (typeof capture !== "function") throw new Error("B2B 3D görüntü yakalama servisi hazır değil.");
-      let options=viewerOptions(drawing);
-      if(variantsEnabled()){
-        const selected=Math.max(1,Math.min(4,Math.round(number(options.palletCount,1))));
-        const moduleOptions=Array.from({length:selected},(_,index)=>({...options,moduleCount:1,moduleOptions:null,palletCount:selected-index,dimensions:{levels:true,markers:true,eye:true,width:false,depth:false}}));
-        options={...options,moduleCount:moduleOptions.length,moduleOptions,dimensions:{levels:true,markers:true,eye:true,width:false,depth:false}};
-      }
+      const options=viewerOptions(drawing);
       const result = await capture(options, {
-        width: 2600,
-        height: 1750,
-        cameraPadding: 1.08,
+        width: 3000,
+        height: 2000,
+        pixelRatio: 2,
+        cameraPadding: 1.06,
         frontDimensions: { levels: true, markers: true, eye: true, width: false, depth: false },
         sideDimensions: { levels: false, markers: false, eye: false, width: false, depth: true },
         side: "right",
@@ -274,10 +270,12 @@
     try{
       const placed=typeof m2CorporateUsedTypes==="function"?m2CorporateUsedTypes():[];
       if(Array.isArray(placed)&&placed.length){
-        return placed.map((entry,index)=>{
+        const uniqueCounts=new Map();
+        placed.forEach((entry,index)=>{
           const drawing=entry?.drawing||entry,key=registerDrawing(drawing),name=String(entry?.name||`TİP ${index+1}`),count=number(drawing?.b2bLayout?.palletCount??drawing?.b2b?.palletCount??drawing?.bays,0);
-          return{key:`${key}:${name}`,drawing,count,name};
-        }).filter((entry)=>entry.count>0).sort((left,right)=>right.count-left.count);
+          if(count>0&&!uniqueCounts.has(count))uniqueCounts.set(count,{key:`${key}:${name}`,drawing,count,name});
+        });
+        return [...uniqueCounts.values()].sort((left,right)=>right.count-left.count);
       }
     }catch(error){console.warn("B2B kurumsal tip listesi doğrudan okunamadı",error);}
     const cards=[...document.querySelectorAll(".rafex-combined-front, .rafex-variant-pair .m2-report-elevation[data-rafex-capture-view='front'], #m2ReportFronts>.m2-report-elevation")];
@@ -302,7 +300,7 @@
       const base={...moduleOptions[0],moduleCount:moduleOptions.length,moduleOptions,showPallets:true};
       const capture=window.RafexB2BViewer?.captureViews;
       if(typeof capture!=="function")throw new Error("Birleşik B2B 3D yakalama servisi hazır değil.");
-      const result=await capture(base,{width:1800,height:900,cameraPadding:1.16,frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"});
+      const result=await capture(base,{width:3000,height:1500,pixelRatio:2,cameraPadding:1.12,frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"});
       combinedVariantCache={signature,front:result.front,side:result.side};return combinedVariantCache;
     })().finally(()=>{combinedVariantPending=null;});
     return combinedVariantPending;
