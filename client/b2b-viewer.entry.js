@@ -570,7 +570,7 @@ class B2BViewer {
     const canvas = document.createElement("canvas"), scale = 4, dimensionScale = 1.5, labelWidth = width * dimensionScale, labelHeight = 112 * dimensionScale;
     canvas.width = labelWidth * scale; canvas.height = labelHeight * scale;
     const context = canvas.getContext("2d");
-    context.scale(scale, scale); context.font = "900 66px Arial";
+    context.scale(scale, scale); context.font = "900 84px Arial";
     context.fillStyle = "rgba(4,42,78,.98)"; context.beginPath(); context.roundRect(0, 0, labelWidth, labelHeight, 24); context.fill();
     context.strokeStyle = "#0b6fa9"; context.lineWidth = 5; context.stroke();
     context.fillStyle = "#fff"; context.textAlign = "center"; context.textBaseline = "middle"; context.fillText(text, labelWidth / 2, labelHeight / 2);
