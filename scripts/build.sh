@@ -24,7 +24,7 @@ if (!source.includes('row.scale.y=-1')) throw new Error('B2B çift sıra yönü 
 
 
 
-source = source.replace('const ASSET_VERSION = "b2b-detail-layout-camera-519";', 'const ASSET_VERSION = "b2b-outside-tie-exterior-protection-540";');
+source = source.replace('const ASSET_VERSION = "b2b-detail-layout-camera-519";', 'const ASSET_VERSION = "b2b-outside-tie-exterior-protection-541";');
 fs.writeFileSync(outputPath, source);
 NODE
 
@@ -70,7 +70,7 @@ let portalSource = fs.readFileSync(portalPath, 'utf8')
   .replaceAll('__M2_PALETLI_SIDE_BASE64__', fs.readFileSync(paletliPath).toString('base64'))
   .replaceAll('__M2_AYAK2_FRONT_BASE64__', ayak2FrontBase64)
   .replaceAll('__M2_PALLET_DEFINITION_BASE64__', fs.readFileSync(palletDefinitionPath).toString('base64'))
-  .replaceAll('b2b-double-row-side-ties-367', 'b2b-outside-tie-exterior-protection-540');
+  .replaceAll('b2b-double-row-side-ties-367', 'b2b-outside-tie-exterior-protection-541');
 portalSource = portalSource.replace(/<\/body>\s*<\/html>\s*$/i, `<script data-rafex-b2b-visual-fixes="back-to-back-reference-v2">\n${b2bVisualFixes}\n</script>\n<script data-rafex-b2b-report-3d="front-side-capture-v26">\n${b2bReport3d}\n</script>\n</body>\n</html>`);
 if (!portalSource.includes('data-rafex-b2b-visual-fixes="back-to-back-reference-v2"') || !portalSource.includes('data-rafex-b2b-report-3d="front-side-capture-v26"')) {
   throw new Error('B2B 3D görünüş betikleri portala eklenemedi.');
