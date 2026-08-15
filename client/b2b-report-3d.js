@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v32";
+  const VERSION = "front-side-capture-v33";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -189,8 +189,8 @@
   function reportCacheKey(key){return `${key}|${variantsEnabled()?"variants":"single"}`;}
   function adaptiveCameraPadding(drawing,combined=false){
     const levels=Math.max(1,number(drawing?.levels??drawing?.b2b?.levels,1));
-    if(combined)return levels>=8?.94:levels>=6?.97:1;
-    return levels>=8?.90:levels>=6?.94:levels>=4?.98:1.02;
+    if(combined)return levels>=8?1.04:levels>=6?1.05:1.06;
+    return levels>=8?1.02:levels>=6?1.04:levels>=4?1.06:1.08;
   }
 
   async function captureDrawing(key) {
@@ -510,7 +510,7 @@
       }
       .m2-corporate-view .rafex-report-3d-frame img,
       #m2CorporatePrint .m2-corporate-view .rafex-report-3d-frame img {
-        max-width:100%; max-height:100%; padding:6px; box-sizing:border-box;
+        max-width:100%; max-height:100%; padding:2px; box-sizing:border-box;
       }
       #m2A4Sheet.rafex-variants-active .m2-a4-floor,
       #m2A4Sheet.rafex-variants-active .m2-a4-side { display:none !important; }
