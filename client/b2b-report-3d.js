@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v15";
+  const VERSION = "front-side-capture-v16";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -257,9 +257,9 @@
     cards.forEach((card)=>{
       const key=cardKey(card),drawing=reportDrawings.get(key);if(!key||!drawing)return;
       const count=number(drawing?.b2bLayout?.palletCount??drawing?.b2b?.palletCount??drawing?.bays,0);
-      if(count>0&&!found.has(count))found.set(count,{key,drawing,count});
+      if(count>0&&!found.has(key))found.set(key,{key,drawing,count});
     });
-    return [4,3,2,1].map((count)=>found.get(count)).filter(Boolean);
+    return [...found.values()].sort((left,right)=>right.count-left.count);
   }
 
   async function captureCombinedVariants(){
