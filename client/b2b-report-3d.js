@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v17";
+  const VERSION = "front-side-capture-v18";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -173,16 +173,25 @@
     }
   }
 
+  function variantsEnabled(){return document.getElementById("m2ReportCompleteFront")?.checked===true;}
+  function reportCacheKey(key){return `${key}|${variantsEnabled()?"variants":"single"}`;}
+
   async function captureDrawing(key) {
-    if (reportViewCache.has(key)) return reportViewCache.get(key);
-    if (reportViewPending.has(key)) return reportViewPending.get(key);
+    const cacheKey=reportCacheKey(key);
+    if (reportViewCache.has(cacheKey)) return reportViewCache.get(cacheKey);
+    if (reportViewPending.has(cacheKey)) return reportViewPending.get(cacheKey);
     const drawing = reportDrawings.get(key);
     if (!drawing) return null;
 
     const task = (async () => {
       const capture = window.RafexB2BViewer?.captureViews;
       if (typeof capture !== "function") throw new Error("B2B 3D görüntü yakalama servisi hazır değil.");
-      const options=viewerOptions(drawing);
+      let options=viewerOptions(drawing);
+      if(variantsEnabled()){
+        const selected=Math.max(1,Math.min(4,Math.round(number(options.palletCount,1))));
+        const moduleOptions=Array.from({length:selected},(_,index)=>({...options,moduleCount:1,moduleOptions:null,palletCount:selected-index,dimensions:{levels:true,markers:true,eye:true,width:false,depth:false}}));
+        options={...options,moduleCount:moduleOptions.length,moduleOptions,dimensions:{levels:true,markers:true,eye:true,width:false,depth:false}};
+      }
       const result = await capture(options, {
         width: 1200,
         height: 760,
@@ -193,7 +202,7 @@
       });
       if (!result?.front || !result?.side) throw new Error("B2B 3D ön/yan görüntüsü oluşturulamadı.");
       const cached = { front: result.front, side: result.side };
-      reportViewCache.set(key, cached);
+      reportViewCache.set(cacheKey, cached);
       trimCache();
       return cached;
     })()
@@ -201,9 +210,9 @@
         console.error("B2B PDF 3D görüntüsü hazırlanamadı", error);
         return null;
       })
-      .finally(() => reportViewPending.delete(key));
+      .finally(() => reportViewPending.delete(cacheKey));
 
-    reportViewPending.set(key, task);
+    reportViewPending.set(cacheKey, task);
     return task;
   }
 
@@ -228,7 +237,7 @@
   function replaceCardView(card, view) {
     const key = cardKey(card);
     if (!key) return false;
-    const cached = reportViewCache.get(key);
+    const cached = reportViewCache.get(reportCacheKey(key));
     if (!cached?.[view]) return false;
     let frame = card.querySelector(".rafex-report-3d-frame");
     if (!frame) {
