@@ -1736,6 +1736,7 @@
       .m2-corporate-cover::before { display:none; }
       .m2-corporate-page>* { z-index:1; }
       .m2-corporate-page-footer { position:absolute; z-index:8; right:1.4%; bottom:.45%; padding:2px 7px; border-radius:10px; background:#0b2b45; color:#fff; font-size:11px; font-weight:900; letter-spacing:.04em; }
+      .m2-corporate-cut-note { position:absolute; z-index:7; right:1.1%; bottom:2.1%; max-width:48%; padding:3px 6px; border-radius:4px; background:#fff; color:#435b6e; font-size:7px; line-height:1.2; font-weight:800; text-align:right; }
       .m2-corporate-page-header { position:absolute; z-index:2; inset:0 0 auto; height:11%; display:flex; align-items:center; justify-content:space-between; padding:0 3%; border-bottom:4px solid #3e8fb2; background:#0b2b45; color:#fff; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
       .m2-corporate-page-header img { width:82px; max-height:34px; object-fit:contain; filter:brightness(0) invert(1); }
       .m2-corporate-page-header b { font-size:16px; letter-spacing:.05em; }
@@ -4225,7 +4226,7 @@
           if (!map.has(key)) map.set(key, { name, rackCount:0, footTeamCount:0, drawing:{...rack,totalWidth:rack.widthMm,railLength:rack.depthMm,plan:rack.plan} });
           const entry=map.get(key),rowCount=Math.max(1,Number(rack.b2bLayout?.rowCount)||1);entry.rackCount+=1;entry.footTeamCount+=rack.b2bLayout?2*rowCount-(rack.sharedFootWith?rowCount:0):0;
         });
-        const types=[...map.values()];return m2ActiveModule==="b2b"?types.map((entry,index)=>({...entry,name:b2bTypeLetter("",index+1)})):types;
+        return [...map.values()];
       }
       function m2CorporateHeader(title) { return `<header class="m2-corporate-page-header"><img src="/rafex-logo.png" alt="Rafex"><b>${esc(title)}</b></header>`; }
       function m2CorporatePalletTable(types, palletTotal, labels) {
@@ -4301,8 +4302,8 @@
           pages.push(`<section class="m2-corporate-page rafex-combined-page">${m2CorporateHeader(t.sections)}<div class="m2-corporate-type-grid">${card}</div></section>`);
         }else{
           for(let start=0;start<types.length;start+=3){
-            const cards=types.slice(start,start+3).map((entry,index)=>{const d=entry.drawing||entry,palletCount=(d.b2bLayout?(Number(d.b2bLayout.palletCount)||0)*Math.max(0,Number(d.levels)||0)*Math.max(1,Number(d.b2bLayout.rowCount)||1):Math.max(0,Number(d.bays)||0)*Math.max(0,Number(d.levels)||0)*Math.max(0,Number(d.depth)||0))*Math.max(1,Number(entry.rackCount)||1),unitCount=Math.max(1,Number(entry.rackCount)||1),typeTitle=`${String(entry.name||`TİP ${start+index+1}`).replace(/\s+TİPİ$/i,"")} TİPİ`,frontVisual=d.b2bLayout?m2B2BReportPerspectiveSvg(d,t,false):m2ReportElevationSvg(d,"front"),sideVisual=d.b2bLayout?m2B2BSideElevationSvg(d,t):m2ReportElevationSvg(d,"side");return `<article class="m2-corporate-type-card" style="--m2-type-color:${typeAccents[index]}"><strong><span>${esc(typeTitle)}</span><small>${fmt(palletCount)} ${esc(t.palletUnit)}</small><small class="m2-corporate-unit-count">${fmt(unitCount)} ${esc(String(t.unitEach).toUpperCase())}</small></strong><div class="m2-corporate-view"><b>${esc(typeTitle)} · ${t.front}</b>${frontVisual}</div><div class="m2-corporate-view"><b>${esc(typeTitle)} · ${t.side}</b>${sideVisual}</div></article>`;}).join("");
-            pages.push(`<section class="m2-corporate-page">${m2CorporateHeader(`${t.sections} · ${Math.floor(start/3)+1}`)}<div class="m2-corporate-type-grid">${cards}</div></section>`);
+            const cards=types.slice(start,start+3).map((entry,index)=>{const d=entry.drawing||entry,palletCount=(d.b2bLayout?(Number(d.b2bLayout.palletCount)||0)*Math.max(0,Number(d.levels)||0)*Math.max(1,Number(d.b2bLayout.rowCount)||1):Math.max(0,Number(d.bays)||0)*Math.max(0,Number(d.levels)||0)*Math.max(0,Number(d.depth)||0))*Math.max(1,Number(entry.rackCount)||1),unitCount=Math.max(1,Number(entry.rackCount)||1),rawTypeName=String(entry.name||`TİP ${start+index+1}`).trim(),typeTitle=/^[A-ZÇĞİÖŞÜ]+$/i.test(rawTypeName)?`${rawTypeName} TİPİ`:rawTypeName,frontVisual=d.b2bLayout?m2B2BReportPerspectiveSvg(d,t,false):m2ReportElevationSvg(d,"front"),sideVisual=d.b2bLayout?m2B2BSideElevationSvg(d,t):m2ReportElevationSvg(d,"side");return `<article class="m2-corporate-type-card" style="--m2-type-color:${typeAccents[index]}"><strong><span>${esc(typeTitle)}</span><small>${fmt(palletCount)} ${esc(t.palletUnit)}</small><small class="m2-corporate-unit-count">${fmt(unitCount)} ${esc(String(t.unitEach).toUpperCase())}</small></strong><div class="m2-corporate-view"><b>${esc(typeTitle)} · ${t.front}</b>${frontVisual}</div><div class="m2-corporate-view"><b>${esc(typeTitle)} · ${t.side}</b>${sideVisual}</div></article>`;}).join("");
+            pages.push(`<section class="m2-corporate-page">${m2CorporateHeader(`${t.sections} · ${Math.floor(start/3)+1}`)}<div class="m2-corporate-type-grid">${cards}</div><div class="m2-corporate-cut-note">Zemin hariç katlarda kat aralarında travers ölçüsü gösterilmemiştir. Toplam ayak boyunda travers ölçüleri hesaplanmıştır.</div></section>`);
           }
         }
         const palletTotal=m2LayoutState.racks.reduce((sum,r)=>sum+(r.b2bLayout?(Number(r.b2bLayout.palletCount)||0)*(Number(r.levels)||0)*(Number(r.b2bLayout.rowCount)||1):(Number(r.bays)||0)*(Number(r.levels)||0)*(Number(r.depth)||0)),0), images=m2ReportImages.filter(Boolean).map((src,index)=>`<img src="${src}" alt="${t.images} ${index+1}">`).join("");
