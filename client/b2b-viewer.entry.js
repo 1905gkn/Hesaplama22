@@ -306,12 +306,16 @@ class B2BViewer {
       const bounds = new THREE.Box3().setFromObject(source);
       const center = bounds.getCenter(new THREE.Vector3());
       const size = bounds.getSize(new THREE.Vector3());
+      // 200 mm net sıra aralığında 340 mm gerçek parça, iki uçta 70'er mm
+      // ayak bindirmesiyle delik yüzlerine oturur. Ölçek parça boyu eksenindedir.
+      const endOverlap = 70;
+      const targetLength = gap + endOverlap * 2;
       const oriented = new THREE.Group();
       oriented.name = "SAC ARA BAĞ · delik yüzlerine hizalı";
       source.position.copy(center).multiplyScalar(-1);
       oriented.add(source);
       oriented.rotation.z = -Math.PI / 2;
-      oriented.scale.set(1, gap / Math.max(1, size.x), 1);
+      oriented.scale.set(targetLength / Math.max(1, size.x), 1, 1);
       source.traverse((part) => {
         if (!part.isMesh) return;
         part.castShadow = true;
@@ -330,7 +334,9 @@ class B2BViewer {
       const tie = new THREE.Group();
       tie.userData.source = "SAC ARA BAĞ.glb";
       tie.userData.sourceSize = { x:size.x, y:size.y, z:size.z };
-      tie.userData.mountingSpan = gap;
+      tie.userData.clearRowGap = gap;
+      tie.userData.mountingSpan = targetLength;
+      tie.userData.endOverlap = endOverlap;
       tie.userData.mounting = "upright-hole-face-to-upright-hole-face";
       tie.add(oriented);
       return tie;
