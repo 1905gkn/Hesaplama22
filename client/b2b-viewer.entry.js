@@ -306,9 +306,9 @@ class B2BViewer {
       const bounds = new THREE.Box3().setFromObject(source);
       const center = bounds.getCenter(new THREE.Vector3());
       const size = bounds.getSize(new THREE.Vector3());
-      // Düz arabağ, iki sıranın iç yüzleri arasında kalmaz: kulakları her iki
-      // ayağın dış yan yüzüne kadar uzanır ve bu yüzlere cıvatalanır.
-      const endOverlap = Math.max(95, frameDepth);
+      // Gerçek SAC ARA BAĞ, iki arka ayağın iç bölgesini köprüler. 200 mm net
+      // sıra aralığında iki uçtaki 70'er mm kulak ayak yan yüzlerine oturur.
+      const endOverlap = 70;
       const targetLength = gap + endOverlap * 2;
       const oriented = new THREE.Group();
       oriented.name = "SAC ARA BAĞ · delik yüzlerine hizalı";
@@ -337,7 +337,7 @@ class B2BViewer {
       tie.userData.clearRowGap = gap;
       tie.userData.mountingSpan = targetLength;
       tie.userData.endOverlap = endOverlap;
-      tie.userData.mounting = "outside-upright-side-face-to-outside-upright-side-face";
+      tie.userData.mounting = "between-uprights-inner-zone-side-ear-bolted";
       tie.add(oriented);
       return tie;
     };
@@ -352,10 +352,10 @@ class B2BViewer {
         const height=spec.straightTiePositions[index]||moduleHeight*(index+1)/(spec.straightTieCount+1);
         [leftX,rightX].forEach((x,side)=>{
           const worldX=moduleX+x,key=`${Math.round(worldX)}:${Math.round(height)}`;if(seen.has(key))return;seen.add(key);
-          const tie=makeTie(),sourceThickness=Math.max(1,Number(tie.userData.sourceSize?.y)||22.5),outsideOffset=Math.max(1,Number(spec.footWidth)||120)/2+sourceThickness/2;
-          tie.name=`Düz Arabağ ${index+1} · SAC ARA BAĞ · dış yan yüz`;
-          tie.userData.outsideFaceOffset=outsideOffset;
-          tie.position.set(worldX+(side===0?-outsideOffset:outsideOffset),frameDepth+gap/2,-height);layer.add(tie);
+          const tie=makeTie(),sourceThickness=Math.max(1,Number(tie.userData.sourceSize?.y)||22.5),sideFaceOffset=sourceThickness/2;
+          tie.name=`Düz Arabağ ${index+1} · SAC ARA BAĞ · iç bağlantı`;
+          tie.userData.sideFaceOffset=sideFaceOffset;
+          tie.position.set(worldX+(side===0?-sideFaceOffset:sideFaceOffset),frameDepth+gap/2,-height);layer.add(tie);
         });
       }
     });
