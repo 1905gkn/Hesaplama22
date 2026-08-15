@@ -1465,6 +1465,9 @@
       #m2ProtectionButton { border-color:#d0a800; background:#fff8cf; color:#6b5200; }
       .m2-protection-choice.active { background:#e5be01 !important; color:#17201b !important; border-color:#9c8000 !important; }
       .m2-protection-selection { fill:url(#m2ProtectionHatch); stroke:#d0a800; stroke-width:2; stroke-dasharray:7 4; pointer-events:none; }
+      .m2-multi-selection-area { fill:rgba(25,118,210,.12); stroke:#1976d2; stroke-width:2; stroke-dasharray:8 5; pointer-events:none; }
+      .m2-multi-selection-label { fill:#073b67; font:900 13px Arial,sans-serif; paint-order:stroke; stroke:#fff; stroke-width:4px; pointer-events:none; }
+      #m2LayoutSvg.m2-multi-selecting { cursor:crosshair; }
       .m2-foot-protection { fill:#e5be01; stroke:#765f00; stroke-width:1.4; }
       .m2-foot-protection.uakz { fill:#ffd83d; stroke-width:2.2; }
       .m2-barrier-body { fill:#e5be01; stroke:#6d5900; stroke-width:1.5; }
@@ -2821,7 +2824,7 @@
       let m2LayoutState = { mode: "idle", points: [], pathBreaks: [], closed: false, openFinished: false, areaEditMode: false, drawFromIndex: null, branchSourceIndex: null, racks: [], selected: null, pinnedRackId: null, drag: null, hover: null, scale: .04, showAreaDimensions: false, edgeDimensions: [] }, m2LayoutKeyHandler = null, m2LayoutZoom = 1,
         m2PinnedDimensions = { left: false, right: false, top: false, bottom: false, gap: false }, m2PinnedDimensionsByRack = {}, m2SavedRackTypes = [], m2SelectedSavedType = null, m2SavedTypeClickTimer = null, m2PendingMeasureApply = null, m2ProjectRecords = [], m2OpeningProjectFromHistory = false,
         m2LayoutTool = null, m2DimensionOffsets = {}, m2DimensionDrag = null, m2DimensionFontSizes = {}, m2SelectedDimensionKey = null, m2UserNotes = [], m2SelectedNoteId = null, m2HiddenSummaryDimensions = new Set(), m2VisibleRackDimensions = { length:new Set(), depth:new Set() }, m2ShowSharedFootLabels = false, m2ReportImages = Array(4).fill(null), m2EdgeEditorVisible = false, m2FreeMeasure = { points: [], hover: null }, m2ManualPlan = null, m2ManualPlanRows = [], m2ReportRefreshTimer = null, m2JoinMode = false, m2JoinFirstRackId = null, m2AutoFillDraft = null, m2LastRackTap = { id:null, at:0 }, m2LayoutRenderFrame = null,
-        m2CustomizeMode=false,m2CustomizeRackId=null,m2LayoutSymbols=[],m2SelectedSymbolId=null,m2SymbolDrag=null,m2NoteDrag=null,m2SymbolChoice="column",m2CopyMode=false,m2ProtectionChoice="uaks",m2ProtectionDraft=null;
+        m2CustomizeMode=false,m2CustomizeRackId=null,m2LayoutSymbols=[],m2SelectedSymbolId=null,m2SymbolDrag=null,m2NoteDrag=null,m2SymbolChoice="column",m2CopyMode=false,m2ProtectionChoice="uaks",m2ProtectionDraft=null,m2MultiSelect={active:false,start:null,hover:null,rackIds:new Set(),symbolIds:new Set()};
       // Duvar kalınlığı yalnız görseldir; serbest yerleşim ölçüleri ve
       // çakışma hesabı duvar eksenini esas alır, çizgi kalınlığını saymaz.
       const m2WallMeasurementInset = 0;
@@ -2829,6 +2832,9 @@
         const svg = $("m2LayoutSvg"), rect = svg.getBoundingClientRect();
         return { x: (event.clientX - rect.left) * 1000 / rect.width, y: (event.clientY - rect.top) * 650 / rect.height };
       }
+      function m2ClearMultiSelection(keepMode=false){m2MultiSelect.rackIds.clear();m2MultiSelect.symbolIds.clear();m2MultiSelect.start=null;m2MultiSelect.hover=null;if(!keepMode)m2MultiSelect.active=false;$("m2SelectRackButton")?.classList.toggle("active",m2MultiSelect.active);$("m2LayoutSvg")?.classList.toggle("m2-multi-selecting",m2MultiSelect.active);}
+      function m2ToggleMultiSelect(){const opening=!m2MultiSelect.active;m2ClearMultiSelection(opening);m2MultiSelect.active=opening;m2LayoutState.selected=null;m2SelectedSymbolId=null;$("m2SelectRackButton")?.classList.toggle("active",opening);$("m2LayoutSvg")?.classList.toggle("m2-multi-selecting",opening);$("m2FloorStatus").textContent=opening?"Seçim alanını fareyle tarayarak rafları seç. Seçilen raflar bağlı parçalarıyla birlikte taşınabilir veya silinebilir.":"Toplu seçim kapatıldı.";m2RenderLayout();}
+      function m2CommitMultiSelection(){const start=m2MultiSelect.start,end=m2MultiSelect.hover;if(!start||!end)return;const left=Math.min(start.x,end.x),right=Math.max(start.x,end.x),top=Math.min(start.y,end.y),bottom=Math.max(start.y,end.y),selected=new Set();m2LayoutState.racks.forEach((rack)=>{const box=m2RackBounds(rack);if(box.cx>=left&&box.cx<=right&&box.cy>=top&&box.cy<=bottom)selected.add(rack.id);});[...selected].forEach((id)=>{const rack=m2LayoutState.racks.find((item)=>item.id===id);if(rack?.joinGroup)m2LayoutState.racks.filter((item)=>item.joinGroup===rack.joinGroup).forEach((item)=>selected.add(item.id));});m2MultiSelect.rackIds=selected;m2MultiSelect.symbolIds=new Set(m2LayoutSymbols.filter((symbol)=>selected.has(symbol.rackId)||(symbol.rackId==null&&symbol.x+symbol.w/2>=left&&symbol.x+symbol.w/2<=right&&symbol.y+symbol.h/2>=top&&symbol.y+symbol.h/2<=bottom)).map((symbol)=>symbol.id));m2MultiSelect.start=null;m2MultiSelect.hover=null;m2MultiSelect.active=false;m2LayoutState.selected=[...selected][0]??null;m2SelectedSymbolId=null;$("m2SelectRackButton")?.classList.remove("active");$("m2LayoutSvg")?.classList.remove("m2-multi-selecting");$("m2FloorStatus").textContent=selected.size?`${fmt(selected.size)} raf ve bağlı parçaları seçildi. Bir raftan tutup birlikte kaydırabilir veya Sil'e basabilirsin.`:"Tarama alanında raf bulunamadı.";m2RenderLayout();}
       function m2SetLayoutTool(tool) {
         m2LayoutTool = m2LayoutTool === tool ? null : tool; m2DimensionDrag = null;
         $("m2DimensionMoveButton")?.classList.toggle("active", m2LayoutTool === "dimension");
@@ -2978,9 +2984,10 @@
       function m2InitLayoutEditor() {
         const svg = $("m2LayoutSvg");
         if (!svg) return;
+        if(!$("m2SelectRackButton")){const button=document.createElement("button"),anchor=$("m2CustomizeRackButton");button.type="button";button.id="m2SelectRackButton";button.textContent="Seç";button.onclick=m2ToggleMultiSelect;anchor?.parentElement?.insertBefore(button,anchor);}
         m2SavedRackTypes = []; m2SelectedSavedType = null;
         m2LayoutState = { mode: "idle", points: [], pathBreaks: [], closed: false, openFinished: false, areaEditMode: false, drawFromIndex: null, branchSourceIndex: null, racks: [], selected: null, pinnedRackId: null, drag: null, hover: null, scale: .04, showAreaDimensions: false, edgeDimensions: [] };
-        m2LayoutTool = null; m2DimensionOffsets = {}; m2DimensionDrag = null; m2DimensionFontSizes = {}; m2SelectedDimensionKey = null; m2UserNotes = []; m2SelectedNoteId = null; m2HiddenSummaryDimensions = new Set(); m2VisibleRackDimensions = { length:new Set(), depth:new Set() }; m2ShowSharedFootLabels = false; m2EdgeEditorVisible = false; m2FreeMeasure = { points: [], hover: null }; m2JoinMode = false; m2JoinFirstRackId = null; m2AutoFillDraft = null;m2CustomizeMode=false;m2CustomizeRackId=null;m2LayoutSymbols=[];m2SelectedSymbolId=null;m2SymbolDrag=null;m2NoteDrag=null;m2CopyMode=false;
+        m2LayoutTool = null; m2DimensionOffsets = {}; m2DimensionDrag = null; m2DimensionFontSizes = {}; m2SelectedDimensionKey = null; m2UserNotes = []; m2SelectedNoteId = null; m2HiddenSummaryDimensions = new Set(); m2VisibleRackDimensions = { length:new Set(), depth:new Set() }; m2ShowSharedFootLabels = false; m2EdgeEditorVisible = false; m2FreeMeasure = { points: [], hover: null }; m2JoinMode = false; m2JoinFirstRackId = null; m2AutoFillDraft = null;m2CustomizeMode=false;m2CustomizeRackId=null;m2LayoutSymbols=[];m2SelectedSymbolId=null;m2SymbolDrag=null;m2NoteDrag=null;m2CopyMode=false;m2MultiSelect={active:false,start:null,hover:null,rackIds:new Set(),symbolIds:new Set()};
         if (m2LayoutKeyHandler) document.removeEventListener("keydown", m2LayoutKeyHandler);
         m2LayoutKeyHandler = (event) => {
           if(m2AutoFillDraft&&/^\d$/.test(event.key)&&!/INPUT|TEXTAREA|SELECT/.test(event.target?.tagName||"")){
@@ -2989,7 +2996,7 @@
           if (event.key === "Escape" && m2LayoutState.mode === "draw") { event.preventDefault(); m2PauseFreeArea(); }
           else if (event.key === "Escape" && m2AutoFillDraft) { event.preventDefault(); m2CancelAutoFill(); }
           else if (event.key === "Escape" && m2LayoutTool === "measure") { event.preventDefault(); m2LayoutTool = null; m2FreeMeasure = { points: [], hover: null }; $("m2MeasureToolButton")?.classList.remove("active"); $("m2FloorStatus").textContent = "Mesafe ölçümü iptal edildi."; m2RenderLayout(); }
-          else if (event.key === "Escape") { event.preventDefault(); m2LayoutState.selected=null;m2SelectedSymbolId=null;m2SelectedNoteId=null;m2SymbolDrag=null;m2LayoutState.drag=null;m2CopyMode=false;m2CustomizeMode=false;m2JoinMode=false;m2JoinFirstRackId=null;$("m2CustomizeRackButton")?.classList.remove("active");$("m2JoinRackButton")?.classList.remove("active");$("m2FloorStatus").textContent="Seçim temizlendi.";m2RenderLayout(); }
+          else if (event.key === "Escape") { event.preventDefault(); m2LayoutState.selected=null;m2SelectedSymbolId=null;m2SelectedNoteId=null;m2SymbolDrag=null;m2LayoutState.drag=null;m2CopyMode=false;m2CustomizeMode=false;m2JoinMode=false;m2JoinFirstRackId=null;m2ClearMultiSelection();$("m2CustomizeRackButton")?.classList.remove("active");$("m2JoinRackButton")?.classList.remove("active");$("m2FloorStatus").textContent="Seçim temizlendi.";m2RenderLayout(); }
           else if ((event.key === "Delete" || event.key === "Backspace") && (m2LayoutState.selected != null||m2SelectedSymbolId!=null) && !/INPUT|TEXTAREA|SELECT/.test(event.target?.tagName || "")) { event.preventDefault(); m2DeleteRack(); }
           else if (m2ActiveModule === "b2b" && event.key.toLowerCase() === "c" && !event.ctrlKey && !event.metaKey && !event.altKey && !/INPUT|TEXTAREA|SELECT/.test(event.target?.tagName || "")) { const latest=m2LayoutState.racks.at(-1); if(latest){event.preventDefault();m2LayoutState.selected=latest.id;m2DuplicateRack();} }
           if (event.key === "Enter" && event.target?.id === "m2SegmentLength") {
@@ -3006,6 +3013,7 @@
           const point = m2SvgPoint(event), rackNode = event.target.closest?.("[data-rack]"), symbolNode=event.target.closest?.("[data-layout-symbol]"), resumeNode = event.target.closest?.("[data-resume-point]");
           const dimensionNode = event.target.closest?.("[data-dimension-key]"), noteNode = event.target.closest?.("[data-user-note]"), freeMeasurePoint = event.target.closest?.("[data-free-measure-point]");
           if(m2ProtectionDraft){m2ProtectionDraft.start=point;m2ProtectionDraft.hover=point;svg.setPointerCapture?.(event.pointerId);m2RenderLayout();return;}
+          if(m2MultiSelect.active){m2MultiSelect.start=point;m2MultiSelect.hover=point;svg.setPointerCapture?.(event.pointerId);m2RenderLayout();return;}
           if(m2CopyMode&&(rackNode||symbolNode)){m2CopyMode=false;if(symbolNode){const symbol=m2LayoutSymbols.find((item)=>item.id===Number(symbolNode.dataset.layoutSymbol));if(symbol)m2CopySymbol(symbol);}else{m2LayoutState.selected=Number(rackNode.dataset.rack);m2DuplicateRack();}return;}
           if(m2CustomizeMode&&rackNode){m2OpenCustomizeModal(Number(rackNode.dataset.rack));return;}
           if(symbolNode){const symbol=m2LayoutSymbols.find((item)=>item.id===Number(symbolNode.dataset.layoutSymbol));if(symbol){m2SelectedSymbolId=symbol.id;m2LayoutState.selected=null;m2SelectedNoteId=null;m2SymbolDrag={id:symbol.id,dx:point.x-symbol.x,dy:point.y-symbol.y};svg.setPointerCapture?.(event.pointerId);m2RenderLayout();}return;}
@@ -3041,17 +3049,20 @@
             m2SelectedSymbolId=null;m2SelectedNoteId=null;m2SymbolDrag=null;
             if (m2JoinMode) { m2ChooseJoinRack(id); return; }
             const now = Date.now();
-            if (m2ActiveModule === "b2b" && m2LastRackTap.id === id && now - m2LastRackTap.at < 520) { m2LastRackTap = { id:null, at:0 }; m2LayoutState.drag = null; m2StartAutoFillGuide(id); return; }
+            if (m2ActiveModule === "b2b" && !m2MultiSelect.rackIds.has(id) && m2LastRackTap.id === id && now - m2LastRackTap.at < 520) { m2LastRackTap = { id:null, at:0 }; m2LayoutState.drag = null; m2StartAutoFillGuide(id); return; }
             m2LastRackTap = { id, at:now };
             m2LayoutState.selected = id;
-            const groupMembers = rack.joinGroup ? m2LayoutState.racks.filter((item) => item.joinGroup === rack.joinGroup).map((item) => ({ id:item.id, x:item.x, y:item.y })) : null;
-            m2LayoutState.drag = { id, dx: point.x - rack.x, dy: point.y - rack.y, originX:rack.x, originY:rack.y, groupMembers };
+            const selectionGroup=m2MultiSelect.rackIds.size>0&&m2MultiSelect.rackIds.has(id);if(!selectionGroup)m2ClearMultiSelection();
+            const groupMembers = selectionGroup ? m2LayoutState.racks.filter((item)=>m2MultiSelect.rackIds.has(item.id)).map((item)=>({id:item.id,x:item.x,y:item.y})) : rack.joinGroup ? m2LayoutState.racks.filter((item) => item.joinGroup === rack.joinGroup).map((item) => ({ id:item.id, x:item.x, y:item.y })) : null;
+            const symbolMembers=selectionGroup?m2LayoutSymbols.filter((symbol)=>m2MultiSelect.symbolIds.has(symbol.id)&&symbol.rackId==null).map((symbol)=>({id:symbol.id,x:symbol.x,y:symbol.y})):null;
+            m2LayoutState.drag = { id, dx: point.x - rack.x, dy: point.y - rack.y, originX:rack.x, originY:rack.y, groupMembers,selectionGroup,symbolMembers };
             svg.setPointerCapture?.(event.pointerId); m2RenderLayout();
-          } else { m2LayoutState.selected = null;m2SelectedSymbolId=null;m2SelectedNoteId=null;m2SymbolDrag=null;m2RenderLayout(); }
+          } else { m2LayoutState.selected = null;m2SelectedSymbolId=null;m2SelectedNoteId=null;m2SymbolDrag=null;m2ClearMultiSelection();m2RenderLayout(); }
         };
         svg.onpointermove = (event) => {
           const point = m2SvgPoint(event);
           if(m2ProtectionDraft?.start){m2ProtectionDraft.hover=point;m2QueueLayoutRender();return;}
+          if(m2MultiSelect.active&&m2MultiSelect.start){m2MultiSelect.hover=point;m2QueueLayoutRender();return;}
           if(m2SymbolDrag){const symbol=m2LayoutSymbols.find((item)=>item.id===m2SymbolDrag.id);if(symbol){symbol.x=Math.max(0,Math.min(1000-symbol.w,point.x-m2SymbolDrag.dx));symbol.y=Math.max(0,Math.min(650-symbol.h,point.y-m2SymbolDrag.dy));m2QueueLayoutRender();}return;}
           if(m2NoteDrag){const note=m2UserNotes.find((item)=>item.id===m2NoteDrag.id);if(note){note.x=Math.max(0,Math.min(1000,point.x-m2NoteDrag.dx));note.y=Math.max(0,Math.min(650,point.y-m2NoteDrag.dy));m2QueueLayoutRender();}return;}
           if (m2AutoFillDraft && !m2LayoutState.drag) { const input=$("m2AutoFillLength"),manualTyping=input&&document.activeElement===input&&input.value;if(!manualTyping){m2AutoFillDraft.hover = m2ProjectAutoFillPoint(point);m2AutoFillDraft.manualLengthMm=null;const mm=Math.round(Math.hypot(m2AutoFillDraft.hover.x-m2AutoFillDraft.start.x,m2AutoFillDraft.hover.y-m2AutoFillDraft.start.y)/m2LayoutState.scale);if(input)input.value=String(mm);m2RenderLayout();} }
@@ -3064,6 +3075,7 @@
           } else if (m2LayoutState.drag) {
             const rack = m2LayoutState.racks.find((item) => item.id === m2LayoutState.drag.id);
             const nextX = point.x - m2LayoutState.drag.dx, nextY = point.y - m2LayoutState.drag.dy;
+            if(m2LayoutState.drag.selectionGroup){const targetDx=nextX-m2LayoutState.drag.originX,targetDy=nextY-m2LayoutState.drag.originY,adjusted=m2SmoothGroupTranslation(m2LayoutState.drag.groupMembers,targetDx,targetDy);m2ApplyGroupTranslation(m2LayoutState.drag.groupMembers,adjusted.dx,adjusted.dy);(m2LayoutState.drag.symbolMembers||[]).forEach((origin)=>{const symbol=m2LayoutSymbols.find((item)=>item.id===origin.id);if(symbol){symbol.x=origin.x+adjusted.dx;symbol.y=origin.y+adjusted.dy;}});$("m2FloorStatus").textContent=adjusted.exact?"Seçili raflar ve bağlı parçalar birlikte taşınıyor; duvar uzaklıkları gösteriliyor.":"Seçili grup duvar veya raf sınırında kaydırılıyor.";m2QueueLayoutRender();return;}
             if (m2LayoutState.drag.groupMembers?.length > 1) {
               const targetDx = nextX - m2LayoutState.drag.originX, targetDy = nextY - m2LayoutState.drag.originY, freeGroup=m2LayoutState.drag.groupMembers.some((origin)=>m2LayoutState.racks.find((item)=>item.id===origin.id)?.freePlacement),adjusted = freeGroup?m2ClampGroupTranslationToCanvas(m2LayoutState.drag.groupMembers,targetDx,targetDy):m2SmoothGroupTranslation(m2LayoutState.drag.groupMembers,targetDx,targetDy);
               m2ApplyGroupTranslation(m2LayoutState.drag.groupMembers,adjusted.dx,adjusted.dy);
@@ -3084,6 +3096,7 @@
         };
         const stop = () => {
           if(m2ProtectionDraft?.start){m2CommitProtectionArea();return;}
+          if(m2MultiSelect.active&&m2MultiSelect.start){m2CommitMultiSelection();return;}
           m2SymbolDrag=null;
           m2NoteDrag=null;
           if (Number.isInteger(m2FreeMeasure.dragIndex)) { const [a,b] = m2FreeMeasure.points; m2FreeMeasure.dragIndex = null; $("m2FloorStatus").textContent = `Ölçülen mesafe: ${fmt(Math.round(Math.hypot(b.x-a.x,b.y-a.y)/m2LayoutState.scale))} mm`; }
@@ -3487,7 +3500,7 @@
         return rack?.joinGroup ? m2LayoutState.racks.filter((item) => item.joinGroup === rack.joinGroup) : rack ? [rack] : [];
       }
       function m2CombinedRackBounds(rack) {
-        const boxes=m2JoinedRackMembers(rack).map((member)=>m2RackBounds(member));
+        const selectedMembers=m2MultiSelect.rackIds.size>1&&m2MultiSelect.rackIds.has(rack?.id)?m2LayoutState.racks.filter((member)=>m2MultiSelect.rackIds.has(member.id)):null,boxes=(selectedMembers||m2JoinedRackMembers(rack)).map((member)=>m2RackBounds(member));
         if(!boxes.length)return m2RackBounds(rack);
         const left=Math.min(...boxes.map((box)=>box.left)),right=Math.max(...boxes.map((box)=>box.right)),top=Math.min(...boxes.map((box)=>box.top)),bottom=Math.max(...boxes.map((box)=>box.bottom));
         return {left,right,top,bottom,cx:(left+right)/2,cy:(top+bottom)/2};
@@ -3708,13 +3721,13 @@
         const width = Math.max(1000, Number($("m2AreaW")?.value) || 50000), height = Math.max(1000, Number($("m2AreaH")?.value) || 30000);
         const scale = Math.min(880 / width, 530 / height), w = width * scale, h = height * scale, x = (1000 - w) / 2, y = (650 - h) / 2;
         m2LayoutState.scale = scale; m2LayoutState.points = [{ x, y }, { x: x + w, y }, { x: x + w, y: y + h }, { x, y: y + h }]; m2LayoutState.pathBreaks = []; m2LayoutState.branchSourceIndex = null;
-        m2LayoutState.closed = true; m2LayoutState.openFinished = false; m2LayoutState.areaEditMode = false; m2LayoutState.drawFromIndex = null; m2LayoutState.mode = "idle"; m2LayoutState.hover = null; m2LayoutState.racks = [];m2LayoutSymbols=[];m2SelectedSymbolId=null; m2LayoutState.selected = null; m2LayoutState.pinnedRackId = null; m2ClearPinnedDimensions(); m2LayoutState.showAreaDimensions = false; m2LayoutState.edgeDimensions = Array(4).fill(false); m2VisibleRackDimensions = { length:new Set(), depth:new Set() }; m2AutoFillDraft=null; m2SetAutoFillControlsActive(false);
+        m2LayoutState.closed = true; m2LayoutState.openFinished = false; m2LayoutState.areaEditMode = false; m2LayoutState.drawFromIndex = null; m2LayoutState.mode = "idle"; m2LayoutState.hover = null; m2LayoutState.racks = [];m2LayoutSymbols=[];m2SelectedSymbolId=null; m2LayoutState.selected = null; m2LayoutState.pinnedRackId = null; m2ClearPinnedDimensions(); m2LayoutState.showAreaDimensions = false; m2LayoutState.edgeDimensions = Array(4).fill(false); m2VisibleRackDimensions = { length:new Set(), depth:new Set() }; m2AutoFillDraft=null; m2ClearMultiSelection();m2SetAutoFillControlsActive(false);
         $("m2FreeButton")?.classList.remove("active");
         if ($("m2FloorStatus")) $("m2FloorStatus").textContent = `${fmt(width)} × ${fmt(height)} mm dikdörtgen alan oluşturuldu.`;
         m2RenderLayout();
       }
       function m2StartFreeArea() {
-        m2LayoutState.mode = "draw"; m2LayoutState.points = []; m2LayoutState.pathBreaks = []; m2LayoutState.branchSourceIndex = null; m2LayoutState.closed = false; m2LayoutState.openFinished = false; m2LayoutState.areaEditMode = true; m2LayoutState.drawFromIndex = null; m2LayoutState.selected = null; m2LayoutState.pinnedRackId = null; m2ClearPinnedDimensions(); m2LayoutState.hover = null; m2LayoutState.racks = [];m2LayoutSymbols=[];m2SelectedSymbolId=null; m2LayoutState.showAreaDimensions = false; m2LayoutState.edgeDimensions = []; m2VisibleRackDimensions = { length:new Set(), depth:new Set() }; m2AutoFillDraft=null; m2SetAutoFillControlsActive(false);
+        m2LayoutState.mode = "draw"; m2LayoutState.points = []; m2LayoutState.pathBreaks = []; m2LayoutState.branchSourceIndex = null; m2LayoutState.closed = false; m2LayoutState.openFinished = false; m2LayoutState.areaEditMode = true; m2LayoutState.drawFromIndex = null; m2LayoutState.selected = null; m2LayoutState.pinnedRackId = null; m2ClearPinnedDimensions(); m2LayoutState.hover = null; m2LayoutState.racks = [];m2LayoutSymbols=[];m2SelectedSymbolId=null; m2LayoutState.showAreaDimensions = false; m2LayoutState.edgeDimensions = []; m2VisibleRackDimensions = { length:new Set(), depth:new Set() }; m2AutoFillDraft=null; m2ClearMultiSelection();m2SetAutoFillControlsActive(false);
         const width = Math.max(1000, Number($("m2AreaW")?.value) || 50000), height = Math.max(1000, Number($("m2AreaH")?.value) || 30000);
         m2LayoutState.scale = Math.min(880 / Math.max(width, 150000), 530 / Math.max(height, 90000));
         $("m2FreeButton")?.classList.add("active");
@@ -4063,6 +4076,7 @@
           const before = m2UserNotes.length; m2UserNotes = m2UserNotes.filter((item) => item.id !== m2SelectedNoteId); m2SelectedNoteId = null;
           if (m2UserNotes.length < before) { $("m2FloorStatus").textContent = "Seçili yazı silindi."; m2RenderLayout(); return; }
         }
+        if(m2MultiSelect.rackIds.size||m2MultiSelect.symbolIds.size){const rackIds=new Set(m2MultiSelect.rackIds),symbolIds=new Set(m2MultiSelect.symbolIds),oldGroups=new Set(m2LayoutState.racks.filter((item)=>rackIds.has(item.id)&&item.joinGroup).map((item)=>item.joinGroup));rackIds.forEach((id)=>{m2VisibleRackDimensions.length.delete(id);m2VisibleRackDimensions.depth.delete(id);delete m2PinnedDimensionsByRack[String(id)];});m2LayoutState.racks=m2LayoutState.racks.filter((item)=>!rackIds.has(item.id));m2LayoutSymbols=m2LayoutSymbols.filter((symbol)=>!symbolIds.has(symbol.id)&&!rackIds.has(symbol.rackId));m2LayoutState.racks.forEach((item)=>{if(rackIds.has(item.sharedFootWith)){item.sharedFootWith=null;item.sharedFootSide=null;}});oldGroups.forEach((group)=>m2NormalizeJoinComponents(group));m2LayoutState.selected=null;m2SelectedSymbolId=null;m2ClearMultiSelection();$("m2FloorStatus").textContent=`${fmt(rackIds.size)} raf ve bağlı parçaları silindi.`;m2RenderLayout();return;}
         if (m2LayoutState.selected == null) return;
         const removed=m2LayoutState.racks.find((item)=>item.id===m2LayoutState.selected),oldGroup=removed?.joinGroup;
         m2VisibleRackDimensions.length.delete(m2LayoutState.selected); m2VisibleRackDimensions.depth.delete(m2LayoutState.selected);
@@ -4071,7 +4085,7 @@
       }
       function m2ClearLayout() {
         m2LayoutState.racks = [];m2LayoutSymbols=[];m2SelectedSymbolId=null; m2LayoutState.selected = null; m2LayoutState.pinnedRackId = null; m2ClearPinnedDimensions(); m2LayoutState.points = []; m2LayoutState.pathBreaks = []; m2LayoutState.branchSourceIndex = null; m2LayoutState.closed = false; m2LayoutState.openFinished = false; m2LayoutState.areaEditMode = false; m2LayoutState.drawFromIndex = null; m2LayoutState.mode = "idle"; m2LayoutState.hover = null; m2JoinMode = false; m2JoinFirstRackId = null; m2AutoFillDraft = null;
-        m2DimensionOffsets = {}; m2DimensionFontSizes = {}; m2SelectedDimensionKey = null; m2UserNotes = []; m2SelectedNoteId = null; m2LayoutTool = null; m2HiddenSummaryDimensions = new Set(); m2VisibleRackDimensions = { length:new Set(), depth:new Set() }; m2FreeMeasure = { points: [], hover: null }; m2SetAutoFillControlsActive(false);
+        m2DimensionOffsets = {}; m2DimensionFontSizes = {}; m2SelectedDimensionKey = null; m2UserNotes = []; m2SelectedNoteId = null; m2LayoutTool = null; m2HiddenSummaryDimensions = new Set(); m2VisibleRackDimensions = { length:new Set(), depth:new Set() }; m2FreeMeasure = { points: [], hover: null }; m2ClearMultiSelection();m2SetAutoFillControlsActive(false);
         $("m2FloorStatus").textContent = "Yerleşim temizlendi. Yeni bir alan oluşturabilirsin."; m2RenderLayout();
       }
       function m2MetricRuler() {
@@ -4359,7 +4373,7 @@
       function m2RenderLayout() {
         const layer = $("m2LayoutContent"); if (!layer) return;
         m2SyncAttachedProtections();
-        const interactiveRender=Boolean(m2LayoutState.drag||m2SymbolDrag||m2NoteDrag||m2DimensionDrag||m2ProtectionDraft?.start);
+        const interactiveRender=Boolean(m2LayoutState.drag||m2SymbolDrag||m2NoteDrag||m2DimensionDrag||m2ProtectionDraft?.start||m2MultiSelect.active&&m2MultiSelect.start);
         if(!interactiveRender)m2NormalizeB2BRackDimensions();
         const separateButton=$("m2SeparateRackButton"),toolbarSelectedRack=m2SelectedRack();if(separateButton)separateButton.disabled=!toolbarSelectedRack?.joinGroup;
         const ayakSvg = (x, y, width, height) => `<g transform="translate(${x} ${y}) scale(${width / 146} ${height / 1062})" class="m2-ayak-glb-shape"><path d="M28 0H118V25L137 39L146 74V112L132 128H101V934H132L146 950V988L137 1023L118 1037V1062H28V1037L9 1023L0 988V950L14 934H45V128H14L0 112V74L9 39L28 25Z" fill="#475569" stroke="#182431" stroke-width="5"/><rect x="45" y="88" width="56" height="886" fill="#263747"/><rect x="54" y="92" width="16" height="878" fill="#718096"/><rect x="76" y="92" width="16" height="878" fill="#718096"/><circle cx="23" cy="90" r="10" fill="#fff" stroke="#182431" stroke-width="4"/><circle cx="123" cy="90" r="10" fill="#fff" stroke="#182431" stroke-width="4"/><circle cx="23" cy="972" r="10" fill="#fff" stroke="#182431" stroke-width="4"/><circle cx="123" cy="972" r="10" fill="#fff" stroke="#182431" stroke-width="4"/></g>`;
@@ -4398,8 +4412,9 @@
         }
         if (m2AutoFillDraft?.hover) { const start=m2AutoFillDraft.start,end=m2AutoFillDraft.hover,mm=m2AutoFillDraft.manualLengthMm??Math.round(Math.hypot(end.x-start.x,end.y-start.y)/m2LayoutState.scale),mx=(start.x+end.x)/2,my=(start.y+end.y)/2;html += `<line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" class="m2-b2b-auto-guide-preview"/><circle cx="${end.x}" cy="${end.y}" r="6" class="m2-b2b-auto-guide-point"/><text x="${mx}" y="${my-10}" text-anchor="middle" class="m2-b2b-auto-guide-label" onpointerdown="event.stopPropagation()" onclick="event.stopPropagation();$('m2AutoFillLength')?.focus()" title="Elle mesafe yazmak için tıkla">${fmt(mm)} mm</text>`; }
         if(m2ProtectionDraft?.start&&m2ProtectionDraft?.hover){const x=Math.min(m2ProtectionDraft.start.x,m2ProtectionDraft.hover.x),y=Math.min(m2ProtectionDraft.start.y,m2ProtectionDraft.hover.y),w=Math.abs(m2ProtectionDraft.hover.x-m2ProtectionDraft.start.x),h=Math.abs(m2ProtectionDraft.hover.y-m2ProtectionDraft.start.y);html+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" class="m2-protection-selection"/><text x="${x+w/2}" y="${y+h/2}" text-anchor="middle" class="m2-protection-label">${m2ProtectionDraft.type.toUpperCase()} · AYAK KORUMA ALANI</text>`;}
+        if(m2MultiSelect.active&&m2MultiSelect.start&&m2MultiSelect.hover){const x=Math.min(m2MultiSelect.start.x,m2MultiSelect.hover.x),y=Math.min(m2MultiSelect.start.y,m2MultiSelect.hover.y),w=Math.abs(m2MultiSelect.hover.x-m2MultiSelect.start.x),h=Math.abs(m2MultiSelect.hover.y-m2MultiSelect.start.y);html+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" class="m2-multi-selection-area"/><text x="${x+w/2}" y="${y+h/2}" text-anchor="middle" class="m2-multi-selection-label">TOPLU SEÇİM</text>`;}
         m2LayoutSymbols.forEach((symbol)=>{
-          const selected=symbol.id===m2SelectedSymbolId,cx=symbol.x+symbol.w/2,cy=symbol.y+symbol.h/2,label={column:"KOLON",door:"KAPI",forklift:"FORKLİFT",person:"İNSAN",uaks:"UAKS AYAK KORUMA",uakz:"UAKZ AYAK KORUMA",barrier:"BARİYER KORUMA"}[symbol.type];let shape="";
+          const selected=symbol.id===m2SelectedSymbolId||m2MultiSelect.symbolIds.has(symbol.id),cx=symbol.x+symbol.w/2,cy=symbol.y+symbol.h/2,label={column:"KOLON",door:"KAPI",forklift:"FORKLİFT",person:"İNSAN",uaks:"UAKS AYAK KORUMA",uakz:"UAKZ AYAK KORUMA",barrier:"BARİYER KORUMA"}[symbol.type];let shape="";
           if(symbol.type==="column")shape=`<rect x="${symbol.x}" y="${symbol.y}" width="${symbol.w}" height="${symbol.h}" rx="2" class="m2-symbol-shape m2-symbol-column"/><path d="M${symbol.x} ${symbol.y}L${symbol.x+symbol.w} ${symbol.y+symbol.h}M${symbol.x+symbol.w} ${symbol.y}L${symbol.x} ${symbol.y+symbol.h}" stroke="#d9dfe3" stroke-width="1"/>`;
           else if(symbol.type==="door")shape=`<rect x="${symbol.x}" y="${symbol.y}" width="${symbol.w}" height="${symbol.h}" rx="2" class="m2-symbol-shape m2-symbol-door"/><path d="M${symbol.x} ${symbol.y+symbol.h}Q${symbol.x+symbol.w} ${symbol.y+symbol.h} ${symbol.x+symbol.w} ${symbol.y}" fill="none" stroke="#247aa6" stroke-width="1.5" stroke-dasharray="4 3"/>`;
           else if(symbol.type==="forklift")shape=`<rect x="${symbol.x}" y="${symbol.y+symbol.h*.25}" width="${symbol.w*.72}" height="${symbol.h*.55}" rx="3" class="m2-symbol-shape m2-symbol-forklift"/><path d="M${symbol.x+symbol.w*.72} ${symbol.y+symbol.h*.1}V${symbol.y+symbol.h*.9}M${symbol.x+symbol.w*.72} ${symbol.y+symbol.h*.82}H${symbol.x+symbol.w}" fill="none" stroke="#674b00" stroke-width="2"/><circle cx="${symbol.x+symbol.w*.18}" cy="${symbol.y+symbol.h*.86}" r="${Math.max(3,symbol.h*.12)}" fill="#333"/><circle cx="${symbol.x+symbol.w*.6}" cy="${symbol.y+symbol.h*.86}" r="${Math.max(3,symbol.h*.12)}" fill="#333"/>`;
@@ -4410,7 +4425,7 @@
           html+=`<g class="m2-layout-symbol${selected?" selected":""}" data-layout-symbol="${symbol.id}" transform="rotate(${Number(symbol.angle)||0} ${cx} ${cy})">${shape}${detailText}</g>`;
         });
         m2LayoutState.racks.forEach((rack, index) => {
-          const cx = rack.x + rack.w / 2, cy = rack.y + rack.h / 2, selected = rack.id === m2LayoutState.selected, typeColor = rack.typeColor || m2TypeColor(rack.typeName);
+          const cx = rack.x + rack.w / 2, cy = rack.y + rack.h / 2, selected = rack.id === m2LayoutState.selected||m2MultiSelect.rackIds.has(rack.id), typeColor = rack.typeColor || m2TypeColor(rack.typeName);
           const cellW = rack.w / Math.max(1, rack.bays), sequence = [];
           for (let i = 0; i < Math.max(rack.plan.feet.length, rack.plan.braces.length); i++) {
             if (rack.plan.feet[i]) sequence.push({ type: "foot", length: rack.plan.feet[i] });
