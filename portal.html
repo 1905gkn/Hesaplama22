@@ -1749,7 +1749,7 @@
       .m2-corporate-floor { position:absolute; inset:12.5% .65% 1.25%; display:grid; place-items:center; }
       .m2-corporate-floor svg { width:100%; height:100%; }
       .m2-corporate-type-grid { position:absolute; inset:12.5% .65% 1.25%; display:grid; grid-template-columns:1fr; grid-template-rows:repeat(3,minmax(0,1fr)); gap:5px; }
-      .m2-corporate-type-card { min-width:0; min-height:0; display:grid; grid-template-columns:9% 50% 41%; overflow:hidden; border:1px solid #aebdcc; border-left:6px solid var(--m2-type-color,#1d5f8a); border-radius:5px; background:#fff; }
+      .m2-corporate-type-card { min-width:0; min-height:0; display:grid; grid-template-columns:12% 44% 44%; overflow:hidden; border:1px solid #aebdcc; border-left:6px solid var(--m2-type-color,#1d5f8a); border-radius:5px; background:#fff; }
       .m2-corporate-type-card>strong { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px; padding:5px 3px; background:#edf4f8; color:#0b2b45; font-size:11px; line-height:1.1; text-align:center; }
       .m2-corporate-type-card>strong small { color:#31516a; font-size:8px; line-height:1.15; }
       .m2-corporate-type-card>strong small.m2-corporate-unit-count { margin-top:8px; padding-top:7px; border-top:1px solid #b7c9d6; color:#0b2b45; font-size:9px; font-weight:900; }
@@ -2540,6 +2540,7 @@
           rearPalletGap: b2bPalletOverhang,
           traverseHeight: b2bTraverseHeight(),
           footHeight: vertical.footHeight,
+          footWidth: m2B2BFootWidth({footType:Number($("m2FootType")?.value)||120,footProfile:$("b2bFootProfile")?.value||$("m2FootProfile")?.value||""}),
           showPallets: b2bShowPallets,
           dimensions: { ...b2bDimensionVisibility },
           footColor: $("b2bFootColor")?.value || "ral5010",
@@ -2663,6 +2664,7 @@
       }
       function renderB2B() {
         renderMekik2();
+        b2bDimensionVisibility.width=false;
         const page = $("page");
         page.classList.add("b2b-mode");
         page.dataset.m2Module = "b2b";
@@ -2869,7 +2871,7 @@
       }
       function m2Rack3DOptions(rack) {
         const layout=rack?.b2bLayout||{},rowCount=Number(layout.rowCount)||1,customLevels=Array.isArray(rack?.b2b?.customLevels)?rack.b2b.customLevels:[],traverseHeight=Math.max(50,Number(rack?.traverseHeight)||b2bTraverseHeight()),palletHeights=customLevels.map((item)=>Math.max(300,Number(item.palletHeight)||Number(rack?.palletHeight)||1200)),levelClearances=customLevels.map((item,index)=>Math.max(0,(Number(item.interval)||0)-(palletHeights[index]||1200)-traverseHeight)),footHeight=Math.max(500,Number(rack?.sideUprightHeight)||Number(rack?.totalRackHeight)||Number(rack?.footLy)||0);
-        return {...b2b3DOptions(),moduleCount:1,palletCount:Number(layout.palletCount)||3,palletWidth:Number(layout.palletWidth)||800,palletDepth:Number(layout.palletDepth)||1200,palletHeight:Number(rack?.palletHeight)||1200,levels:Number(rack?.levels)||4,rowType:rowCount===2?"double":"single",rowGap:Number(layout.rowGap)||200,levelClearances,palletHeights,tunnelHeight:Math.max(0,Number(rack?.b2b?.tunnelHeight)||0),straightTieCount:rowCount===2?b2bStraightTieCount(footHeight):0,straightTiePositions:rowCount===2?b2bStraightTiePositions(footHeight):[],dimensions:{levels:false,markers:false,eye:false,width:b2bDimensionVisibility.width===true,depth:b2bDimensionVisibility.depth!==false},showPallets:true};
+        return {...b2b3DOptions(),moduleCount:1,palletCount:Number(layout.palletCount)||3,palletWidth:Number(layout.palletWidth)||800,palletDepth:Number(layout.palletDepth)||1200,palletHeight:Number(rack?.palletHeight)||1200,levels:Number(rack?.levels)||4,rowType:rowCount===2?"double":"single",rowGap:Number(layout.rowGap)||200,levelClearances,palletHeights,tunnelHeight:Math.max(0,Number(rack?.b2b?.tunnelHeight)||0),straightTieCount:rowCount===2?b2bStraightTieCount(footHeight):0,straightTiePositions:rowCount===2?b2bStraightTiePositions(footHeight):[],footWidth:m2B2BFootWidth(rack),dimensions:{levels:false,markers:false,eye:false,width:b2bDimensionVisibility.width===true,depth:b2bDimensionVisibility.depth!==false},showPallets:true};
       }
       function m2CustomizeLevelData() {
         return [...document.querySelectorAll("#m2CustomizeLevelRows .m2-custom-level-row")].map((row)=>({interval:Math.max(0,Number(row.querySelector('[data-custom-interval]')?.value)||0),palletHeight:Math.max(300,Number(row.querySelector('[data-custom-pallet]')?.value)||1200)}));
@@ -4304,7 +4306,7 @@
           pages.push(`<section class="m2-corporate-page rafex-combined-page">${m2CorporateHeader(t.sections)}<div class="m2-corporate-type-grid">${card}</div></section>`);
         }else{
           for(let start=0;start<types.length;start+=3){
-            const cards=types.slice(start,start+3).map((entry,index)=>{const d=entry.drawing||entry,palletCount=(d.b2bLayout?(Number(d.b2bLayout.palletCount)||0)*Math.max(0,Number(d.levels)||0)*Math.max(1,Number(d.b2bLayout.rowCount)||1):Math.max(0,Number(d.bays)||0)*Math.max(0,Number(d.levels)||0)*Math.max(0,Number(d.depth)||0))*Math.max(1,Number(entry.rackCount)||1),unitCount=Math.max(1,Number(entry.rackCount)||1),frontVisual=d.b2bLayout?m2B2BReportPerspectiveSvg(d,t,false):m2ReportElevationSvg(d,"front"),sideVisual=d.b2bLayout?m2B2BSideElevationSvg(d,t):m2ReportElevationSvg(d,"side");return `<article class="m2-corporate-type-card" style="--m2-type-color:${typeAccents[index]}"><strong><span>${esc(entry.name)}</span><small>${fmt(palletCount)} ${esc(t.palletUnit)}</small><small class="m2-corporate-unit-count">${fmt(unitCount)} ${esc(String(t.unitEach).toUpperCase())}</small></strong><div class="m2-corporate-view"><b>${t.front}</b>${frontVisual}</div><div class="m2-corporate-view"><b>${t.side}</b>${sideVisual}</div></article>`;}).join("");
+            const cards=types.slice(start,start+3).map((entry,index)=>{const d=entry.drawing||entry,palletCount=(d.b2bLayout?(Number(d.b2bLayout.palletCount)||0)*Math.max(0,Number(d.levels)||0)*Math.max(1,Number(d.b2bLayout.rowCount)||1):Math.max(0,Number(d.bays)||0)*Math.max(0,Number(d.levels)||0)*Math.max(0,Number(d.depth)||0))*Math.max(1,Number(entry.rackCount)||1),unitCount=Math.max(1,Number(entry.rackCount)||1),typeTitle=`${String(entry.name||`TİP ${start+index+1}`).replace(/\s+TİPİ$/i,"")} TİPİ`,frontVisual=d.b2bLayout?m2B2BReportPerspectiveSvg(d,t,false):m2ReportElevationSvg(d,"front"),sideVisual=d.b2bLayout?m2B2BSideElevationSvg(d,t):m2ReportElevationSvg(d,"side");return `<article class="m2-corporate-type-card" style="--m2-type-color:${typeAccents[index]}"><strong><span>${esc(typeTitle)}</span><small>${fmt(palletCount)} ${esc(t.palletUnit)}</small><small class="m2-corporate-unit-count">${fmt(unitCount)} ${esc(String(t.unitEach).toUpperCase())}</small></strong><div class="m2-corporate-view"><b>${esc(typeTitle)} · ${t.front}</b>${frontVisual}</div><div class="m2-corporate-view"><b>${esc(typeTitle)} · ${t.side}</b>${sideVisual}</div></article>`;}).join("");
             pages.push(`<section class="m2-corporate-page">${m2CorporateHeader(`${t.sections} · ${Math.floor(start/3)+1}`)}<div class="m2-corporate-type-grid">${cards}</div></section>`);
           }
         }
