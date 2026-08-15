@@ -2825,7 +2825,7 @@
         });
         drawMekik2({ target: input });
       }
-      let m2LayoutState = { mode: "idle", points: [], pathBreaks: [], closed: false, openFinished: false, areaEditMode: false, drawFromIndex: null, branchSourceIndex: null, racks: [], selected: null, pinnedRackId: null, drag: null, hover: null, scale: .04, showAreaDimensions: false, edgeDimensions: [] }, m2LayoutKeyHandler = null, m2LayoutZoom = 1,
+      let m2LayoutState = { mode: "idle", points: [], pathBreaks: [], closed: false, openFinished: false, areaEditMode: false, drawFromIndex: null, branchSourceIndex: null, racks: [], selected: null, pinnedRackId: null, drag: null, hover: null, scale: .04, showAreaDimensions: false, edgeDimensions: [] }, m2LayoutKeyHandler = null, m2LayoutOutsidePointerHandler = null, m2LayoutZoom = 1,
         m2PinnedDimensions = { left: false, right: false, top: false, bottom: false, gap: false }, m2PinnedDimensionsByRack = {}, m2SavedRackTypes = [], m2SelectedSavedType = null, m2SavedTypeClickTimer = null, m2PendingMeasureApply = null, m2ProjectRecords = [], m2OpeningProjectFromHistory = false,
         m2LayoutTool = null, m2DimensionOffsets = {}, m2DimensionDrag = null, m2DimensionFontSizes = {}, m2SelectedDimensionKey = null, m2UserNotes = [], m2SelectedNoteId = null, m2HiddenSummaryDimensions = new Set(), m2VisibleRackDimensions = { length:new Set(), depth:new Set() }, m2ShowSharedFootLabels = false, m2ReportImages = Array(4).fill(null), m2EdgeEditorVisible = false, m2FreeMeasure = { points: [], hover: null }, m2ManualPlan = null, m2ManualPlanRows = [], m2ReportRefreshTimer = null, m2JoinMode = false, m2JoinFirstRackId = null, m2AutoFillDraft = null, m2LastRackTap = { id:null, at:0 }, m2LayoutRenderFrame = null,
         m2CustomizeMode=false,m2CustomizeRackId=null,m2LayoutSymbols=[],m2SelectedSymbolId=null,m2SymbolDrag=null,m2NoteDrag=null,m2SymbolChoice="column",m2CopyMode=false,m2ProtectionChoice="uaks",m2ProtectionDraft=null,m2MultiSelect={active:false,start:null,hover:null,rackIds:new Set(),symbolIds:new Set()};
@@ -2837,6 +2837,13 @@
         return { x: (event.clientX - rect.left) * 1000 / rect.width, y: (event.clientY - rect.top) * 650 / rect.height };
       }
       function m2ClearMultiSelection(keepMode=false){m2MultiSelect.rackIds.clear();m2MultiSelect.symbolIds.clear();m2MultiSelect.start=null;m2MultiSelect.hover=null;if(!keepMode)m2MultiSelect.active=false;$("m2SelectRackButton")?.classList.toggle("active",m2MultiSelect.active);$("m2LayoutSvg")?.classList.toggle("m2-multi-selecting",m2MultiSelect.active);}
+      function m2ClearAllSelections(message="Seçimler temizlendi."){
+        const measuring=m2LayoutTool==="measure"&&m2FreeMeasure.points.length<2;
+        m2LayoutState.selected=null;m2LayoutState.drag=null;m2SelectedSymbolId=null;m2SelectedNoteId=null;m2SelectedDimensionKey=null;m2SymbolDrag=null;m2NoteDrag=null;m2DimensionDrag=null;m2CopyMode=false;m2CustomizeMode=false;m2CustomizeRackId=null;m2JoinMode=false;m2JoinFirstRackId=null;m2ProtectionDraft=null;m2AutoFillDraft=null;m2LastRackTap={id:null,at:0};m2ClearMultiSelection();
+        if(measuring)m2FreeMeasure={points:[],hover:null};m2LayoutTool=null;
+        $("m2CustomizeRackButton")?.classList.remove("active");$("m2JoinRackButton")?.classList.remove("active");$("m2ProtectionButton")?.classList.remove("active");$("m2DimensionMoveButton")?.classList.remove("active");$("m2TextToolButton")?.classList.remove("active");$("m2MeasureToolButton")?.classList.remove("active");$("m2LayoutSvg")?.classList.remove("m2-dimension-editing");if($("m2DimensionFontSize"))$("m2DimensionFontSize").disabled=true;m2SetAutoFillControlsActive(false);
+        if($("m2FloorStatus"))$("m2FloorStatus").textContent=message;m2RenderLayout();
+      }
       function m2ToggleMultiSelect(){
         const opening=!m2MultiSelect.active;m2ClearMultiSelection(opening);m2MultiSelect.active=opening;m2LayoutState.selected=null;m2SelectedSymbolId=null;
         $("m2SelectRackButton")?.classList.toggle("active",opening);$("m2LayoutSvg")?.classList.toggle("m2-multi-selecting",opening);
@@ -3008,10 +3015,7 @@
           if(m2AutoFillDraft&&/^\d$/.test(event.key)&&!/INPUT|TEXTAREA|SELECT/.test(event.target?.tagName||"")){
             const input=$("m2AutoFillLength");if(input){event.preventDefault();input.value=event.key;input.focus();m2PreviewAutoFillLength(input.value);}return;
           }
-          if (event.key === "Escape" && m2LayoutState.mode === "draw") { event.preventDefault(); m2PauseFreeArea(); }
-          else if (event.key === "Escape" && m2AutoFillDraft) { event.preventDefault(); m2CancelAutoFill(); }
-          else if (event.key === "Escape" && m2LayoutTool === "measure") { event.preventDefault(); m2LayoutTool = null; m2FreeMeasure = { points: [], hover: null }; $("m2MeasureToolButton")?.classList.remove("active"); $("m2FloorStatus").textContent = "Mesafe ölçümü iptal edildi."; m2RenderLayout(); }
-          else if (event.key === "Escape") { event.preventDefault(); m2LayoutState.selected=null;m2SelectedSymbolId=null;m2SelectedNoteId=null;m2SymbolDrag=null;m2LayoutState.drag=null;m2CopyMode=false;m2CustomizeMode=false;m2JoinMode=false;m2JoinFirstRackId=null;m2ClearMultiSelection();$("m2CustomizeRackButton")?.classList.remove("active");$("m2JoinRackButton")?.classList.remove("active");$("m2FloorStatus").textContent="Seçim temizlendi.";m2RenderLayout(); }
+          if (event.key === "Escape") { event.preventDefault();if(m2LayoutState.mode==="draw")m2PauseFreeArea();m2ClearAllSelections("Bütün seçimler kaldırıldı."); }
           else if (m2ActiveModule === "b2b" && event.key.toLowerCase() === "o" && !event.ctrlKey && !event.metaKey && !event.altKey && !/INPUT|TEXTAREA|SELECT/.test(event.target?.tagName || "")) { const selectedId=m2LayoutState.selected??(m2MultiSelect.rackIds.size===1?[...m2MultiSelect.rackIds][0]:null);if(selectedId!=null){event.preventDefault();m2OpenCustomizeModal(selectedId);}else $("m2FloorStatus").textContent="Özelleştirmek için önce bir raf bloğu seç."; }
           else if ((event.key === "Delete" || event.key === "Backspace") && (m2LayoutState.selected != null||m2SelectedSymbolId!=null) && !/INPUT|TEXTAREA|SELECT/.test(event.target?.tagName || "")) { event.preventDefault(); m2DeleteRack(); }
           else if (m2ActiveModule === "b2b" && event.key.toLowerCase() === "c" && !event.ctrlKey && !event.metaKey && !event.altKey && !/INPUT|TEXTAREA|SELECT/.test(event.target?.tagName || "")) { const latest=m2LayoutState.racks.at(-1); if(latest){event.preventDefault();m2LayoutState.selected=latest.id;m2DuplicateRack();} }
@@ -3025,6 +3029,9 @@
           }
         };
         document.addEventListener("keydown", m2LayoutKeyHandler);
+        if(m2LayoutOutsidePointerHandler)document.removeEventListener("pointerdown",m2LayoutOutsidePointerHandler);
+        m2LayoutOutsidePointerHandler=(event)=>{if(m2ActiveModule!=="b2b")return;const target=event.target;if(target?.closest?.("[data-rack],[data-layout-symbol],[data-user-note],[data-dimension-key],button,input,select,textarea,label,dialog,.modal,.m2-wall-editor,.m2-saved-types"))return;const hasSelection=m2LayoutState.selected!=null||m2SelectedSymbolId!=null||m2SelectedNoteId!=null||m2SelectedDimensionKey!=null||m2MultiSelect.rackIds.size||m2MultiSelect.symbolIds.size||m2CopyMode||m2CustomizeMode||m2JoinMode;if(hasSelection)m2ClearAllSelections("Bütün seçimler kaldırıldı.");};
+        document.addEventListener("pointerdown",m2LayoutOutsidePointerHandler);
         svg.onpointerdown = (event) => {
           const point = m2SvgPoint(event), rackNode = event.target.closest?.("[data-rack]"), symbolNode=event.target.closest?.("[data-layout-symbol]"), resumeNode = event.target.closest?.("[data-resume-point]");
           const dimensionNode = event.target.closest?.("[data-dimension-key]"), noteNode = event.target.closest?.("[data-user-note]"), freeMeasurePoint = event.target.closest?.("[data-free-measure-point]");
@@ -3073,7 +3080,7 @@
             const symbolMembers=selectionGroup?m2LayoutSymbols.filter((symbol)=>m2MultiSelect.symbolIds.has(symbol.id)&&symbol.rackId==null).map((symbol)=>({id:symbol.id,x:symbol.x,y:symbol.y})):null;
             m2LayoutState.drag = { id, dx: point.x - rack.x, dy: point.y - rack.y, originX:rack.x, originY:rack.y, groupMembers,selectionGroup,symbolMembers };
             svg.setPointerCapture?.(event.pointerId); m2RenderLayout();
-          } else { m2LayoutState.selected = null;m2SelectedSymbolId=null;m2SelectedNoteId=null;m2SymbolDrag=null;m2ClearMultiSelection();m2RenderLayout(); }
+          } else { m2ClearAllSelections("Bütün seçimler kaldırıldı."); }
         };
         svg.onpointermove = (event) => {
           const point = m2SvgPoint(event);
@@ -3366,10 +3373,11 @@
           m2LayoutSymbols=Array.isArray(restoredLayout.symbols)?restoredLayout.symbols:[];
           const restoredRacks=restoredLayout.racks||[],validRackIds=new Set(restoredRacks.map((rack)=>String(rack.id))),savedPinnedMap=restoredLayout.pinnedDimensionsByRack||{};
           m2PinnedDimensionsByRack=Object.fromEntries(Object.entries(savedPinnedMap).filter(([rackId,state])=>validRackIds.has(String(rackId))&&state&&Object.values(state).some(Boolean)).map(([rackId,state])=>[String(rackId),{...m2EmptyPinnedDimensions(),...state}]));
-          const requestedDistanceRack=restoredRacks.find((rack)=>String(rack.id)===String(restoredLayout.distanceRackId??restoredLayout.pinnedRackId??""))||restoredRacks[0]||null,legacyPinned={...m2EmptyPinnedDimensions(),...(restoredLayout.pinnedDimensions||{})};
-          if(requestedDistanceRack&&!Object.keys(m2PinnedDimensionsByRack).length){const restoredVisible=Object.values(legacyPinned).some(Boolean)?legacyPinned:(m2ActiveModule==="b2b"?{left:true,right:true,top:true,bottom:true,gap:true}:legacyPinned);if(Object.values(restoredVisible).some(Boolean))m2PinnedDimensionsByRack[String(requestedDistanceRack.id)]={...restoredVisible};}
+          const savedDistanceRackId=restoredLayout.distanceRackId??restoredLayout.pinnedRackId??Object.keys(m2PinnedDimensionsByRack).at(-1)??"",requestedDistanceRack=restoredRacks.find((rack)=>String(rack.id)===String(savedDistanceRackId))||restoredRacks[0]||null,legacyPinned={...m2EmptyPinnedDimensions(),...(restoredLayout.pinnedDimensions||{})};
+          if(requestedDistanceRack&&!Object.keys(m2PinnedDimensionsByRack).length&&Object.values(legacyPinned).some(Boolean))m2PinnedDimensionsByRack[String(requestedDistanceRack.id)]={...legacyPinned};
           m2PinnedDimensions=requestedDistanceRack?{...m2EmptyPinnedDimensions(),...(m2PinnedDimensionsByRack[String(requestedDistanceRack.id)]||legacyPinned)}:legacyPinned;m2DimensionOffsets=restoredLayout.dimensionOffsets||{};m2DimensionFontSizes=restoredLayout.dimensionFontSizes||{};m2HiddenSummaryDimensions=new Set(restoredLayout.hiddenSummaryDimensions||[]);m2VisibleRackDimensions={length:new Set(restoredLayout.visibleRackDimensions?.length||[]),depth:new Set(restoredLayout.visibleRackDimensions?.depth||[])};m2UserNotes=Array.isArray(restoredLayout.userNotes)?restoredLayout.userNotes:[];m2FreeMeasure=restoredLayout.freeMeasure||{points:[],hover:null};
-          m2LayoutState = { ...m2LayoutState, ...restoredLayout, pathBreaks: restoredLayout.pathBreaks || [], branchSourceIndex: null, selected: requestedDistanceRack?.id ?? null, pinnedRackId: requestedDistanceRack?.id ?? null, drag: null, hover: null, mode: "idle" }; delete m2LayoutState.symbols; m2RenderLayout();requestAnimationFrame(()=>m2RenderLayout());
+          const restoredPinnedRack=requestedDistanceRack&&Object.values(m2PinnedDimensionsByRack[String(requestedDistanceRack.id)]||{}).some(Boolean)?requestedDistanceRack:null;
+          m2LayoutState = { ...m2LayoutState, ...restoredLayout, pathBreaks: restoredLayout.pathBreaks || [], branchSourceIndex: null, selected: null, pinnedRackId: restoredPinnedRack?.id ?? null, drag: null, hover: null, mode: "idle" }; delete m2LayoutState.symbols;m2SelectedSymbolId=null;m2SelectedNoteId=null;m2SelectedDimensionKey=null;m2ClearMultiSelection();m2RenderLayout();requestAnimationFrame(()=>m2RenderLayout());
         }
         $("m2FloorStatus").textContent = asCopy ? `${project.project_name} kopyalandı; yeni bir proje adıyla kaydedebilirsin.` : `${project.project_name} projesi açıldı; farklı raf tipleri ve yerleşimi geri getirildi.`;
         return true;
@@ -4594,9 +4602,7 @@
           }
         }
         const selectedRack=m2SelectedRack(),measurementRack=m2MeasurementRack();
-        if(selectedRack)html+=m2WallDistanceGuides(selectedRack,{left:true,right:true,top:true,bottom:true,gap:true})+m2RackDistanceGuide(selectedRack)+m2ColumnDistanceGuide(selectedRack);
-        m2LayoutState.racks.forEach((rack)=>{if(rack.id===selectedRack?.id)return;const pinned=m2PinnedForRack(rack.id);if(!Object.values(pinned).some(Boolean))return;html+=m2WallDistanceGuides(rack,pinned)+(pinned.gap?m2RackDistanceGuide(rack)+m2ColumnDistanceGuide(rack):"");});
-        if(!selectedRack&&measurementRack&&!Object.keys(m2PinnedDimensionsByRack).length){const fallbackVisible=m2ActiveModule==="b2b"?{left:true,right:true,top:true,bottom:true,gap:true}:m2PinnedDimensions;html+=m2WallDistanceGuides(measurementRack,fallbackVisible)+(fallbackVisible.gap?m2RackDistanceGuide(measurementRack)+m2ColumnDistanceGuide(measurementRack):"");}
+        m2LayoutState.racks.forEach((rack)=>{const pinned=m2PinnedForRack(rack.id);if(!Object.values(pinned).some(Boolean))return;html+=m2WallDistanceGuides(rack,pinned)+(pinned.gap?m2RackDistanceGuide(rack)+m2ColumnDistanceGuide(rack):"");});
         const selectedSymbol=m2LayoutSymbols.find((symbol)=>symbol.id===m2SelectedSymbolId);if(selectedSymbol)html+=m2SymbolDistanceGuides(selectedSymbol);
         html += m2MetricRuler();
         layer.innerHTML = html;
