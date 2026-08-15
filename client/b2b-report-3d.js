@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v16";
+  const VERSION = "front-side-capture-v17";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -252,6 +252,15 @@
   }
 
   function visibleVariantDrawings(){
+    try{
+      const placed=typeof m2CorporateUsedTypes==="function"?m2CorporateUsedTypes():[];
+      if(Array.isArray(placed)&&placed.length){
+        return placed.map((entry,index)=>{
+          const drawing=entry?.drawing||entry,key=registerDrawing(drawing),name=String(entry?.name||`TİP ${index+1}`),count=number(drawing?.b2bLayout?.palletCount??drawing?.b2b?.palletCount??drawing?.bays,0);
+          return{key:`${key}:${name}`,drawing,count,name};
+        }).filter((entry)=>entry.count>0).sort((left,right)=>right.count-left.count);
+      }
+    }catch(error){console.warn("B2B kurumsal tip listesi doğrudan okunamadı",error);}
     const cards=[...document.querySelectorAll(".rafex-combined-front, .rafex-variant-pair .m2-report-elevation[data-rafex-capture-view='front'], #m2ReportFronts>.m2-report-elevation")];
     const found=new Map();
     cards.forEach((card)=>{
@@ -274,7 +283,7 @@
       const base={...moduleOptions[0],moduleCount:moduleOptions.length,moduleOptions,showPallets:true};
       const capture=window.RafexB2BViewer?.captureViews;
       if(typeof capture!=="function")throw new Error("Birleşik B2B 3D yakalama servisi hazır değil.");
-      const result=await capture(base,{width:1800,height:900,cameraPadding:1.10,frontDimensions:{levels:true,markers:true,eye:false,width:base.dimensions?.width===true,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"});
+      const result=await capture(base,{width:1800,height:900,cameraPadding:1.16,frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"});
       combinedVariantCache={signature,front:result.front,side:result.side};return combinedVariantCache;
     })().finally(()=>{combinedVariantPending=null;});
     return combinedVariantPending;
@@ -330,6 +339,10 @@
   }
 
   function installReportHooks() {
+    window.__rafexPrepareCorporatePrint=async function(){
+      await ensureReportViews();
+      applyCachedViews();
+    };
     try {
       const originalRender = m2RenderA4Report;
       m2RenderA4Report = function (...args) {
