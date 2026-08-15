@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v29";
+  const VERSION = "front-side-capture-v30";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -203,7 +203,7 @@
         width: 3600,
         height: 2400,
         pixelRatio: 2.25,
-        cameraPadding: .95,
+        cameraPadding: 1.04,
         frontDimensions: { levels: true, markers: true, eye: true, width: false, depth: false },
         sideDimensions: { levels: false, markers: false, eye: false, width: false, depth: true },
         side: "right",
@@ -302,7 +302,7 @@
       const base={...moduleOptions[0],moduleCount:moduleOptions.length,moduleOptions,showPallets:true};
       const capture=window.RafexB2BViewer?.captureViews;
       if(typeof capture!=="function")throw new Error("Birleşik B2B 3D yakalama servisi hazır değil.");
-      const result=await capture(base,{width:3600,height:1800,pixelRatio:2.25,cameraPadding:.95,frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"});
+      const result=await capture(base,{width:3600,height:1800,pixelRatio:2.25,cameraPadding:1.04,frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"});
       combinedVariantCache={signature,front:result.front,side:result.side};return combinedVariantCache;
     })().finally(()=>{combinedVariantPending=null;});
     return combinedVariantPending;
@@ -334,7 +334,7 @@
         const base={...moduleOptions[0],moduleCount:moduleOptions.length,moduleOptions,showPallets:true};
         const capture=window.RafexB2BViewer?.captureViews;
         if(typeof capture!=="function")throw new Error("Tip bazlı birleşik B2B 3D yakalama servisi hazır değil.");
-        const result=await capture(base,{width:3600,height:1800,pixelRatio:2.25,cameraPadding:.95,frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"});
+        const result=await capture(base,{width:3600,height:1800,pixelRatio:2.25,cameraPadding:1.04,frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"});
         if(!result?.front||!result?.side)throw new Error(`${group.name} için birleşik görünüş oluşturulamadı.`);
         corporateCombinedCache.set(group.id,{signature,front:result.front,side:result.side});
       })().catch((error)=>console.error("B2B tip bazlı birleşik görünüş hazırlanamadı",error)).finally(()=>corporateCombinedPending.delete(group.id));
