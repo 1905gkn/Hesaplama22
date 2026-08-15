@@ -4324,10 +4324,12 @@
           else refresh();
         }, Math.max(450, delay));
       }
-      function m2PrintCorporateReport(){
+      async function m2PrintCorporateReport(){
         document.getElementById("m2CorporatePrint")?.remove();
         const print=document.createElement("div"); print.id="m2CorporatePrint"; print.innerHTML=m2BuildCorporatePages(); document.body.appendChild(print); document.documentElement.classList.add("m2-corporate-printing"); document.body.classList.add("m2-corporate-printing");
-        let cleaned=false; const cleanup=()=>{if(cleaned)return;cleaned=true;document.documentElement.classList.remove("m2-corporate-printing");document.body.classList.remove("m2-corporate-printing");print.remove();window.removeEventListener("afterprint",cleanup)}; window.addEventListener("afterprint",cleanup); requestAnimationFrame(()=>requestAnimationFrame(()=>window.print()));
+        let cleaned=false; const cleanup=()=>{if(cleaned)return;cleaned=true;document.documentElement.classList.remove("m2-corporate-printing");document.body.classList.remove("m2-corporate-printing");print.remove();window.removeEventListener("afterprint",cleanup)}; window.addEventListener("afterprint",cleanup);
+        try{if(typeof window.__rafexPrepareCorporatePrint==="function")await window.__rafexPrepareCorporatePrint();}catch(error){console.error("Kurumsal PDF 3D görünüşleri hazırlanamadı",error);}
+        requestAnimationFrame(()=>requestAnimationFrame(()=>window.print()));
       }
       function m2QueueLayoutRender() {
         if (m2LayoutRenderFrame != null) return;
