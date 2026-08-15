@@ -188,6 +188,7 @@ class B2BViewer {
       rearPalletGap: clamp(Number.isFinite(Number(next.rearPalletGap)) ? Number(next.rearPalletGap) : 50, 0, 1000),
       traverseHeight: clamp(Number(next.traverseHeight) || 140, 50, 500),
       footHeight: Number(next.footHeight) > 0 ? clamp(Math.ceil(Number(next.footHeight) / 50) * 50, 500, 30000) : null,
+      footWidth: clamp(Number(next.footWidth) || 120, 60, 300),
       showPallets: next.showPallets !== false,
       dimensions: {
         levels: next.dimensions?.levels !== false,
@@ -222,7 +223,7 @@ class B2BViewer {
         const previousRightAxis=positions[index-1]+SOURCE_CLEAR_LEFT*previousScale+previous.sectionWidth;
         moduleX=previousRightAxis-leftAxis;
       }
-      const dimensionFrom=moduleX+leftAxis-120,dimensionWidth=spec.sectionWidth+240;
+      const dimensionFrom=moduleX+leftAxis-spec.footWidth,dimensionWidth=spec.sectionWidth+2*spec.footWidth;
       positions.push(moduleX);widthSegments.push({from:dimensionFrom,to:dimensionFrom+dimensionWidth,count:spec.palletCount,width:dimensionWidth,clearWidth:spec.sectionWidth});
       totalRackWidth=Math.max(totalRackWidth,moduleX+frameWidth);
     });
@@ -481,8 +482,8 @@ class B2BViewer {
     const eyeStart = SOURCE_CLEAR_LEFT * sectionScale;
     if (this.options.dimensions.eye) this.addHorizontalDimension(eyeLayer, eyeStart, eyeStart + this.options.sectionWidth, rackDepth + 360, 0, `GÖZ  ·  ${this.dimensionValue(this.options.sectionWidth)}`);
     if (this.options.dimensions.width) {
-      if (Array.isArray(widthSegments) && widthSegments.length > 1) {
-        widthSegments.forEach((segment,index) => this.addHorizontalDimension(widthLayer, segment.from, segment.to, rackDepth + 650 + index * 520, 0, `${segment.count}’Lİ MODÜL  ·  ${this.dimensionValue(segment.width)}`));
+      if (Array.isArray(widthSegments) && widthSegments.length) {
+        widthSegments.forEach((segment,index) => this.addHorizontalDimension(widthLayer, segment.from, segment.to, rackDepth + 650 + index * 520, 0, `GENİŞLİK  ·  ${this.dimensionValue(segment.width)}`));
       } else this.addHorizontalDimension(widthLayer, 0, rackWidth, rackDepth + 650, 0, `GENİŞLİK  ·  ${this.dimensionValue(rackWidth)}`);
     }
     if (this.options.dimensions.depth) this.addDepthDimension(depthLayer, rackWidth + 420, 0, rackDepth, 0, `DERİNLİK  ·  ${this.dimensionValue(rackDepth)}`);
