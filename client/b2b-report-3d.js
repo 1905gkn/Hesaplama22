@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v30";
+  const VERSION = "front-side-capture-v31";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -187,6 +187,11 @@
 
   function variantsEnabled(){return document.getElementById("m2ReportCompleteFront")?.checked===true;}
   function reportCacheKey(key){return `${key}|${variantsEnabled()?"variants":"single"}`;}
+  function adaptiveCameraPadding(drawing,combined=false){
+    const levels=Math.max(1,number(drawing?.levels??drawing?.b2b?.levels,1));
+    if(combined)return levels>=8?.94:levels>=6?.97:1;
+    return levels>=8?.90:levels>=6?.94:levels>=4?.98:1.02;
+  }
 
   async function captureDrawing(key) {
     const cacheKey=reportCacheKey(key);
@@ -200,10 +205,10 @@
       if (typeof capture !== "function") throw new Error("B2B 3D görüntü yakalama servisi hazır değil.");
       const options=viewerOptions(drawing);
       const result = await capture(options, {
-        width: 3600,
+        width: 2800,
         height: 2400,
         pixelRatio: 2.25,
-        cameraPadding: 1.04,
+        cameraPadding: adaptiveCameraPadding(drawing),
         frontDimensions: { levels: true, markers: true, eye: true, width: false, depth: false },
         sideDimensions: { levels: false, markers: false, eye: false, width: false, depth: true },
         side: "right",
@@ -302,7 +307,7 @@
       const base={...moduleOptions[0],moduleCount:moduleOptions.length,moduleOptions,showPallets:true};
       const capture=window.RafexB2BViewer?.captureViews;
       if(typeof capture!=="function")throw new Error("Birleşik B2B 3D yakalama servisi hazır değil.");
-      const result=await capture(base,{width:3600,height:1800,pixelRatio:2.25,cameraPadding:1.04,frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"});
+      const result=await capture(base,{width:3000,height:2400,pixelRatio:2.25,cameraPadding:adaptiveCameraPadding(base,true),frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"});
       combinedVariantCache={signature,front:result.front,side:result.side};return combinedVariantCache;
     })().finally(()=>{combinedVariantPending=null;});
     return combinedVariantPending;
@@ -334,7 +339,7 @@
         const base={...moduleOptions[0],moduleCount:moduleOptions.length,moduleOptions,showPallets:true};
         const capture=window.RafexB2BViewer?.captureViews;
         if(typeof capture!=="function")throw new Error("Tip bazlı birleşik B2B 3D yakalama servisi hazır değil.");
-        const result=await capture(base,{width:3600,height:1800,pixelRatio:2.25,cameraPadding:1.04,frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"});
+        const result=await capture(base,{width:3000,height:2400,pixelRatio:2.25,cameraPadding:adaptiveCameraPadding(base,true),frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"});
         if(!result?.front||!result?.side)throw new Error(`${group.name} için birleşik görünüş oluşturulamadı.`);
         corporateCombinedCache.set(group.id,{signature,front:result.front,side:result.side});
       })().catch((error)=>console.error("B2B tip bazlı birleşik görünüş hazırlanamadı",error)).finally(()=>corporateCombinedPending.delete(group.id));
@@ -535,6 +540,17 @@
       .rafex-combined-side { border-left:1px solid #c6d2dc !important; }
       .rafex-combined-side .rafex-report-3d-frame,.rafex-combined-side img { width:100%; height:100%; object-fit:contain; }
       .m2-corporate-type-grid { gap:2px !important; }
+      #m2CorporatePreview .m2-corporate-page:not(.rafex-combined-page) .m2-corporate-type-grid,
+      #m2CorporatePrint .m2-corporate-page:not(.rafex-combined-page) .m2-corporate-type-grid {
+        inset:12.5% .65% 5.8% !important;
+        grid-template-rows:repeat(2,minmax(0,1fr)) !important;
+        gap:3px !important;
+      }
+      #m2CorporatePreview .m2-corporate-cut-note,
+      #m2CorporatePrint .m2-corporate-cut-note {
+        bottom:.9% !important; min-height:25px; max-height:30px; box-sizing:border-box;
+        display:grid; place-items:center; padding:3px 10px !important; line-height:1.05 !important;
+      }
       .m2-corporate-type-card>strong { font-size:13px !important; padding:3px !important; }
       .m2-corporate-view b { font-size:10px !important; height:20px; }
       .m2-corporate-type-card { grid-template-columns:12% 44% 44% !important; }
