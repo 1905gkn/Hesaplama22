@@ -312,7 +312,7 @@
       host.innerHTML=`<div class="rafex-report-3d-frame rafex-true-combined"><img src="${combinedVariantCache.front}" alt="Birleşik B2B modülleri 3D önden görünüş"></div>`;
     });
     document.querySelectorAll(".rafex-combined-side").forEach((host)=>{
-      host.innerHTML=`<b>YAN GÖRÜNÜŞ</b><div class="rafex-report-3d-frame"><img src="${combinedVariantCache.side}" alt="Birleşik B2B modülleri 3D yan görünüş"></div>`;
+      host.innerHTML=`<div class="rafex-report-3d-frame"><img src="${combinedVariantCache.side}" alt="Birleşik B2B modülleri 3D yan görünüş"></div>`;
     });
     const sheet=document.getElementById("m2A4Sheet"),fronts=document.getElementById("m2ReportFronts");
     if(sheet?.classList.contains("rafex-variants-active")&&fronts){
@@ -476,7 +476,7 @@
       .rafex-variant-pair .m2-report-elevation { min-width:0; min-height:0; height:100%; overflow:hidden; background:#fff; }
       .rafex-combined-page .m2-corporate-type-grid { grid-template-rows:minmax(0,1fr) !important; }
       .rafex-combined-type-card { grid-template-columns:9% minmax(0,72%) minmax(0,19%) !important; }
-      .rafex-combined-fronts { display:flex; min-width:0; min-height:0; overflow:hidden; background:#fff; }
+      .rafex-combined-fronts,.rafex-combined-side { display:flex; width:100%; height:100%; min-width:0; min-height:0; overflow:hidden; background:#fff; }
       .rafex-combined-fronts .rafex-true-combined { width:100%; height:100%; display:grid; place-items:center; overflow:hidden; background:#fff; }
       .rafex-combined-fronts .rafex-true-combined img { display:block; width:100%; height:100%; object-fit:contain; }
       .rafex-summary-combined { display:grid; grid-template-columns:minmax(0,4fr) minmax(0,1fr); gap:6px; width:100%; height:100%; min-width:0; min-height:0; }
@@ -488,6 +488,7 @@
       .rafex-combined-front .rafex-report-3d-frame { overflow:hidden; }
       .rafex-combined-front:not(:first-child) .rafex-report-3d-frame img { transform:scale(1.18); transform-origin:center right; }
       .rafex-combined-side { border-left:1px solid #c6d2dc !important; }
+      .rafex-combined-side .rafex-report-3d-frame,.rafex-combined-side img { width:100%; height:100%; object-fit:contain; }
       .m2-corporate-type-grid { gap:2px !important; }
       .m2-corporate-type-card>strong { font-size:13px !important; padding:3px !important; }
       .m2-corporate-view b { font-size:10px !important; height:20px; }
