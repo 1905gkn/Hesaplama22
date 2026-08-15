@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v19";
+  const VERSION = "front-side-capture-v20";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -200,9 +200,9 @@
         options={...options,moduleCount:moduleOptions.length,moduleOptions,dimensions:{levels:true,markers:true,eye:true,width:false,depth:false}};
       }
       const result = await capture(options, {
-        width: 1200,
-        height: 760,
-        cameraPadding: 1.22,
+        width: 2200,
+        height: 1500,
+        cameraPadding: 1.08,
         frontDimensions: { levels: true, markers: true, eye: true, width: false, depth: false },
         sideDimensions: { levels: false, markers: false, eye: false, width: false, depth: true },
         side: "right",
