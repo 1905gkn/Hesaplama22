@@ -454,7 +454,7 @@ class B2BViewer {
     const rowCount = this.options.rowType === "double" ? 2 : 1;
     const frameDepth = Math.max(100, this.options.palletDepth - this.options.frontPalletGap - this.options.rearPalletGap);
     const rackDepth = rowCount * frameDepth + (rowCount - 1) * this.options.rowGap;
-    const lineX = -Math.max(720, sectionPitch * 0.22), markerX = lineX - 1180, frontY = rackDepth + 340;
+    const lineX = -Math.max(560, sectionPitch * 0.16), markerX = lineX - 850, frontY = rackDepth + 300;
     const traverseCount = this.options.firstPalletPosition === "traverse" ? this.options.levels : Math.max(0, this.options.levels - 1);
 
     if (this.options.dimensions.levels && traverseCount > 0) {
@@ -502,7 +502,7 @@ class B2BViewer {
   }
 
   dimensionMaterial() {
-    return new THREE.LineBasicMaterial({ color:0x2467ff, depthTest:false, transparent:true, opacity:1 });
+    return new THREE.LineBasicMaterial({ color:0x2b6f91, depthTest:false, transparent:true, opacity:.92 });
   }
 
   addLine(layer, points) {
@@ -513,8 +513,8 @@ class B2BViewer {
 
   addPoint(layer, position) {
     const marker = new THREE.Mesh(
-      new THREE.SphereGeometry(36, 12, 8),
-      new THREE.MeshBasicMaterial({ color:0x2467ff, depthTest:false }),
+      new THREE.SphereGeometry(24, 12, 8),
+      new THREE.MeshBasicMaterial({ color:0x2b6f91, depthTest:false }),
     );
     marker.position.copy(position);
     marker.renderOrder = 102;
@@ -526,41 +526,41 @@ class B2BViewer {
     this.addLine(layer, [bottom, top]);
     this.addLine(layer, [bottom, new THREE.Vector3(witnessX, y, -from)]);
     this.addLine(layer, [top, new THREE.Vector3(witnessX, y, -to)]);
-    const arrow = 157.5;
+    const arrow = 92;
     this.addLine(layer, [new THREE.Vector3(x - arrow, y, -from - arrow), bottom, new THREE.Vector3(x + arrow, y, -from - arrow)]);
     this.addLine(layer, [new THREE.Vector3(x - arrow, y, -to + arrow), top, new THREE.Vector3(x + arrow, y, -to + arrow)]);
     this.addPoint(layer, bottom); this.addPoint(layer, top);
-    this.addDimensionLabel(layer, x - 470, y, (from + to) / 2, label, 800);
+    this.addDimensionLabel(layer, x - 330, y, (from + to) / 2, label, 620);
   }
 
   addLevelMarker(layer, x, y, height, label, witnessX) {
     const point = new THREE.Vector3(witnessX, y, -height);
     this.addLine(layer, [new THREE.Vector3(x, y, -height), point]);
     this.addPoint(layer, point);
-    this.addDimensionLabel(layer, x - 470, y, height, label, 800);
+    this.addDimensionLabel(layer, x - 390, y, height, label, 780);
   }
 
   addHorizontalDimension(layer, from, to, y, height, label) {
-    const left = new THREE.Vector3(from, y, -height), right = new THREE.Vector3(to, y, -height), arrow = 157.5;
+    const left = new THREE.Vector3(from, y, -height), right = new THREE.Vector3(to, y, -height), arrow = 92;
     this.addLine(layer, [left, right]);
     this.addLine(layer, [left, new THREE.Vector3(from, 0, -height)]);
     this.addLine(layer, [right, new THREE.Vector3(to, 0, -height)]);
     this.addLine(layer, [new THREE.Vector3(from + arrow, y - arrow, -height), left, new THREE.Vector3(from + arrow, y + arrow, -height)]);
     this.addLine(layer, [new THREE.Vector3(to - arrow, y - arrow, -height), right, new THREE.Vector3(to - arrow, y + arrow, -height)]);
     this.addPoint(layer, left); this.addPoint(layer, right);
-    const labelWidth = Math.max(360, Math.min(680, (to - from) / 2.15));
-    this.addDimensionLabelAt(layer, (from + to) / 2, y - 180, -height, label, labelWidth);
+    const labelWidth = Math.max(320, Math.min(560, (to - from) / 2.4));
+    this.addDimensionLabelAt(layer, (from + to) / 2, y - 125, -height, label, labelWidth);
   }
 
   addDepthDimension(layer, x, from, to, height, label) {
-    const front = new THREE.Vector3(x, from, -height), back = new THREE.Vector3(x, to, -height), arrow = 157.5;
+    const front = new THREE.Vector3(x, from, -height), back = new THREE.Vector3(x, to, -height), arrow = 92;
     this.addLine(layer, [front, back]);
     this.addLine(layer, [new THREE.Vector3(0, from, -height), front]);
     this.addLine(layer, [new THREE.Vector3(0, to, -height), back]);
     this.addLine(layer, [new THREE.Vector3(x - arrow, from + arrow, -height), front, new THREE.Vector3(x + arrow, from + arrow, -height)]);
     this.addLine(layer, [new THREE.Vector3(x - arrow, to - arrow, -height), back, new THREE.Vector3(x + arrow, to - arrow, -height)]);
     this.addPoint(layer, front); this.addPoint(layer, back);
-    this.addDimensionLabelAt(layer, x + 380, (from + to) / 2, -height, label, 680);
+    this.addDimensionLabelAt(layer, x + 300, (from + to) / 2, -height, label, 560);
   }
 
   addDimensionLabel(layer, x, y, height, text, width = 800) {
@@ -568,17 +568,17 @@ class B2BViewer {
   }
 
   addDimensionLabelAt(layer, x, y, z, text, width = 800) {
-    const canvas = document.createElement("canvas"), scale = 4, dimensionScale = 1.5, labelWidth = width * dimensionScale, labelHeight = 112 * dimensionScale;
+    const canvas = document.createElement("canvas"), scale = 4, dimensionScale = 1.35, labelWidth = width * dimensionScale, labelHeight = 92 * dimensionScale;
     canvas.width = labelWidth * scale; canvas.height = labelHeight * scale;
     const context = canvas.getContext("2d");
-    const fontSize = String(text).startsWith("ÜST PALET KOTU") ? 62 : 84;
+    const fontSize = String(text).startsWith("ÜST PALET KOTU") ? 50 : 70;
     context.scale(scale, scale); context.font = `900 ${fontSize}px Arial`;
-    context.fillStyle = "rgba(4,42,78,.98)"; context.beginPath(); context.roundRect(0, 0, labelWidth, labelHeight, 24); context.fill();
-    context.strokeStyle = "#0b6fa9"; context.lineWidth = 5; context.stroke();
-    context.fillStyle = "#fff"; context.textAlign = "center"; context.textBaseline = "middle"; context.fillText(text, labelWidth / 2, labelHeight / 2);
+    context.fillStyle = "rgba(235,245,250,.97)"; context.beginPath(); context.roundRect(0, 0, labelWidth, labelHeight, 15); context.fill();
+    context.strokeStyle = "#2b6f91"; context.lineWidth = 4; context.stroke();
+    context.fillStyle = "#082f49"; context.textAlign = "center"; context.textBaseline = "middle"; context.fillText(text, labelWidth / 2, labelHeight / 2);
     const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace; texture.anisotropy = Math.min(16, this.renderer.capabilities.getMaxAnisotropy());
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map:texture, depthTest:false, transparent:true }));
-    sprite.position.set(x, y, z); sprite.scale.set(width * 2.025, 247.5, 1); sprite.userData.dimensionLabel=true;sprite.userData.baseScale=sprite.scale.clone();sprite.renderOrder = 101;this.dimensionLabels.push(sprite);layer.add(sprite);
+    sprite.position.set(x, y, z); sprite.scale.set(width * 1.7, 190, 1); sprite.userData.dimensionLabel=true;sprite.userData.baseScale=sprite.scale.clone();sprite.renderOrder = 101;this.dimensionLabels.push(sprite);layer.add(sprite);
   }
 
   uprightHeight() {
@@ -707,7 +707,7 @@ async function captureB2BViews(options = {}, settings = {}) {
       viewer.dimensionLabels.forEach((label) => {
         const baseScale = label?.userData?.baseScale;
         if (!baseScale || label.userData.rafexCaptureScaleApplied) return;
-        baseScale.multiplyScalar(1.85);
+        baseScale.multiplyScalar(1.3);
         label.scale.copy(baseScale);
         label.userData.rafexCaptureScaleApplied = true;
       });
