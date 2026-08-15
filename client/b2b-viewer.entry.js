@@ -481,8 +481,8 @@ class B2BViewer {
 
     const eyeStart = SOURCE_CLEAR_LEFT * sectionScale;
     if (this.options.dimensions.eye) {
-      if (Array.isArray(widthSegments) && widthSegments.length > 1) widthSegments.forEach((segment)=>{const from=segment.from+(Number(segment.footWidth)||120);this.addHorizontalDimension(eyeLayer,from,from+segment.clearWidth,rackDepth+360,0,`GÖZ  ·  ${this.dimensionValue(segment.clearWidth)}`);});
-      else this.addHorizontalDimension(eyeLayer, eyeStart, eyeStart + this.options.sectionWidth, rackDepth + 360, 0, `GÖZ  ·  ${this.dimensionValue(this.options.sectionWidth)}`);
+      if (Array.isArray(widthSegments) && widthSegments.length > 1) widthSegments.forEach((segment)=>{const from=segment.from+(Number(segment.footWidth)||120);this.addHorizontalDimension(eyeLayer,from,from+segment.clearWidth,rackDepth+360,0,this.dimensionValue(segment.clearWidth));});
+      else this.addHorizontalDimension(eyeLayer, eyeStart, eyeStart + this.options.sectionWidth, rackDepth + 360, 0, this.dimensionValue(this.options.sectionWidth));
     }
     if (this.options.dimensions.width) {
       if (Array.isArray(widthSegments) && widthSegments.length) {
