@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v14";
+  const VERSION = "front-side-capture-v15";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -129,6 +129,7 @@
       rearPalletGap: overhang,
       traverseHeight,
       footHeight,
+      footWidth: Math.max(60, number(drawing?.footType ?? state.footWidth, 120)),
       showPallets: true,
       footColor: state.footColor || "ral5010",
       traverseColor: state.traverseColor || "ral1007",
@@ -186,7 +187,7 @@
         width: 1200,
         height: 760,
         cameraPadding: 1.22,
-        frontDimensions: { levels: true, markers: true, eye: true, width: options.dimensions?.width===true, depth: false },
+        frontDimensions: { levels: true, markers: true, eye: true, width: false, depth: false },
         sideDimensions: { levels: false, markers: false, eye: false, width: false, depth: true },
         side: "right",
       });
@@ -460,6 +461,7 @@
       .m2-corporate-type-grid { gap:2px !important; }
       .m2-corporate-type-card>strong { font-size:13px !important; padding:3px !important; }
       .m2-corporate-view b { font-size:10px !important; height:20px; }
+      .m2-corporate-type-card { grid-template-columns:12% 44% 44% !important; }
       .m2-corporate-bom-grid:not(.combined) { grid-template-columns:repeat(2,minmax(0,1fr)) !important; grid-template-rows:repeat(3,minmax(0,1fr)) !important; gap:3px 5px !important; }
       .m2-corporate-bom-card h3 { font-size:13px !important; line-height:1 !important; padding:4px 7px !important; }
       .m2-corporate-bom-meta { font-size:9.5px !important; line-height:1 !important; padding:2px 7px !important; }
