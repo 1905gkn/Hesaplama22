@@ -1735,7 +1735,7 @@
       .m2-corporate-page::before { content:""; position:absolute; z-index:5; inset:14% 23% 8%; background:url('/rafex-logo.png') center/contain no-repeat; opacity:.08; pointer-events:none; }
       .m2-corporate-cover::before { display:none; }
       .m2-corporate-page>* { z-index:1; }
-      .m2-corporate-page-footer { position:absolute; z-index:8; right:1.2%; bottom:.35%; color:#52687a; font-size:7px; font-weight:900; letter-spacing:.05em; }
+      .m2-corporate-page-footer { position:absolute; z-index:8; right:1.4%; bottom:.45%; padding:2px 7px; border-radius:10px; background:#0b2b45; color:#fff; font-size:11px; font-weight:900; letter-spacing:.04em; }
       .m2-corporate-page-header { position:absolute; z-index:2; inset:0 0 auto; height:11%; display:flex; align-items:center; justify-content:space-between; padding:0 3%; border-bottom:4px solid #3e8fb2; background:#0b2b45; color:#fff; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
       .m2-corporate-page-header img { width:82px; max-height:34px; object-fit:contain; filter:brightness(0) invert(1); }
       .m2-corporate-page-header b { font-size:16px; letter-spacing:.05em; }
@@ -1768,12 +1768,12 @@
       .m2-corporate-bom-grid { position:absolute; inset:12.5% .65% 2.1%; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:repeat(3,minmax(0,1fr)); gap:3px 5px; }
       .m2-corporate-bom-grid.combined { grid-template-columns:1fr; grid-template-rows:1fr; }
       .m2-corporate-bom-card { min-width:0; min-height:0; overflow:hidden; border:1px solid #aebdcc; border-radius:6px; background:#fff; }
-      .m2-corporate-bom-card h3 { margin:0; padding:4px 7px; background:#dceaf1; color:#0b2b45; font-size:10px; }
-      .m2-corporate-bom-meta { display:flex; justify-content:space-between; padding:2px 7px; border-bottom:1px solid #c9d5de; color:#52687a; font-size:7.4px; font-weight:800; }
+      .m2-corporate-bom-card h3 { margin:0; padding:4px 7px; background:#dceaf1; color:#0b2b45; font-size:13px; line-height:1; }
+      .m2-corporate-bom-meta { display:flex; justify-content:space-between; padding:2px 7px; border-bottom:1px solid #c9d5de; color:#52687a; font-size:9.5px; line-height:1; font-weight:900; }
       .m2-corporate-bom-head, .m2-corporate-bom-row { display:grid; grid-template-columns:1.35fr 1fr .42fr .38fr; align-items:center; }
-      .m2-corporate-bom-head { background:#0b2b45; color:#fff; font-size:7.3px; font-weight:900; }
-      .m2-corporate-bom-row { min-height:0; border-bottom:1px solid #dce4ea; color:#233e54; font-size:7.3px; line-height:1.08; }
-      .m2-corporate-bom-head span, .m2-corporate-bom-row span { min-width:0; padding:2px 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .m2-corporate-bom-head { background:#0b2b45; color:#fff; font-size:9.5px; line-height:1; font-weight:900; }
+      .m2-corporate-bom-row { min-height:0; border-bottom:1px solid #dce4ea; color:#233e54; font-size:9.2px; line-height:1; font-weight:700; }
+      .m2-corporate-bom-head span, .m2-corporate-bom-row span { min-width:0; padding:3px 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
       .m2-readonly-preview-dialog { width:min(980px,96vw); height:min(720px,92vh); display:grid; grid-template-rows:auto minmax(0,1fr); overflow:hidden; border-radius:15px; background:#fff; }
       .m2-readonly-preview-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 18px; border-bottom:1px solid var(--line); }
       .m2-readonly-preview-head div { display:grid; gap:3px; }
@@ -2681,7 +2681,7 @@
         const layout = page.querySelector(".m2-layout");
         layout?.insertAdjacentHTML("afterbegin", b2bPanelMarkup());
         const reportType=$("m2ReportType"),reportTypeControl=reportType?.closest("label");
-        if(reportType){reportType.value="corporate";if(reportTypeControl)reportTypeControl.hidden=true;m2ChangeReportMode();}
+        if(reportType){reportType.value="corporate";if(reportTypeControl)reportTypeControl.hidden=true;if($("m2ReportCompleteFront"))$("m2ReportCompleteFront").checked=true;m2ChangeReportMode();}
         b2bRenderTunnels(); b2bApplyInputs(); b2bRefreshSummary(); b2bInstallMain3D(); m2ShowView("front");
       }
       function renderMekik2() {
@@ -2966,6 +2966,7 @@
           else if (event.key === "Escape" && m2LayoutTool === "measure") { event.preventDefault(); m2LayoutTool = null; m2FreeMeasure = { points: [], hover: null }; $("m2MeasureToolButton")?.classList.remove("active"); $("m2FloorStatus").textContent = "Mesafe ölçümü iptal edildi."; m2RenderLayout(); }
           else if (event.key === "Escape") { event.preventDefault(); m2LayoutState.selected=null;m2SelectedSymbolId=null;m2SelectedNoteId=null;m2SymbolDrag=null;m2LayoutState.drag=null;m2CopyMode=false;m2CustomizeMode=false;m2JoinMode=false;m2JoinFirstRackId=null;$("m2CustomizeRackButton")?.classList.remove("active");$("m2JoinRackButton")?.classList.remove("active");$("m2FloorStatus").textContent="Seçim temizlendi.";m2RenderLayout(); }
           else if ((event.key === "Delete" || event.key === "Backspace") && (m2LayoutState.selected != null||m2SelectedSymbolId!=null) && !/INPUT|TEXTAREA|SELECT/.test(event.target?.tagName || "")) { event.preventDefault(); m2DeleteRack(); }
+          else if (m2ActiveModule === "b2b" && event.key.toLowerCase() === "c" && !event.ctrlKey && !event.metaKey && !event.altKey && !/INPUT|TEXTAREA|SELECT/.test(event.target?.tagName || "")) { const latest=m2LayoutState.racks.at(-1); if(latest){event.preventDefault();m2LayoutState.selected=latest.id;m2DuplicateRack();} }
           if (event.key === "Enter" && event.target?.id === "m2SegmentLength") {
             event.preventDefault();
             m2CommitMeasuredFromHover();
@@ -3104,7 +3105,7 @@
           modal=$("m2SavedRackPreviewModal");
         }
         $("m2SavedRackPreviewTitle").textContent=`${entry.name} · 3D RAF ÖNİZLEMESİ`;modal.hidden=false;
-        requestAnimationFrame(()=>{const canvas=$("m2SavedRackPreviewCanvas");if(canvas&&window.RafexB2BViewer){window.RafexB2BViewer.destroy();window.RafexB2BViewer.mount(canvas,m2Rack3DOptions(entry.drawing));window.RafexB2BViewer.zoom?.(1.15);}});
+        requestAnimationFrame(()=>{const canvas=$("m2SavedRackPreviewCanvas");if(canvas&&window.RafexB2BViewer){const options=m2Rack3DOptions(entry.drawing);options.dimensions={levels:true,markers:true,eye:true,width:true,depth:true};window.RafexB2BViewer.destroy();window.RafexB2BViewer.mount(canvas,options);window.RafexB2BViewer.zoom?.(1.15);}});
       }
       function m2CloseSavedRackPreview(){const modal=$("m2SavedRackPreviewModal");if(modal)modal.hidden=true;m2RemountMain3D();}
       const m2TypeColors = ["#d9485f", "#2878d0", "#138a62", "#9b51c8", "#e07a18", "#087f8c", "#b43f8d", "#65731f"];
@@ -3143,7 +3144,7 @@
           const result = await req(m2TypeApi());
           m2SavedRackTypes = Array.isArray(result.types) ? result.types.filter((entry) => entry?.id && entry?.name && entry?.drawing?.plan).map((entry, index) => ({ ...entry, name:m2ActiveModule === "b2b" ? b2bTypeLetter(entry.name, entry.typeNo || index + 1) : entry.name, source:"server" })) : [];
           m2SelectedSavedType = m2SavedRackTypes.length ? Math.min(m2SelectedSavedType ?? 0, m2SavedRackTypes.length - 1) : null;
-          m2RenderSavedRackTypes(); $("m2FloorStatus").textContent = `${m2SavedRackTypes.length} kayıtlı raf tipi getirildi.`;
+          m2RenderSavedRackTypes(); $("m2FloorStatus").textContent = `${m2SavedRackTypes.length} kayıtlı raf tipi getirildi.`; if(m2ActiveModule==="b2b")m2ScheduleReportRefresh(0);
         } catch (error) { m2SavedRackTypes = []; m2SelectedSavedType = null; m2RenderSavedRackTypes(); $("m2FloorStatus").textContent = error.message || "Raf kayıtları getirilemedi."; }
       }
       function m2SelectSavedRackType(index) {
@@ -4292,7 +4293,7 @@
         pages.push(`<section class="m2-corporate-page m2-corporate-cover"><div class="m2-corporate-cover-content"><img src="/rafex-logo.png" alt="Rafex"><small>${t.projectType} · ${systemTypes}</small><h1>${esc(projectName.toUpperCase())}</h1><p>${t.technical}</p></div></section>`);
         const floorSource=$("m2LayoutSvg"), floorSvg=floorSource?floorSource.outerHTML.replace('id="m2LayoutSvg"',`aria-label="${esc(t.layout)}"`):"";
         pages.push(`<section class="m2-corporate-page">${m2CorporateHeader(t.layout)}<div class="m2-corporate-floor">${floorSvg}</div></section>`);
-        const typeAccents=["#1d5f8a","#2b78a0","#3f8fae","#5b7897"], combineVariants=$("m2ReportCompleteFront")?.checked===true&&types.length>1;
+        const typeAccents=["#1d5f8a","#2b78a0","#3f8fae","#5b7897"], combineVariants=false;
         if(combineVariants){
           const ordered=[4,3,2,1].map((count)=>types.find((entry)=>Number((entry.drawing||entry)?.b2bLayout?.palletCount||0)===count)).filter(Boolean);
           const variants=ordered.length?ordered:types;
