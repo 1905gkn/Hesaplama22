@@ -3332,8 +3332,15 @@
           const restoredScale = Number(restoredLayout.scale) || m2LayoutState.scale;
           restoredLayout.racks = (restoredLayout.racks || []).map((rack) => {
             if (m2ActiveModule === "b2b" && drawing?.b2b) {
-              const normalizedTypeName = b2bTypeLetter(rack.typeName, rack.typeNo || 1), typeDrawing = m2SavedRackTypes.find((entry) => entry.name === normalizedTypeName)?.drawing || drawing, converted = b2bLayoutDrawing(typeDrawing), cx = rack.x + rack.w / 2, cy = rack.y + rack.h / 2, w = Math.max(8, converted.totalWidth * restoredScale), h = Math.max(8, converted.railLength * restoredScale);
-              return { ...rack, typeName:normalizedTypeName, typeColor:m2TypeColor(normalizedTypeName), x:cx - w / 2, y:cy - h / 2, w, h, bays:converted.bays, levels:converted.levels, depth:converted.depth, palW:converted.palW, palD:converted.palD, widthMm:converted.totalWidth, depthMm:converted.railLength, layoutView:converted.layoutView, b2bLayout:{...converted.b2bLayout}, locked:true, freePlacement:false };
+              const normalizedTypeName=b2bTypeLetter(rack.typeName,rack.typeNo||1),typeDrawing=m2SavedRackTypes.find((entry)=>entry.name===normalizedTypeName)?.drawing||drawing,cx=Number(rack.x)+Number(rack.w)/2,cy=Number(rack.y)+Number(rack.h)/2;
+              if(rack?.b2bLayout&&Number(rack.b2bLayout.palletCount)>0){
+                const savedLayout={...rack.b2bLayout},savedCount=Math.max(1,Math.min(4,Math.round(Number(savedLayout.palletCount)||1))),fallback=b2bLayoutDrawing(typeDrawing),footWidth=m2B2BFootWidth({...typeDrawing,...rack,b2bLayout:savedLayout});
+                savedLayout.palletCount=savedCount;savedLayout.sectionWidth=Number(savedLayout.sectionWidth)||m2B2BSectionWidth(savedLayout,savedCount);
+                const widthMm=Number(rack.widthMm)||savedLayout.sectionWidth+2*footWidth,depthMm=Number(rack.depthMm)||Number(rack.railLength)||fallback.railLength,w=Math.max(8,widthMm*restoredScale),h=Math.max(8,depthMm*restoredScale);
+                return {...rack,typeName:normalizedTypeName,typeColor:m2TypeColor(normalizedTypeName),x:cx-w/2,y:cy-h/2,w,h,widthMm,depthMm,footType:footWidth,layoutView:rack.layoutView||"b2b-top",b2b:{...(typeDrawing.b2b||{}),...(rack.b2b||{}),palletCount:savedCount,rowType:Number(savedLayout.rowCount)===2?"double":"single"},b2bLayout:savedLayout,locked:true,freePlacement:false};
+              }
+              const converted=b2bLayoutDrawing(typeDrawing),w=Math.max(8,converted.totalWidth*restoredScale),h=Math.max(8,converted.railLength*restoredScale);
+              return {...rack,typeName:normalizedTypeName,typeColor:m2TypeColor(normalizedTypeName),x:cx-w/2,y:cy-h/2,w,h,bays:converted.bays,levels:converted.levels,depth:converted.depth,palW:converted.palW,palD:converted.palD,widthMm:converted.totalWidth,depthMm:converted.railLength,layoutView:converted.layoutView,b2bLayout:{...converted.b2bLayout},locked:true,freePlacement:false};
             }
             return { ...rack, locked:true, freePlacement:false };
           });
