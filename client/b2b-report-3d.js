@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v23";
+  const VERSION = "front-side-capture-v24";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -50,6 +50,7 @@
       tiePositions: Array.isArray(tiePlan?.positions) ? tiePlan.positions.map((item) => number(item, 0)) : [],
       footColor: state.footColor || "ral5010",
       traverseColor: state.traverseColor || "ral1007",
+      dimensionLabelScale: Math.max(.7, Math.min(1.5, number(state.dimensionTextScale, typeof b2bDimensionTextScale === "number" ? b2bDimensionTextScale : 1))),
     };
     const text = JSON.stringify(payload);
     let hash = 2166136261;
@@ -140,6 +141,7 @@
       showPallets: true,
       footColor: state.footColor || "ral5010",
       traverseColor: state.traverseColor || "ral1007",
+      dimensionLabelScale: Math.max(.7, Math.min(1.5, number(state.dimensionTextScale, typeof b2bDimensionTextScale === "number" ? b2bDimensionTextScale : 1))),
     };
   }
 
@@ -170,6 +172,7 @@
     merged.traverseHeight = fallback.traverseHeight;
     merged.frontPalletGap = fallback.frontPalletGap;
     merged.rearPalletGap = fallback.rearPalletGap;
+    merged.dimensionLabelScale = fallback.dimensionLabelScale;
     return merged;
   }
 
@@ -200,8 +203,8 @@
         options={...options,moduleCount:moduleOptions.length,moduleOptions,dimensions:{levels:true,markers:true,eye:true,width:false,depth:false}};
       }
       const result = await capture(options, {
-        width: 2200,
-        height: 1500,
+        width: 2600,
+        height: 1750,
         cameraPadding: 1.08,
         frontDimensions: { levels: true, markers: true, eye: true, width: false, depth: false },
         sideDimensions: { levels: false, markers: false, eye: false, width: false, depth: true },
