@@ -708,6 +708,8 @@ async function captureB2BViews(options = {}, settings = {}) {
     });
     viewer = new B2BViewer(canvas, options);
     await ready;
+    viewer.renderer.setPixelRatio(clamp(Number(settings.pixelRatio) || 2, 1, 2));
+    viewer.onResize();
     viewer.setAutoRotate(false);
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
