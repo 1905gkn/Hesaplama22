@@ -1,10 +1,12 @@
 (() => {
-  const VERSION = "front-side-capture-v26";
+  const VERSION = "front-side-capture-v27";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
   let combinedVariantCache = null;
   let combinedVariantPending = null;
+  const corporateCombinedCache = new Map();
+  const corporateCombinedPending = new Map();
 
   const number = (value, fallback = 0) => {
     const parsed = Number(value);
@@ -306,30 +308,73 @@
     return combinedVariantPending;
   }
 
+  function corporateVariantGroups(){
+    const groups=new Map();
+    try{
+      const placed=typeof m2CorporateUsedTypes==="function"?m2CorporateUsedTypes():[];
+      (Array.isArray(placed)?placed:[]).forEach((entry,index)=>{
+        const drawing=entry?.drawing||entry,name=String(entry?.name||`TİP ${index+1}`).trim(),key=name.toLocaleUpperCase("tr-TR"),id=encodeURIComponent(key),count=number(drawing?.b2bLayout?.palletCount??drawing?.b2b?.palletCount??drawing?.bays,0);
+        if(!groups.has(id))groups.set(id,{id,name,entries:new Map()});
+        if(count>0&&!groups.get(id).entries.has(count))groups.get(id).entries.set(count,{drawing,count,key:registerDrawing(drawing)});
+      });
+    }catch(error){console.warn("B2B kurumsal tip grupları okunamadı",error);}
+    return [...groups.values()].map((group)=>({...group,entries:[...group.entries.values()].sort((left,right)=>right.count-left.count)}));
+  }
+
+  async function captureCorporateCombinedVariants(){
+    if(!variantsEnabled()){corporateCombinedCache.clear();return;}
+    const visibleIds=new Set([...document.querySelectorAll("[data-rafex-type-group]")].map((host)=>host.dataset.rafexTypeGroup).filter(Boolean));
+    const groups=corporateVariantGroups().filter((group)=>group.entries.length>1&&visibleIds.has(group.id));
+    for(const group of groups){
+      const signature=group.entries.map((entry)=>entry.key).join("|");
+      if(corporateCombinedCache.get(group.id)?.signature===signature)continue;
+      if(corporateCombinedPending.has(group.id)){await corporateCombinedPending.get(group.id);continue;}
+      const task=(async()=>{
+        const moduleOptions=group.entries.map((entry)=>viewerOptions(entry.drawing));
+        const base={...moduleOptions[0],moduleCount:moduleOptions.length,moduleOptions,showPallets:true};
+        const capture=window.RafexB2BViewer?.captureViews;
+        if(typeof capture!=="function")throw new Error("Tip bazlı birleşik B2B 3D yakalama servisi hazır değil.");
+        const result=await capture(base,{width:3000,height:1500,pixelRatio:2,cameraPadding:1.12,frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"});
+        if(!result?.front||!result?.side)throw new Error(`${group.name} için birleşik görünüş oluşturulamadı.`);
+        corporateCombinedCache.set(group.id,{signature,front:result.front,side:result.side});
+      })().catch((error)=>console.error("B2B tip bazlı birleşik görünüş hazırlanamadı",error)).finally(()=>corporateCombinedPending.delete(group.id));
+      corporateCombinedPending.set(group.id,task);
+      await task;
+    }
+  }
+
+  function applyCorporateCombinedViews(){
+    document.querySelectorAll(".rafex-combined-fronts[data-rafex-type-group]").forEach((host)=>{
+      const cached=corporateCombinedCache.get(host.dataset.rafexTypeGroup);if(!cached)return;
+      host.innerHTML=`<div class="rafex-report-3d-frame rafex-true-combined"><img src="${cached.front}" alt="Tipin mevcut modülleri 3D önden görünüş"></div>`;
+    });
+    document.querySelectorAll(".rafex-combined-side[data-rafex-type-group]").forEach((host)=>{
+      const cached=corporateCombinedCache.get(host.dataset.rafexTypeGroup);if(!cached)return;
+      host.innerHTML=`<div class="rafex-report-3d-frame"><img src="${cached.side}" alt="Tipin mevcut modülleri 3D yan görünüş"></div>`;
+    });
+  }
+
   function applyCombinedVariantViews(){
     if(!combinedVariantCache)return;
-    document.querySelectorAll(".rafex-combined-fronts").forEach((host)=>{
+    document.querySelectorAll(".rafex-combined-fronts:not([data-rafex-type-group])").forEach((host)=>{
       host.innerHTML=`<div class="rafex-report-3d-frame rafex-true-combined"><img src="${combinedVariantCache.front}" alt="Birleşik B2B modülleri 3D önden görünüş"></div>`;
     });
-    document.querySelectorAll(".rafex-combined-side").forEach((host)=>{
+    document.querySelectorAll(".rafex-combined-side:not([data-rafex-type-group])").forEach((host)=>{
       host.innerHTML=`<div class="rafex-report-3d-frame"><img src="${combinedVariantCache.side}" alt="Birleşik B2B modülleri 3D yan görünüş"></div>`;
     });
-    const sheet=document.getElementById("m2A4Sheet"),fronts=document.getElementById("m2ReportFronts");
-    if(sheet?.classList.contains("rafex-variants-active")&&fronts){
-      fronts.style.setProperty("--m2-report-count","1");
-      fronts.innerHTML=`<div class="rafex-summary-combined"><div><b>ÖNDEN GÖRÜNÜŞ</b><div class="rafex-report-3d-frame"><img src="${combinedVariantCache.front}" alt="Birleşik B2B modülleri 3D önden görünüş"></div></div><div><b>YAN GÖRÜNÜŞ</b><div class="rafex-report-3d-frame"><img src="${combinedVariantCache.side}" alt="Birleşik B2B modülleri 3D yan görünüş"></div></div></div>`;
-    }
   }
 
   function applyCachedViews() {
     reportCards().forEach(({ card, view }) => replaceCardView(card, view));
     applyCombinedVariantViews();
+    applyCorporateCombinedViews();
   }
 
   async function ensureReportViews() {
     const keys = [...new Set(reportCards().map(({ card }) => cardKey(card)).filter(Boolean))];
     for (const key of keys) await captureDrawing(key);
     await captureCombinedVariants();
+    await captureCorporateCombinedVariants();
     applyCachedViews();
   }
 
