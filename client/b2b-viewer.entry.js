@@ -572,7 +572,8 @@ class B2BViewer {
     const canvas = document.createElement("canvas"), scale = 4, dimensionScale = 1.5, labelWidth = width * dimensionScale, labelHeight = 105 * dimensionScale;
     canvas.width = labelWidth * scale; canvas.height = labelHeight * scale;
     const context = canvas.getContext("2d");
-    const fontSize = String(text).startsWith("ÜST PALET KOTU") ? 62 : 84;
+    const markerText = String(text).startsWith("ÜST PALET KOTU") || String(text).startsWith("AYAK BOYU");
+    const fontSize = markerText ? 72 : 84;
     context.scale(scale, scale); context.font = `900 ${fontSize}px Arial`;
     context.fillStyle = "rgba(5,40,72,.98)"; context.beginPath(); context.roundRect(0, 0, labelWidth, labelHeight, 18); context.fill();
     context.strokeStyle = "#3e8fb2"; context.lineWidth = 4; context.stroke();
