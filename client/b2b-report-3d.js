@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v18";
+  const VERSION = "front-side-capture-v19";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -9,6 +9,13 @@
   const number = (value, fallback = 0) => {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : fallback;
+  };
+
+  const b2bTraverseHeight = (drawing) => {
+    const state = drawing?.b2b || {};
+    const typeHeight = Number(String(state.traverseType || "").match(/\d+/)?.[0]);
+    const candidates = [state.traverseHeightOverride, state.traverseHeight, typeHeight, drawing?.traverseHeight, 140];
+    return Math.max(50, candidates.map(Number).find((value) => Number.isFinite(value) && value > 0) || 140);
   };
 
   function stableKey(drawing) {
@@ -26,7 +33,7 @@
       rowCount: number(layout.rowCount, state.rowType === "double" ? 2 : 1),
       rowGap: number(layout.rowGap ?? state.rowGap, 200),
       uprightHeight: number(drawing?.sideUprightHeight ?? drawing?.totalRackHeight ?? drawing?.footLy ?? state.footHeight, 0),
-      traverseHeight: number(drawing?.traverseHeight ?? state.traverseHeight, 0),
+      traverseHeight: b2bTraverseHeight(drawing),
       tunnelHeight: number(state.tunnelHeight, 0),
       firstPalletPosition: state.firstPalletPosition || "ground",
       firstFloorGap: number(state.firstFloorGap, 200),
@@ -93,7 +100,7 @@
     const layout = drawing?.b2bLayout || {};
     const customLevels = Array.isArray(state.customLevels) ? state.customLevels : [];
     const palletHeight = Math.max(300, number(drawing?.palletHeight ?? state.palletHeight, 1200));
-    const traverseHeight = Math.max(50, number(drawing?.traverseHeight ?? state.traverseHeight, 140));
+    const traverseHeight = b2bTraverseHeight(drawing);
     const palletHeights = customLevels.map((item) => Math.max(300, number(item?.palletHeight, palletHeight)));
     const levelClearances = customLevels.map((item, index) => Math.max(
       0,
