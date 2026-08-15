@@ -224,7 +224,7 @@ class B2BViewer {
         moduleX=previousRightAxis-leftAxis;
       }
       const dimensionFrom=moduleX+leftAxis-spec.footWidth,dimensionWidth=spec.sectionWidth+2*spec.footWidth;
-      positions.push(moduleX);widthSegments.push({from:dimensionFrom,to:dimensionFrom+dimensionWidth,count:spec.palletCount,width:dimensionWidth,clearWidth:spec.sectionWidth});
+      positions.push(moduleX);widthSegments.push({from:dimensionFrom,to:dimensionFrom+dimensionWidth,count:spec.palletCount,width:dimensionWidth,clearWidth:spec.sectionWidth,footWidth:spec.footWidth});
       totalRackWidth=Math.max(totalRackWidth,moduleX+frameWidth);
     });
     for(let rowIndex=0;rowIndex<rowCount;rowIndex+=1){
@@ -480,7 +480,10 @@ class B2BViewer {
     }
 
     const eyeStart = SOURCE_CLEAR_LEFT * sectionScale;
-    if (this.options.dimensions.eye) this.addHorizontalDimension(eyeLayer, eyeStart, eyeStart + this.options.sectionWidth, rackDepth + 360, 0, `GÖZ  ·  ${this.dimensionValue(this.options.sectionWidth)}`);
+    if (this.options.dimensions.eye) {
+      if (Array.isArray(widthSegments) && widthSegments.length > 1) widthSegments.forEach((segment)=>{const from=segment.from+(Number(segment.footWidth)||120);this.addHorizontalDimension(eyeLayer,from,from+segment.clearWidth,rackDepth+360,0,`GÖZ  ·  ${this.dimensionValue(segment.clearWidth)}`);});
+      else this.addHorizontalDimension(eyeLayer, eyeStart, eyeStart + this.options.sectionWidth, rackDepth + 360, 0, `GÖZ  ·  ${this.dimensionValue(this.options.sectionWidth)}`);
+    }
     if (this.options.dimensions.width) {
       if (Array.isArray(widthSegments) && widthSegments.length) {
         widthSegments.forEach((segment,index) => this.addHorizontalDimension(widthLayer, segment.from, segment.to, rackDepth + 650 + index * 520, 0, `GENİŞLİK  ·  ${this.dimensionValue(segment.width)}`));
