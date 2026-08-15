@@ -1558,6 +1558,8 @@
       .m2-saved-type-list { display: flex; flex-wrap: wrap; gap: 7px; }
       .m2-saved-type-row { display: flex; align-items: stretch; gap: 4px; }
       .m2-saved-type { min-width: 150px; padding: 8px 10px; border: 1px solid #cbd8cf; border-radius: 8px; background: #fff; color: #405248; text-align: left; cursor: pointer; }
+      .m2-saved-type-preview { width:36px; min-width:36px; padding:0; display:grid; place-items:center; border:1px solid #9fb5a7; border-radius:8px; background:#fff; color:var(--g); font:900 16px/1 Georgia,serif; cursor:pointer; }
+      .m2-saved-type-preview:hover,.m2-saved-type-preview:focus-visible { background:var(--g); color:#fff; outline:0; }
       .m2-saved-type.active { border-color: #e0a600; box-shadow: 0 0 0 2px #ffe898; background: #fffbed; }
       .m2-saved-type b, .m2-saved-type small { display: block; }
       .m2-saved-type small { margin-top: 3px; color: #6c7a72; font-size: 8px; }
@@ -1733,6 +1735,7 @@
       .m2-corporate-page::before { content:""; position:absolute; z-index:5; inset:14% 23% 8%; background:url('/rafex-logo.png') center/contain no-repeat; opacity:.08; pointer-events:none; }
       .m2-corporate-cover::before { display:none; }
       .m2-corporate-page>* { z-index:1; }
+      .m2-corporate-page-footer { position:absolute; z-index:8; right:1.2%; bottom:.35%; color:#52687a; font-size:7px; font-weight:900; letter-spacing:.05em; }
       .m2-corporate-page-header { position:absolute; z-index:2; inset:0 0 auto; height:11%; display:flex; align-items:center; justify-content:space-between; padding:0 3%; border-bottom:4px solid #3e8fb2; background:#0b2b45; color:#fff; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
       .m2-corporate-page-header img { width:82px; max-height:34px; object-fit:contain; filter:brightness(0) invert(1); }
       .m2-corporate-page-header b { font-size:16px; letter-spacing:.05em; }
@@ -1762,15 +1765,23 @@
       .m2-corporate-copy p { margin:0; color:#52687a; font-size:9px; line-height:1.55; }
       .m2-corporate-images { display:grid; grid-template-columns:repeat(2,1fr); grid-auto-rows:minmax(0,1fr); gap:6px; align-content:start; }
       .m2-corporate-images img { width:100%; height:100%; max-height:108px; object-fit:cover; border:1px solid #b8c8d5; }
-      .m2-corporate-bom-grid { position:absolute; inset:12.5% .65% 1.25%; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:repeat(3,minmax(0,1fr)); gap:7px 9px; }
+      .m2-corporate-bom-grid { position:absolute; inset:12.5% .65% 2.1%; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:repeat(3,minmax(0,1fr)); gap:3px 5px; }
       .m2-corporate-bom-grid.combined { grid-template-columns:1fr; grid-template-rows:1fr; }
       .m2-corporate-bom-card { min-width:0; min-height:0; overflow:hidden; border:1px solid #aebdcc; border-radius:6px; background:#fff; }
-      .m2-corporate-bom-card h3 { margin:0; padding:5px 8px; background:#dceaf1; color:#0b2b45; font-size:9px; }
-      .m2-corporate-bom-meta { display:flex; justify-content:space-between; padding:3px 8px; border-bottom:1px solid #c9d5de; color:#52687a; font-size:6.8px; font-weight:800; }
+      .m2-corporate-bom-card h3 { margin:0; padding:4px 7px; background:#dceaf1; color:#0b2b45; font-size:10px; }
+      .m2-corporate-bom-meta { display:flex; justify-content:space-between; padding:2px 7px; border-bottom:1px solid #c9d5de; color:#52687a; font-size:7.4px; font-weight:800; }
       .m2-corporate-bom-head, .m2-corporate-bom-row { display:grid; grid-template-columns:1.35fr 1fr .42fr .38fr; align-items:center; }
-      .m2-corporate-bom-head { background:#0b2b45; color:#fff; font-size:6.6px; font-weight:900; }
-      .m2-corporate-bom-row { min-height:0; border-bottom:1px solid #dce4ea; color:#233e54; font-size:6.6px; line-height:1.05; }
-      .m2-corporate-bom-head span, .m2-corporate-bom-row span { min-width:0; padding:3px 5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .m2-corporate-bom-head { background:#0b2b45; color:#fff; font-size:7.3px; font-weight:900; }
+      .m2-corporate-bom-row { min-height:0; border-bottom:1px solid #dce4ea; color:#233e54; font-size:7.3px; line-height:1.08; }
+      .m2-corporate-bom-head span, .m2-corporate-bom-row span { min-width:0; padding:2px 4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .m2-readonly-preview-dialog { width:min(980px,96vw); height:min(720px,92vh); display:grid; grid-template-rows:auto minmax(0,1fr); overflow:hidden; border-radius:15px; background:#fff; }
+      .m2-readonly-preview-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 18px; border-bottom:1px solid var(--line); }
+      .m2-readonly-preview-head div { display:grid; gap:3px; }
+      .m2-readonly-preview-head b { color:var(--g); font-size:16px; }
+      .m2-readonly-preview-head small { color:var(--muted); font-size:10px; }
+      .m2-readonly-preview-head button { width:38px; height:38px; padding:0; background:#edf2ee; color:var(--g); font-size:22px; }
+      .m2-readonly-preview-canvas { position:relative; min-height:0; background:radial-gradient(circle at 50% 42%,#fff 0,#f5edef 64%,#ead9dd 100%); }
+      .m2-readonly-preview-canvas canvas { display:block; width:100%; height:100%; }
       .m2-corporate-bom-head span:nth-child(n+3), .m2-corporate-bom-row span:nth-child(n+3) { text-align:right; }
       .m2-corporate-bom-row:nth-child(even) { background:#f4f8fa; }
       @media print {
@@ -2669,6 +2680,8 @@
         if (projectListTitle) projectListTitle.textContent = "Kayıtlı B2B Projeleri";
         const layout = page.querySelector(".m2-layout");
         layout?.insertAdjacentHTML("afterbegin", b2bPanelMarkup());
+        const reportType=$("m2ReportType"),reportTypeControl=reportType?.closest("label");
+        if(reportType){reportType.value="corporate";if(reportTypeControl)reportTypeControl.hidden=true;m2ChangeReportMode();}
         b2bRenderTunnels(); b2bApplyInputs(); b2bRefreshSummary(); b2bInstallMain3D(); m2ShowView("front");
       }
       function renderMekik2() {
@@ -3079,9 +3092,21 @@
       function m2RenderSavedRackTypes() {
         const list = $("m2SavedTypeList"); if (!list) return;
         if ($("m2SavedTypeCount")) $("m2SavedTypeCount").textContent = `(${m2SavedRackTypes.length})`;
-        list.innerHTML = m2SavedRackTypes.length ? m2SavedRackTypes.map((entry, index) => { const color = m2TypeColor(entry.name), palletCount = (Number(entry.drawing.bays) || 0) * (Number(entry.drawing.levels) || 0) * (Number(entry.drawing.depth) || 0), footLabel = entry.drawing.footProfile ? `${entry.drawing.footProfile} · Ly ${fmt(entry.drawing.footLy)} mm` : `${fmt(entry.drawing.footType)} mm`, levelDetail=m2LevelDetail(entry.drawing); return `<div class="m2-saved-type-row"><button type="button" class="m2-saved-type${index === m2SelectedSavedType ? " active" : ""}" style="border-color:${color};box-shadow:inset 5px 0 ${color};background:${color}12" onclick="m2HandleSavedRackTypeClick(${index},event)" title="Çift tıklayarak alt çizime ekle"><b><i class="m2-type-swatch" style="background:${color}"></i>${esc(entry.name)} · ${esc((entry.drawing.systemType || "fifo").toUpperCase())}</b><small>${fmt(entry.drawing.totalWidth)} × ${fmt(entry.drawing.railLength)} mm · ${fmt(entry.drawing.bays)} göz · ${esc(levelDetail)} · ${fmt(entry.drawing.depth)} derinlik · <strong>${fmt(palletCount)} palet</strong> · Palet ${fmt(entry.drawing.palW)} × ${fmt(entry.drawing.palD)} mm · Ayak ${esc(footLabel)}</small></button><button type="button" class="m2-type-delete" aria-label="${esc(entry.name)} kaydını sil" title="Raf tipini sil" onclick="m2DeleteSavedRackType(${Number(entry.id)})">×</button></div>`; }).join("") : `<span class="m2-floor-status">Henüz kayıtlı raf tipi yok.</span>`;
+        list.innerHTML = m2SavedRackTypes.length ? m2SavedRackTypes.map((entry, index) => { const color = m2TypeColor(entry.name), palletCount = (Number(entry.drawing.bays) || 0) * (Number(entry.drawing.levels) || 0) * (Number(entry.drawing.depth) || 0), footLabel = entry.drawing.footProfile ? `${entry.drawing.footProfile} · Ly ${fmt(entry.drawing.footLy)} mm` : `${fmt(entry.drawing.footType)} mm`, levelDetail=m2LevelDetail(entry.drawing); return `<div class="m2-saved-type-row"><button type="button" class="m2-saved-type${index === m2SelectedSavedType ? " active" : ""}" style="border-color:${color};box-shadow:inset 5px 0 ${color};background:${color}12" onclick="m2HandleSavedRackTypeClick(${index},event)" title="Çift tıklayarak alt çizime ekle"><b><i class="m2-type-swatch" style="background:${color}"></i>${esc(entry.name)} · ${esc((entry.drawing.systemType || "fifo").toUpperCase())}</b><small>${fmt(entry.drawing.totalWidth)} × ${fmt(entry.drawing.railLength)} mm · ${fmt(entry.drawing.bays)} göz · ${esc(levelDetail)} · ${fmt(entry.drawing.depth)} derinlik · <strong>${fmt(palletCount)} palet</strong> · Palet ${fmt(entry.drawing.palW)} × ${fmt(entry.drawing.palD)} mm · Ayak ${esc(footLabel)}</small></button>${m2ActiveModule === "b2b" ? `<button type="button" class="m2-saved-type-preview" aria-label="${esc(entry.name)} 3D önizleme" title="Salt okunur 3D önizleme" onclick="event.stopPropagation();m2OpenSavedRackPreview(${index})">i</button>` : ""}<button type="button" class="m2-type-delete" aria-label="${esc(entry.name)} kaydını sil" title="Raf tipini sil" onclick="m2DeleteSavedRackType(${Number(entry.id)})">×</button></div>`; }).join("") : `<span class="m2-floor-status">Henüz kayıtlı raf tipi yok.</span>`;
         m2RenderSelectedRackInfo();
       }
+      function m2OpenSavedRackPreview(index) {
+        if(m2ActiveModule!=="b2b")return;
+        const entry=m2SavedRackTypes[index];if(!entry?.drawing)return;
+        let modal=$("m2SavedRackPreviewModal");
+        if(!modal){
+          document.body.insertAdjacentHTML("beforeend",`<div class="m2-layout-modal" id="m2SavedRackPreviewModal" hidden onclick="if(event.target===this)m2CloseSavedRackPreview()"><div class="m2-readonly-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="m2SavedRackPreviewTitle"><div class="m2-readonly-preview-head"><div><b id="m2SavedRackPreviewTitle">3D RAF ÖNİZLEMESİ</b><small>Salt okunur · bu pencereden değişiklik yapılamaz</small></div><button type="button" aria-label="Önizlemeyi kapat" onclick="m2CloseSavedRackPreview()">×</button></div><div class="m2-readonly-preview-canvas"><canvas id="m2SavedRackPreviewCanvas"></canvas></div></div></div>`);
+          modal=$("m2SavedRackPreviewModal");
+        }
+        $("m2SavedRackPreviewTitle").textContent=`${entry.name} · 3D RAF ÖNİZLEMESİ`;modal.hidden=false;
+        requestAnimationFrame(()=>{const canvas=$("m2SavedRackPreviewCanvas");if(canvas&&window.RafexB2BViewer){window.RafexB2BViewer.destroy();window.RafexB2BViewer.mount(canvas,m2Rack3DOptions(entry.drawing));window.RafexB2BViewer.zoom?.(1.15);}});
+      }
+      function m2CloseSavedRackPreview(){const modal=$("m2SavedRackPreviewModal");if(modal)modal.hidden=true;m2RemountMain3D();}
       const m2TypeColors = ["#d9485f", "#2878d0", "#138a62", "#9b51c8", "#e07a18", "#087f8c", "#b43f8d", "#65731f"];
       function b2bTypeLetter(typeName, typeNo = 1) {
         const text = String(typeName || "").trim().toUpperCase();
@@ -4197,6 +4222,11 @@
           if (!map.has(key)) map.set(key, { name, rackCount:0, footTeamCount:0, drawing:{...rack,totalWidth:rack.widthMm,railLength:rack.depthMm,plan:rack.plan} });
           const entry=map.get(key),rowCount=Math.max(1,Number(rack.b2bLayout?.rowCount)||1);entry.rackCount+=1;entry.footTeamCount+=rack.b2bLayout?2*rowCount-(rack.sharedFootWith?rowCount:0):0;
         });
+        if(m2ActiveModule==="b2b")m2SavedRackTypes.forEach((saved,index)=>{
+          const drawing=saved?.drawing;if(!drawing)return;
+          const name=saved.name||`Tip ${index+1}`,width=Number(drawing.totalWidth)||Number(drawing.widthMm)||0,depth=Number(drawing.railLength)||Number(drawing.depthMm)||0,key=`${name}|${width}|${depth}|${drawing.bays}|${drawing.levels}|${drawing.depth}`;
+          if(!map.has(key))map.set(key,{name,rackCount:1,footTeamCount:Math.max(2,2*(Number(drawing.b2bLayout?.rowCount)||1)),drawing});
+        });
         return [...map.values()];
       }
       function m2CorporateHeader(title) { return `<header class="m2-corporate-page-header"><img src="/rafex-logo.png" alt="Rafex"><b>${esc(title)}</b></header>`; }
@@ -4250,7 +4280,7 @@
           const rows=[...map.values()];
           for(let start=0;start<Math.max(1,rows.length);start+=24){const slice=rows.slice(start,start+24);pages.push(`<section class="m2-corporate-page">${m2CorporateHeader(`${labels.bomCombined}${rows.length>24?` · ${Math.floor(start/24)+1}`:""}`)}<div class="m2-corporate-bom-grid combined">${m2CorporateBomTable(labels.bomCombined,slice,labels,`${labels.rackCount}: ${fmt(types.reduce((sum,type)=>sum+(Number(type.rackCount)||1),0))}`)}</div></section>`);}
         } else {
-          for(let start=0;start<types.length;start+=3){const slice=types.slice(start,start+3),cards=slice.map(entry=>{const d=entry.drawing||entry,count=Number(d?.b2bLayout?.palletCount)||Number(d?.b2b?.palletCount)||Number(d?.bays)||0,clear=Math.round(Number(d?.b2bLayout?.sectionWidth)||Number(d?.totalWidth)||0),title=d?.b2bLayout?`${count}’lü - ${clear}`:entry.name;return m2CorporateBomTable(title,m2CorporateBomRows(entry,labels),labels,`${labels.rackCount}: ${fmt(entry.rackCount||1)}`);}).join("");pages.push(`<section class="m2-corporate-page">${m2CorporateHeader(`${labels.bom} · ${Math.floor(start/3)+1}`)}<div class="m2-corporate-bom-grid count-${slice.length}">${cards}</div></section>`);}
+          for(let start=0;start<types.length;start+=6){const slice=types.slice(start,start+6),cards=slice.map(entry=>{const d=entry.drawing||entry,count=Number(d?.b2bLayout?.palletCount)||Number(d?.b2b?.palletCount)||Number(d?.bays)||0,clear=Math.round(Number(d?.b2bLayout?.sectionWidth)||Number(d?.totalWidth)||0),title=d?.b2bLayout?`${count}’lü - ${clear}`:entry.name;return m2CorporateBomTable(title,m2CorporateBomRows(entry,labels),labels,`${labels.rackCount}: ${fmt(entry.rackCount||1)}`);}).join("");pages.push(`<section class="m2-corporate-page">${m2CorporateHeader(`${labels.bom} · ${Math.floor(start/6)+1}`)}<div class="m2-corporate-bom-grid count-${slice.length}">${cards}</div></section>`);}
         }
         const placementRows=m2LayoutProductRows().filter((row)=>!/^(Raf modülü|Ayak takımı|Travers(?: ·|$))/.test(row.name)).map((row)=>({item:row.name,spec:"Serbest yerleşim",qty:row.qty,unit:labels.unitEach}));
         if(placementRows.length)pages.push(`<section class="m2-corporate-page">${m2CorporateHeader("KORUMA VE YERLEŞİM ÜRÜNLERİ")}<div class="m2-corporate-bom-grid combined">${m2CorporateBomTable("Ayak koruma, bariyer ve semboller",placementRows,labels,"Serbest yerleşim toplamı")}</div></section>`);
@@ -4280,7 +4310,8 @@
         const palletTotal=m2LayoutState.racks.reduce((sum,r)=>sum+(r.b2bLayout?(Number(r.b2bLayout.palletCount)||0)*(Number(r.levels)||0)*(Number(r.b2bLayout.rowCount)||1):(Number(r.bays)||0)*(Number(r.levels)||0)*(Number(r.depth)||0)),0), images=m2ReportImages.filter(Boolean).map((src,index)=>`<img src="${src}" alt="${t.images} ${index+1}">`).join("");
         pages.push(...m2CorporateBomPages(types,t,$("m2ReportProductTotal")?.checked===true));
         pages.push(`<section class="m2-corporate-page">${m2CorporateHeader(t.technical)}<div class="m2-corporate-final"><div class="m2-corporate-pallets">${m2CorporatePalletTable(types,palletTotal,t)}</div><div class="m2-corporate-images">${images}</div><div class="m2-corporate-copy"><article><h3>${t.extraTitle}</h3><p>${t.extraText}</p></article><article><h3>${t.whyTitle}</h3><p>${t.whyText}</p></article></div></div></section>`);
-        return pages.join("");
+        const totalPages=pages.length;
+        return pages.map((page,index)=>page.replace(/<\/section>\s*$/,`<footer class="m2-corporate-page-footer">${index+1} / ${totalPages}</footer></section>`)).join("");
       }
       function m2RenderCorporateReport(){ const host=$("m2CorporatePreview"); if(host) host.innerHTML=m2BuildCorporatePages(); }
       function m2ChangeReportLanguage(){m2RenderA4Report();m2RenderCorporateReport();}
