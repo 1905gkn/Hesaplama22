@@ -2956,7 +2956,13 @@
       function m2RackFootPoints(rack){
         if(!rack?.b2bLayout)return[];const layout=rack.b2bLayout,rowCount=Math.max(1,Number(layout.rowCount)||1),totalDepth=Math.max(1,Number(rack.depthMm)||Number(layout.palletDepth)||1),points=[],cx=rack.x+rack.w/2,cy=rack.y+rack.h/2,radians=(Number(rack.angle)||0)*Math.PI/180,cos=Math.cos(radians),sin=Math.sin(radians);
         const rotate=(x,y)=>({x:cx+(x-cx)*cos-(y-cy)*sin,y:cy+(x-cx)*sin+(y-cy)*cos});
-        for(let row=0;row<rowCount;row++){const palletY=rack.y+row*(layout.palletDepth+Math.max(0,layout.rowGap-2*layout.palletOverhang))*rack.h/totalDepth,frameY=palletY+layout.palletOverhang*rack.h/totalDepth,frameH=layout.frameDepth*rack.h/totalDepth;[rack.x,rack.x+rack.w].forEach((x)=>{points.push(rotate(x,frameY));points.push(rotate(x,frameY+frameH));});}
+        for(let row=0;row<rowCount;row++){
+          const palletY=rack.y+row*(layout.palletDepth+Math.max(0,layout.rowGap-2*layout.palletOverhang))*rack.h/totalDepth,frameY=palletY+layout.palletOverhang*rack.h/totalDepth,frameH=layout.frameDepth*rack.h/totalDepth;
+          // Tek sırada iki yüz de dıştadır. Çift sırada ise karşılıklı duran orta
+          // ayaklar korunmaz; yalnızca bütün bloğun iki dış sınırındaki ayaklar kalır.
+          const exposedY=rowCount===1?[frameY,frameY+frameH]:row===0?[frameY]:row===rowCount-1?[frameY+frameH]:[];
+          [rack.x,rack.x+rack.w].forEach((x)=>exposedY.forEach((y)=>points.push(rotate(x,y))));
+        }
         return points;
       }
       function m2CommitProtectionArea(){
