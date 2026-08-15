@@ -3107,7 +3107,7 @@
           modal=$("m2SavedRackPreviewModal");
         }
         $("m2SavedRackPreviewTitle").textContent=`${entry.name} · 3D RAF ÖNİZLEMESİ`;modal.hidden=false;
-        requestAnimationFrame(()=>{const canvas=$("m2SavedRackPreviewCanvas");if(canvas&&window.RafexB2BViewer){const options=m2Rack3DOptions(entry.drawing);options.dimensions={levels:true,markers:true,eye:true,width:true,depth:true};window.RafexB2BViewer.destroy();window.RafexB2BViewer.mount(canvas,options);window.RafexB2BViewer.zoom?.(1.15);}});
+        requestAnimationFrame(()=>{const canvas=$("m2SavedRackPreviewCanvas");if(canvas&&window.RafexB2BViewer){const base=m2Rack3DOptions(entry.drawing),moduleOptions=[3,2,1].map((palletCount)=>({...base,moduleCount:1,moduleOptions:null,palletCount,dimensions:{levels:true,markers:true,eye:true,width:false,depth:true}})),options={...base,moduleCount:3,moduleOptions,palletCount:3,dimensions:{levels:true,markers:true,eye:true,width:false,depth:true}};window.RafexB2BViewer.destroy();window.RafexB2BViewer.mount(canvas,options);window.RafexB2BViewer.zoom?.(1.2);}});
       }
       function m2CloseSavedRackPreview(){const modal=$("m2SavedRackPreviewModal");if(modal)modal.hidden=true;m2RemountMain3D();}
       const m2TypeColors = ["#d9485f", "#2878d0", "#138a62", "#9b51c8", "#e07a18", "#087f8c", "#b43f8d", "#65731f"];
@@ -4221,16 +4221,11 @@
       function m2CorporateUsedTypes() {
         const map = new Map();
         m2LayoutState.racks.forEach((rack, index) => {
-          const name = rack.typeName || `Tip ${index + 1}`, key = `${name}|${rack.widthMm}|${rack.depthMm}|${rack.bays}|${rack.levels}|${rack.depth}`;
+          const name = rack.typeName || `Tip ${index + 1}`, key = `${rack.widthMm}|${rack.depthMm}|${rack.bays}|${rack.levels}|${rack.depth}|${rack.b2bLayout?.palletCount||0}|${rack.b2bLayout?.rowCount||0}`;
           if (!map.has(key)) map.set(key, { name, rackCount:0, footTeamCount:0, drawing:{...rack,totalWidth:rack.widthMm,railLength:rack.depthMm,plan:rack.plan} });
           const entry=map.get(key),rowCount=Math.max(1,Number(rack.b2bLayout?.rowCount)||1);entry.rackCount+=1;entry.footTeamCount+=rack.b2bLayout?2*rowCount-(rack.sharedFootWith?rowCount:0):0;
         });
-        if(m2ActiveModule==="b2b")m2SavedRackTypes.forEach((saved,index)=>{
-          const drawing=saved?.drawing;if(!drawing)return;
-          const name=saved.name||`Tip ${index+1}`,width=Number(drawing.totalWidth)||Number(drawing.widthMm)||0,depth=Number(drawing.railLength)||Number(drawing.depthMm)||0,key=`${name}|${width}|${depth}|${drawing.bays}|${drawing.levels}|${drawing.depth}`;
-          if(!map.has(key))map.set(key,{name,rackCount:1,footTeamCount:Math.max(2,2*(Number(drawing.b2bLayout?.rowCount)||1)),drawing});
-        });
-        return [...map.values()];
+        const types=[...map.values()];return m2ActiveModule==="b2b"?types.map((entry,index)=>({...entry,name:b2bTypeLetter("",index+1)})):types;
       }
       function m2CorporateHeader(title) { return `<header class="m2-corporate-page-header"><img src="/rafex-logo.png" alt="Rafex"><b>${esc(title)}</b></header>`; }
       function m2CorporatePalletTable(types, palletTotal, labels) {
