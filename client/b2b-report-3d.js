@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v13";
+  const VERSION = "front-side-capture-v14";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -461,11 +461,11 @@
       .m2-corporate-type-card>strong { font-size:13px !important; padding:3px !important; }
       .m2-corporate-view b { font-size:10px !important; height:20px; }
       .m2-corporate-bom-grid:not(.combined) { grid-template-columns:repeat(2,minmax(0,1fr)) !important; grid-template-rows:repeat(3,minmax(0,1fr)) !important; gap:3px 5px !important; }
-      .m2-corporate-bom-card h3 { font-size:10px !important; padding:4px 7px !important; }
-      .m2-corporate-bom-meta { font-size:7.4px !important; padding:2px 7px !important; }
-      .m2-corporate-bom-head { font-size:7.3px !important; }
-      .m2-corporate-bom-row { font-size:7.3px !important; min-height:0 !important; }
-      .m2-corporate-bom-head span,.m2-corporate-bom-row span { padding:2px 4px !important; }
+      .m2-corporate-bom-card h3 { font-size:13px !important; line-height:1 !important; padding:4px 7px !important; }
+      .m2-corporate-bom-meta { font-size:9.5px !important; line-height:1 !important; padding:2px 7px !important; }
+      .m2-corporate-bom-head { font-size:9.5px !important; line-height:1 !important; }
+      .m2-corporate-bom-row { font-size:9.2px !important; line-height:1 !important; min-height:0 !important; font-weight:700 !important; }
+      .m2-corporate-bom-head span,.m2-corporate-bom-row span { padding:3px 4px !important; }
       @media print {
         #m2A4PrintSheet { overflow:hidden !important; contain:layout paint; }
         #m2A4PrintSheet.rafex-variants-active .m2-a4-floor,
