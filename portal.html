@@ -3002,6 +3002,8 @@
       function m2EnableCopyMode() { m2CopyMode=true;m2CustomizeMode=false;m2CloseSymbolDialog();$("m2FloorStatus").textContent="Kopyalamak istediğin raf veya sembole tıkla."; }
       function m2CopySymbol(symbol) { const copy={...symbol,id:Date.now(),x:symbol.x+18,y:symbol.y+18};m2LayoutSymbols.push(copy);m2SelectedSymbolId=copy.id;m2RenderLayout();$("m2FloorStatus").textContent="Sembol kopyalandı."; }
       function m2SymbolBounds(symbol,x=symbol.x,y=symbol.y){const quarter=Math.abs((Number(symbol.angle)||0)%180)===90,cx=x+symbol.w/2,cy=y+symbol.h/2,w=quarter?symbol.h:symbol.w,h=quarter?symbol.w:symbol.h;return{left:cx-w/2,right:cx+w/2,top:cy-h/2,bottom:cy+h/2,cx,cy};}
+      function m2RackContainsCanvasPoint(rack,point){const cx=rack.x+rack.w/2,cy=rack.y+rack.h/2,radians=(Number(rack.angle)||0)*Math.PI/180,cos=Math.cos(radians),sin=Math.sin(radians),dx=point.x-cx,dy=point.y-cy,localX=dx*cos+dy*sin,localY=-dx*sin+dy*cos;return Math.abs(localX)<=rack.w/2&&Math.abs(localY)<=rack.h/2;}
+      function m2BarrierHostRack(symbol){if(symbol?.type!=="barrier")return null;const box=m2SymbolBounds(symbol),matches=m2LayoutState.racks.filter((rack)=>m2RackContainsCanvasPoint(rack,{x:box.cx,y:box.cy}));return matches.find((rack)=>Number(rack.b2b?.tunnelHeight)>0)||matches[0]||null;}
       function m2RackOverlapsBlockingSymbol(rack,x=rack.x,y=rack.y,angle=rack.angle){const a=m2RackBounds(rack,x,y,angle);return m2LayoutSymbols.some((symbol)=>{if(!symbol.blocking)return false;const b=m2SymbolBounds(symbol);return a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;});}
       function m2InitLayoutEditor() {
         const svg = $("m2LayoutSvg");
@@ -4608,6 +4610,7 @@
         const selectedSymbol=m2LayoutSymbols.find((symbol)=>symbol.id===m2SelectedSymbolId);if(selectedSymbol)html+=m2SymbolDistanceGuides(selectedSymbol);
         html += m2MetricRuler();
         layer.innerHTML = html;
+        layer.querySelectorAll('[data-layout-symbol]').forEach((node)=>{const symbol=m2LayoutSymbols.find((item)=>item.id===Number(node.dataset.layoutSymbol));if(symbol?.type!=="barrier")return;const host=m2BarrierHostRack(symbol),tunnel=host&&Number(host.b2b?.tunnelHeight)>0;if(tunnel){symbol.tunnelRackId=host.id;node.dataset.tunnelRack=String(host.id);node.classList.add("m2-tunnel-barrier-overlay");layer.appendChild(node);}else{delete symbol.tunnelRackId;node.classList.remove("m2-tunnel-barrier-overlay");node.removeAttribute("data-tunnel-rack");}});
         layer.querySelectorAll(".m2-dimension-movable[data-dimension-key]").forEach((node)=>{
           node.addEventListener("pointerdown",(event)=>{
             if(m2LayoutTool!=="dimension")return;
