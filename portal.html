@@ -1567,6 +1567,8 @@
       .m2-saved-type { min-width: 150px; padding: 8px 10px; border: 1px solid #cbd8cf; border-radius: 8px; background: #fff; color: #405248; text-align: left; cursor: pointer; }
       .m2-saved-type-preview { width:36px; min-width:36px; padding:0; display:grid; place-items:center; border:1px solid #9fb5a7; border-radius:8px; background:#fff; color:var(--g); font:900 16px/1 Georgia,serif; cursor:pointer; }
       .m2-saved-type-preview:hover,.m2-saved-type-preview:focus-visible { background:var(--g); color:#fff; outline:0; }
+      .m2-saved-type-copy { min-width:58px; padding:0 9px; display:grid; place-items:center; border:1px solid #9fb5a7; border-radius:8px; background:#edf5f0; color:var(--g); font:900 9px/1 Arial,sans-serif; cursor:pointer; }
+      .m2-saved-type-copy:hover,.m2-saved-type-copy:focus-visible { background:var(--g); color:#fff; outline:0; }
       .m2-saved-type.active { border-color: #e0a600; box-shadow: 0 0 0 2px #ffe898; background: #fffbed; }
       .m2-saved-type b, .m2-saved-type small { display: block; }
       .m2-saved-type small { margin-top: 3px; color: #6c7a72; font-size: 8px; }
@@ -3131,7 +3133,7 @@
       function m2RenderSavedRackTypes() {
         const list = $("m2SavedTypeList"); if (!list) return;
         if ($("m2SavedTypeCount")) $("m2SavedTypeCount").textContent = `(${m2SavedRackTypes.length})`;
-        list.innerHTML = m2SavedRackTypes.length ? m2SavedRackTypes.map((entry, index) => { const color = m2TypeColor(entry.name), palletCount = (Number(entry.drawing.bays) || 0) * (Number(entry.drawing.levels) || 0) * (Number(entry.drawing.depth) || 0), footLabel = entry.drawing.footProfile ? `${entry.drawing.footProfile} · Ly ${fmt(entry.drawing.footLy)} mm` : `${fmt(entry.drawing.footType)} mm`, levelDetail=m2LevelDetail(entry.drawing); return `<div class="m2-saved-type-row"><button type="button" class="m2-saved-type${index === m2SelectedSavedType ? " active" : ""}" style="border-color:${color};box-shadow:inset 5px 0 ${color};background:${color}12" onclick="m2HandleSavedRackTypeClick(${index},event)" title="Çift tıklayarak alt çizime ekle"><b><i class="m2-type-swatch" style="background:${color}"></i>${esc(entry.name)} · ${esc((entry.drawing.systemType || "fifo").toUpperCase())}</b><small>${fmt(entry.drawing.totalWidth)} × ${fmt(entry.drawing.railLength)} mm · ${fmt(entry.drawing.bays)} göz · ${esc(levelDetail)} · ${fmt(entry.drawing.depth)} derinlik · <strong>${fmt(palletCount)} palet</strong> · Palet ${fmt(entry.drawing.palW)} × ${fmt(entry.drawing.palD)} mm · Ayak ${esc(footLabel)}</small></button>${m2ActiveModule === "b2b" ? `<button type="button" class="m2-saved-type-preview" aria-label="${esc(entry.name)} 3D önizleme" title="Salt okunur 3D önizleme" onclick="event.stopPropagation();m2OpenSavedRackPreview(${index})">i</button>` : ""}<button type="button" class="m2-type-delete" aria-label="${esc(entry.name)} kaydını sil" title="Raf tipini sil" onclick="m2DeleteSavedRackType(${Number(entry.id)})">×</button></div>`; }).join("") : `<span class="m2-floor-status">Henüz kayıtlı raf tipi yok.</span>`;
+        list.innerHTML = m2SavedRackTypes.length ? m2SavedRackTypes.map((entry, index) => { const color = m2TypeColor(entry.name), palletCount = (Number(entry.drawing.bays) || 0) * (Number(entry.drawing.levels) || 0) * (Number(entry.drawing.depth) || 0), footLabel = entry.drawing.footProfile ? `${entry.drawing.footProfile} · Ly ${fmt(entry.drawing.footLy)} mm` : `${fmt(entry.drawing.footType)} mm`, levelDetail=m2LevelDetail(entry.drawing); return `<div class="m2-saved-type-row"><button type="button" class="m2-saved-type${index === m2SelectedSavedType ? " active" : ""}" style="border-color:${color};box-shadow:inset 5px 0 ${color};background:${color}12" onclick="m2HandleSavedRackTypeClick(${index},event)" title="Seç · çift tıklayarak alt çizime ekle"><b><i class="m2-type-swatch" style="background:${color}"></i>${esc(entry.name)} · ${esc((entry.drawing.systemType || "fifo").toUpperCase())}</b><small>${fmt(entry.drawing.totalWidth)} × ${fmt(entry.drawing.railLength)} mm · ${fmt(entry.drawing.bays)} göz · ${esc(levelDetail)} · ${fmt(entry.drawing.depth)} derinlik · <strong>${fmt(palletCount)} palet</strong> · Palet ${fmt(entry.drawing.palW)} × ${fmt(entry.drawing.palD)} mm · Ayak ${esc(footLabel)}</small></button>${m2ActiveModule === "b2b" ? `<button type="button" class="m2-saved-type-preview" aria-label="${esc(entry.name)} 3D önizleme" title="Salt okunur 3D önizleme" onclick="event.stopPropagation();m2OpenSavedRackPreview(${index})">i</button><button type="button" class="m2-saved-type-copy" aria-label="${esc(entry.name)} tipini üst düzenleyiciye kopyala" title="Üstte düzenlemek için kopyala" onclick="event.stopPropagation();m2CopySavedRackType(${index})">KOPYALA</button>` : ""}<button type="button" class="m2-type-delete" aria-label="${esc(entry.name)} kaydını sil" title="Raf tipini sil" onclick="m2DeleteSavedRackType(${Number(entry.id)})">×</button></div>`; }).join("") : `<span class="m2-floor-status">Henüz kayıtlı raf tipi yok.</span>`;
         m2RenderSelectedRackInfo();
       }
       function m2OpenSavedRackPreview(index) {
@@ -3200,14 +3202,23 @@
         m2PrepareSavedFootProfile(drawing); if (m2ActiveModule === "b2b") b2bApplySavedInputState(drawing.b2b); drawMekik2(); m2RenderSavedRackTypes(); m2RenderLayout();
         $("m2FloorStatus").textContent = `${entry.name} yüklendi. Raf Ekle ile aynı tipi yerleşime ekleyebilirsin.`;
       }
+      function m2ChooseSavedRackType(index) {
+        const entry=m2SavedRackTypes[index];if(!entry?.drawing)return;
+        m2SelectedSavedType=index;m2LayoutState.selected=null;m2RenderSavedRackTypes();m2RenderLayout();
+        $("m2FloorStatus").textContent=`${entry.name} seçildi. Üstte düzenlemek için Kopyala düğmesini kullanabilirsin.`;
+      }
+      function m2CopySavedRackType(index) {
+        m2SelectSavedRackType(index);
+        const entry=m2SavedRackTypes[index];if(entry)$("m2FloorStatus").textContent=`${entry.name} üst düzenleyiciye kopyalandı.`;
+      }
       function m2HandleSavedRackTypeClick(index, event) {
         clearTimeout(m2SavedTypeClickTimer);
         if (Number(event?.detail) >= 2) {
-          m2SelectSavedRackType(index);
+          m2ChooseSavedRackType(index);
           m2AddSelectedSavedRack();
           return;
         }
-        m2SavedTypeClickTimer = setTimeout(() => m2SelectSavedRackType(index), 240);
+        m2SavedTypeClickTimer = setTimeout(() => m2ChooseSavedRackType(index), 240);
       }
       async function m2SaveRackType() {
         const isB2B = m2ActiveModule === "b2b";
