@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v11";
+  const VERSION = "front-side-capture-v12";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -185,6 +185,7 @@
       const result = await capture(options, {
         width: 1200,
         height: 760,
+        cameraPadding: 1.22,
         frontDimensions: { levels: true, markers: true, eye: true, width: options.dimensions?.width===true, depth: false },
         sideDimensions: { levels: false, markers: false, eye: false, width: false, depth: true },
         side: "right",
@@ -272,7 +273,7 @@
       const base={...moduleOptions[0],moduleCount:moduleOptions.length,moduleOptions,showPallets:true};
       const capture=window.RafexB2BViewer?.captureViews;
       if(typeof capture!=="function")throw new Error("Birleşik B2B 3D yakalama servisi hazır değil.");
-      const result=await capture(base,{width:1800,height:900,frontDimensions:{levels:true,markers:true,eye:false,width:base.dimensions?.width===true,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"});
+      const result=await capture(base,{width:1800,height:900,cameraPadding:1.10,frontDimensions:{levels:true,markers:true,eye:false,width:base.dimensions?.width===true,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"});
       combinedVariantCache={signature,front:result.front,side:result.side};return combinedVariantCache;
     })().finally(()=>{combinedVariantPending=null;});
     return combinedVariantPending;
@@ -456,6 +457,20 @@
       .rafex-combined-front .rafex-report-3d-frame { overflow:hidden; }
       .rafex-combined-front:not(:first-child) .rafex-report-3d-frame img { transform:scale(1.18); transform-origin:center right; }
       .rafex-combined-side { border-left:1px solid #c6d2dc !important; }
+      .m2-corporate-type-grid { gap:2px !important; }
+      .m2-corporate-type-card>strong { font-size:13px !important; padding:3px !important; }
+      .m2-corporate-view b { font-size:10px !important; height:20px; }
+      .m2-corporate-bom-grid.count-1 { grid-template-columns:1fr !important; grid-template-rows:minmax(0,1fr) !important; }
+      .m2-corporate-bom-grid.count-2 { grid-template-columns:1fr !important; grid-template-rows:repeat(2,minmax(0,1fr)) !important; }
+      .m2-corporate-bom-grid.count-3 { grid-template-columns:1fr !important; grid-template-rows:repeat(3,minmax(0,1fr)) !important; }
+      .m2-corporate-bom-grid.count-1 .m2-corporate-bom-card,
+      .m2-corporate-bom-grid.count-2 .m2-corporate-bom-card,
+      .m2-corporate-bom-grid.count-3 .m2-corporate-bom-card { height:100%; }
+      .m2-corporate-bom-card h3 { font-size:13px !important; padding:8px 10px !important; }
+      .m2-corporate-bom-meta { font-size:9px !important; padding:6px 10px !important; }
+      .m2-corporate-bom-head { font-size:9px !important; }
+      .m2-corporate-bom-row { font-size:9px !important; min-height:22px !important; }
+      .m2-corporate-bom-head span,.m2-corporate-bom-row span { padding:5px 8px !important; }
       @media print {
         #m2A4PrintSheet { overflow:hidden !important; contain:layout paint; }
         #m2A4PrintSheet.rafex-variants-active .m2-a4-floor,

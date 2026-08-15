@@ -16,7 +16,7 @@ const SOURCE_TRAVERSE_X_OFFSET = 79.15549;
 const SOURCE_TRAVERSE_FRONT_OFFSET = 81.59595;
 const SOURCE_TRAVERSE_BACK_OFFSET = 1077.32687;
 const SOURCE_LOAD_BOTTOM = 227.79448;
-const ASSET_VERSION = "b2b-dimension-rules-518";
+const ASSET_VERSION = "b2b-detail-layout-camera-519";
 const COLORS = {
   ral5010: 0x005078,
   ral5015: 0x287ab5,
@@ -457,7 +457,8 @@ class B2BViewer {
     const traverseCount = this.options.firstPalletPosition === "traverse" ? this.options.levels : Math.max(0, this.options.levels - 1);
 
     if (this.options.dimensions.levels && traverseCount > 0) {
-      this.addVerticalDimension(levelsLayer, lineX, frontY, 0, this.traverseTop(0), `Z+TRAVERS  ·  ${this.dimensionValue(this.traverseTop(0))}`, 0);
+      const firstLevelHeight=this.palletHeightAt(0)+this.options.palletTraverseGap+this.options.traverseHeight;
+      this.addVerticalDimension(levelsLayer,lineX,frontY,0,firstLevelHeight,`Z+TRAVERS  ·  ${this.dimensionValue(firstLevelHeight)}`,0);
       for (let level = 1; level < traverseCount; level += 1) {
         this.addVerticalDimension(
           levelsLayer,
@@ -705,6 +706,7 @@ async function captureB2BViews(options = {}, settings = {}) {
         label.userData.rafexCaptureScaleApplied = true;
       });
       viewer.setView(view);
+      viewer.zoom(Math.max(1,Number(settings.cameraPadding)||1.16));
       viewer.controls.update();
       viewer.renderer.render(viewer.scene, viewer.camera);
       return canvas.toDataURL("image/png");
