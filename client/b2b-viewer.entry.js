@@ -67,7 +67,7 @@ class B2BViewer {
     this.controls.screenSpacePanning = true;
     this.controls.minDistance = 500;
     this.controls.maxDistance = 100000;
-    this.controls.autoRotate = true;
+    this.controls.autoRotate = false;
     this.controls.autoRotateSpeed = 0.65;
 
     this.scene.add(new THREE.HemisphereLight(0xffffff, 0x6f5960, 2.1));
