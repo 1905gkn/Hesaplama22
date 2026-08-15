@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v22";
+  const VERSION = "front-side-capture-v23";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
