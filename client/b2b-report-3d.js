@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v31";
+  const VERSION = "front-side-capture-v32";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -524,7 +524,8 @@
       .rafex-variant-pair { display:grid; grid-template-rows:auto minmax(0,1.45fr) minmax(0,1fr); gap:4px; min-width:0; min-height:0; background:#fff; border:1px solid #d7e0e6; border-radius:6px; padding:5px; overflow:hidden; }
       .rafex-variant-title { text-align:center; font-size:10px; color:#073357; }
       .rafex-variant-pair .m2-report-elevation { min-width:0; min-height:0; height:100%; overflow:hidden; background:#fff; }
-      .rafex-combined-page .m2-corporate-type-grid { grid-template-rows:minmax(0,1fr) !important; }
+      .rafex-combined-page .m2-corporate-type-grid { grid-template-rows:repeat(2,minmax(0,1fr)) !important; }
+      .rafex-combined-page .m2-corporate-type-grid>.m2-corporate-type-card:only-child { grid-row:1 / -1; }
       .rafex-combined-type-card { grid-template-columns:9% minmax(0,72%) minmax(0,19%) !important; }
       .rafex-combined-fronts,.rafex-combined-side { display:flex; width:100%; height:100%; min-width:0; min-height:0; overflow:hidden; background:#fff; }
       .rafex-combined-fronts .rafex-true-combined { width:100%; height:100%; display:grid; place-items:center; overflow:hidden; background:#fff; }
