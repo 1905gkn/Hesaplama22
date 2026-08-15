@@ -711,7 +711,7 @@ async function captureB2BViews(options = {}, settings = {}) {
     });
     viewer = new B2BViewer(canvas, options);
     await ready;
-    viewer.renderer.setPixelRatio(clamp(Number(settings.pixelRatio) || 2, 1, 2));
+    viewer.renderer.setPixelRatio(clamp(Number(settings.pixelRatio) || 2, 1, 2.5));
     viewer.onResize();
     viewer.setAutoRotate(false);
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
@@ -726,7 +726,7 @@ async function captureB2BViews(options = {}, settings = {}) {
         label.userData.rafexCaptureScaleApplied = true;
       });
       viewer.setView(view);
-      viewer.zoom(Math.max(1,Number(settings.cameraPadding)||1.16));
+      viewer.zoom(clamp(Number(settings.cameraPadding)||1.16,.72,1.6));
       viewer.controls.update();
       viewer.renderer.render(viewer.scene, viewer.camera);
       return canvas.toDataURL("image/png");
