@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# B2B safe level-based report build v40
+# B2B portrait section report build v41
 set -euo pipefail
 
 project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -21,7 +21,7 @@ const outputPath = process.argv[3];
 let source = fs.readFileSync(sourcePath, 'utf8');
 
 if (!source.includes('row.scale.y=-1')) throw new Error('B2B çift sıra yönü kaynakta bulunamadı.');
-source = source.replace('const ASSET_VERSION = "b2b-detail-layout-camera-519";', 'const ASSET_VERSION = "b2b-safe-level-report-camera-584";');
+source = source.replace('const ASSET_VERSION = "b2b-detail-layout-camera-519";', 'const ASSET_VERSION = "b2b-portrait-section-camera-591";');
 
 const oldFit = 'const fitWidth = size.x / (2 * Math.tan(vFov / 2) * Math.max(this.camera.aspect, 0.25));';
 const newFit = 'const visibleWidth = view === "side" ? size.z : size.x;\n    const fitWidth = visibleWidth / (2 * Math.tan(vFov / 2) * Math.max(this.camera.aspect, 0.25));';
@@ -74,9 +74,9 @@ let portalSource = fs.readFileSync(portalPath, 'utf8')
   .replaceAll('__M2_PALETLI_SIDE_BASE64__', fs.readFileSync(paletliPath).toString('base64'))
   .replaceAll('__M2_AYAK2_FRONT_BASE64__', ayak2FrontBase64)
   .replaceAll('__M2_PALLET_DEFINITION_BASE64__', fs.readFileSync(palletDefinitionPath).toString('base64'))
-  .replaceAll('b2b-double-row-side-ties-367', 'b2b-safe-level-report-camera-584');
-portalSource = portalSource.replace(/<\/body>\s*<\/html>\s*$/i, `<script data-rafex-b2b-visual-fixes="back-to-back-reference-v2">\n${b2bVisualFixes}\n</script>\n<script data-rafex-b2b-report-3d="front-side-capture-v35">\n${b2bReport3d}\n</script>\n<script data-rafex-b2b-report-sections="corporate-type-sections-v5">\n${b2bReportSections}\n</script>\n</body>\n</html>`);
-if (!portalSource.includes('data-rafex-b2b-visual-fixes="back-to-back-reference-v2"') || !portalSource.includes('data-rafex-b2b-report-3d="front-side-capture-v35"') || !portalSource.includes('data-rafex-b2b-report-sections="corporate-type-sections-v5"')) {
+  .replaceAll('b2b-double-row-side-ties-367', 'b2b-portrait-section-camera-591');
+portalSource = portalSource.replace(/<\/body>\s*<\/html>\s*$/i, `<script data-rafex-b2b-visual-fixes="back-to-back-reference-v2">\n${b2bVisualFixes}\n</script>\n<script data-rafex-b2b-report-3d="front-side-capture-v35">\n${b2bReport3d}\n</script>\n<script data-rafex-b2b-report-sections="corporate-type-sections-v6">\n${b2bReportSections}\n</script>\n</body>\n</html>`);
+if (!portalSource.includes('data-rafex-b2b-visual-fixes="back-to-back-reference-v2"') || !portalSource.includes('data-rafex-b2b-report-3d="front-side-capture-v35"') || !portalSource.includes('data-rafex-b2b-report-sections="corporate-type-sections-v6"')) {
   throw new Error('B2B 3D görünüş betikleri portala eklenemedi.');
 }
 const unresolvedAsset = portalSource.match(/__[A-Z0-9_]+_BASE64__/);
