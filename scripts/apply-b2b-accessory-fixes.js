@@ -5,6 +5,16 @@ function replaceRequired(source, from, to, label) {
   return source.replace(from, to);
 }
 
+const viewerPath = 'client/b2b-viewer.entry.js';
+let viewer = fs.readFileSync(viewerPath, 'utf8');
+viewer = replaceRequired(
+  viewer,
+  '    for(let rowIndex=0;rowIndex<rowCount;rowIndex+=1){\n      const row=new THREE.Group();row.name=`B2B ${rowIndex+1}. sıra`;',
+  '    for(let rowIndex=0;rowIndex<rowCount;rowIndex+=1){\n      this.accessoryRowIndex=rowIndex;\n      const row=new THREE.Group();row.name=`B2B ${rowIndex+1}. sıra`;',
+  'B2B sıra indeksi',
+);
+fs.writeFileSync(viewerPath, viewer);
+
 const buildPath = 'scripts/build.sh';
 let build = fs.readFileSync(buildPath, 'utf8');
 
@@ -21,13 +31,6 @@ const nameFixes = [
   ['tray.name = `Tava K${humanLevel}-${pieceIndex + 1} · ${pieceWidth} mm`;', 'tray.name = "Tava K" + humanLevel + "-" + (pieceIndex + 1) + " · " + pieceWidth + " mm";'],
 ];
 for (const [from, to] of nameFixes) build = replaceRequired(build, from, to, `Aksesuar isim satırı: ${from}`);
-
-build = replaceRequired(
-  build,
-  '    for(let rowIndex=0;rowIndex<rowCount;rowIndex+=1){\n      const row=new THREE.Group();row.name=`B2B ${rowIndex+1}. sıra`;',
-  '    for(let rowIndex=0;rowIndex<rowCount;rowIndex+=1){\n      this.accessoryRowIndex=rowIndex;\n      const row=new THREE.Group();row.name=`B2B ${rowIndex+1}. sıra`;',
-  'B2B sıra indeksi',
-);
 
 build = replaceRequired(
   build,
