@@ -41,6 +41,8 @@ jobs:
           node /tmp/apply-b2b-accessory-placement-v2.cjs
           cp scripts/apply-b2b-accessory-fit-v3.js /tmp/apply-b2b-accessory-fit-v3.cjs
           node /tmp/apply-b2b-accessory-fit-v3.cjs
+          cp scripts/apply-b2b-accessory-topseat-v4.js /tmp/apply-b2b-accessory-topseat-v4.cjs
+          node /tmp/apply-b2b-accessory-topseat-v4.cjs
 
       - name: Build production artifact
         run: npx vercel@58.1.0 build --prod --token="${{ secrets.VERCEL_TOKEN }}" --scope=gokhankaya-4823s-projects
