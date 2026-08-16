@@ -32,6 +32,24 @@ jobs:
       - name: Pull Vercel project settings
         run: npx vercel@58.1.0 pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}" --scope=gokhankaya-4823s-projects
 
+      - name: Normalize B2B accessory build template
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = 'scripts/build.sh';
+          let source = fs.readFileSync(path, 'utf8');
+          const fixes = [
+            ['stop.name = `Palet Dayama K${humanLevel}`;', 'stop.name = "Palet Dayama K" + humanLevel;'],
+            ['h.name = `H Travers K${humanLevel}`;', 'h.name = "H Travers K" + humanLevel;'],
+            ['tray.name = `Tava K${humanLevel}-${pieceIndex + 1} · ${pieceWidth} mm`;', 'tray.name = "Tava K" + humanLevel + "-" + (pieceIndex + 1) + " · " + pieceWidth + " mm";'],
+          ];
+          for (const [from, to] of fixes) {
+            if (!source.includes(from)) throw new Error(`Aksesuar build satırı bulunamadı: ${from}`);
+            source = source.replace(from, to);
+          }
+          fs.writeFileSync(path, source);
+          NODE
+
       - name: Build production artifact
         run: npx vercel@58.1.0 build --prod --token="${{ secrets.VERCEL_TOKEN }}" --scope=gokhankaya-4823s-projects
 
