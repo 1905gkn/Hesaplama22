@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "corporate-type-sections-v4";
+  const VERSION = "corporate-type-sections-v5";
 
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const num = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
@@ -22,17 +22,19 @@
     const rackDepth = palletDepth * rowCount + (rowCount === 2 ? rowGap : 0);
     const dominantSize = Math.max(rackWidth, estimatedHeight, rackDepth);
 
-    // 5 kata kadar daha dolu kadraj; 6+ katlarda taşmayı önlemek için kontrollü geri çekilme.
-    let padding = levels <= 5 ? 0.70 : levels <= 8 ? 0.77 : 0.83;
-    if (dominantSize > 9000) padding += Math.min(0.05, (dominantSize - 9000) / 90000);
+    // Kullanıcı referansı:
+    // 4 kat ve altı -> daha yakın kadraj.
+    // 5 kat ve üstü -> sayfa yüksekliğini mümkün olduğunca doldur, ama hiçbir köşeyi kesme.
+    let padding = levels <= 4 ? 0.88 : levels <= 7 ? 0.94 : 0.98;
+    if (dominantSize > 10000) padding += Math.min(0.04, (dominantSize - 10000) / 100000);
     if (rowCount === 2 && rackDepth > 3200) padding += 0.015;
-    return clamp(padding, 0.70, 0.90);
+    return clamp(padding, 0.88, 1.03);
   }
 
   function installAdaptiveCaptureZoom() {
     const service = window.RafexB2BViewer;
     if (!service || typeof service.captureViews !== "function") return false;
-    if (service.captureViews.__rafexAdaptiveReportZoomV4) return true;
+    if (service.captureViews.__rafexAdaptiveReportZoomV5) return true;
 
     const originalCaptureViews = service.captureViews.__rafexOriginal || service.captureViews;
     const wrappedCaptureViews = function (options, settings = {}) {
@@ -43,7 +45,7 @@
         cameraPadding: Math.min(requested, adaptive),
       });
     };
-    wrappedCaptureViews.__rafexAdaptiveReportZoomV4 = true;
+    wrappedCaptureViews.__rafexAdaptiveReportZoomV5 = true;
     wrappedCaptureViews.__rafexOriginal = originalCaptureViews;
     service.captureViews = wrappedCaptureViews;
     return true;
@@ -89,7 +91,7 @@
   }
 
   function installCustomizationTypeRules() {
-    if (typeof window.m2ApplyRackCustomization !== "function" || window.m2ApplyRackCustomization.__rafexTechnicalTypesV4) return;
+    if (typeof window.m2ApplyRackCustomization !== "function" || window.m2ApplyRackCustomization.__rafexTechnicalTypesV5) return;
     const originalApply = window.m2ApplyRackCustomization;
     const wrappedApply = function (...args) {
       let rack = null;
@@ -98,14 +100,13 @@
         const nameInput = document.getElementById("m2CustomizeName");
         const entered = String(nameInput?.value || "").trim();
         const current = String(rack.typeName || "").trim();
-        // Teknik özellik değiştiyse mevcut tipin üzerine yazma; kullanıcı yeni ad vermediyse otomatik yeni tip aç.
         if (!entered || entered.toLocaleLowerCase("tr-TR") === current.toLocaleLowerCase("tr-TR") || entered === "Özel Raf") {
           if (nameInput) nameInput.value = nextCustomizedTypeName(rack);
         }
       }
       return originalApply.apply(this, args);
     };
-    wrappedApply.__rafexTechnicalTypesV4 = true;
+    wrappedApply.__rafexTechnicalTypesV5 = true;
     window.m2ApplyRackCustomization = wrappedApply;
   }
 
@@ -148,17 +149,17 @@
       .rafex-combined-type-page .m2-corporate-type-grid>.m2-corporate-type-card:nth-child(2){grid-column:2!important}
       .rafex-combined-type-page .rafex-combined-type-card {display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;grid-template-rows:30px minmax(0,1fr)!important;gap:0!important}
       .rafex-combined-type-page .rafex-combined-type-card>strong {grid-column:1/-1!important;grid-row:1!important;align-self:center!important}
-      .rafex-combined-type-page .rafex-combined-type-card>.m2-corporate-view {grid-row:2!important;min-width:0!important;min-height:0!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important}
+      .rafex-combined-type-page .rafex-combined-type-card>.m2-corporate-view {grid-row:2!important;min-width:0!important;min-height:0!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:4px!important}
       .rafex-combined-type-page .rafex-combined-type-card>.m2-corporate-view:first-of-type {grid-column:1!important;border-right:1px solid #c6d2dc!important}
       .rafex-combined-type-page .rafex-combined-type-card>.m2-corporate-view:nth-of-type(2) {grid-column:2!important}
       .rafex-combined-type-page .m2-corporate-view .rafex-report-3d-frame {width:100%!important;height:100%!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important}
-      .rafex-combined-type-page .m2-corporate-view .rafex-report-3d-frame img {width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:contain!important;object-position:center center!important}
+      .rafex-combined-type-page .m2-corporate-view .rafex-report-3d-frame img {width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center center!important}
     `;
     document.head.appendChild(style);
   }
 
   function installHooks() {
-    if (typeof window.m2RenderCorporateReport === "function" && !window.m2RenderCorporateReport.__rafexCombinedTypesV4) {
+    if (typeof window.m2RenderCorporateReport === "function" && !window.m2RenderCorporateReport.__rafexCombinedTypesV5) {
       const previousRender = window.m2RenderCorporateReport;
       const wrappedRender = function (...args) {
         const result = previousRender.apply(this, args);
@@ -166,19 +167,19 @@
         arrangeTypePages(document.getElementById("m2CorporatePreview"));
         return result;
       };
-      wrappedRender.__rafexCombinedTypesV4 = true;
+      wrappedRender.__rafexCombinedTypesV5 = true;
       window.m2RenderCorporateReport = wrappedRender;
     }
 
     const previousPrepare = window.__rafexPrepareCorporatePrint;
-    if (typeof previousPrepare === "function" && !previousPrepare.__rafexCombinedTypesV4) {
+    if (typeof previousPrepare === "function" && !previousPrepare.__rafexCombinedTypesV5) {
       const wrappedPrepare = async function (...args) {
         installAdaptiveCaptureZoom();
         await previousPrepare.apply(this, args);
         arrangeTypePages(document.getElementById("m2CorporatePrint"));
         arrangeTypePages(document.getElementById("m2CorporatePreview"));
       };
-      wrappedPrepare.__rafexCombinedTypesV4 = true;
+      wrappedPrepare.__rafexCombinedTypesV5 = true;
       window.__rafexPrepareCorporatePrint = wrappedPrepare;
     }
   }
