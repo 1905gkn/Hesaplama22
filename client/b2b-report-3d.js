@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v34";
+  const VERSION = "front-side-capture-v35";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -498,8 +498,8 @@
       }
       .m2-corporate-view .rafex-report-3d-frame,
       #m2CorporatePrint .m2-corporate-view .rafex-report-3d-frame {
-        width:100%; height:100%; min-width:0; min-height:0; display:grid;
-        place-items:center; overflow:hidden; background:#fff;
+        width:100%; height:auto !important; min-width:0; min-height:0; align-self:stretch;
+        display:grid; place-items:center; overflow:hidden; background:#fff; box-sizing:border-box;
       }
       .m2-corporate-view .rafex-report-3d-frame img,
       #m2CorporatePrint .m2-corporate-view .rafex-report-3d-frame img {
@@ -510,7 +510,7 @@
       }
       .m2-corporate-view .rafex-report-3d-frame img,
       #m2CorporatePrint .m2-corporate-view .rafex-report-3d-frame img {
-        max-width:100%; max-height:100%; padding:4px 2px; box-sizing:border-box;
+        max-width:100%; max-height:100%; padding:4px 3px 12px; box-sizing:border-box;
       }
       #m2A4Sheet.rafex-variants-active .m2-a4-floor,
       #m2A4Sheet.rafex-variants-active .m2-a4-side { display:none !important; }
@@ -526,7 +526,7 @@
       .rafex-variant-pair .m2-report-elevation { min-width:0; min-height:0; height:100%; overflow:hidden; background:#fff; }
       .rafex-combined-page .m2-corporate-type-grid { grid-template-rows:repeat(2,minmax(0,1fr)) !important; }
       .rafex-combined-page .m2-corporate-type-grid>.m2-corporate-type-card:only-child { grid-row:1 / -1; }
-      .rafex-combined-type-card { grid-template-columns:9% minmax(0,72%) minmax(0,19%) !important; }
+      .rafex-combined-type-card { grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important; }
       .rafex-combined-fronts,.rafex-combined-side { display:flex; width:100%; height:100%; min-width:0; min-height:0; overflow:hidden; background:#fff; }
       .rafex-combined-fronts .rafex-true-combined { width:100%; height:100%; display:grid; place-items:center; overflow:hidden; background:#fff; }
       .rafex-combined-fronts .rafex-true-combined img { display:block; width:100%; height:100%; object-fit:contain; }
@@ -552,9 +552,21 @@
         bottom:.9% !important; min-height:25px; max-height:30px; box-sizing:border-box;
         display:grid; place-items:center; padding:3px 10px !important; line-height:1.05 !important;
       }
-      .m2-corporate-type-card>strong { font-size:13px !important; padding:3px !important; }
+      .m2-corporate-type-card>strong {
+        grid-column:1 / -1; grid-row:1; min-width:0; min-height:0; height:28px;
+        flex-direction:row !important; justify-content:center !important; gap:12px !important;
+        font-size:13px !important; line-height:1 !important; padding:3px 8px !important; box-sizing:border-box;
+      }
+      .m2-corporate-type-card>strong small,
+      .m2-corporate-type-card>strong small.m2-corporate-unit-count {
+        margin:0 !important; padding:0 !important; border:0 !important; font-size:9px !important; line-height:1 !important;
+      }
       .m2-corporate-view b { font-size:10px !important; height:20px; }
-      .m2-corporate-type-card { grid-template-columns:12% 44% 44% !important; }
+      .m2-corporate-type-card {
+        grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+        grid-template-rows:28px minmax(0,1fr) !important;
+      }
+      .m2-corporate-type-card>.m2-corporate-view { grid-row:2; min-height:0; overflow:hidden; }
       .m2-corporate-bom-grid:not(.combined) { grid-template-columns:repeat(2,minmax(0,1fr)) !important; grid-template-rows:repeat(3,minmax(0,1fr)) !important; gap:3px 5px !important; }
       .m2-corporate-bom-card h3 { font-size:13px !important; line-height:1 !important; padding:4px 7px !important; }
       .m2-corporate-bom-meta { font-size:9.5px !important; line-height:1 !important; padding:2px 7px !important; }
