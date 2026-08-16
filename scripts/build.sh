@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# B2B portrait section report build v41
+# B2B shared front-side physical scale build v42
 set -euo pipefail
 
 project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -21,12 +21,50 @@ const outputPath = process.argv[3];
 let source = fs.readFileSync(sourcePath, 'utf8');
 
 if (!source.includes('row.scale.y=-1')) throw new Error('B2B çift sıra yönü kaynakta bulunamadı.');
-source = source.replace('const ASSET_VERSION = "b2b-detail-layout-camera-519";', 'const ASSET_VERSION = "b2b-portrait-section-camera-591";');
+source = source.replace('const ASSET_VERSION = "b2b-detail-layout-camera-519";', 'const ASSET_VERSION = "b2b-shared-section-scale-596";');
 
 const oldFit = 'const fitWidth = size.x / (2 * Math.tan(vFov / 2) * Math.max(this.camera.aspect, 0.25));';
 const newFit = 'const visibleWidth = view === "side" ? size.z : size.x;\n    const fitWidth = visibleWidth / (2 * Math.tan(vFov / 2) * Math.max(this.camera.aspect, 0.25));';
 if (!source.includes(oldFit)) throw new Error('B2B kamera genişlik hesabı bulunamadı.');
 source = source.replace(oldFit, newFit);
+
+const oldTakeStart = '    const take = (view, dimensions) => {\n';
+const oldTakeEnd = '      return canvas.toDataURL("image/png");\n    };';
+const takeStartIndex = source.indexOf(oldTakeStart);
+const takeEndIndex = source.indexOf(oldTakeEnd, takeStartIndex);
+if (takeStartIndex < 0 || takeEndIndex < 0) throw new Error('B2B rapor yakalama bloğu bulunamadı.');
+const takeEnd = takeEndIndex + oldTakeEnd.length;
+const newTake = `    let sharedFrontDistance = 0;
+    const capturePadding = clamp(Number(settings.cameraPadding)||1.16,.72,1.6);
+    const take = (view, dimensions) => {
+      viewer.update({ ...options, dimensions }, false);
+      viewer.dimensionLabels.forEach((label) => {
+        const baseScale = label?.userData?.baseScale;
+        if (!baseScale || label.userData.rafexCaptureScaleApplied) return;
+        baseScale.multiplyScalar(1.5);
+        label.scale.copy(baseScale);
+        label.userData.rafexCaptureScaleApplied = true;
+      });
+      viewer.setView(view);
+      const direction = viewer.camera.position.clone().sub(viewer.controls.target);
+      const fittedDistance = direction.length() * capturePadding;
+      let targetDistance = fittedDistance;
+      if (view === "front") {
+        sharedFrontDistance = fittedDistance;
+      } else if (view === "side" && sharedFrontDistance > 0) {
+        // Ön ve yan kesitte aynı fiziksel düşey ölçeği koru. Yan görünüş yalnızca
+        // kendi güvenli fit mesafesi daha büyükse taşmayı engellemek için geri çekilebilir.
+        targetDistance = Math.max(sharedFrontDistance, fittedDistance);
+      }
+      viewer.camera.position.copy(viewer.controls.target).add(direction.setLength(targetDistance));
+      viewer.camera.near = Math.max(5, targetDistance / 500);
+      viewer.camera.far = Math.max(200000, targetDistance * 12);
+      viewer.camera.updateProjectionMatrix();
+      viewer.controls.update();
+      viewer.renderer.render(viewer.scene, viewer.camera);
+      return canvas.toDataURL("image/png");
+    };`;
+source = source.slice(0, takeStartIndex) + newTake + source.slice(takeEnd);
 fs.writeFileSync(outputPath, source);
 NODE
 
@@ -74,7 +112,7 @@ let portalSource = fs.readFileSync(portalPath, 'utf8')
   .replaceAll('__M2_PALETLI_SIDE_BASE64__', fs.readFileSync(paletliPath).toString('base64'))
   .replaceAll('__M2_AYAK2_FRONT_BASE64__', ayak2FrontBase64)
   .replaceAll('__M2_PALLET_DEFINITION_BASE64__', fs.readFileSync(palletDefinitionPath).toString('base64'))
-  .replaceAll('b2b-double-row-side-ties-367', 'b2b-portrait-section-camera-591');
+  .replaceAll('b2b-double-row-side-ties-367', 'b2b-shared-section-scale-596');
 portalSource = portalSource.replace(/<\/body>\s*<\/html>\s*$/i, `<script data-rafex-b2b-visual-fixes="back-to-back-reference-v2">\n${b2bVisualFixes}\n</script>\n<script data-rafex-b2b-report-3d="front-side-capture-v35">\n${b2bReport3d}\n</script>\n<script data-rafex-b2b-report-sections="corporate-type-sections-v6">\n${b2bReportSections}\n</script>\n</body>\n</html>`);
 if (!portalSource.includes('data-rafex-b2b-visual-fixes="back-to-back-reference-v2"') || !portalSource.includes('data-rafex-b2b-report-3d="front-side-capture-v35"') || !portalSource.includes('data-rafex-b2b-report-sections="corporate-type-sections-v6"')) {
   throw new Error('B2B 3D görünüş betikleri portala eklenemedi.');
