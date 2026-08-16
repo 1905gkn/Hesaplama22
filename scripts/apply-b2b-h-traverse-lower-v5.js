@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 
 function replaceRequired(source, from, to, label) {
-  if (!source.includes(from)) throw new Error(`${label} bulunamadı.`);
+  if (!source.includes(from)) throw new Error(`${label} bulunamadi.`);
   return source.replace(from, to);
 }
 
@@ -11,16 +11,22 @@ let build = fs.readFileSync(buildPath, 'utf8');
 build = replaceRequired(
   build,
   'const ASSET_VERSION = "b2b-accessories-604";',
-  'const ASSET_VERSION = "b2b-accessories-605";',
-  'B2B H travers 50 mm alt kot surumu',
+  'const ASSET_VERSION = "b2b-accessories-606";',
+  'asset version',
 );
 
-// V3'teki H travers yonunu aynen koru. Sadece son oturma konumundan 50 mm asagi indir.
 build = replaceRequired(
   build,
   '          this.seatAccessoryOnTraverses(h, hSpan, 0.71);\n          section.add(h);',
   '          this.seatAccessoryOnTraverses(h, hSpan, 0.71);\n          h.position.z += 50;\n          section.add(h);',
-  'H travers 50 mm asagi kaydirma',
+  'H traverse offset',
+);
+
+build = replaceRequired(
+  build,
+  '            this.seatAccessoryOnTraverses(tray, traySpan, 0.14);\n            section.add(tray);',
+  '            this.seatAccessoryOnTraverses(tray, traySpan, 0.14);\n            tray.position.z += 50;\n            section.add(tray);',
+  'tray offset',
 );
 
 fs.writeFileSync(buildPath, build);
@@ -30,9 +36,9 @@ let ui = fs.readFileSync(uiPath, 'utf8');
 ui = replaceRequired(
   ui,
   "  const VERSION = 'b2b-accessories-v5';",
-  "  const VERSION = 'b2b-accessories-v6';",
-  'Aksesuar cache surumu',
+  "  const VERSION = 'b2b-accessories-v7';",
+  'ui version',
 );
 fs.writeFileSync(uiPath, ui);
 
-console.log('H travers yonu korunarak 50 mm asagi indirildi. Tava ve diger aksesuar yerlesimleri degistirilmedi.');
+console.log('H traverse and tray lowered by 50 mm without changing orientation.');
