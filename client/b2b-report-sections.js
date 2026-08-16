@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "corporate-type-sections-v3";
+  const VERSION = "corporate-type-sections-v4";
 
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const num = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
@@ -22,21 +22,19 @@
     const rackDepth = palletDepth * rowCount + (rowCount === 2 ? rowGap : 0);
     const dominantSize = Math.max(rackWidth, estimatedHeight, rackDepth);
 
-    // Küçük/orta raflarda daha yakın, büyük raflarda taşmayı engelleyecek kadar geri.
-    let padding = 0.76;
-    if (dominantSize > 4500) padding += Math.min(0.10, (dominantSize - 4500) / 55000);
-    if (dominantSize > 9000) padding += Math.min(0.04, (dominantSize - 9000) / 90000);
-    if (rowCount === 2 && rackDepth > 3000) padding += 0.015;
-    if (levels >= 8) padding += 0.015;
-    return clamp(padding, 0.76, 0.90);
+    // 5 kata kadar daha dolu kadraj; 6+ katlarda taşmayı önlemek için kontrollü geri çekilme.
+    let padding = levels <= 5 ? 0.70 : levels <= 8 ? 0.77 : 0.83;
+    if (dominantSize > 9000) padding += Math.min(0.05, (dominantSize - 9000) / 90000);
+    if (rowCount === 2 && rackDepth > 3200) padding += 0.015;
+    return clamp(padding, 0.70, 0.90);
   }
 
   function installAdaptiveCaptureZoom() {
     const service = window.RafexB2BViewer;
     if (!service || typeof service.captureViews !== "function") return false;
-    if (service.captureViews.__rafexAdaptiveReportZoom) return true;
+    if (service.captureViews.__rafexAdaptiveReportZoomV4) return true;
 
-    const originalCaptureViews = service.captureViews;
+    const originalCaptureViews = service.captureViews.__rafexOriginal || service.captureViews;
     const wrappedCaptureViews = function (options, settings = {}) {
       const requested = num(settings.cameraPadding, 1.16);
       const adaptive = adaptiveReportPadding(options || {});
@@ -45,22 +43,80 @@
         cameraPadding: Math.min(requested, adaptive),
       });
     };
-    wrappedCaptureViews.__rafexAdaptiveReportZoom = true;
+    wrappedCaptureViews.__rafexAdaptiveReportZoomV4 = true;
     wrappedCaptureViews.__rafexOriginal = originalCaptureViews;
     service.captureViews = wrappedCaptureViews;
     return true;
   }
 
+  function customizationSignatureFromRack(rack) {
+    return JSON.stringify({
+      palletCount: Math.round(num(rack?.b2bLayout?.palletCount ?? rack?.bays, 1)),
+      levels: Math.round(num(rack?.levels, 1)),
+      palletHeight: num(rack?.palletHeight, 1200),
+      rowCount: Math.round(num(rack?.b2bLayout?.rowCount, 1)),
+      rowGap: num(rack?.b2bLayout?.rowGap, 0),
+      customLevels: Array.isArray(rack?.b2b?.customLevels) ? rack.b2b.customLevels.map((item) => ({ interval:num(item?.interval), palletHeight:num(item?.palletHeight) })) : [],
+      tunnelHeight: num(rack?.b2b?.tunnelHeight, 0),
+    });
+  }
+
+  function customizationSignatureFromForm() {
+    const manual = document.getElementById("m2CustomizeManualLevels")?.checked === true;
+    const customLevels = manual ? [...document.querySelectorAll("#m2CustomizeLevelRows .m2-custom-level-row")].map((row) => ({
+      interval: num(row.querySelector('[data-custom-interval]')?.value),
+      palletHeight: num(row.querySelector('[data-custom-pallet]')?.value),
+    })) : [];
+    return JSON.stringify({
+      palletCount: Math.max(1, Math.min(4, Math.round(num(document.getElementById("m2CustomizePalletCount")?.value, 1)))),
+      levels: Math.max(1, Math.min(15, Math.round(num(document.getElementById("m2CustomizeLevels")?.value, 1)))),
+      palletHeight: Math.max(300, num(document.getElementById("m2CustomizePalletHeight")?.value, 1200)),
+      rowCount: document.getElementById("m2CustomizeRowType")?.value === "double" ? 2 : 1,
+      rowGap: Math.max(0, num(document.getElementById("m2CustomizeRowGap")?.value, 0)),
+      customLevels,
+      tunnelHeight: document.getElementById("m2CustomizeTunnel")?.checked ? Math.max(500, num(document.getElementById("m2CustomizeTunnelHeight")?.value, 3600)) : 0,
+    });
+  }
+
+  function nextCustomizedTypeName(rack) {
+    const base = String(rack?.typeName || "Raf Tipi").replace(/\s*-\s*Özel\s*\d+\s*$/i, "").trim() || "Raf Tipi";
+    const used = new Set();
+    try { m2LayoutState.racks.forEach((item) => used.add(String(item.typeName || "").toLocaleLowerCase("tr-TR"))); } catch {}
+    try { m2SavedRackTypes.forEach((item) => used.add(String(item.name || "").toLocaleLowerCase("tr-TR"))); } catch {}
+    let index = 1;
+    while (used.has(`${base} - Özel ${index}`.toLocaleLowerCase("tr-TR"))) index += 1;
+    return `${base} - Özel ${index}`;
+  }
+
+  function installCustomizationTypeRules() {
+    if (typeof window.m2ApplyRackCustomization !== "function" || window.m2ApplyRackCustomization.__rafexTechnicalTypesV4) return;
+    const originalApply = window.m2ApplyRackCustomization;
+    const wrappedApply = function (...args) {
+      let rack = null;
+      try { rack = m2LayoutState.racks.find((item) => item.id === m2CustomizeRackId); } catch {}
+      if (rack && customizationSignatureFromRack(rack) !== customizationSignatureFromForm()) {
+        const nameInput = document.getElementById("m2CustomizeName");
+        const entered = String(nameInput?.value || "").trim();
+        const current = String(rack.typeName || "").trim();
+        // Teknik özellik değiştiyse mevcut tipin üzerine yazma; kullanıcı yeni ad vermediyse otomatik yeni tip aç.
+        if (!entered || entered.toLocaleLowerCase("tr-TR") === current.toLocaleLowerCase("tr-TR") || entered === "Özel Raf") {
+          if (nameInput) nameInput.value = nextCustomizedTypeName(rack);
+        }
+      }
+      return originalApply.apply(this, args);
+    };
+    wrappedApply.__rafexTechnicalTypesV4 = true;
+    window.m2ApplyRackCustomization = wrappedApply;
+  }
+
   function arrangeTypePage(page) {
     const grid = page?.querySelector(":scope > .m2-corporate-type-grid");
     if (!grid) return;
-
     const cards = [...grid.querySelectorAll(":scope > .m2-corporate-type-card")];
     if (!cards.length) return;
 
     page.classList.add("rafex-combined-type-page");
     page.classList.remove("rafex-single-type-page");
-
     cards.forEach((card) => {
       card.classList.add("rafex-combined-type-card");
       const views = [...card.querySelectorAll(":scope > .m2-corporate-view")];
@@ -69,16 +125,12 @@
         view.classList.toggle("rafex-side-view", index === 1);
       });
     });
-
-    const header = page.querySelector(":scope > .m2-corporate-page-header b");
-    if (header) header.textContent = "KESİTLER · A TİPİ + B TİPİ";
   }
 
   function arrangeTypePages(host) {
     if (!host) return;
     const pages = [...host.querySelectorAll(":scope > .m2-corporate-page")];
     pages.forEach(arrangeTypePage);
-
     pages.forEach((page, index) => {
       const footer = page.querySelector(":scope > .m2-corporate-page-footer");
       if (footer) footer.textContent = `${index + 1} / ${pages.length}`;
@@ -87,70 +139,26 @@
 
   function installStyles() {
     document.querySelectorAll('style[data-rafex-corporate-type-sections]').forEach((node) => node.remove());
-
     const style = document.createElement("style");
     style.dataset.rafexCorporateTypeSections = VERSION;
     style.textContent = `
-      .rafex-combined-type-page .m2-corporate-type-grid {
-        display:grid !important;
-        grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
-        grid-template-rows:minmax(0,1fr) !important;
-        gap:10px !important;
-        align-items:stretch !important;
-      }
-      .rafex-combined-type-page .m2-corporate-type-grid > .m2-corporate-type-card {
-        grid-row:1 !important;
-        width:100% !important;
-        height:100% !important;
-        min-width:0 !important;
-        min-height:0 !important;
-        overflow:hidden !important;
-      }
-      .rafex-combined-type-page .m2-corporate-type-grid > .m2-corporate-type-card:nth-child(1) {
-        grid-column:1 !important;
-      }
-      .rafex-combined-type-page .m2-corporate-type-grid > .m2-corporate-type-card:nth-child(2) {
-        grid-column:2 !important;
-      }
-      .rafex-combined-type-page .rafex-combined-type-card {
-        display:grid !important;
-        grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
-        grid-template-rows:30px minmax(0,1fr) !important;
-        gap:0 !important;
-      }
-      .rafex-combined-type-page .rafex-combined-type-card > strong {
-        grid-column:1 / -1 !important;
-        grid-row:1 !important;
-        align-self:center !important;
-      }
-      .rafex-combined-type-page .rafex-combined-type-card > .m2-corporate-view {
-        grid-row:2 !important;
-        min-width:0 !important;
-        min-height:0 !important;
-        overflow:hidden !important;
-      }
-      .rafex-combined-type-page .rafex-combined-type-card > .m2-corporate-view:first-of-type {
-        grid-column:1 !important;
-        border-right:1px solid #c6d2dc !important;
-      }
-      .rafex-combined-type-page .rafex-combined-type-card > .m2-corporate-view:nth-of-type(2) {
-        grid-column:2 !important;
-      }
-      .rafex-combined-type-page .m2-corporate-view .rafex-report-3d-frame,
-      .rafex-combined-type-page .m2-corporate-view .rafex-report-3d-frame img {
-        width:100% !important;
-        height:100% !important;
-        max-width:100% !important;
-        max-height:100% !important;
-        object-fit:contain !important;
-        object-position:center center !important;
-      }
+      .rafex-combined-type-page .m2-corporate-type-grid {display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important;gap:8px!important;align-items:stretch!important}
+      .rafex-combined-type-page .m2-corporate-type-grid>.m2-corporate-type-card {grid-row:1!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;overflow:hidden!important}
+      .rafex-combined-type-page .m2-corporate-type-grid>.m2-corporate-type-card:nth-child(1){grid-column:1!important}
+      .rafex-combined-type-page .m2-corporate-type-grid>.m2-corporate-type-card:nth-child(2){grid-column:2!important}
+      .rafex-combined-type-page .rafex-combined-type-card {display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;grid-template-rows:30px minmax(0,1fr)!important;gap:0!important}
+      .rafex-combined-type-page .rafex-combined-type-card>strong {grid-column:1/-1!important;grid-row:1!important;align-self:center!important}
+      .rafex-combined-type-page .rafex-combined-type-card>.m2-corporate-view {grid-row:2!important;min-width:0!important;min-height:0!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important}
+      .rafex-combined-type-page .rafex-combined-type-card>.m2-corporate-view:first-of-type {grid-column:1!important;border-right:1px solid #c6d2dc!important}
+      .rafex-combined-type-page .rafex-combined-type-card>.m2-corporate-view:nth-of-type(2) {grid-column:2!important}
+      .rafex-combined-type-page .m2-corporate-view .rafex-report-3d-frame {width:100%!important;height:100%!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important}
+      .rafex-combined-type-page .m2-corporate-view .rafex-report-3d-frame img {width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:contain!important;object-position:center center!important}
     `;
     document.head.appendChild(style);
   }
 
   function installHooks() {
-    if (typeof window.m2RenderCorporateReport === "function" && !window.m2RenderCorporateReport.__rafexCombinedTypes) {
+    if (typeof window.m2RenderCorporateReport === "function" && !window.m2RenderCorporateReport.__rafexCombinedTypesV4) {
       const previousRender = window.m2RenderCorporateReport;
       const wrappedRender = function (...args) {
         const result = previousRender.apply(this, args);
@@ -158,25 +166,26 @@
         arrangeTypePages(document.getElementById("m2CorporatePreview"));
         return result;
       };
-      wrappedRender.__rafexCombinedTypes = true;
+      wrappedRender.__rafexCombinedTypesV4 = true;
       window.m2RenderCorporateReport = wrappedRender;
     }
 
-    if (!window.__rafexPrepareCorporatePrint?.__rafexCombinedTypes) {
-      const previousPrepare = window.__rafexPrepareCorporatePrint;
+    const previousPrepare = window.__rafexPrepareCorporatePrint;
+    if (typeof previousPrepare === "function" && !previousPrepare.__rafexCombinedTypesV4) {
       const wrappedPrepare = async function (...args) {
         installAdaptiveCaptureZoom();
-        if (typeof previousPrepare === "function") await previousPrepare.apply(this, args);
+        await previousPrepare.apply(this, args);
         arrangeTypePages(document.getElementById("m2CorporatePrint"));
         arrangeTypePages(document.getElementById("m2CorporatePreview"));
       };
-      wrappedPrepare.__rafexCombinedTypes = true;
+      wrappedPrepare.__rafexCombinedTypesV4 = true;
       window.__rafexPrepareCorporatePrint = wrappedPrepare;
     }
   }
 
   installStyles();
   installAdaptiveCaptureZoom();
+  installCustomizationTypeRules();
   installHooks();
   arrangeTypePages(document.getElementById("m2CorporatePreview"));
 })();
