@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = 'b2b-accessories-v1';
+  const VERSION = 'b2b-accessories-v2';
   const TYPES = {
     palletStop: { label: 'Palet Dayama' },
     hTraverse: { label: 'H Travers' },
@@ -172,8 +172,87 @@
     });
   }
 
+  const TRAVERSE_FRONT_OFFSET = 81.59595;
+  const TRAVERSE_BACK_OFFSET = 1077.32687;
+
+  function patchViewerAccessoryPlacement(viewer) {
+    if (!viewer || viewer.__rafexAccessoryPlacementV2 || typeof viewer.addAccessories !== 'function') return viewer;
+    viewer.__rafexAccessoryPlacementV2 = true;
+
+    viewer.addAccessories = function (section, sectionScale, depthScale) {
+      const items = Array.isArray(this.options.accessories) ? this.options.accessories : [];
+      if (!items.length) return;
+      const clearLeft = 126.70318603515625 * sectionScale;
+      const clearWidth = this.options.sectionWidth;
+      const frontBeamY = TRAVERSE_FRONT_OFFSET * depthScale;
+      const rearBeamY = TRAVERSE_BACK_OFFSET * depthScale;
+      const beamSeatSpan = Math.max(100, rearBeamY - frontBeamY);
+
+      items.forEach((accessory) => {
+        const levels = Array.isArray(accessory.levels) ? accessory.levels : [];
+        levels.forEach((humanLevel) => {
+          const level = Math.max(0, Math.min(14, Math.round(Number(humanLevel) || 1) - 1));
+          const maxTraverse = this.options.firstPalletPosition === 'traverse' ? this.options.levels : Math.max(0, this.options.levels - 1);
+          if (level >= maxTraverse) return;
+          if (this.options.tunnelHeight > 0 && this.traverseTop(level) <= this.options.tunnelHeight) return;
+          const supportTop = this.traverseBottom(level) + this.options.traverseHeight;
+
+          if (accessory.type === 'palletStop' && this.models.palletStop) {
+            const stop = this.accessoryModel(this.models.palletStop, { x:clearWidth, y:163 * depthScale, z:90 }, false);
+            stop.name = `Palet Dayama K${humanLevel}`;
+            stop.position.set(clearLeft - 4 * sectionScale, 42 * depthScale, -(supportTop + 40));
+            section.add(stop);
+            return;
+          }
+
+          if (accessory.type === 'hTraverse' && this.models.hTraverse) {
+            const targetX = Math.max(200, clearWidth - 106 * sectionScale);
+            const reversedSource = this.models.hTraverse.clone(true);
+            reversedSource.scale.z *= -1;
+            const h = this.accessoryModel(reversedSource, { x:targetX, y:beamSeatSpan, z:89 }, true);
+            h.name = `H Travers K${humanLevel}`;
+            h.position.set(clearLeft + 50 * sectionScale, frontBeamY, -supportTop);
+            section.add(h);
+            return;
+          }
+
+          if (accessory.type === 'tray' && this.models.tray) {
+            let cursor = 0;
+            const pieces = this.trayPiecePlan(clearWidth, accessory.width);
+            pieces.forEach((pieceWidth, pieceIndex) => {
+              const tray = this.accessoryModel(this.models.tray, { x:pieceWidth, y:beamSeatSpan, z:45 }, true);
+              tray.name = `Tava K${humanLevel}-${pieceIndex + 1} · ${pieceWidth} mm`;
+              tray.position.set(clearLeft + cursor, frontBeamY, -supportTop);
+              section.add(tray);
+              cursor += pieceWidth;
+            });
+          }
+        });
+      });
+    };
+    return viewer;
+  }
+
+  function installViewerAccessoryPlacementFix() {
+    const service = window.RafexB2BViewer;
+    if (!service || typeof service.mount !== 'function') return false;
+    if (service.mount.__rafexAccessoryPlacementV2) return true;
+    const originalMount = service.mount;
+    const wrappedMount = function (...args) {
+      return patchViewerAccessoryPlacement(originalMount.apply(this, args));
+    };
+    wrappedMount.__rafexAccessoryPlacementV2 = true;
+    wrappedMount.__rafexOriginal = originalMount;
+    service.mount = wrappedMount;
+    return true;
+  }
+
   style();
   installHooks();
+  installViewerAccessoryPlacementFix();
   setTimeout(render, 0);
-  window.addEventListener('rafex-b2b-viewer-ready', installHooks);
+  window.addEventListener('rafex-b2b-viewer-ready', () => {
+    installHooks();
+    installViewerAccessoryPlacementFix();
+  });
 })();
