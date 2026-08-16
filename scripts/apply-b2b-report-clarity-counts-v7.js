@@ -5,7 +5,7 @@ function replaceRequired(source, from, to, label) {
   return source.replace(from, to);
 }
 
-// 1) Kurumsal rapor: on gorunusu buyut, yan gorunusu 3:2 oraninda daralt ve capture cozumunu artir.
+// 1) Kurumsal rapor: toplam sayfa alaninin cogunu on gorunuse ver, yan gorunusu daralt ve capture cozumunu artir.
 const sectionsPath = 'client/b2b-report-sections.js';
 let sections = fs.readFileSync(sectionsPath, 'utf8');
 sections = sections.replaceAll('corporate-type-sections-v6', 'corporate-type-sections-v7');
@@ -21,8 +21,8 @@ sections = replaceRequired(
 sections = replaceRequired(
   sections,
   '.rafex-combined-type-page .rafex-combined-type-card {display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;',
-  '.rafex-combined-type-page .rafex-combined-type-card {display:grid!important;grid-template-columns:minmax(0,3fr) minmax(0,2fr)!important;',
-  'on yan 3:2 kolon orani',
+  '.rafex-combined-type-page .rafex-combined-type-card {display:grid!important;grid-template-columns:minmax(0,7fr) minmax(0,3fr)!important;',
+  'sayfa alani on yan 70 30 kolon orani',
 );
 sections = replaceRequired(
   sections,
@@ -90,4 +90,4 @@ if (!accessories.includes('function rafexAccessoryCountTotals()')) {
 accessories = accessories.replace("const VERSION = 'b2b-accessories-v6';", "const VERSION = 'b2b-accessories-v7';");
 fs.writeFileSync(accessoriesPath, accessories);
 
-console.log('B2B rapor netligi, 3:2 on/yan yerlesimi ve aksesuar sayim satirlari uygulandi.');
+console.log('B2B rapor netligi, 70/30 on-yan sayfa yerlesimi ve aksesuar sayim satirlari uygulandi.');
