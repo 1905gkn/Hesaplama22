@@ -34,6 +34,7 @@ jobs:
 
       - name: Apply B2B accessory fixes
         run: |
+          sed -i "s/b2b-accessories-v2/b2b-accessories-v1/" client/b2b-accessories.js
           cp scripts/apply-b2b-accessory-fixes.js /tmp/apply-b2b-accessory-fixes.cjs
           node /tmp/apply-b2b-accessory-fixes.cjs
           cp scripts/apply-b2b-accessory-placement-v2.js /tmp/apply-b2b-accessory-placement-v2.cjs
