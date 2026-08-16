@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# B2B corporate adaptive zoom build v38
+# B2B balanced front-side report build v39
 set -euo pipefail
 
 project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -20,10 +20,13 @@ const sourcePath = process.argv[2];
 const outputPath = process.argv[3];
 let source = fs.readFileSync(sourcePath, 'utf8');
 
-// Çift sıra yönü artık kaynak 3D üreticisinde uygulanıyor.
 if (!source.includes('row.scale.y=-1')) throw new Error('B2B çift sıra yönü kaynakta bulunamadı.');
+source = source.replace('const ASSET_VERSION = "b2b-detail-layout-camera-519";', 'const ASSET_VERSION = "b2b-balanced-report-camera-579";');
 
-source = source.replace('const ASSET_VERSION = "b2b-detail-layout-camera-519";', 'const ASSET_VERSION = "b2b-multi-select-group-move-543";');
+const oldFit = 'const fitWidth = size.x / (2 * Math.tan(vFov / 2) * Math.max(this.camera.aspect, 0.25));';
+const newFit = 'const visibleWidth = view === "side" ? size.z : size.x;\n    const fitWidth = visibleWidth / (2 * Math.tan(vFov / 2) * Math.max(this.camera.aspect, 0.25));';
+if (!source.includes(oldFit)) throw new Error('B2B kamera genişlik hesabı bulunamadı.');
+source = source.replace(oldFit, newFit);
 fs.writeFileSync(outputPath, source);
 NODE
 
@@ -71,22 +74,17 @@ let portalSource = fs.readFileSync(portalPath, 'utf8')
   .replaceAll('__M2_PALETLI_SIDE_BASE64__', fs.readFileSync(paletliPath).toString('base64'))
   .replaceAll('__M2_AYAK2_FRONT_BASE64__', ayak2FrontBase64)
   .replaceAll('__M2_PALLET_DEFINITION_BASE64__', fs.readFileSync(palletDefinitionPath).toString('base64'))
-  .replaceAll('b2b-double-row-side-ties-367', 'b2b-corporate-adaptive-zoom-571');
-portalSource = portalSource.replace(/<\/body>\s*<\/html>\s*$/i, `<script data-rafex-b2b-visual-fixes="back-to-back-reference-v2">\n${b2bVisualFixes}\n</script>\n<script data-rafex-b2b-report-3d="front-side-capture-v35">\n${b2bReport3d}\n</script>\n<script data-rafex-b2b-report-sections="corporate-type-sections-v3">\n${b2bReportSections}\n</script>\n</body>\n</html>`);
-if (!portalSource.includes('data-rafex-b2b-visual-fixes="back-to-back-reference-v2"') || !portalSource.includes('data-rafex-b2b-report-3d="front-side-capture-v35"') || !portalSource.includes('data-rafex-b2b-report-sections="corporate-type-sections-v3"')) {
+  .replaceAll('b2b-double-row-side-ties-367', 'b2b-balanced-report-camera-579');
+portalSource = portalSource.replace(/<\/body>\s*<\/html>\s*$/i, `<script data-rafex-b2b-visual-fixes="back-to-back-reference-v2">\n${b2bVisualFixes}\n</script>\n<script data-rafex-b2b-report-3d="front-side-capture-v35">\n${b2bReport3d}\n</script>\n<script data-rafex-b2b-report-sections="corporate-type-sections-v4">\n${b2bReportSections}\n</script>\n</body>\n</html>`);
+if (!portalSource.includes('data-rafex-b2b-visual-fixes="back-to-back-reference-v2"') || !portalSource.includes('data-rafex-b2b-report-3d="front-side-capture-v35"') || !portalSource.includes('data-rafex-b2b-report-sections="corporate-type-sections-v4"')) {
   throw new Error('B2B 3D görünüş betikleri portala eklenemedi.');
 }
 const unresolvedAsset = portalSource.match(/__[A-Z0-9_]+_BASE64__/);
-if (unresolvedAsset) {
-  throw new Error(`Çözümlenmemiş görsel yer tutucusu: ${unresolvedAsset[0]}`);
-}
+if (unresolvedAsset) throw new Error(`Çözümlenmemiş görsel yer tutucusu: ${unresolvedAsset[0]}`);
 const portalBase64 = Buffer.from(portalSource).toString('base64');
 const workerSource = fs.readFileSync(workerPath, 'utf8');
 const nextSource = workerSource
-  .replace(
-    /^const HTML_BASE64\s*=\s*"[^"]*";/m,
-    `const HTML_BASE64 = "${portalBase64}";`,
-  )
+  .replace(/^const HTML_BASE64\s*=\s*"[^"]*";/m, `const HTML_BASE64 = "${portalBase64}";`)
   .replaceAll('__B2B_TAKIM_BASE64__', fs.readFileSync(b2bTakimPath).toString('base64'))
   .replaceAll('__B2B_PALET_BASE64__', fs.readFileSync(b2bPaletPath).toString('base64'))
   .replaceAll('__B2B_TRAVERS_BASE64__', fs.readFileSync(b2bTraversPath).toString('base64'))
@@ -97,9 +95,7 @@ const nextSource = workerSource
   .replaceAll('__DRACO_WASM_WRAPPER_BASE64__', fs.readFileSync(dracoWasmWrapperPath).toString('base64'))
   .replaceAll('__DRACO_DECODER_WASM_BASE64__', fs.readFileSync(dracoDecoderWasmPath).toString('base64'))
   .replaceAll('__M2_AYAK2_FRONT_BASE64__', ayak2FrontBase64);
-if (nextSource === workerSource) {
-  throw new Error('worker/index.js içinde HTML_BASE64 bulunamadı.');
-}
+if (nextSource === workerSource) throw new Error('worker/index.js içinde HTML_BASE64 bulunamadı.');
 fs.writeFileSync(workerPath, nextSource);
 NODE
 
