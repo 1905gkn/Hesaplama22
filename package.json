@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "bash scripts/build.sh",
+    "build": "bash scripts/build-runtime.sh",
     "validate": "node scripts/validate-artifact.mjs && node scripts/verify-mekik2.mjs",
     "verify:mekik2": "node scripts/verify-mekik2.mjs"
   },
