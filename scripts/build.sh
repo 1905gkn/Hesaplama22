@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# B2B corporate split-view build v35
 set -euo pipefail
 
 project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
