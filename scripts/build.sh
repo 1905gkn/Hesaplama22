@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# B2B corporate combined type layout build v37
+# B2B corporate adaptive zoom build v38
 set -euo pipefail
 
 project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -71,9 +71,9 @@ let portalSource = fs.readFileSync(portalPath, 'utf8')
   .replaceAll('__M2_PALETLI_SIDE_BASE64__', fs.readFileSync(paletliPath).toString('base64'))
   .replaceAll('__M2_AYAK2_FRONT_BASE64__', ayak2FrontBase64)
   .replaceAll('__M2_PALLET_DEFINITION_BASE64__', fs.readFileSync(palletDefinitionPath).toString('base64'))
-  .replaceAll('b2b-double-row-side-ties-367', 'b2b-corporate-split-view-fit-563');
-portalSource = portalSource.replace(/<\/body>\s*<\/html>\s*$/i, `<script data-rafex-b2b-visual-fixes="back-to-back-reference-v2">\n${b2bVisualFixes}\n</script>\n<script data-rafex-b2b-report-3d="front-side-capture-v35">\n${b2bReport3d}\n</script>\n<script data-rafex-b2b-report-sections="corporate-type-sections-v2">\n${b2bReportSections}\n</script>\n</body>\n</html>`);
-if (!portalSource.includes('data-rafex-b2b-visual-fixes="back-to-back-reference-v2"') || !portalSource.includes('data-rafex-b2b-report-3d="front-side-capture-v35"') || !portalSource.includes('data-rafex-b2b-report-sections="corporate-type-sections-v2"')) {
+  .replaceAll('b2b-double-row-side-ties-367', 'b2b-corporate-adaptive-zoom-571');
+portalSource = portalSource.replace(/<\/body>\s*<\/html>\s*$/i, `<script data-rafex-b2b-visual-fixes="back-to-back-reference-v2">\n${b2bVisualFixes}\n</script>\n<script data-rafex-b2b-report-3d="front-side-capture-v35">\n${b2bReport3d}\n</script>\n<script data-rafex-b2b-report-sections="corporate-type-sections-v3">\n${b2bReportSections}\n</script>\n</body>\n</html>`);
+if (!portalSource.includes('data-rafex-b2b-visual-fixes="back-to-back-reference-v2"') || !portalSource.includes('data-rafex-b2b-report-3d="front-side-capture-v35"') || !portalSource.includes('data-rafex-b2b-report-sections="corporate-type-sections-v3"')) {
   throw new Error('B2B 3D görünüş betikleri portala eklenemedi.');
 }
 const unresolvedAsset = portalSource.match(/__[A-Z0-9_]+_BASE64__/);
