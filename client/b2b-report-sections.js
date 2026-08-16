@@ -1,5 +1,55 @@
 (() => {
-  const VERSION = "corporate-type-sections-v2";
+  const VERSION = "corporate-type-sections-v3";
+
+  const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+  const num = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+
+  function adaptiveReportPadding(options = {}) {
+    const palletCount = clamp(Math.round(num(options.palletCount, 3)), 1, 4);
+    const palletWidth = Math.max(300, num(options.palletWidth, 800));
+    const palletDepth = Math.max(300, num(options.palletDepth, 1200));
+    const palletHeight = Math.max(300, num(options.palletHeight, 1200));
+    const levels = Math.max(1, num(options.levels, 4));
+    const footWidth = Math.max(60, num(options.footWidth, 120));
+    const rowCount = options.rowType === "double" ? 2 : 1;
+    const rowGap = Math.max(0, num(options.rowGap, 200));
+
+    const rackWidth = palletCount * palletWidth + (palletCount + 1) * 75 + footWidth * 2;
+    const estimatedHeight = Math.max(
+      num(options.footHeight, 0),
+      levels * (palletHeight + Math.max(100, num(options.palletTraverseGap, 200)) + Math.max(50, num(options.traverseHeight, 140))),
+    );
+    const rackDepth = palletDepth * rowCount + (rowCount === 2 ? rowGap : 0);
+    const dominantSize = Math.max(rackWidth, estimatedHeight, rackDepth);
+
+    // Küçük/orta raflarda daha yakın, büyük raflarda taşmayı engelleyecek kadar geri.
+    let padding = 0.76;
+    if (dominantSize > 4500) padding += Math.min(0.10, (dominantSize - 4500) / 55000);
+    if (dominantSize > 9000) padding += Math.min(0.04, (dominantSize - 9000) / 90000);
+    if (rowCount === 2 && rackDepth > 3000) padding += 0.015;
+    if (levels >= 8) padding += 0.015;
+    return clamp(padding, 0.76, 0.90);
+  }
+
+  function installAdaptiveCaptureZoom() {
+    const service = window.RafexB2BViewer;
+    if (!service || typeof service.captureViews !== "function") return false;
+    if (service.captureViews.__rafexAdaptiveReportZoom) return true;
+
+    const originalCaptureViews = service.captureViews;
+    const wrappedCaptureViews = function (options, settings = {}) {
+      const requested = num(settings.cameraPadding, 1.16);
+      const adaptive = adaptiveReportPadding(options || {});
+      return originalCaptureViews.call(this, options, {
+        ...settings,
+        cameraPadding: Math.min(requested, adaptive),
+      });
+    };
+    wrappedCaptureViews.__rafexAdaptiveReportZoom = true;
+    wrappedCaptureViews.__rafexOriginal = originalCaptureViews;
+    service.captureViews = wrappedCaptureViews;
+    return true;
+  }
 
   function arrangeTypePage(page) {
     const grid = page?.querySelector(":scope > .m2-corporate-type-grid");
@@ -104,6 +154,7 @@
       const previousRender = window.m2RenderCorporateReport;
       const wrappedRender = function (...args) {
         const result = previousRender.apply(this, args);
+        installAdaptiveCaptureZoom();
         arrangeTypePages(document.getElementById("m2CorporatePreview"));
         return result;
       };
@@ -114,6 +165,7 @@
     if (!window.__rafexPrepareCorporatePrint?.__rafexCombinedTypes) {
       const previousPrepare = window.__rafexPrepareCorporatePrint;
       const wrappedPrepare = async function (...args) {
+        installAdaptiveCaptureZoom();
         if (typeof previousPrepare === "function") await previousPrepare.apply(this, args);
         arrangeTypePages(document.getElementById("m2CorporatePrint"));
         arrangeTypePages(document.getElementById("m2CorporatePreview"));
@@ -124,6 +176,7 @@
   }
 
   installStyles();
+  installAdaptiveCaptureZoom();
   installHooks();
   arrangeTypePages(document.getElementById("m2CorporatePreview"));
 })();
