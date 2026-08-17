@@ -27,12 +27,52 @@ sections = replaceRequired(
 sections = replaceRequired(
   sections,
   '.rafex-combined-type-page .m2-corporate-view>.rafex-report-3d-frame img {display:block!important;width:auto!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center center!important}',
-  '.rafex-combined-type-page .m2-corporate-view>.rafex-report-3d-frame img {display:block!important;width:auto!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center center!important;image-rendering:auto!important;transform:translateZ(0)!important}',
-  'rapor resim netligi css',
+  '.rafex-combined-type-page .m2-corporate-view>.rafex-report-3d-frame img {display:block!important;width:auto!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center center!important;image-rendering:auto!important;transform:translateZ(0)!important}\n      .rafex-combined-type-page .rafex-front-view>.rafex-report-3d-frame{justify-content:center!important;align-items:center!important}\n      .rafex-combined-type-page .rafex-front-view>.rafex-report-3d-frame img{transform:translateX(-7%) translateZ(0)!important}\n      .rafex-combined-type-page .rafex-side-view>.rafex-report-3d-frame{justify-content:center!important;align-items:center!important}\n      .rafex-combined-type-page .rafex-side-view>.rafex-report-3d-frame img{height:100%!important;width:auto!important;max-width:none!important;max-height:100%!important;object-fit:contain!important;object-position:center center!important}',
+  'rapor resim netligi ve merkezleme css',
 );
 fs.writeFileSync(sectionsPath, sections);
 
-// 2) Aksesuar adetlerini mevcut Ayak / duz arabag sayim listesinin icine ekle.
+// 2) On ve yan gorunusu ayni fiziksel yukseklik olceginde yakala.
+// Ikisinde de 3000 px yukseklik ve ayni cameraPadding kullanilir; yan gorunus daha dar canvas alir.
+const report3dPath = 'client/b2b-report-3d.js';
+let report3d = fs.readFileSync(report3dPath, 'utf8');
+report3d = report3d.replaceAll('front-side-capture-v35', 'front-side-capture-v36');
+const oldCapture = `      const result = await capture(options, {
+        width: 2800,
+        height: 2400,
+        pixelRatio: 2.25,
+        cameraPadding: adaptiveCameraPadding(drawing),
+        frontDimensions: { levels: true, markers: true, eye: true, width: false, depth: false },
+        sideDimensions: { levels: false, markers: false, eye: false, width: false, depth: true },
+        side: "right",
+      });
+      if (!result?.front || !result?.side) throw new Error("B2B 3D ön/yan görüntüsü oluşturulamadı.");
+      const cached = { front: result.front, side: result.side };`;
+const newCapture = `      const sharedPadding = adaptiveCameraPadding(drawing);
+      const frontResult = await capture(options, {
+        width: 1800,
+        height: 3000,
+        pixelRatio: 2.5,
+        cameraPadding: sharedPadding,
+        frontDimensions: { levels: true, markers: true, eye: true, width: false, depth: false },
+        sideDimensions: { levels: false, markers: false, eye: false, width: false, depth: true },
+        side: "right",
+      });
+      const sideResult = await capture(options, {
+        width: 900,
+        height: 3000,
+        pixelRatio: 2.5,
+        cameraPadding: sharedPadding,
+        frontDimensions: { levels: true, markers: true, eye: true, width: false, depth: false },
+        sideDimensions: { levels: false, markers: false, eye: false, width: false, depth: true },
+        side: "right",
+      });
+      if (!frontResult?.front || !sideResult?.side) throw new Error("B2B 3D ön/yan görüntüsü oluşturulamadı.");
+      const cached = { front: frontResult.front, side: sideResult.side };`;
+report3d = replaceRequired(report3d, oldCapture, newCapture, 'ortak fiziksel olcek capture');
+fs.writeFileSync(report3dPath, report3d);
+
+// 3) Aksesuar adetlerini mevcut Ayak / duz arabag sayim listesinin icine ekle.
 const accessoriesPath = 'client/b2b-accessories.js';
 let accessories = fs.readFileSync(accessoriesPath, 'utf8');
 const injection = `
@@ -90,4 +130,4 @@ if (!accessories.includes('function rafexAccessoryCountTotals()')) {
 accessories = accessories.replace("const VERSION = 'b2b-accessories-v6';", "const VERSION = 'b2b-accessories-v7';");
 fs.writeFileSync(accessoriesPath, accessories);
 
-console.log('B2B rapor netligi, 70/30 on-yan sayfa yerlesimi ve aksesuar sayim satirlari uygulandi.');
+console.log('B2B rapor netligi, 70/30 yerlesim, ortak on/yan yukseklik olcegi ve aksesuar sayim satirlari uygulandi.');
