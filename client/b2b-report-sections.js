@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "corporate-type-sections-v6";
+  const VERSION = "corporate-type-sections-v7";
 
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const num = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
@@ -32,22 +32,26 @@
   function installAdaptiveCaptureZoom() {
     const service = window.RafexB2BViewer;
     if (!service || typeof service.captureViews !== "function") return false;
-    if (service.captureViews.__rafexAdaptiveReportZoomV6) return true;
+    if (service.captureViews.__rafexAdaptiveReportZoomV7) return true;
 
     const originalCaptureViews = service.captureViews.__rafexOriginal || service.captureViews;
     const wrappedCaptureViews = function (options, settings = {}) {
       const requested = num(settings.cameraPadding, 1.16);
       const adaptive = adaptiveReportPadding(options || {});
       const isReportCapture = num(settings.width, 0) >= 2000 && num(settings.height, 0) >= 2000;
+      // Ön görünüşte soldaki kat/kot etiketleri yatay bounds'u büyütüyor ve kamerayı
+      // gereksiz yere geri kaçırıyordu. İlk (front) rapor yakalamasını ayrıca yaklaştır;
+      // yan görünüş ayrı 1200px yakalamadan geldiği için bu değişiklik onu etkilemez.
+      const frontFillPadding = isReportCapture ? 0.80 : adaptive;
       return originalCaptureViews.call(this, options, {
         ...settings,
         // Kesit kolonları dikey olduğu için yakalama tuvalini de portre yap.
         width: isReportCapture ? 1500 : settings.width,
         height: isReportCapture ? 3000 : settings.height,
-        cameraPadding: Math.min(requested, adaptive),
+        cameraPadding: Math.min(requested, adaptive, frontFillPadding),
       });
     };
-    wrappedCaptureViews.__rafexAdaptiveReportZoomV6 = true;
+    wrappedCaptureViews.__rafexAdaptiveReportZoomV7 = true;
     wrappedCaptureViews.__rafexOriginal = originalCaptureViews;
     service.captureViews = wrappedCaptureViews;
     return true;
@@ -169,7 +173,7 @@
   }
 
   function installHooks() {
-    if (typeof window.m2RenderCorporateReport === "function" && !window.m2RenderCorporateReport.__rafexCombinedTypesV6) {
+    if (typeof window.m2RenderCorporateReport === "function" && !window.m2RenderCorporateReport.__rafexCombinedTypesV7) {
       const previousRender = window.m2RenderCorporateReport;
       const wrappedRender = function (...args) {
         const result = previousRender.apply(this, args);
@@ -177,19 +181,19 @@
         arrangeTypePages(document.getElementById("m2CorporatePreview"));
         return result;
       };
-      wrappedRender.__rafexCombinedTypesV6 = true;
+      wrappedRender.__rafexCombinedTypesV7 = true;
       window.m2RenderCorporateReport = wrappedRender;
     }
 
     const previousPrepare = window.__rafexPrepareCorporatePrint;
-    if (typeof previousPrepare === "function" && !previousPrepare.__rafexCombinedTypesV6) {
+    if (typeof previousPrepare === "function" && !previousPrepare.__rafexCombinedTypesV7) {
       const wrappedPrepare = async function (...args) {
         installAdaptiveCaptureZoom();
         await previousPrepare.apply(this, args);
         arrangeTypePages(document.getElementById("m2CorporatePrint"));
         arrangeTypePages(document.getElementById("m2CorporatePreview"));
       };
-      wrappedPrepare.__rafexCombinedTypesV6 = true;
+      wrappedPrepare.__rafexCombinedTypesV7 = true;
       window.__rafexPrepareCorporatePrint = wrappedPrepare;
     }
   }
