@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v44";
+  const VERSION = "front-side-capture-v45";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -322,16 +322,20 @@
 
   function tallestSideOptions(moduleOptions){
     const list=Array.isArray(moduleOptions)?moduleOptions.filter(Boolean):[];
+    const levelsOf=(item)=>Math.max(1,Math.round(number(item?.levels,1)));
     const score=(item)=>{
       const explicit=Math.max(number(item?.footHeight,0),number(item?.uprightHeight,0));
-      const levels=Math.max(1,number(item?.levels,1));
+      const levels=levelsOf(item);
       const palletHeight=Math.max(0,number(item?.palletHeight,0));
       const clearances=Array.isArray(item?.levelClearances)?item.levelClearances.reduce((sum,value)=>sum+Math.max(0,number(value,0)),0):0;
       const estimated=levels*(palletHeight+Math.max(50,number(item?.traverseHeight,140)))+clearances;
       return Math.max(explicit,estimated);
     };
-    const tallest=list.reduce((best,item)=>!best||score(item)>score(best)?item:best,null)||{};
-    return {...tallest,moduleCount:1,moduleOptions:null,showPallets:true};
+    const maxLevels=list.reduce((max,item)=>Math.max(max,levelsOf(item)),1);
+    const levelCandidates=list.filter((item)=>levelsOf(item)===maxLevels);
+    const tallest=levelCandidates.reduce((best,item)=>!best||score(item)>score(best)?item:best,null)||list[0]||{};
+    const maxFootHeight=list.reduce((max,item)=>Math.max(max,number(item?.footHeight,0),number(item?.uprightHeight,0)),0);
+    return {...tallest,levels:maxLevels,footHeight:Math.max(maxFootHeight,number(tallest?.footHeight,0)),moduleCount:1,moduleOptions:null,showPallets:true};
   }
 
   async function captureCombinedVariants(){
@@ -567,7 +571,7 @@
         display:flex !important;
         align-items:center !important;
         justify-content:center !important;
-        padding:4% !important;
+        padding:1% !important;
         overflow:hidden !important;
       }
       /* Yan kesitin ayak yüksekliğini ön kesitle görsel olarak eşitle. */
@@ -576,7 +580,7 @@
       .m2-corporate-view.rafex-side-view .rafex-report-3d-frame img,
       #m2CorporatePrint .m2-corporate-view.rafex-side-view .rafex-report-3d-frame img,
       .rafex-combined-side .rafex-report-3d-frame img {
-        transform:scale(2) !important;
+        transform:scale(2.1) !important;
         transform-origin:center center !important;
       }
       .m2-corporate-view .rafex-report-3d-frame,
