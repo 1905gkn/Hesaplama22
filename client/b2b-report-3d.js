@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v42";
+  const VERSION = "front-side-capture-v43";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -298,6 +298,20 @@
     return [...found.values()].sort((left,right)=>right.count-left.count);
   }
 
+  function tallestSideOptions(moduleOptions){
+    const list=Array.isArray(moduleOptions)?moduleOptions.filter(Boolean):[];
+    const score=(item)=>{
+      const explicit=Math.max(number(item?.footHeight,0),number(item?.uprightHeight,0));
+      const levels=Math.max(1,number(item?.levels,1));
+      const palletHeight=Math.max(0,number(item?.palletHeight,0));
+      const clearances=Array.isArray(item?.levelClearances)?item.levelClearances.reduce((sum,value)=>sum+Math.max(0,number(value,0)),0):0;
+      const estimated=levels*(palletHeight+Math.max(50,number(item?.traverseHeight,140)))+clearances;
+      return Math.max(explicit,estimated);
+    };
+    const tallest=list.reduce((best,item)=>!best||score(item)>score(best)?item:best,null)||{};
+    return {...tallest,moduleCount:1,moduleOptions:null,showPallets:true};
+  }
+
   async function captureCombinedVariants(){
     const enabled=document.getElementById("m2ReportCompleteFront")?.checked===true;
     const entries=enabled?visibleVariantDrawings():[];
@@ -310,8 +324,10 @@
       const base={...moduleOptions[0],moduleCount:moduleOptions.length,moduleOptions,showPallets:true};
       const capture=window.RafexB2BViewer?.captureViews;
       if(typeof capture!=="function")throw new Error("Birleşik B2B 3D yakalama servisi hazır değil.");
-      const result=await capture(base,{width:3000,height:2400,pixelRatio:2.25,cameraPadding:adaptiveCameraPadding(base,true),frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"});
-      combinedVariantCache={signature,front:result.front,side:result.side};return combinedVariantCache;
+      const settings={width:3000,height:2400,pixelRatio:2.25,cameraPadding:adaptiveCameraPadding(base,true),frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"};
+      const result=await capture(base,settings);
+      const sideResult=await capture(tallestSideOptions(moduleOptions),settings);
+      combinedVariantCache={signature,front:result.front,side:sideResult.side};return combinedVariantCache;
     })().finally(()=>{combinedVariantPending=null;});
     return combinedVariantPending;
   }
@@ -342,9 +358,11 @@
         const base={...moduleOptions[0],moduleCount:moduleOptions.length,moduleOptions,showPallets:true};
         const capture=window.RafexB2BViewer?.captureViews;
         if(typeof capture!=="function")throw new Error("Tip bazlı birleşik B2B 3D yakalama servisi hazır değil.");
-        const result=await capture(base,{width:3000,height:2400,pixelRatio:2.25,cameraPadding:adaptiveCameraPadding(base,true),frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"});
-        if(!result?.front||!result?.side)throw new Error(`${group.name} için birleşik görünüş oluşturulamadı.`);
-        corporateCombinedCache.set(group.id,{signature,front:result.front,side:result.side});
+        const settings={width:3000,height:2400,pixelRatio:2.25,cameraPadding:adaptiveCameraPadding(base,true),frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"};
+        const result=await capture(base,settings);
+        const sideResult=await capture(tallestSideOptions(moduleOptions),settings);
+        if(!result?.front||!sideResult?.side)throw new Error(`${group.name} için birleşik görünüş oluşturulamadı.`);
+        corporateCombinedCache.set(group.id,{signature,front:result.front,side:sideResult.side});
       })().catch((error)=>console.error("B2B tip bazlı birleşik görünüş hazırlanamadı",error)).finally(()=>corporateCombinedPending.delete(group.id));
       corporateCombinedPending.set(group.id,task);
       await task;
