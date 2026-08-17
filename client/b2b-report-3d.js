@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v46";
+  const VERSION = "front-side-capture-v47";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -229,7 +229,7 @@
       const capture = window.RafexB2BViewer?.captureViews;
       if (typeof capture !== "function") throw new Error("B2B 3D görüntü yakalama servisi hazır değil.");
       const options=viewerOptions(drawing);
-      const result = await capture(options, {
+      const settings = {
         width: 2800,
         height: 2400,
         pixelRatio: 2.25,
@@ -237,9 +237,11 @@
         frontDimensions: { levels: true, markers: true, eye: true, width: false, depth: false },
         sideDimensions: { levels: false, markers: false, eye: false, width: false, depth: true },
         side: "right",
-      });
-      if (!result?.front || !result?.side) throw new Error("B2B 3D ön/yan görüntüsü oluşturulamadı.");
-      const cached = { front: result.front, side: result.side };
+      };
+      const result = await capture(options, settings);
+      const sideResult = await capture(options, { ...settings, width: 1200, height: 2400, cameraPadding: 1.14 });
+      if (!result?.front || !sideResult?.side) throw new Error("B2B 3D ön/yan görüntüsü oluşturulamadı.");
+      const cached = { front: result.front, side: sideResult.side };
       reportViewCache.set(cacheKey, cached);
       trimCache();
       return cached;
@@ -352,7 +354,7 @@
       if(typeof capture!=="function")throw new Error("Birleşik B2B 3D yakalama servisi hazır değil.");
       const settings={width:3000,height:2400,pixelRatio:2.25,cameraPadding:adaptiveCameraPadding(base,true),frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"};
       const result=await capture(base,settings);
-      const sideResult=await capture(tallestSideOptions(moduleOptions),settings);
+      const sideResult=await capture(tallestSideOptions(moduleOptions),{...settings,width:1200,height:2400,cameraPadding:1.14});
       combinedVariantCache={signature,front:result.front,side:sideResult.side};return combinedVariantCache;
     })().finally(()=>{combinedVariantPending=null;});
     return combinedVariantPending;
@@ -386,7 +388,7 @@
         if(typeof capture!=="function")throw new Error("Tip bazlı birleşik B2B 3D yakalama servisi hazır değil.");
         const settings={width:3000,height:2400,pixelRatio:2.25,cameraPadding:adaptiveCameraPadding(base,true),frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"};
         const result=await capture(base,settings);
-        const sideResult=await capture(tallestSideOptions(moduleOptions),settings);
+        const sideResult=await capture(tallestSideOptions(moduleOptions),{...settings,width:1200,height:2400,cameraPadding:1.14});
         if(!result?.front||!sideResult?.side)throw new Error(`${group.name} için birleşik görünüş oluşturulamadı.`);
         corporateCombinedCache.set(group.id,{signature,front:result.front,side:sideResult.side});
       })().catch((error)=>console.error("B2B tip bazlı birleşik görünüş hazırlanamadı",error)).finally(()=>corporateCombinedPending.delete(group.id));
@@ -571,6 +573,8 @@
         display:flex !important;
         align-items:center !important;
         justify-content:center !important;
+        width:100% !important;
+        height:100% !important;
         padding:1% !important;
         overflow:hidden !important;
       }
@@ -580,8 +584,11 @@
       .m2-corporate-view.rafex-side-view .rafex-report-3d-frame img,
       #m2CorporatePrint .m2-corporate-view.rafex-side-view .rafex-report-3d-frame img,
       .rafex-combined-side .rafex-report-3d-frame img {
-        transform:scale(2.1) !important;
-        transform-origin:center center !important;
+        width:100% !important;
+        height:100% !important;
+        object-fit:contain !important;
+        object-position:center center !important;
+        transform:none !important;
       }
       .m2-corporate-view .rafex-report-3d-frame,
       #m2CorporatePrint .m2-corporate-view .rafex-report-3d-frame {
