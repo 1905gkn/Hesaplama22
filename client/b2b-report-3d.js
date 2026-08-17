@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v40";
+  const VERSION = "front-side-capture-v41";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -533,7 +533,7 @@
       .m2-corporate-view.rafex-side-view .rafex-report-3d-frame img,
       #m2CorporatePrint .m2-corporate-view.rafex-side-view .rafex-report-3d-frame img,
       .rafex-combined-side .rafex-report-3d-frame img {
-        transform:scale(1.95) !important;
+        transform:none !important;
         transform-origin:center center !important;
       }
       .m2-corporate-view .rafex-report-3d-frame,

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# B2B accessories + independent front-side fit build v48
+# B2B accessories + complete centered side fit build v49
 set -euo pipefail
 
 project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -186,9 +186,20 @@ const newTake = `    const capturePadding = clamp(Number(settings.cameraPadding)
       viewer.setView(view);
       const direction = viewer.camera.position.clone().sub(viewer.controls.target);
       const fittedDistance = direction.length() * capturePadding;
-      // Her kesit kendi fiziksel sınırlarına göre kadraja oturur.
-      // Böylece yan görünüşün ayak yüksekliği, ön görünüşle aynı sayfa yüksekliğini kullanır.
-      const targetDistance = fittedDistance;
+      let targetDistance = fittedDistance;
+      if (view === "side") {
+        // Yan kesiti CSS ile büyütüp kırpmak yerine, gerçek 3D sınırlarını kameraya sığdır.
+        // %8 güvenlik payı tepeyi ve tabanı eksiksiz bırakır; hedef tam bölüm merkezidir.
+        const bounds = viewer.contentBounds();
+        const size = bounds.getSize(new THREE.Vector3());
+        const center = bounds.getCenter(new THREE.Vector3());
+        const vFov = THREE.MathUtils.degToRad(viewer.camera.fov);
+        const fitHeight = size.y / (2 * Math.tan(vFov / 2));
+        const fitWidth = size.z / (2 * Math.tan(vFov / 2) * Math.max(viewer.camera.aspect, 0.25));
+        targetDistance = Math.max(fitHeight, fitWidth) * 1.08;
+        viewer.controls.target.copy(center);
+        direction.set(1, 0.015, 0).normalize();
+      }
       viewer.camera.position.copy(viewer.controls.target).add(direction.setLength(targetDistance));
       viewer.camera.near = Math.max(5, targetDistance / 500);
       viewer.camera.far = Math.max(200000, targetDistance * 12);
