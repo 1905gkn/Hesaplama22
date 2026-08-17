@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v41";
+  const VERSION = "front-side-capture-v42";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -34,7 +34,7 @@
       levels: number(drawing?.levels ?? state.levels, 4),
       rowCount: number(layout.rowCount, state.rowType === "double" ? 2 : 1),
       rowGap: number(layout.rowGap ?? state.rowGap, 200),
-      uprightHeight: number(drawing?.sideUprightHeight ?? drawing?.totalRackHeight ?? drawing?.footLy ?? state.footHeight, 0),
+      uprightHeight: Math.max(number(drawing?.sideUprightHeight, 0), number(drawing?.totalRackHeight, 0), number(drawing?.footLy, 0), number(state.footHeight, 0)),
       traverseHeight: b2bTraverseHeight(drawing),
       tunnelHeight: number(state.tunnelHeight, 0),
       firstPalletPosition: state.firstPalletPosition || "ground",
@@ -111,7 +111,10 @@
     ));
     const footHeight = Math.max(
       500,
-      number(drawing?.sideUprightHeight ?? drawing?.totalRackHeight ?? drawing?.footLy ?? state.footHeight, 0),
+      number(drawing?.sideUprightHeight, 0),
+      number(drawing?.totalRackHeight, 0),
+      number(drawing?.footLy, 0),
+      number(state.footHeight, 0),
     );
     const tiePlan = typeof b2bStraightTiePlan === "function"
       ? b2bStraightTiePlan(drawing)
@@ -533,7 +536,7 @@
       .m2-corporate-view.rafex-side-view .rafex-report-3d-frame img,
       #m2CorporatePrint .m2-corporate-view.rafex-side-view .rafex-report-3d-frame img,
       .rafex-combined-side .rafex-report-3d-frame img {
-        transform:none !important;
+        transform:scale(2) !important;
         transform-origin:center center !important;
       }
       .m2-corporate-view .rafex-report-3d-frame,
