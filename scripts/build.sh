@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# B2B accessories + independent front-side fit build v46
+# B2B accessories + independent front-side fit build v47
 set -euo pipefail
 
 project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
