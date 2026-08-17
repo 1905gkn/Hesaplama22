@@ -8,10 +8,10 @@ function replaceRequired(source, from, to, label) {
 // 1) Kurumsal rapor: toplam sayfa alaninin cogunu on gorunuse ver, yan gorunusu daralt ve capture cozumunu artir.
 const sectionsPath = 'client/b2b-report-sections.js';
 let sections = fs.readFileSync(sectionsPath, 'utf8');
-sections = sections.replaceAll('corporate-type-sections-v6', 'corporate-type-sections-v7');
-sections = sections.replaceAll('__rafexAdaptiveReportZoomV6', '__rafexAdaptiveReportZoomV7');
-sections = sections.replaceAll('__rafexTechnicalTypesV6', '__rafexTechnicalTypesV7');
-sections = sections.replaceAll('__rafexCombinedTypesV6', '__rafexCombinedTypesV7');
+sections = sections.replaceAll('corporate-type-sections-v6', 'corporate-type-sections-v8');
+sections = sections.replaceAll('__rafexAdaptiveReportZoomV6', '__rafexAdaptiveReportZoomV8');
+sections = sections.replaceAll('__rafexTechnicalTypesV6', '__rafexTechnicalTypesV8');
+sections = sections.replaceAll('__rafexCombinedTypesV6', '__rafexCombinedTypesV8');
 sections = replaceRequired(
   sections,
   'width: isReportCapture ? 1500 : settings.width,\n        height: isReportCapture ? 3000 : settings.height,',
@@ -27,16 +27,15 @@ sections = replaceRequired(
 sections = replaceRequired(
   sections,
   '.rafex-combined-type-page .m2-corporate-view>.rafex-report-3d-frame img {display:block!important;width:auto!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center center!important}',
-  '.rafex-combined-type-page .m2-corporate-view>.rafex-report-3d-frame img {display:block!important;width:auto!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center center!important;image-rendering:auto!important;transform:translateZ(0)!important}\n      .rafex-combined-type-page .rafex-front-view>.rafex-report-3d-frame{justify-content:center!important;align-items:center!important}\n      .rafex-combined-type-page .rafex-front-view>.rafex-report-3d-frame img{transform:translateX(-7%) translateZ(0)!important}\n      .rafex-combined-type-page .rafex-side-view>.rafex-report-3d-frame{justify-content:center!important;align-items:center!important}\n      .rafex-combined-type-page .rafex-side-view>.rafex-report-3d-frame img{height:100%!important;width:auto!important;max-width:none!important;max-height:100%!important;object-fit:contain!important;object-position:center center!important}',
-  'rapor resim netligi ve merkezleme css',
+  '.rafex-combined-type-page .m2-corporate-view>.rafex-report-3d-frame img {display:block!important;width:auto!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center center!important;image-rendering:auto!important;transform-origin:center center!important}\n      .rafex-combined-type-page .rafex-front-view>.rafex-report-3d-frame{justify-content:center!important;align-items:center!important;overflow:hidden!important}\n      .rafex-combined-type-page .rafex-front-view>.rafex-report-3d-frame img{transform:translateX(-8%) scale(1.68)!important}\n      .rafex-combined-type-page .rafex-side-view>.rafex-report-3d-frame{justify-content:center!important;align-items:center!important;overflow:hidden!important}\n      .rafex-combined-type-page .rafex-side-view>.rafex-report-3d-frame img{height:100%!important;width:auto!important;max-width:none!important;max-height:100%!important;object-fit:contain!important;object-position:center center!important;transform:scale(3.8)!important}',
+  'rapor resim buyuklugu ve merkezleme css',
 );
 fs.writeFileSync(sectionsPath, sections);
 
 // 2) On ve yan gorunusu ayni fiziksel yukseklik olceginde yakala.
-// Ikisinde de 3000 px yukseklik ve ayni cameraPadding kullanilir; yan gorunus daha dar canvas alir.
 const report3dPath = 'client/b2b-report-3d.js';
 let report3d = fs.readFileSync(report3dPath, 'utf8');
-report3d = report3d.replaceAll('front-side-capture-v35', 'front-side-capture-v36');
+report3d = report3d.replaceAll('front-side-capture-v35', 'front-side-capture-v37');
 const oldCapture = `      const result = await capture(options, {
         width: 2800,
         height: 2400,
@@ -52,7 +51,7 @@ const newCapture = `      const sharedPadding = adaptiveCameraPadding(drawing);
       const frontResult = await capture(options, {
         width: 1800,
         height: 3000,
-        pixelRatio: 2.5,
+        pixelRatio: 2.75,
         cameraPadding: sharedPadding,
         frontDimensions: { levels: true, markers: true, eye: true, width: false, depth: false },
         sideDimensions: { levels: false, markers: false, eye: false, width: false, depth: true },
@@ -61,7 +60,7 @@ const newCapture = `      const sharedPadding = adaptiveCameraPadding(drawing);
       const sideResult = await capture(options, {
         width: 900,
         height: 3000,
-        pixelRatio: 2.5,
+        pixelRatio: 2.75,
         cameraPadding: sharedPadding,
         frontDimensions: { levels: true, markers: true, eye: true, width: false, depth: false },
         sideDimensions: { levels: false, markers: false, eye: false, width: false, depth: true },
@@ -127,7 +126,7 @@ if (!accessories.includes('function rafexAccessoryCountTotals()')) {
   if (end < 0) throw new Error('b2b-accessories kapanis noktasi bulunamadi.');
   accessories = accessories.slice(0, end) + injection + '\n' + accessories.slice(end);
 }
-accessories = accessories.replace("const VERSION = 'b2b-accessories-v6';", "const VERSION = 'b2b-accessories-v7';");
+accessories = accessories.replace("const VERSION = 'b2b-accessories-v6';", "const VERSION = 'b2b-accessories-v8';");
 fs.writeFileSync(accessoriesPath, accessories);
 
-console.log('B2B rapor netligi, 70/30 yerlesim, ortak on/yan yukseklik olcegi ve aksesuar sayim satirlari uygulandi.');
+console.log('B2B rapor referans buyuklugu, 70/30 yerlesim, ortak on/yan yukseklik ve aksesuar sayim satirlari uygulandi.');
