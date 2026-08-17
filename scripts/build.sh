@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# B2B accessories + portrait centered side fit build v51
+# B2B accessories + portrait centered side fit build v52
 set -euo pipefail
 
 project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
