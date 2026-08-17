@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# B2B accessories + shared front-side physical scale build v45
+# B2B accessories + independent front-side fit build v46
 set -euo pipefail
 
 project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -38,7 +38,7 @@ const replaceRequired = (from, to, label) => {
 };
 
 if (!source.includes('row.scale.y=-1')) throw new Error('B2B çift sıra yönü kaynakta bulunamadı.');
-replaceRequired('const ASSET_VERSION = "b2b-detail-layout-camera-519";', 'const ASSET_VERSION = "b2b-accessories-599";', 'B2B asset version');
+replaceRequired('const ASSET_VERSION = "b2b-detail-layout-camera-519";', 'const ASSET_VERSION = "b2b-accessories-600";', 'B2B asset version');
 
 // Mevcut ve kullanıcı tarafından onaylanan ön/yan kamera oranını aynen koru.
 const oldFit = 'const fitWidth = size.x / (2 * Math.tan(vFov / 2) * Math.max(this.camera.aspect, 0.25));';
@@ -173,8 +173,7 @@ const takeStartIndex = source.indexOf(oldTakeStart);
 const takeEndIndex = source.indexOf(oldTakeEnd, takeStartIndex);
 if (takeStartIndex < 0 || takeEndIndex < 0) throw new Error('B2B rapor yakalama bloğu bulunamadı.');
 const takeEnd = takeEndIndex + oldTakeEnd.length;
-const newTake = `    let sharedFrontDistance = 0;
-    const capturePadding = clamp(Number(settings.cameraPadding)||1.16,.72,1.6);
+const newTake = `    const capturePadding = clamp(Number(settings.cameraPadding)||1.16,.72,1.6);
     const take = (view, dimensions) => {
       viewer.update({ ...options, dimensions }, false);
       viewer.dimensionLabels.forEach((label) => {
@@ -187,12 +186,9 @@ const newTake = `    let sharedFrontDistance = 0;
       viewer.setView(view);
       const direction = viewer.camera.position.clone().sub(viewer.controls.target);
       const fittedDistance = direction.length() * capturePadding;
-      let targetDistance = fittedDistance;
-      if (view === "front") {
-        sharedFrontDistance = fittedDistance;
-      } else if (view === "side" && sharedFrontDistance > 0) {
-        targetDistance = Math.max(sharedFrontDistance, fittedDistance);
-      }
+      // Her kesit kendi fiziksel sınırlarına göre kadraja oturur.
+      // Böylece yan görünüşün ayak yüksekliği, ön görünüşle aynı sayfa yüksekliğini kullanır.
+      const targetDistance = fittedDistance;
       viewer.camera.position.copy(viewer.controls.target).add(direction.setLength(targetDistance));
       viewer.camera.near = Math.max(5, targetDistance / 500);
       viewer.camera.far = Math.max(200000, targetDistance * 12);
@@ -254,7 +250,7 @@ let portalSource = fs.readFileSync(portalPath, 'utf8')
   .replaceAll('__M2_PALETLI_SIDE_BASE64__', fs.readFileSync(paletliPath).toString('base64'))
   .replaceAll('__M2_AYAK2_FRONT_BASE64__', ayak2FrontBase64)
   .replaceAll('__M2_PALLET_DEFINITION_BASE64__', fs.readFileSync(palletDefinitionPath).toString('base64'))
-  .replaceAll('b2b-double-row-side-ties-367', 'b2b-accessories-599');
+  .replaceAll('b2b-double-row-side-ties-367', 'b2b-accessories-600');
 portalSource = portalSource.replace(/<\/body>\s*<\/html>\s*$/i, `<script data-rafex-b2b-visual-fixes="back-to-back-reference-v2">\n${b2bVisualFixes}\n</script>\n<script data-rafex-b2b-report-3d="front-side-capture-v35">\n${b2bReport3d}\n</script>\n<script data-rafex-b2b-report-sections="corporate-type-sections-v6">\n${b2bReportSections}\n</script>\n<script data-rafex-b2b-accessories="b2b-accessories-v1">\n${b2bAccessories}\n</script>\n</body>\n</html>`);
 if (!portalSource.includes('data-rafex-b2b-accessories="b2b-accessories-v1"')) throw new Error('B2B aksesuar betiği portala eklenemedi.');
 const unresolvedAsset = portalSource.match(/__[A-Z0-9_]+_BASE64__/);
