@@ -1,8 +1,40 @@
 (() => {
-  const VERSION = "corporate-type-sections-v14";
+  const VERSION = "corporate-type-sections-v15";
+  const PLACEMENT_KEY = "rafex_b2b_section_placement_v1";
+  const DEFAULT_PLACEMENT = {
+    front: { x: 20, y: -20, scale: 1 },
+    side: { x: 0, y: 0, scale: 1 },
+  };
 
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const num = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+  const copyPlacement = (value) => ({
+    front: { ...value.front },
+    side: { ...value.side },
+  });
+
+  function normalizedPlacement(raw = {}) {
+    const normalizeView = (view, fallback) => ({
+      x: clamp(num(view?.x, fallback.x), -80, 80),
+      y: clamp(num(view?.y, fallback.y), -80, 80),
+      scale: clamp(num(view?.scale, fallback.scale), 0.35, 2.5),
+    });
+    return {
+      front: normalizeView(raw.front, DEFAULT_PLACEMENT.front),
+      side: normalizeView(raw.side, DEFAULT_PLACEMENT.side),
+    };
+  }
+
+  function loadPlacement() {
+    try {
+      return normalizedPlacement(JSON.parse(localStorage.getItem(PLACEMENT_KEY) || "{}"));
+    } catch {
+      return normalizedPlacement(DEFAULT_PLACEMENT);
+    }
+  }
+
+  let placementSettings = loadPlacement();
+  let editorDraft = copyPlacement(placementSettings);
 
   function viewerFormulaFootHeight(options = {}) {
     const levels = Math.max(1, Math.round(num(options.levels, 1)));
@@ -26,21 +58,19 @@
 
   function installCalculationOptionsBridge() {
     if (typeof window.m2Rack3DOptions !== "function") return false;
-    if (window.m2Rack3DOptions.__rafexCalculationBridgeV14) return true;
+    if (window.m2Rack3DOptions.__rafexCalculationBridgeV15) return true;
 
-    const original = window.m2Rack3DOptions;
+    const original = window.m2Rack3DOptions.__rafexOriginal || window.m2Rack3DOptions;
     const wrapped = function (...args) {
       const result = original.apply(this, args);
       if (!result || typeof result !== "object") return result;
-      // Hesaplama bölümünde kullanılan 3D seçeneklerini rapora özel fallback'lerden
-      // ayır. b2b-report-3d daha sonra bazı alanları ezse bile bu kopya değişmeden kalır.
       const calculationOptions = { ...result };
       return {
         ...result,
         __rafexCalculationOptions: calculationOptions,
       };
     };
-    wrapped.__rafexCalculationBridgeV14 = true;
+    wrapped.__rafexCalculationBridgeV15 = true;
     wrapped.__rafexOriginal = original;
     window.m2Rack3DOptions = wrapped;
     return true;
@@ -73,7 +103,7 @@
   function installAdaptiveCaptureZoom() {
     const service = window.RafexB2BViewer;
     if (!service || typeof service.captureViews !== "function") return false;
-    if (service.captureViews.__rafexAdaptiveReportZoomV14) return true;
+    if (service.captureViews.__rafexAdaptiveReportZoomV15) return true;
 
     const originalCaptureViews = service.captureViews.__rafexOriginal || service.captureViews;
     const wrappedCaptureViews = function (options, settings = {}) {
@@ -87,9 +117,6 @@
 
       const captureOptions = { ...(options || {}) };
       if (isReportCapture) {
-        // Hesaplama ekranındaki m2Rack3DOptions çıktısı tek gerçek kaynaktır.
-        // Rapor tarafında oluşturulan footHeight / seviye / travers fallback'lerini
-        // bununla tekrar ez; böylece ayak boyu ve ölçüler yukarıdaki görünümle aynıdır.
         const calculationOptions = options?.__rafexCalculationOptions;
         if (calculationOptions && typeof calculationOptions === "object") {
           Object.assign(captureOptions, calculationOptions);
@@ -107,7 +134,7 @@
         cameraPadding: isReportCapture ? 1.14 : Math.min(requested, adaptive),
       });
     };
-    wrappedCaptureViews.__rafexAdaptiveReportZoomV14 = true;
+    wrappedCaptureViews.__rafexAdaptiveReportZoomV15 = true;
     wrappedCaptureViews.__rafexOriginal = originalCaptureViews;
     service.captureViews = wrappedCaptureViews;
     return true;
@@ -172,6 +199,13 @@
     window.m2ApplyRackCustomization = wrappedApply;
   }
 
+  function applyViewPlacement(view, type, settings = placementSettings) {
+    const item = settings[type] || DEFAULT_PLACEMENT[type];
+    view.style.setProperty("--rafex-section-x", `${item.x}%`);
+    view.style.setProperty("--rafex-section-y", `${item.y}%`);
+    view.style.setProperty("--rafex-section-scale", String(item.scale));
+  }
+
   function arrangeTypePage(page) {
     const grid = page?.querySelector(":scope > .m2-corporate-type-grid");
     if (!grid) return;
@@ -184,13 +218,15 @@
       card.classList.add("rafex-combined-type-card");
       const views = [...card.querySelectorAll(":scope > .m2-corporate-view")];
       views.forEach((view, index) => {
-        view.classList.toggle("rafex-front-view", index === 0);
-        view.classList.toggle("rafex-side-view", index === 1);
+        const type = index === 0 ? "front" : "side";
+        view.classList.toggle("rafex-front-view", type === "front");
+        view.classList.toggle("rafex-side-view", type === "side");
+        applyViewPlacement(view, type);
         const title = view.querySelector(":scope > b");
         if (title) {
           const existing = String(title.textContent || "").trim();
           const shortTitle = existing.includes("·") ? existing.split("·").pop().trim() : existing;
-          title.textContent = shortTitle || (index === 0 ? "ÖNDEN GÖRÜNÜŞ" : "YANDAN GÖRÜNÜŞ");
+          title.textContent = shortTitle || (type === "front" ? "ÖNDEN GÖRÜNÜŞ" : "YANDAN GÖRÜNÜŞ");
         }
       });
     });
@@ -203,6 +239,233 @@
     pages.forEach((page, index) => {
       const footer = page.querySelector(":scope > .m2-corporate-page-footer");
       if (footer) footer.textContent = `${index + 1} / ${pages.length}`;
+    });
+  }
+
+  function applyPlacementEverywhere() {
+    arrangeTypePages(document.getElementById("m2CorporatePreview"));
+    arrangeTypePages(document.getElementById("m2CorporatePrint"));
+  }
+
+  function representativeArtwork(type) {
+    const cls = type === "front" ? ".rafex-front-view" : ".rafex-side-view";
+    const hosts = [document.getElementById("m2CorporatePreview"), document.getElementById("m2CorporatePrint")].filter(Boolean);
+    for (const host of hosts) {
+      const img = host.querySelector(`${cls} .rafex-report-3d-frame img, ${cls} img`);
+      if (img?.src) return { kind: "img", value: img.src };
+      const svg = host.querySelector(`${cls} > svg, ${cls} .rafex-report-3d-frame svg`);
+      if (svg) return { kind: "svg", value: svg.outerHTML };
+    }
+    return null;
+  }
+
+  function updateEditorArtworkTransform(type) {
+    const stage = document.querySelector(`[data-rafex-placement-stage="${type}"]`);
+    const art = stage?.querySelector(".rafex-placement-art");
+    const value = editorDraft[type];
+    if (!stage || !art || !value) return;
+    art.style.left = `${50 + value.x}%`;
+    art.style.top = `${50 + value.y}%`;
+    art.style.transform = `translate(-50%,-50%) scale(${value.scale})`;
+    const label = document.querySelector(`[data-rafex-placement-zoom="${type}"]`);
+    if (label) label.textContent = `${Math.round(value.scale * 100)}%`;
+  }
+
+  function fillEditorArtwork(type) {
+    const stage = document.querySelector(`[data-rafex-placement-stage="${type}"]`);
+    if (!stage) return false;
+    const source = representativeArtwork(type);
+    const old = stage.querySelector(".rafex-placement-art, .rafex-placement-empty");
+    if (old) old.remove();
+    if (!source) {
+      const empty = document.createElement("div");
+      empty.className = "rafex-placement-empty";
+      empty.textContent = "Kesit hazırlanıyor…";
+      stage.appendChild(empty);
+      return false;
+    }
+    if (source.kind === "img") {
+      const img = document.createElement("img");
+      img.className = "rafex-placement-art";
+      img.src = source.value;
+      img.alt = type === "front" ? "Önden görünüş" : "Yan görünüş";
+      img.draggable = false;
+      stage.appendChild(img);
+    } else {
+      const holder = document.createElement("div");
+      holder.className = "rafex-placement-art rafex-placement-svg";
+      holder.innerHTML = source.value;
+      stage.appendChild(holder);
+    }
+    updateEditorArtworkTransform(type);
+    return true;
+  }
+
+  function refreshEditorArtwork(attempt = 0) {
+    const frontReady = fillEditorArtwork("front");
+    const sideReady = fillEditorArtwork("side");
+    if ((!frontReady || !sideReady) && attempt < 12) {
+      setTimeout(() => refreshEditorArtwork(attempt + 1), 180);
+    }
+  }
+
+  function changeEditorScale(type, delta) {
+    const item = editorDraft[type];
+    if (!item) return;
+    item.scale = clamp(Math.round((item.scale + delta) * 100) / 100, 0.35, 2.5);
+    updateEditorArtworkTransform(type);
+  }
+
+  function resetEditorView(type) {
+    editorDraft[type] = { ...DEFAULT_PLACEMENT[type] };
+    updateEditorArtworkTransform(type);
+  }
+
+  function closePlacementEditor(save) {
+    const modal = document.getElementById("m2SectionPlacementModal");
+    if (!modal) return;
+    if (save) {
+      placementSettings = normalizedPlacement(editorDraft);
+      try { localStorage.setItem(PLACEMENT_KEY, JSON.stringify(placementSettings)); } catch {}
+      applyPlacementEverywhere();
+    } else {
+      editorDraft = copyPlacement(placementSettings);
+    }
+    modal.hidden = true;
+  }
+
+  function openPlacementEditor() {
+    const modal = document.getElementById("m2SectionPlacementModal");
+    if (!modal) return;
+    editorDraft = copyPlacement(placementSettings);
+    modal.hidden = false;
+    updateEditorArtworkTransform("front");
+    updateEditorArtworkTransform("side");
+
+    try {
+      if (typeof window.m2RenderCorporateReport === "function") {
+        const result = window.m2RenderCorporateReport();
+        if (result && typeof result.then === "function") result.finally(() => refreshEditorArtwork());
+      }
+    } catch {}
+    refreshEditorArtwork();
+  }
+
+  function installPlacementEditor() {
+    if (document.getElementById("m2SectionPlacementButton")) return;
+    const headActions = document.querySelector(".m2-report-head-actions");
+    const reportType = document.getElementById("m2ReportType");
+    const reportTypeLabel = reportType?.closest("label");
+    if (!headActions || !reportTypeLabel) return;
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.id = "m2SectionPlacementButton";
+    button.className = "rafex-section-placement-button";
+    button.textContent = "Kesit Yer Belirleme";
+    button.addEventListener("click", openPlacementEditor);
+    headActions.insertBefore(button, reportTypeLabel);
+
+    const modal = document.createElement("div");
+    modal.className = "m2-layout-modal rafex-section-placement-modal";
+    modal.id = "m2SectionPlacementModal";
+    modal.hidden = true;
+    modal.innerHTML = `
+      <div class="rafex-section-placement-dialog" role="dialog" aria-modal="true" aria-labelledby="rafexSectionPlacementTitle">
+        <div class="rafex-section-placement-head">
+          <div><b id="rafexSectionPlacementTitle">Kesit Yer Belirleme</b><small>Kesiti fareyle sürükle. Mouse tekeriyle büyüt / küçült.</small></div>
+          <button type="button" data-rafex-placement-close aria-label="Kapat">×</button>
+        </div>
+        <div class="rafex-section-placement-grid">
+          <section class="rafex-placement-card rafex-placement-card-front">
+            <b>ÖNDEN GÖRÜNÜŞ</b>
+            <div class="rafex-placement-stage" data-rafex-placement-stage="front"><div class="rafex-placement-empty">Kesit hazırlanıyor…</div></div>
+            <div class="rafex-placement-controls">
+              <span>Sürükle · Tekerlek</span>
+              <button type="button" data-rafex-zoom-out="front">−</button>
+              <strong data-rafex-placement-zoom="front">100%</strong>
+              <button type="button" data-rafex-zoom-in="front">+</button>
+              <button type="button" data-rafex-reset="front">Sıfırla</button>
+            </div>
+          </section>
+          <section class="rafex-placement-card rafex-placement-card-side">
+            <b>YAN GÖRÜNÜŞ</b>
+            <div class="rafex-placement-stage" data-rafex-placement-stage="side"><div class="rafex-placement-empty">Kesit hazırlanıyor…</div></div>
+            <div class="rafex-placement-controls">
+              <span>Sürükle · Tekerlek</span>
+              <button type="button" data-rafex-zoom-out="side">−</button>
+              <strong data-rafex-placement-zoom="side">100%</strong>
+              <button type="button" data-rafex-zoom-in="side">+</button>
+              <button type="button" data-rafex-reset="side">Sıfırla</button>
+            </div>
+          </section>
+        </div>
+        <div class="rafex-section-placement-actions">
+          <button type="button" data-rafex-placement-reset-all>Varsayılana Dön</button>
+          <span></span>
+          <button type="button" data-rafex-placement-cancel>Vazgeç</button>
+          <button type="button" class="rafex-placement-save" data-rafex-placement-save>Kaydet</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+
+    modal.querySelector("[data-rafex-placement-close]")?.addEventListener("click", () => closePlacementEditor(false));
+    modal.querySelector("[data-rafex-placement-cancel]")?.addEventListener("click", () => closePlacementEditor(false));
+    modal.querySelector("[data-rafex-placement-save]")?.addEventListener("click", () => closePlacementEditor(true));
+    modal.querySelector("[data-rafex-placement-reset-all]")?.addEventListener("click", () => {
+      editorDraft = copyPlacement(DEFAULT_PLACEMENT);
+      updateEditorArtworkTransform("front");
+      updateEditorArtworkTransform("side");
+    });
+
+    ["front", "side"].forEach((type) => {
+      modal.querySelector(`[data-rafex-zoom-out="${type}"]`)?.addEventListener("click", () => changeEditorScale(type, -0.08));
+      modal.querySelector(`[data-rafex-zoom-in="${type}"]`)?.addEventListener("click", () => changeEditorScale(type, 0.08));
+      modal.querySelector(`[data-rafex-reset="${type}"]`)?.addEventListener("click", () => resetEditorView(type));
+      const stage = modal.querySelector(`[data-rafex-placement-stage="${type}"]`);
+      if (!stage) return;
+
+      stage.addEventListener("wheel", (event) => {
+        event.preventDefault();
+        changeEditorScale(type, event.deltaY < 0 ? 0.06 : -0.06);
+      }, { passive: false });
+
+      let drag = null;
+      stage.addEventListener("pointerdown", (event) => {
+        if (event.button !== 0) return;
+        event.preventDefault();
+        stage.setPointerCapture?.(event.pointerId);
+        drag = {
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          startY: event.clientY,
+          x: editorDraft[type].x,
+          y: editorDraft[type].y,
+        };
+        stage.classList.add("is-dragging");
+      });
+      stage.addEventListener("pointermove", (event) => {
+        if (!drag || drag.pointerId !== event.pointerId) return;
+        const rect = stage.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        editorDraft[type].x = clamp(drag.x + ((event.clientX - drag.startX) / rect.width) * 100, -80, 80);
+        editorDraft[type].y = clamp(drag.y + ((event.clientY - drag.startY) / rect.height) * 100, -80, 80);
+        updateEditorArtworkTransform(type);
+      });
+      const endDrag = (event) => {
+        if (!drag || drag.pointerId !== event.pointerId) return;
+        drag = null;
+        stage.classList.remove("is-dragging");
+      };
+      stage.addEventListener("pointerup", endDrag);
+      stage.addEventListener("pointercancel", endDrag);
+    });
+
+    modal.addEventListener("pointerdown", (event) => {
+      if (event.target === modal) closePlacementEditor(false);
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !modal.hidden) closePlacementEditor(false);
     });
   }
 
@@ -221,35 +484,59 @@
       .rafex-combined-type-page .rafex-combined-type-card>.m2-corporate-view:first-of-type {grid-column:1!important;border-right:1px solid #c6d2dc!important}
       .rafex-combined-type-page .rafex-combined-type-card>.m2-corporate-view:nth-of-type(2) {grid-column:2!important}
       .rafex-combined-type-page .m2-corporate-view>b {grid-row:1!important;display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;height:24px!important;margin:0!important;padding:2px 4px!important;background:#dceaf1!important;color:#0b2b45!important;font-size:8px!important;font-weight:900!important;line-height:1!important;text-align:center!important;position:static!important;transform:none!important}
-      .rafex-combined-type-page .m2-corporate-view>.rafex-report-3d-frame {grid-row:2!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;padding:2px 5px 4px!important;position:relative!important}
-      .rafex-combined-type-page .rafex-front-view>.rafex-report-3d-frame {padding-left:22px!important;padding-right:4px!important}
-      .rafex-combined-type-page .m2-corporate-view>.rafex-report-3d-frame img {display:block!important;width:auto!important;height:90%!important;max-width:90%!important;max-height:90%!important;object-fit:contain!important;object-position:center center!important}
-      .rafex-combined-type-page .rafex-front-view>.rafex-report-3d-frame img {position:relative!important;left:20%!important;top:-20%!important;transform:none!important}
-      .rafex-combined-type-page .rafex-side-view>.rafex-report-3d-frame img {width:auto!important;height:90%!important;max-width:none!important;max-height:90%!important;object-fit:contain!important;object-position:center center!important;transform:none!important}
-      .rafex-combined-type-page .m2-corporate-view>svg {grid-row:2!important;width:90%!important;height:90%!important;min-width:0!important;min-height:0!important;align-self:center!important;justify-self:center!important;position:relative!important}
-      .rafex-combined-type-page .rafex-front-view>svg {width:88%!important;margin-left:12px!important;left:20%!important;top:-20%!important;transform:none!important}
-      .rafex-combined-type-page .rafex-side-view>svg {width:auto!important;height:90%!important;max-width:none!important;max-height:90%!important}
+      .rafex-combined-type-page .m2-corporate-view>.rafex-report-3d-frame {grid-row:2!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;display:block!important;overflow:hidden!important;padding:0!important;position:relative!important}
+      .rafex-combined-type-page .m2-corporate-view>.rafex-report-3d-frame img {display:block!important;position:absolute!important;left:calc(50% + var(--rafex-section-x,0%))!important;top:calc(50% + var(--rafex-section-y,0%))!important;width:auto!important;height:90%!important;max-width:none!important;max-height:none!important;object-fit:contain!important;object-position:center center!important;transform:translate(-50%,-50%) scale(var(--rafex-section-scale,1))!important;transform-origin:center center!important}
+      .rafex-combined-type-page .m2-corporate-view>svg {grid-row:2!important;position:absolute!important;left:calc(50% + var(--rafex-section-x,0%))!important;top:calc(50% + var(--rafex-section-y,0%))!important;width:auto!important;height:90%!important;max-width:none!important;max-height:none!important;transform:translate(-50%,-50%) scale(var(--rafex-section-scale,1))!important;transform-origin:center center!important}
+
+      .rafex-section-placement-button {padding:9px 11px!important;background:#173c2d!important;color:#fff!important;border:1px solid #173c2d!important;border-radius:8px!important;white-space:nowrap!important}
+      .rafex-section-placement-button:hover {background:#214f3b!important}
+      .rafex-section-placement-modal {z-index:12000!important;display:grid!important;place-items:center!important;padding:18px!important;background:#07150e99!important}
+      .rafex-section-placement-modal[hidden] {display:none!important}
+      .rafex-section-placement-dialog {width:min(920px,96vw);max-height:92vh;overflow:auto;background:#fff;border:1px solid #d9e2dc;border-radius:15px;box-shadow:0 28px 80px #07150e55;padding:14px}
+      .rafex-section-placement-head {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 2px 12px}
+      .rafex-section-placement-head b {display:block;font-size:16px;color:#173c2d}
+      .rafex-section-placement-head small {display:block;margin-top:4px;color:#68736c;font-size:10px}
+      .rafex-section-placement-head>button {width:32px;height:32px;padding:0;background:#edf2ee;color:#173c2d;font-size:20px}
+      .rafex-section-placement-grid {display:grid;grid-template-columns:minmax(0,1.32fr) minmax(230px,.68fr);gap:10px;align-items:stretch}
+      .rafex-placement-card {min-width:0;border:1px solid #dfe5e0;border-radius:11px;overflow:hidden;background:#f8faf8}
+      .rafex-placement-card>b {display:block;padding:8px 10px;background:#dceaf1;color:#0b2b45;text-align:center;font-size:10px}
+      .rafex-placement-stage {position:relative;height:min(58vh,560px);min-height:360px;overflow:hidden;background:#fff;cursor:grab;touch-action:none;user-select:none;border-bottom:1px solid #e2e8e4}
+      .rafex-placement-stage.is-dragging {cursor:grabbing}
+      .rafex-placement-art {position:absolute;left:50%;top:50%;height:90%;width:auto;max-width:none;max-height:none;transform:translate(-50%,-50%);transform-origin:center center;pointer-events:none;user-select:none}
+      .rafex-placement-svg svg {display:block;height:100%;width:auto;max-width:none;max-height:none}
+      .rafex-placement-empty {position:absolute;inset:0;display:grid;place-items:center;color:#849087;font-size:11px;pointer-events:none}
+      .rafex-placement-controls {display:grid;grid-template-columns:1fr 32px 58px 32px auto;gap:6px;align-items:center;padding:8px;background:#f5f7f5}
+      .rafex-placement-controls span {color:#68736c;font-size:9px}
+      .rafex-placement-controls button {padding:7px 8px;background:#e8eeea;color:#173c2d;border-radius:7px}
+      .rafex-placement-controls strong {font-size:10px;text-align:center;color:#173c2d}
+      .rafex-section-placement-actions {display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;padding-top:12px}
+      .rafex-section-placement-actions button {padding:9px 12px;background:#edf2ee;color:#173c2d}
+      .rafex-section-placement-actions .rafex-placement-save {background:#173c2d;color:#fff}
+      @media(max-width:760px){.rafex-section-placement-grid{grid-template-columns:1fr}.rafex-placement-stage{height:380px;min-height:300px}.rafex-placement-controls{grid-template-columns:1fr 32px 52px 32px auto}}
     `;
     document.head.appendChild(style);
   }
 
   function installHooks() {
     installCalculationOptionsBridge();
-    if (typeof window.m2RenderCorporateReport === "function" && !window.m2RenderCorporateReport.__rafexCombinedTypesV14) {
+    if (typeof window.m2RenderCorporateReport === "function" && !window.m2RenderCorporateReport.__rafexCombinedTypesV15) {
       const previousRender = window.m2RenderCorporateReport;
       const wrappedRender = function (...args) {
         installCalculationOptionsBridge();
         const result = previousRender.apply(this, args);
         installAdaptiveCaptureZoom();
         arrangeTypePages(document.getElementById("m2CorporatePreview"));
+        if (result && typeof result.then === "function") {
+          result.finally(() => arrangeTypePages(document.getElementById("m2CorporatePreview")));
+        }
         return result;
       };
-      wrappedRender.__rafexCombinedTypesV14 = true;
+      wrappedRender.__rafexCombinedTypesV15 = true;
       window.m2RenderCorporateReport = wrappedRender;
     }
 
     const previousPrepare = window.__rafexPrepareCorporatePrint;
-    if (typeof previousPrepare === "function" && !previousPrepare.__rafexCombinedTypesV14) {
+    if (typeof previousPrepare === "function" && !previousPrepare.__rafexCombinedTypesV15) {
       const wrappedPrepare = async function (...args) {
         installCalculationOptionsBridge();
         installAdaptiveCaptureZoom();
@@ -257,7 +544,7 @@
         arrangeTypePages(document.getElementById("m2CorporatePrint"));
         arrangeTypePages(document.getElementById("m2CorporatePreview"));
       };
-      wrappedPrepare.__rafexCombinedTypesV14 = true;
+      wrappedPrepare.__rafexCombinedTypesV15 = true;
       window.__rafexPrepareCorporatePrint = wrappedPrepare;
     }
   }
@@ -267,5 +554,6 @@
   installAdaptiveCaptureZoom();
   installCustomizationTypeRules();
   installHooks();
-  arrangeTypePages(document.getElementById("m2CorporatePreview"));
+  installPlacementEditor();
+  applyPlacementEverywhere();
 })();
