@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v43";
+  const VERSION = "front-side-capture-v44";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -20,6 +20,34 @@
     return Math.max(50, candidates.map(Number).find((value) => Number.isFinite(value) && value > 0) || 140);
   };
 
+  function b2bFullUprightHeight(drawing) {
+    const state=drawing?.b2b||{};
+    const levels=Math.max(1,Math.round(number(drawing?.levels??state.levels,1)));
+    const defaultPallet=Math.max(300,number(drawing?.palletHeight??state.palletHeight,1200));
+    const traverseHeight=b2bTraverseHeight(drawing);
+    const custom=Array.isArray(state.customLevels)?state.customLevels:[];
+    const defaultClearance=Math.max(0,number(state.palletTraverseGap??drawing?.clearance,200));
+    let height=state.firstPalletPosition==="traverse"
+      ? Math.max(0,number(state.firstFloorGap,200))+traverseHeight
+      : 0;
+    for(let level=0;level<levels-1;level+=1){
+      const pallet=Math.max(300,number(custom[level]?.palletHeight,defaultPallet));
+      const interval=number(custom[level]?.interval,0);
+      const clearance=interval>0?Math.max(0,interval-pallet-traverseHeight):defaultClearance;
+      height+=pallet+clearance+traverseHeight;
+    }
+    const lastPallet=Math.max(300,number(custom[levels-1]?.palletHeight,defaultPallet));
+    const calculatedTop=Math.ceil((height+lastPallet)/50)*50;
+    return Math.max(
+      500,
+      calculatedTop,
+      number(drawing?.sideUprightHeight,0),
+      number(drawing?.totalRackHeight,0),
+      number(drawing?.footLy,0),
+      number(state.footHeight,0),
+    );
+  }
+
   function stableKey(drawing) {
     const state = drawing?.b2b || {};
     const layout = drawing?.b2bLayout || {};
@@ -34,7 +62,7 @@
       levels: number(drawing?.levels ?? state.levels, 4),
       rowCount: number(layout.rowCount, state.rowType === "double" ? 2 : 1),
       rowGap: number(layout.rowGap ?? state.rowGap, 200),
-      uprightHeight: Math.max(number(drawing?.sideUprightHeight, 0), number(drawing?.totalRackHeight, 0), number(drawing?.footLy, 0), number(state.footHeight, 0)),
+      uprightHeight: b2bFullUprightHeight(drawing),
       traverseHeight: b2bTraverseHeight(drawing),
       tunnelHeight: number(state.tunnelHeight, 0),
       firstPalletPosition: state.firstPalletPosition || "ground",
@@ -109,13 +137,7 @@
       0,
       number(item?.interval, 0) - (palletHeights[index] || palletHeight) - traverseHeight,
     ));
-    const footHeight = Math.max(
-      500,
-      number(drawing?.sideUprightHeight, 0),
-      number(drawing?.totalRackHeight, 0),
-      number(drawing?.footLy, 0),
-      number(state.footHeight, 0),
-    );
+    const footHeight = b2bFullUprightHeight(drawing);
     const tiePlan = typeof b2bStraightTiePlan === "function"
       ? b2bStraightTiePlan(drawing)
       : { count: 0, positions: [] };
