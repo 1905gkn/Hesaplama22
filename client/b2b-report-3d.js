@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v39";
+  const VERSION = "front-side-capture-v40";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -512,13 +512,28 @@
         transform:translateX(-20%);
         transform-origin:left center;
       }
+      .m2-corporate-view.rafex-side-view,
+      #m2CorporatePrint .m2-corporate-view.rafex-side-view,
+      .rafex-combined-side {
+        align-items:center !important;
+        justify-items:center !important;
+      }
+      .m2-corporate-view.rafex-side-view .rafex-report-3d-frame,
+      #m2CorporatePrint .m2-corporate-view.rafex-side-view .rafex-report-3d-frame,
+      .rafex-combined-side .rafex-report-3d-frame {
+        display:flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        padding:4% !important;
+        overflow:hidden !important;
+      }
       /* Yan kesitin ayak yüksekliğini ön kesitle görsel olarak eşitle. */
       #m2ReportSides .rafex-report-3d-frame img,
       #m2A4PrintSheet #m2ReportSides .rafex-report-3d-frame img,
       .m2-corporate-view.rafex-side-view .rafex-report-3d-frame img,
       #m2CorporatePrint .m2-corporate-view.rafex-side-view .rafex-report-3d-frame img,
       .rafex-combined-side .rafex-report-3d-frame img {
-        transform:scale(2.3) !important;
+        transform:scale(1.95) !important;
         transform-origin:center center !important;
       }
       .m2-corporate-view .rafex-report-3d-frame,
