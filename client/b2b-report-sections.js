@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "corporate-type-sections-v13";
+  const VERSION = "corporate-type-sections-v14";
 
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const num = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
@@ -22,6 +22,28 @@
     }
     const lastPalletOverlap = Math.max(0, num(options.lastPalletOverlap, defaultPalletHeight / 2));
     return Math.max(500, Math.ceil((loadBottom + lastPalletOverlap) / 50) * 50);
+  }
+
+  function installCalculationOptionsBridge() {
+    if (typeof window.m2Rack3DOptions !== "function") return false;
+    if (window.m2Rack3DOptions.__rafexCalculationBridgeV14) return true;
+
+    const original = window.m2Rack3DOptions;
+    const wrapped = function (...args) {
+      const result = original.apply(this, args);
+      if (!result || typeof result !== "object") return result;
+      // Hesaplama bölümünde kullanılan 3D seçeneklerini rapora özel fallback'lerden
+      // ayır. b2b-report-3d daha sonra bazı alanları ezse bile bu kopya değişmeden kalır.
+      const calculationOptions = { ...result };
+      return {
+        ...result,
+        __rafexCalculationOptions: calculationOptions,
+      };
+    };
+    wrapped.__rafexCalculationBridgeV14 = true;
+    wrapped.__rafexOriginal = original;
+    window.m2Rack3DOptions = wrapped;
+    return true;
   }
 
   function adaptiveReportPadding(options = {}) {
@@ -51,7 +73,7 @@
   function installAdaptiveCaptureZoom() {
     const service = window.RafexB2BViewer;
     if (!service || typeof service.captureViews !== "function") return false;
-    if (service.captureViews.__rafexAdaptiveReportZoomV13) return true;
+    if (service.captureViews.__rafexAdaptiveReportZoomV14) return true;
 
     const originalCaptureViews = service.captureViews.__rafexOriginal || service.captureViews;
     const wrappedCaptureViews = function (options, settings = {}) {
@@ -65,7 +87,16 @@
 
       const captureOptions = { ...(options || {}) };
       if (isReportCapture) {
-        captureOptions.footHeight = viewerFormulaFootHeight(captureOptions);
+        // Hesaplama ekranındaki m2Rack3DOptions çıktısı tek gerçek kaynaktır.
+        // Rapor tarafında oluşturulan footHeight / seviye / travers fallback'lerini
+        // bununla tekrar ez; böylece ayak boyu ve ölçüler yukarıdaki görünümle aynıdır.
+        const calculationOptions = options?.__rafexCalculationOptions;
+        if (calculationOptions && typeof calculationOptions === "object") {
+          Object.assign(captureOptions, calculationOptions);
+        } else {
+          captureOptions.footHeight = viewerFormulaFootHeight(captureOptions);
+        }
+        delete captureOptions.__rafexCalculationOptions;
         delete captureOptions.__rafexSourceFootHeight;
       }
 
@@ -76,7 +107,7 @@
         cameraPadding: isReportCapture ? 1.14 : Math.min(requested, adaptive),
       });
     };
-    wrappedCaptureViews.__rafexAdaptiveReportZoomV13 = true;
+    wrappedCaptureViews.__rafexAdaptiveReportZoomV14 = true;
     wrappedCaptureViews.__rafexOriginal = originalCaptureViews;
     service.captureViews = wrappedCaptureViews;
     return true;
@@ -190,43 +221,49 @@
       .rafex-combined-type-page .rafex-combined-type-card>.m2-corporate-view:first-of-type {grid-column:1!important;border-right:1px solid #c6d2dc!important}
       .rafex-combined-type-page .rafex-combined-type-card>.m2-corporate-view:nth-of-type(2) {grid-column:2!important}
       .rafex-combined-type-page .m2-corporate-view>b {grid-row:1!important;display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;height:24px!important;margin:0!important;padding:2px 4px!important;background:#dceaf1!important;color:#0b2b45!important;font-size:8px!important;font-weight:900!important;line-height:1!important;text-align:center!important;position:static!important;transform:none!important}
-      .rafex-combined-type-page .m2-corporate-view>.rafex-report-3d-frame {grid-row:2!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;padding:2px 5px 4px!important}
+      .rafex-combined-type-page .m2-corporate-view>.rafex-report-3d-frame {grid-row:2!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;padding:2px 5px 4px!important;position:relative!important}
       .rafex-combined-type-page .rafex-front-view>.rafex-report-3d-frame {padding-left:22px!important;padding-right:4px!important}
       .rafex-combined-type-page .m2-corporate-view>.rafex-report-3d-frame img {display:block!important;width:auto!important;height:90%!important;max-width:90%!important;max-height:90%!important;object-fit:contain!important;object-position:center center!important}
-      .rafex-combined-type-page .rafex-front-view>.rafex-report-3d-frame img {transform:translate(20%,-20%)!important}
-      .rafex-combined-type-page .m2-corporate-view>svg {grid-row:2!important;width:90%!important;height:90%!important;min-width:0!important;min-height:0!important;align-self:center!important;justify-self:center!important}
-      .rafex-combined-type-page .rafex-front-view>svg {width:88%!important;margin-left:12px!important;transform:translate(20%,-20%)!important}
+      .rafex-combined-type-page .rafex-front-view>.rafex-report-3d-frame img {position:relative!important;left:20%!important;top:-20%!important;transform:none!important}
+      .rafex-combined-type-page .rafex-side-view>.rafex-report-3d-frame img {width:auto!important;height:90%!important;max-width:none!important;max-height:90%!important;object-fit:contain!important;object-position:center center!important;transform:none!important}
+      .rafex-combined-type-page .m2-corporate-view>svg {grid-row:2!important;width:90%!important;height:90%!important;min-width:0!important;min-height:0!important;align-self:center!important;justify-self:center!important;position:relative!important}
+      .rafex-combined-type-page .rafex-front-view>svg {width:88%!important;margin-left:12px!important;left:20%!important;top:-20%!important;transform:none!important}
+      .rafex-combined-type-page .rafex-side-view>svg {width:auto!important;height:90%!important;max-width:none!important;max-height:90%!important}
     `;
     document.head.appendChild(style);
   }
 
   function installHooks() {
-    if (typeof window.m2RenderCorporateReport === "function" && !window.m2RenderCorporateReport.__rafexCombinedTypesV13) {
+    installCalculationOptionsBridge();
+    if (typeof window.m2RenderCorporateReport === "function" && !window.m2RenderCorporateReport.__rafexCombinedTypesV14) {
       const previousRender = window.m2RenderCorporateReport;
       const wrappedRender = function (...args) {
+        installCalculationOptionsBridge();
         const result = previousRender.apply(this, args);
         installAdaptiveCaptureZoom();
         arrangeTypePages(document.getElementById("m2CorporatePreview"));
         return result;
       };
-      wrappedRender.__rafexCombinedTypesV13 = true;
+      wrappedRender.__rafexCombinedTypesV14 = true;
       window.m2RenderCorporateReport = wrappedRender;
     }
 
     const previousPrepare = window.__rafexPrepareCorporatePrint;
-    if (typeof previousPrepare === "function" && !previousPrepare.__rafexCombinedTypesV13) {
+    if (typeof previousPrepare === "function" && !previousPrepare.__rafexCombinedTypesV14) {
       const wrappedPrepare = async function (...args) {
+        installCalculationOptionsBridge();
         installAdaptiveCaptureZoom();
         await previousPrepare.apply(this, args);
         arrangeTypePages(document.getElementById("m2CorporatePrint"));
         arrangeTypePages(document.getElementById("m2CorporatePreview"));
       };
-      wrappedPrepare.__rafexCombinedTypesV13 = true;
+      wrappedPrepare.__rafexCombinedTypesV14 = true;
       window.__rafexPrepareCorporatePrint = wrappedPrepare;
     }
   }
 
   installStyles();
+  installCalculationOptionsBridge();
   installAdaptiveCaptureZoom();
   installCustomizationTypeRules();
   installHooks();
