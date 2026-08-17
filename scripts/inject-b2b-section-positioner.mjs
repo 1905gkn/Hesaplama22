@@ -17,13 +17,14 @@ if (!match) throw new Error("HTML_BASE64 build çıktısında bulunamadı.");
 
 let html = Buffer.from(match[3], "base64").toString("utf8");
 
-// Daha önce gömülmüş fallback varsa da canlıda başlık sınıfına bağımlı kalmasın.
-html = html.replace(oldActionsLookup, robustActionsLookup);
+// Önceden gömülmüş fallback sürümlerini de her buildde güncelle.
+html = html.replaceAll(oldActionsLookup, robustActionsLookup);
+html = html.replaceAll(blurredModalClass, clearModalClass);
 
 if (!html.includes(marker)) {
   let fallback = fs.readFileSync(fallbackPath, "utf8");
-  fallback = fallback.replace(oldActionsLookup, robustActionsLookup);
-  fallback = fallback.replace(blurredModalClass, clearModalClass);
+  fallback = fallback.replaceAll(oldActionsLookup, robustActionsLookup);
+  fallback = fallback.replaceAll(blurredModalClass, clearModalClass);
   fallback = fallback.replace(/<\/script/gi, "<\\/script");
 
   if (!fallback.includes(clearModalClass)) {
