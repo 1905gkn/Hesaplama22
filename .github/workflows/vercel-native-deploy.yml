@@ -43,6 +43,8 @@ jobs:
           node /tmp/apply-b2b-accessory-fit-v3.cjs
           cp scripts/apply-b2b-h-traverse-lower-v5.js /tmp/apply-b2b-h-traverse-lower-v5.cjs
           node /tmp/apply-b2b-h-traverse-lower-v5.cjs
+          cp scripts/apply-b2b-report-clarity-counts-v7.js /tmp/apply-b2b-report-clarity-counts-v7.cjs
+          node /tmp/apply-b2b-report-clarity-counts-v7.cjs
 
       - name: Build production artifact
         run: npx vercel@58.1.0 build --prod --token="${{ secrets.VERCEL_TOKEN }}" --scope=gokhankaya-4823s-projects
