@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# B2B accessories + top-safe centered side fit build v50
+# B2B accessories + portrait centered side fit build v51
 set -euo pipefail
 
 project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -196,10 +196,10 @@ const newTake = `    const capturePadding = clamp(Number(settings.cameraPadding)
         const vFov = THREE.MathUtils.degToRad(viewer.camera.fov);
         const fitHeight = size.y / (2 * Math.tan(vFov / 2));
         const fitWidth = size.z / (2 * Math.tan(vFov / 2) * Math.max(viewer.camera.aspect, 0.25));
-        targetDistance = Math.max(fitHeight, fitWidth) * 1.22;
-        center.y += size.y * 0.04;
+        targetDistance = Math.max(fitHeight, fitWidth) * 1.14;
+        center.y += size.y * 0.02;
         viewer.controls.target.copy(center);
-        direction.set(1, 0.005, 0).normalize();
+        direction.set(1, 0, 0).normalize();
       }
       viewer.camera.position.copy(viewer.controls.target).add(direction.setLength(targetDistance));
       viewer.camera.near = Math.max(5, targetDistance / 500);
