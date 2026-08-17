@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v47";
+  const VERSION = "front-side-capture-v48";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -37,7 +37,10 @@
       height+=pallet+clearance+traverseHeight;
     }
     const lastPallet=Math.max(300,number(custom[levels-1]?.palletHeight,defaultPallet));
-    const calculatedTop=Math.ceil((height+lastPallet)/50)*50;
+    // Ayaklar son paletin tepesinde bitmemeli. Son paletin üstünde kalan
+    // gerçek dikme uzantısını da geometriye ekle; kamera bu kısmı bounds'a dahil eder.
+    const topExtension=Math.max(600,number(state.lastPalletOverlap,600));
+    const calculatedTop=Math.ceil((height+lastPallet+topExtension)/50)*50;
     return Math.max(
       500,
       calculatedTop,
