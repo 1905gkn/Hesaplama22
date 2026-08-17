@@ -47,6 +47,20 @@ jobs:
       - name: Build production artifact
         run: npx vercel@58.1.0 build --prod --token="${{ secrets.VERCEL_TOKEN }}" --scope=gokhankaya-4823s-projects
 
+      - name: Inject and verify section locator in prebuilt function
+        shell: bash
+        run: |
+          node scripts/inject-b2b-section-positioner.mjs
+          output_worker=$(find .vercel/output/functions -type f -path '*/dist/server/index.js' -print -quit)
+          if [ -z "$output_worker" ]; then
+            echo "Vercel prebuilt server output was not found."
+            find .vercel/output -maxdepth 6 -type f -print
+            exit 1
+          fi
+          cp dist/server/index.js "$output_worker"
+          cmp -s dist/server/index.js "$output_worker"
+          echo "Kesit Yer Belirleme injected into $output_worker"
+
       - name: Remove Git metadata before deploy
         run: rm -rf .git
 
