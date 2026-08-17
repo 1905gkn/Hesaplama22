@@ -47,5 +47,8 @@ jobs:
       - name: Build production artifact
         run: npx vercel@58.1.0 build --prod --token="${{ secrets.VERCEL_TOKEN }}" --scope=gokhankaya-4823s-projects
 
+      - name: Remove Git metadata before deploy
+        run: rm -rf .git
+
       - name: Deploy production artifact
         run: npx vercel@58.1.0 deploy --prebuilt --prod --force --token="${{ secrets.VERCEL_TOKEN }}" --scope=gokhankaya-4823s-projects
