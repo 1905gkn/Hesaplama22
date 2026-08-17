@@ -1,13 +1,13 @@
 (() => {
-  const VERSION = "corporate-type-sections-v9";
+  const VERSION = "corporate-type-sections-v10";
 
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const num = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 
   function installSourceGeometryBridge() {
     if (typeof window.m2Rack3DOptions !== "function") return false;
-    if (window.m2Rack3DOptions.__rafexSourceGeometryV9) return true;
-    const original = window.m2Rack3DOptions;
+    if (window.m2Rack3DOptions.__rafexSourceGeometryV10) return true;
+    const original = window.m2Rack3DOptions.__rafexOriginal || window.m2Rack3DOptions;
     const wrapped = function (...args) {
       const result = original.apply(this, args);
       if (!result || typeof result !== "object") return result;
@@ -16,7 +16,7 @@
         __rafexSourceFootHeight: num(result.footHeight, 0),
       };
     };
-    wrapped.__rafexSourceGeometryV9 = true;
+    wrapped.__rafexSourceGeometryV10 = true;
     wrapped.__rafexOriginal = original;
     window.m2Rack3DOptions = wrapped;
     return true;
@@ -49,7 +49,7 @@
   function installAdaptiveCaptureZoom() {
     const service = window.RafexB2BViewer;
     if (!service || typeof service.captureViews !== "function") return false;
-    if (service.captureViews.__rafexAdaptiveReportZoomV9) return true;
+    if (service.captureViews.__rafexAdaptiveReportZoomV10) return true;
 
     const originalCaptureViews = service.captureViews.__rafexOriginal || service.captureViews;
     const wrappedCaptureViews = function (options, settings = {}) {
@@ -60,17 +60,17 @@
       const captureOptions = sourceFootHeight > 0
         ? { ...options, footHeight: sourceFootHeight }
         : options;
-      // Ölçeği yaklaşık %90 seviyesinde tut; geometriyi asla rapor için yeniden hesaplama.
-      // Ayak yüksekliği üstteki canlı B2B görünümünde kullanılan m2Rack3DOptions değerinden gelir.
-      const frontFillPadding = isReportCapture ? 0.89 : adaptive;
+      // Ön ve yan görünüş birebir aynı kamera ölçeğinde olmalı.
+      // Yan görünüş 1.14 kullanıyor; ön görünüşü de aynı değere sabitle.
+      const cameraPadding = isReportCapture ? 1.14 : Math.min(requested, adaptive);
       return originalCaptureViews.call(this, captureOptions, {
         ...settings,
         width: isReportCapture ? 1500 : settings.width,
         height: isReportCapture ? 3000 : settings.height,
-        cameraPadding: Math.min(requested, adaptive, frontFillPadding),
+        cameraPadding,
       });
     };
-    wrappedCaptureViews.__rafexAdaptiveReportZoomV9 = true;
+    wrappedCaptureViews.__rafexAdaptiveReportZoomV10 = true;
     wrappedCaptureViews.__rafexOriginal = originalCaptureViews;
     service.captureViews = wrappedCaptureViews;
     return true;
@@ -195,7 +195,7 @@
 
   function installHooks() {
     installSourceGeometryBridge();
-    if (typeof window.m2RenderCorporateReport === "function" && !window.m2RenderCorporateReport.__rafexCombinedTypesV9) {
+    if (typeof window.m2RenderCorporateReport === "function" && !window.m2RenderCorporateReport.__rafexCombinedTypesV10) {
       const previousRender = window.m2RenderCorporateReport;
       const wrappedRender = function (...args) {
         installSourceGeometryBridge();
@@ -204,12 +204,12 @@
         arrangeTypePages(document.getElementById("m2CorporatePreview"));
         return result;
       };
-      wrappedRender.__rafexCombinedTypesV9 = true;
+      wrappedRender.__rafexCombinedTypesV10 = true;
       window.m2RenderCorporateReport = wrappedRender;
     }
 
     const previousPrepare = window.__rafexPrepareCorporatePrint;
-    if (typeof previousPrepare === "function" && !previousPrepare.__rafexCombinedTypesV9) {
+    if (typeof previousPrepare === "function" && !previousPrepare.__rafexCombinedTypesV10) {
       const wrappedPrepare = async function (...args) {
         installSourceGeometryBridge();
         installAdaptiveCaptureZoom();
@@ -217,7 +217,7 @@
         arrangeTypePages(document.getElementById("m2CorporatePrint"));
         arrangeTypePages(document.getElementById("m2CorporatePreview"));
       };
-      wrappedPrepare.__rafexCombinedTypesV9 = true;
+      wrappedPrepare.__rafexCombinedTypesV10 = true;
       window.__rafexPrepareCorporatePrint = wrappedPrepare;
     }
   }
