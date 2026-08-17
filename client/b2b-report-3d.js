@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v38";
+  const VERSION = "front-side-capture-v39";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -511,6 +511,15 @@
         object-position:left center !important;
         transform:translateX(-20%);
         transform-origin:left center;
+      }
+      /* Yan kesitin ayak yüksekliğini ön kesitle görsel olarak eşitle. */
+      #m2ReportSides .rafex-report-3d-frame img,
+      #m2A4PrintSheet #m2ReportSides .rafex-report-3d-frame img,
+      .m2-corporate-view.rafex-side-view .rafex-report-3d-frame img,
+      #m2CorporatePrint .m2-corporate-view.rafex-side-view .rafex-report-3d-frame img,
+      .rafex-combined-side .rafex-report-3d-frame img {
+        transform:scale(2.3) !important;
+        transform-origin:center center !important;
       }
       .m2-corporate-view .rafex-report-3d-frame,
       #m2CorporatePrint .m2-corporate-view .rafex-report-3d-frame {
