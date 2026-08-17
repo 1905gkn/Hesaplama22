@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v48";
+  const VERSION = "front-side-capture-v49";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -233,7 +233,7 @@
       if (typeof capture !== "function") throw new Error("B2B 3D görüntü yakalama servisi hazır değil.");
       const options=viewerOptions(drawing);
       const settings = {
-        width: 2800,
+        width: 2200,
         height: 2400,
         pixelRatio: 2.25,
         cameraPadding: adaptiveCameraPadding(drawing),
@@ -355,7 +355,7 @@
       const base={...moduleOptions[0],moduleCount:moduleOptions.length,moduleOptions,showPallets:true};
       const capture=window.RafexB2BViewer?.captureViews;
       if(typeof capture!=="function")throw new Error("Birleşik B2B 3D yakalama servisi hazır değil.");
-      const settings={width:3000,height:2400,pixelRatio:2.25,cameraPadding:adaptiveCameraPadding(base,true),frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"};
+      const settings={width:2600,height:2400,pixelRatio:2.25,cameraPadding:adaptiveCameraPadding(base,true),frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"};
       const result=await capture(base,settings);
       const sideResult=await capture(tallestSideOptions(moduleOptions),{...settings,width:1200,height:2400,cameraPadding:1.14});
       combinedVariantCache={signature,front:result.front,side:sideResult.side};return combinedVariantCache;
@@ -389,7 +389,7 @@
         const base={...moduleOptions[0],moduleCount:moduleOptions.length,moduleOptions,showPallets:true};
         const capture=window.RafexB2BViewer?.captureViews;
         if(typeof capture!=="function")throw new Error("Tip bazlı birleşik B2B 3D yakalama servisi hazır değil.");
-        const settings={width:3000,height:2400,pixelRatio:2.25,cameraPadding:adaptiveCameraPadding(base,true),frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"};
+        const settings={width:2600,height:2400,pixelRatio:2.25,cameraPadding:adaptiveCameraPadding(base,true),frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"};
         const result=await capture(base,settings);
         const sideResult=await capture(tallestSideOptions(moduleOptions),{...settings,width:1200,height:2400,cameraPadding:1.14});
         if(!result?.front||!sideResult?.side)throw new Error(`${group.name} için birleşik görünüş oluşturulamadı.`);
