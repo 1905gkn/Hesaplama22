@@ -1,8 +1,28 @@
 (() => {
-  const VERSION = "corporate-type-sections-v11";
+  const VERSION = "corporate-type-sections-v12";
 
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const num = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+
+  function viewerFormulaFootHeight(options = {}) {
+    const levels = Math.max(1, Math.round(num(options.levels, 1)));
+    const traverseHeight = Math.max(50, num(options.traverseHeight, 140));
+    const defaultPalletHeight = Math.max(300, num(options.palletHeight, 800));
+    const defaultClearance = Math.max(0, num(options.palletTraverseGap, 200));
+    const palletHeights = Array.isArray(options.palletHeights) ? options.palletHeights : [];
+    const levelClearances = Array.isArray(options.levelClearances) ? options.levelClearances : [];
+    const palletHeightAt = (level) => Math.max(300, num(palletHeights[level], defaultPalletHeight));
+    const clearanceAt = (level) => Math.max(0, num(levelClearances[level], defaultClearance));
+
+    let loadBottom = options.firstPalletPosition === "traverse"
+      ? Math.max(0, num(options.firstFloorGap, 200)) + traverseHeight
+      : 0;
+    for (let level = 1; level < levels; level += 1) {
+      loadBottom += palletHeightAt(level - 1) + clearanceAt(level - 1) + traverseHeight;
+    }
+    const lastPalletOverlap = Math.max(0, num(options.lastPalletOverlap, defaultPalletHeight / 2));
+    return Math.max(500, Math.ceil((loadBottom + lastPalletOverlap) / 50) * 50);
+  }
 
   function adaptiveReportPadding(options = {}) {
     const palletCount = clamp(Math.round(num(options.palletCount, 3)), 1, 4);
@@ -31,7 +51,7 @@
   function installAdaptiveCaptureZoom() {
     const service = window.RafexB2BViewer;
     if (!service || typeof service.captureViews !== "function") return false;
-    if (service.captureViews.__rafexAdaptiveReportZoomV11) return true;
+    if (service.captureViews.__rafexAdaptiveReportZoomV12) return true;
 
     const originalCaptureViews = service.captureViews.__rafexOriginal || service.captureViews;
     const wrappedCaptureViews = function (options, settings = {}) {
@@ -43,24 +63,23 @@
       const isSideReportCapture = width === 1200 && height >= 2000;
       const isReportCapture = isFrontReportCapture || isSideReportCapture;
 
-      // Raporda ayak boyunu ayrıca zorlamıyoruz. Viewer'ın kendi formülü
-      // (son yük alt kotu + lastPalletOverlap) çalışsın; üstteki 3D görünümle
-      // birebir aynı geometri hesabı kullanılsın.
       const captureOptions = { ...(options || {}) };
       if (isReportCapture) {
-        delete captureOptions.footHeight;
+        // b2b-report-3d eski fallback ayak boyunu zorla yazıyor. Onu burada ezip
+        // üstteki gerçek viewer ile aynı uprightHeight formülünü uygula:
+        // son yük alt kotu + lastPalletOverlap.
+        captureOptions.footHeight = viewerFormulaFootHeight(captureOptions);
         delete captureOptions.__rafexSourceFootHeight;
       }
 
       return originalCaptureViews.call(this, captureOptions, {
         ...settings,
-        // Ön ve yan kesit aynı dikey tuval ve aynı kamera ölçeğinde yakalanır.
         width: isReportCapture ? 1500 : settings.width,
         height: isReportCapture ? 3000 : settings.height,
         cameraPadding: isReportCapture ? 1.14 : Math.min(requested, adaptive),
       });
     };
-    wrappedCaptureViews.__rafexAdaptiveReportZoomV11 = true;
+    wrappedCaptureViews.__rafexAdaptiveReportZoomV12 = true;
     wrappedCaptureViews.__rafexOriginal = originalCaptureViews;
     service.captureViews = wrappedCaptureViews;
     return true;
@@ -177,15 +196,15 @@
       .rafex-combined-type-page .m2-corporate-view>.rafex-report-3d-frame {grid-row:2!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;padding:2px 5px 4px!important}
       .rafex-combined-type-page .rafex-front-view>.rafex-report-3d-frame {padding-left:22px!important;padding-right:4px!important}
       .rafex-combined-type-page .m2-corporate-view>.rafex-report-3d-frame img {display:block!important;width:auto!important;height:90%!important;max-width:90%!important;max-height:90%!important;object-fit:contain!important;object-position:center center!important}
-      .rafex-combined-type-page .rafex-front-view>.rafex-report-3d-frame img {transform:translate(14px,-18px)!important}
+      .rafex-combined-type-page .rafex-front-view>.rafex-report-3d-frame img {transform:translate(40px,-35px)!important}
       .rafex-combined-type-page .m2-corporate-view>svg {grid-row:2!important;width:90%!important;height:90%!important;min-width:0!important;min-height:0!important;align-self:center!important;justify-self:center!important}
-      .rafex-combined-type-page .rafex-front-view>svg {width:88%!important;margin-left:12px!important;transform:translate(14px,-18px)!important}
+      .rafex-combined-type-page .rafex-front-view>svg {width:88%!important;margin-left:12px!important;transform:translate(40px,-35px)!important}
     `;
     document.head.appendChild(style);
   }
 
   function installHooks() {
-    if (typeof window.m2RenderCorporateReport === "function" && !window.m2RenderCorporateReport.__rafexCombinedTypesV11) {
+    if (typeof window.m2RenderCorporateReport === "function" && !window.m2RenderCorporateReport.__rafexCombinedTypesV12) {
       const previousRender = window.m2RenderCorporateReport;
       const wrappedRender = function (...args) {
         const result = previousRender.apply(this, args);
@@ -193,19 +212,19 @@
         arrangeTypePages(document.getElementById("m2CorporatePreview"));
         return result;
       };
-      wrappedRender.__rafexCombinedTypesV11 = true;
+      wrappedRender.__rafexCombinedTypesV12 = true;
       window.m2RenderCorporateReport = wrappedRender;
     }
 
     const previousPrepare = window.__rafexPrepareCorporatePrint;
-    if (typeof previousPrepare === "function" && !previousPrepare.__rafexCombinedTypesV11) {
+    if (typeof previousPrepare === "function" && !previousPrepare.__rafexCombinedTypesV12) {
       const wrappedPrepare = async function (...args) {
         installAdaptiveCaptureZoom();
         await previousPrepare.apply(this, args);
         arrangeTypePages(document.getElementById("m2CorporatePrint"));
         arrangeTypePages(document.getElementById("m2CorporatePreview"));
       };
-      wrappedPrepare.__rafexCombinedTypesV11 = true;
+      wrappedPrepare.__rafexCombinedTypesV12 = true;
       window.__rafexPrepareCorporatePrint = wrappedPrepare;
     }
   }
