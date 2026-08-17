@@ -1,8 +1,26 @@
 (() => {
-  const VERSION = "corporate-type-sections-v8";
+  const VERSION = "corporate-type-sections-v9";
 
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const num = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+
+  function installSourceGeometryBridge() {
+    if (typeof window.m2Rack3DOptions !== "function") return false;
+    if (window.m2Rack3DOptions.__rafexSourceGeometryV9) return true;
+    const original = window.m2Rack3DOptions;
+    const wrapped = function (...args) {
+      const result = original.apply(this, args);
+      if (!result || typeof result !== "object") return result;
+      return {
+        ...result,
+        __rafexSourceFootHeight: num(result.footHeight, 0),
+      };
+    };
+    wrapped.__rafexSourceGeometryV9 = true;
+    wrapped.__rafexOriginal = original;
+    window.m2Rack3DOptions = wrapped;
+    return true;
+  }
 
   function adaptiveReportPadding(options = {}) {
     const palletCount = clamp(Math.round(num(options.palletCount, 3)), 1, 4);
@@ -31,24 +49,28 @@
   function installAdaptiveCaptureZoom() {
     const service = window.RafexB2BViewer;
     if (!service || typeof service.captureViews !== "function") return false;
-    if (service.captureViews.__rafexAdaptiveReportZoomV8) return true;
+    if (service.captureViews.__rafexAdaptiveReportZoomV9) return true;
 
     const originalCaptureViews = service.captureViews.__rafexOriginal || service.captureViews;
     const wrappedCaptureViews = function (options, settings = {}) {
       const requested = num(settings.cameraPadding, 1.16);
       const adaptive = adaptiveReportPadding(options || {});
       const isReportCapture = num(settings.width, 0) >= 2000 && num(settings.height, 0) >= 2000;
-      // Rapordaki görüntünün içeriğini değiştirme; yalnızca kamera mesafesini yaklaşık %10 geri al.
-      // Böylece üstte görülen raf geometrisi aşağıda da aynen korunur, sadece biraz daha küçük görünür.
+      const sourceFootHeight = num(options?.__rafexSourceFootHeight, 0);
+      const captureOptions = sourceFootHeight > 0
+        ? { ...options, footHeight: sourceFootHeight }
+        : options;
+      // Ölçeği yaklaşık %90 seviyesinde tut; geometriyi asla rapor için yeniden hesaplama.
+      // Ayak yüksekliği üstteki canlı B2B görünümünde kullanılan m2Rack3DOptions değerinden gelir.
       const frontFillPadding = isReportCapture ? 0.89 : adaptive;
-      return originalCaptureViews.call(this, options, {
+      return originalCaptureViews.call(this, captureOptions, {
         ...settings,
         width: isReportCapture ? 1500 : settings.width,
         height: isReportCapture ? 3000 : settings.height,
         cameraPadding: Math.min(requested, adaptive, frontFillPadding),
       });
     };
-    wrappedCaptureViews.__rafexAdaptiveReportZoomV8 = true;
+    wrappedCaptureViews.__rafexAdaptiveReportZoomV9 = true;
     wrappedCaptureViews.__rafexOriginal = originalCaptureViews;
     service.captureViews = wrappedCaptureViews;
     return true;
@@ -156,46 +178,52 @@
       .rafex-combined-type-page .m2-corporate-type-grid>.m2-corporate-type-card {grid-row:1!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;overflow:hidden!important}
       .rafex-combined-type-page .m2-corporate-type-grid>.m2-corporate-type-card:nth-child(1){grid-column:1!important}
       .rafex-combined-type-page .m2-corporate-type-grid>.m2-corporate-type-card:nth-child(2){grid-column:2!important}
-      .rafex-combined-type-page .rafex-combined-type-card {display:grid!important;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)!important;grid-template-rows:30px minmax(0,1fr)!important;gap:0!important}
+      .rafex-combined-type-page .rafex-combined-type-card {display:grid!important;grid-template-columns:minmax(0,1.32fr) minmax(0,.68fr)!important;grid-template-rows:30px minmax(0,1fr)!important;gap:0!important}
       .rafex-combined-type-page .rafex-combined-type-card>strong {grid-column:1/-1!important;grid-row:1!important;align-self:center!important}
       .rafex-combined-type-page .rafex-combined-type-card>.m2-corporate-view {grid-row:2!important;min-width:0!important;min-height:0!important;overflow:hidden!important;display:grid!important;grid-template-rows:24px minmax(0,1fr)!important;padding:0!important;align-items:stretch!important;justify-items:stretch!important}
       .rafex-combined-type-page .rafex-combined-type-card>.m2-corporate-view:first-of-type {grid-column:1!important;border-right:1px solid #c6d2dc!important}
       .rafex-combined-type-page .rafex-combined-type-card>.m2-corporate-view:nth-of-type(2) {grid-column:2!important}
       .rafex-combined-type-page .m2-corporate-view>b {grid-row:1!important;display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;height:24px!important;margin:0!important;padding:2px 4px!important;background:#dceaf1!important;color:#0b2b45!important;font-size:8px!important;font-weight:900!important;line-height:1!important;text-align:center!important;position:static!important;transform:none!important}
       .rafex-combined-type-page .m2-corporate-view>.rafex-report-3d-frame {grid-row:2!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;padding:2px 5px 4px!important}
+      .rafex-combined-type-page .rafex-front-view>.rafex-report-3d-frame {padding-left:22px!important;padding-right:4px!important}
       .rafex-combined-type-page .m2-corporate-view>.rafex-report-3d-frame img {display:block!important;width:auto!important;height:90%!important;max-width:90%!important;max-height:90%!important;object-fit:contain!important;object-position:center center!important}
       .rafex-combined-type-page .m2-corporate-view>svg {grid-row:2!important;width:90%!important;height:90%!important;min-width:0!important;min-height:0!important;align-self:center!important;justify-self:center!important}
+      .rafex-combined-type-page .rafex-front-view>svg {width:88%!important;margin-left:12px!important}
     `;
     document.head.appendChild(style);
   }
 
   function installHooks() {
-    if (typeof window.m2RenderCorporateReport === "function" && !window.m2RenderCorporateReport.__rafexCombinedTypesV8) {
+    installSourceGeometryBridge();
+    if (typeof window.m2RenderCorporateReport === "function" && !window.m2RenderCorporateReport.__rafexCombinedTypesV9) {
       const previousRender = window.m2RenderCorporateReport;
       const wrappedRender = function (...args) {
+        installSourceGeometryBridge();
         const result = previousRender.apply(this, args);
         installAdaptiveCaptureZoom();
         arrangeTypePages(document.getElementById("m2CorporatePreview"));
         return result;
       };
-      wrappedRender.__rafexCombinedTypesV8 = true;
+      wrappedRender.__rafexCombinedTypesV9 = true;
       window.m2RenderCorporateReport = wrappedRender;
     }
 
     const previousPrepare = window.__rafexPrepareCorporatePrint;
-    if (typeof previousPrepare === "function" && !previousPrepare.__rafexCombinedTypesV8) {
+    if (typeof previousPrepare === "function" && !previousPrepare.__rafexCombinedTypesV9) {
       const wrappedPrepare = async function (...args) {
+        installSourceGeometryBridge();
         installAdaptiveCaptureZoom();
         await previousPrepare.apply(this, args);
         arrangeTypePages(document.getElementById("m2CorporatePrint"));
         arrangeTypePages(document.getElementById("m2CorporatePreview"));
       };
-      wrappedPrepare.__rafexCombinedTypesV8 = true;
+      wrappedPrepare.__rafexCombinedTypesV9 = true;
       window.__rafexPrepareCorporatePrint = wrappedPrepare;
     }
   }
 
   installStyles();
+  installSourceGeometryBridge();
   installAdaptiveCaptureZoom();
   installCustomizationTypeRules();
   installHooks();
