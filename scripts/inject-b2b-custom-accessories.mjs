@@ -7,17 +7,30 @@ const match = worker.match(/(const\s+HTML_BASE64\s*=\s*)(["'])([A-Za-z0-9+/=]+)\
 if (!match) throw new Error("HTML_BASE64 build çıktısında bulunamadı.");
 let html = Buffer.from(match[3], "base64").toString("utf8");
 
+// Her build temiz bir runtime HTML'den gelir; yine de eski aksesuar yamalarını temizle.
 html = html.replace(/<script\s+data-rafex-custom-accessories=["']v\d+["'][^>]*>[\s\S]*?<\/script>/gi, "");
 html = html.replace(/<style\s+data-rafex-custom-accessories-style=["']v\d+["'][^>]*>[\s\S]*?<\/style>/gi, "");
-html = html.replace(/<div id="m2CustomizeAccessories"[\s\S]*?<\/div><div class="m2-customize-actions">/gi, '<div class="m2-customize-actions">');
 
-const accessorySection = '<div id="m2CustomizeAccessories"><div class="m2-accessory-head"><b>AKSESUAR EKLE</b><button type="button" onclick="m2AddCustomizeAccessory()">+ Aksesuar</button></div><div id="m2CustomizeAccessoryRows"><div class="m2-accessory-empty">Bu modüle henüz aksesuar eklenmedi.</div></div></div>';
-const actionsToken = '<div class="m2-customize-actions"><button type="button" onclick="m2CloseCustomizeModal()">Vazgeç</button>';
-if (!html.includes('id="m2CustomizeAccessories"')) {
-  if (!html.includes(actionsToken)) throw new Error("Özelleştir aksiyon alanı bulunamadı.");
-  html = html.replace(actionsToken, `${accessorySection}${actionsToken}`);
+const modalStart = html.indexOf('id="m2CustomizeModal"');
+if (modalStart < 0) throw new Error("m2CustomizeModal bulunamadı.");
+const modalEnd = html.indexOf('id="m2SymbolModal"', modalStart);
+if (modalEnd < 0) throw new Error("Özelleştir modal sınırı bulunamadı.");
+let modalHtml = html.slice(modalStart, modalEnd);
+
+// Önceki build zincirinden kalabilecek bölümü sadece Özelleştir modalı içinde kaldır.
+modalHtml = modalHtml.replace(/<div id="m2CustomizeAccessories"[\s\S]*?<\/div><\/div>(?=<label>Blok adı|<label>Yeni raf tipi adı|<div class="m2-customize-actions">)/i, "");
+
+const accessorySection = '<div id="m2CustomizeAccessories" class="m2-custom-accessories"><div class="m2-accessory-head"><div><b>AKSESUAR EKLE</b><small>Bu rafa proje aksesuarı ekle</small></div><button type="button" onclick="m2AddCustomizeAccessory()">+ Aksesuar</button></div><div id="m2CustomizeAccessoryRows"><div class="m2-accessory-empty">Bu modüle henüz aksesuar eklenmedi.</div></div></div>';
+
+// Kullanıcının baktığı sağ panelin en üstüne, Blok adı alanından hemen önce sabitle.
+const blockNameToken = '<label>Blok adı<input id="m2CustomizeBlockName"';
+if (!modalHtml.includes('id="m2CustomizeAccessories"')) {
+  if (!modalHtml.includes(blockNameToken)) throw new Error("Özelleştir Blok adı alanı bulunamadı.");
+  modalHtml = modalHtml.replace(blockNameToken, `${accessorySection}${blockNameToken}`);
 }
+html = html.slice(0, modalStart) + modalHtml + html.slice(modalEnd);
 
+// Modal her açıldığında mevcut aksesuarları forma getir.
 const openToken = '        $("m2CustomizeModal").hidden=false;';
 const openPatch = '        if(typeof m2RenderCustomizeAccessories==="function")m2RenderCustomizeAccessories(Array.isArray(rack?.accessories)?rack.accessories:[]);\n        $("m2CustomizeModal").hidden=false;';
 if (!html.includes(openPatch)) {
@@ -25,6 +38,7 @@ if (!html.includes(openPatch)) {
   html = html.replace(openToken, openPatch);
 }
 
+// Kaydet sırasında aksesuarları seçili rafa bağla.
 const saveToken = '        m2PushUndo("Raf özelleştirme");';
 const savePatch = '        m2PushUndo("Raf özelleştirme");\n        if(typeof m2CollectCustomizeAccessories==="function")rack.accessories=m2CollectCustomizeAccessories();';
 if (!html.includes(savePatch)) {
@@ -32,20 +46,24 @@ if (!html.includes(savePatch)) {
   html = html.replace(saveToken, savePatch);
 }
 
-const style = `<style data-rafex-custom-accessories-style="v2">
-#m2CustomizeAccessories{margin-top:14px;padding:12px;border:1px solid #d6ded8;border-radius:10px;background:#f7f9f7;display:block!important}
-.m2-accessory-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
-.m2-accessory-head b{font-size:12px;color:#173c2d;letter-spacing:.03em}
-.m2-accessory-head button{padding:7px 10px;background:#edf2ee;color:#214f3b;border:1px solid #cbd8cf}
-#m2CustomizeAccessoryRows{display:grid;gap:7px}
-.m2-accessory-row{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(90px,.9fr) 72px 34px;gap:6px;align-items:end}
-.m2-accessory-row label{font-size:9px;font-weight:700;color:#536058}
-.m2-accessory-row input{width:100%;margin-top:4px;padding:8px;border:1px solid #d8dfda;border-radius:7px;background:#fff;font-weight:700}
-.m2-accessory-row button{height:34px;padding:0;background:#f3e5e5;color:#9b2d2d}
-.m2-accessory-empty{padding:8px 4px;color:#7b8780;font-size:10px}
+const style = `<style data-rafex-custom-accessories-style="v3">
+#m2CustomizeModal .m2-customize-dialog aside{overflow-y:auto!important;max-height:min(92vh,900px)!important;padding-bottom:18px!important}
+#m2CustomizeAccessories{display:block!important;visibility:visible!important;opacity:1!important;position:relative!important;z-index:20!important;margin:10px 0 14px!important;padding:13px!important;border:2px solid #f2c500!important;border-radius:11px!important;background:#fff8d5!important;flex:0 0 auto!important}
+#m2CustomizeAccessories .m2-accessory-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;margin:0 0 8px!important}
+#m2CustomizeAccessories .m2-accessory-head>div{display:grid;gap:2px}
+#m2CustomizeAccessories .m2-accessory-head b{display:block!important;font-size:13px!important;color:#173c2d!important;letter-spacing:.04em!important}
+#m2CustomizeAccessories .m2-accessory-head small{display:block!important;font-size:9px!important;color:#68736c!important}
+#m2CustomizeAccessories .m2-accessory-head button{display:block!important;padding:8px 11px!important;background:#214f3b!important;color:#fff!important;border:0!important;border-radius:8px!important}
+#m2CustomizeAccessoryRows{display:grid!important;gap:7px!important}
+.m2-accessory-row{display:grid!important;grid-template-columns:minmax(0,1.45fr) minmax(90px,.9fr) 72px 34px!important;gap:6px!important;align-items:end!important}
+.m2-accessory-row label{display:block!important;font-size:9px!important;font-weight:700!important;color:#536058!important}
+.m2-accessory-row input{display:block!important;width:100%!important;margin-top:4px!important;padding:8px!important;border:1px solid #d8dfda!important;border-radius:7px!important;background:#fff!important;font-weight:700!important}
+.m2-accessory-row button{height:34px!important;padding:0!important;background:#f3e5e5!important;color:#9b2d2d!important}
+.m2-accessory-empty{display:block!important;padding:8px 4px!important;color:#6f786f!important;font-size:10px!important}
+@media(max-height:760px){#m2CustomizeModal .m2-customize-dialog aside{max-height:88vh!important}}
 </style>`;
 
-const script = `<script data-rafex-custom-accessories="v2">
+const script = `<script data-rafex-custom-accessories="v3">
 (function(){
   const esc=(value)=>String(value??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   window.m2CollectCustomizeAccessories=function(){
@@ -84,9 +102,16 @@ const bodyEnd = html.lastIndexOf("</body>");
 if (bodyEnd < 0) throw new Error("Portal </body> kapanışı bulunamadı.");
 html = `${html.slice(0, bodyEnd)}${style}${script}${html.slice(bodyEnd)}`;
 
-if (!html.includes('id="m2CustomizeAccessories"') || !html.includes('AKSESUAR EKLE')) throw new Error("Aksesuar bölümü Özelleştir HTML içine eklenemedi.");
+// Gerçek modal parçasında, Blok adı alanından önce bulunduğunu doğrula.
+const verifyModalStart = html.indexOf('id="m2CustomizeModal"');
+const verifyModalEnd = html.indexOf('id="m2SymbolModal"', verifyModalStart);
+const verifyModal = html.slice(verifyModalStart, verifyModalEnd);
+const accessoryIndex = verifyModal.indexOf('id="m2CustomizeAccessories"');
+const blockIndex = verifyModal.indexOf('id="m2CustomizeBlockName"');
+if (accessoryIndex < 0 || blockIndex < 0 || accessoryIndex > blockIndex) throw new Error("AKSESUAR EKLE, Özelleştir panelinin üstüne yerleştirilemedi.");
+if (!verifyModal.includes('AKSESUAR EKLE') || !verifyModal.includes('+ Aksesuar')) throw new Error("Aksesuar görünür metni modalda bulunamadı.");
 if (!html.includes('m2RenderCustomizeAccessories(Array.isArray(rack?.accessories)') || !html.includes('rack.accessories=m2CollectCustomizeAccessories()')) throw new Error("Aksesuar aç/kaydet bağlantısı eklenemedi.");
-if (!html.includes('data-rafex-custom-accessories="v2"')) throw new Error("Aksesuar v2 scripti eklenemedi.");
+if (!html.includes('data-rafex-custom-accessories="v3"') || !html.includes('border:2px solid #f2c500!important')) throw new Error("Aksesuar v3 görünürlük koruması eklenemedi.");
 
 const encoded = Buffer.from(html, "utf8").toString("base64");
 worker = worker.slice(0, match.index) + match[1] + match[2] + encoded + match[2] + worker.slice(match.index + match[0].length);
