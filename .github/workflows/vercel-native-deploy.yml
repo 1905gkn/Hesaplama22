@@ -12,9 +12,47 @@ permissions:
 env:
   VERCEL_ORG_ID: team_na0LSwDQ6yYTYeOdJgrjzUYj
   VERCEL_PROJECT_ID: prj_2BNBxHcbHo1JZreVUjUl1j59txmO
+  APPROVED_DEPLOYMENT_ID: dpl_3DpLCzXrB8CikLXLMVfnva2m35Yo
+  PRODUCTION_HOST: rafex-configurator.vercel.app
 
 jobs:
+  promote_exact:
+    if: ${{ contains(github.event.head_commit.message, '[promote-exact-artifact]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Let Vercel Git deployment settle first
+        run: sleep 35
+
+      - name: Promote the exact approved Vercel artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail-with-body -sS -X POST \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            "https://api.vercel.com/v10/projects/${VERCEL_PROJECT_ID}/promote/${APPROVED_DEPLOYMENT_ID}?teamId=${VERCEL_ORG_ID}"
+          echo
+
+      - name: Verify production points to the exact deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 12); do
+            payload=$(curl --fail-with-body -sS \
+              -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+              "https://api.vercel.com/v13/deployments/${PRODUCTION_HOST}?teamId=${VERCEL_ORG_ID}")
+            current_id=$(printf '%s' "$payload" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{console.log(JSON.parse(s).id||"")})')
+            echo "production deployment: ${current_id}"
+            if [ "$current_id" = "$APPROVED_DEPLOYMENT_ID" ]; then
+              echo "Exact approved deployment is live."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Production alias did not move to ${APPROVED_DEPLOYMENT_ID}." >&2
+          exit 1
+
   deploy:
+    if: ${{ !contains(github.event.head_commit.message, '[promote-exact-artifact]') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
