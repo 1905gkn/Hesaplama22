@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node scripts/patch-b2b-first-traverse.mjs && bash scripts/build-runtime.sh && node scripts/inject-b2b-section-positioner.mjs && node scripts/inject-b2b-free-layout-followup.mjs && node scripts/inject-b2b-performance.mjs && node scripts/inject-b2b-bom-codes.mjs && node scripts/inject-b2b-remove-tunnel-input.mjs && node scripts/inject-b2b-custom-accessories.mjs",
+    "build": "node scripts/patch-b2b-first-traverse.mjs && bash scripts/build-runtime.sh && node scripts/inject-b2b-section-positioner.mjs && node scripts/inject-b2b-free-layout-followup.mjs && node scripts/inject-b2b-performance.mjs && node scripts/inject-b2b-bom-codes.mjs && node scripts/inject-b2b-remove-tunnel-input.mjs && node scripts/inject-b2b-custom-accessories.mjs && node scripts/patch-mobile-responsive.mjs && node scripts/patch-mobile-nav-click.mjs",
     "validate": "node scripts/validate-artifact.mjs && node scripts/verify-mekik2.mjs",
     "verify:mekik2": "node scripts/verify-mekik2.mjs"
   },
