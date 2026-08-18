@@ -19,6 +19,10 @@ node /tmp/apply-b2b-accessory-fit-v3.cjs
 cp scripts/apply-b2b-h-traverse-lower-v5.js /tmp/apply-b2b-h-traverse-lower-v5.cjs
 node /tmp/apply-b2b-h-traverse-lower-v5.cjs
 
+# Put the requested accessory controls inside the actual Modülü Özelleştir modal
+# after the legacy source patches and before dist is built.
+node scripts/patch-customize-accessories-source.mjs
+
 bash scripts/build.sh
 
 # The historical CLI/prebuilt deploy injected this after vercel build and then
