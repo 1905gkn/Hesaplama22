@@ -23,6 +23,9 @@ node /tmp/apply-b2b-h-traverse-lower-v5.cjs
 # after the legacy source patches and before dist is built.
 node scripts/patch-customize-accessories-source.mjs
 
+# Optimize the full configurator for phone-sized screens before the production build.
+node scripts/patch-mobile-responsive.mjs
+
 bash scripts/build.sh
 
 # The historical CLI/prebuilt deploy injected this after vercel build and then
@@ -31,4 +34,4 @@ bash scripts/build.sh
 # produces the same packaged server artifact.
 node scripts/inject-b2b-section-positioner.mjs
 
-echo "Approved 34vnlp6h8 prebuilt chain reproduced in dist."
+echo "Approved 34vnlp6h8 prebuilt chain reproduced in dist with mobile optimization."
