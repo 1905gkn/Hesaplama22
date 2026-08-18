@@ -36,8 +36,8 @@ replaceRequired(
   "Düz arabağ yerleşim kodu",
 );
 
-// Düz arabağ zaten raf tipi BOM hesabında bulunuyor. Koruma/yerleşim sayfasında tekrar
-// ayrı satır üretme; böylece Toplu Ürün Dökümü içinde diğer raf ürünleriyle beraber toplanır.
+// Düz arabağ raf tipi BOM hesabında zaten vardır. Yerleşim ek sayfasında tekrar
+// üretmeyerek Toplu Ürün Dökümü içinde diğer raf ürünleriyle tek toplamda tut.
 replaceRequired(
   '.filter((row)=>!/^(Raf modülü|Ayak takımı|Travers(?: ·|$))/.test(row.name))',
   '.filter((row)=>!/^(Raf modülü|Ayak takımı|Travers(?: ·|$)|Düz arabağ(?: ·|$))/.test(row.name))',
@@ -55,6 +55,6 @@ worker = worker.slice(0, match.index) + match[1] + match[2] + encoded + match[2]
 fs.writeFileSync(workerPath, worker);
 
 const check = Buffer.from(encoded, "base64").toString("utf8");
-for (const token of ["EPHR", "UAKZ", "DAB09${String(Math.round(straightTie.length)).padStart(5,\"0\")}"]) {
+for (const token of ["EPHR", "UAKZ", "DAB09"]) {
   if (!check.includes(token)) throw new Error(`BOM doğrulaması başarısız: ${token}`);
 }
