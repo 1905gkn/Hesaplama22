@@ -26,6 +26,9 @@ node scripts/patch-customize-accessories-source.mjs
 # Optimize the full configurator for phone-sized screens before the production build.
 node scripts/patch-mobile-responsive.mjs
 
+# Keep the navigation full-height and fixed, and prefer 2,0 mm in Ayak calculation.
+node scripts/patch-foot-priority-fixed-sidebar.mjs
+
 bash scripts/build.sh
 
 # The historical CLI/prebuilt deploy injected this after vercel build and then
@@ -34,4 +37,4 @@ bash scripts/build.sh
 # produces the same packaged server artifact.
 node scripts/inject-b2b-section-positioner.mjs
 
-echo "Approved 34vnlp6h8 prebuilt chain reproduced in dist with mobile optimization."
+echo "Approved 34vnlp6h8 prebuilt chain reproduced in dist with current UI patches."
