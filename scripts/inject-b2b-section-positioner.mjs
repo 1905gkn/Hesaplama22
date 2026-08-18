@@ -38,6 +38,20 @@ fallback = fallback.replace(
   `    setTimeout(prepareEditor, 0);`,
 );
 
+// PDF/print hotfix: editördeki ölçek ve konum baskı CSS'i tarafından ezilmesin.
+// Inline !important kullanarak ekrandaki % ölçeği PDF çıktısına birebir taşı.
+fallback = fallback.replace(
+  '    image.style.objectPosition = `${50 + settings.x}% ${50 + settings.y}%`;\n    image.style.transform = `scale(${settings.scale})`;\n    image.style.transformOrigin = "center center";',
+  '    image.style.setProperty("object-position", `${50 + settings.x}% ${50 + settings.y}%`, "important");\n    image.style.setProperty("transform", `scale(${settings.scale})`, "important");\n    image.style.setProperty("transform-origin", "center center", "important");\n    image.dataset.rafexPrintScale = String(settings.scale);',
+);
+
+// PDF hemen alınırsa devam eden perspektif render'ı yüzünden eski ölçek basılmasın.
+// Önce aktif render'ın bitmesini bekle, sonra kayıtlı ayarları zorla tekrar uygula.
+fallback = fallback.replace(
+  '        await renderAllPerspective(saved, false);',
+  '        while (renderQueued) await new Promise((resolve) => setTimeout(resolve, 25));\n        await renderAllPerspective(saved, true);',
+);
+
 fallback = fallback.replace(/<\/script/gi, "<\\/script");
 
 if (!fallback.includes(clearModalClass) && fallback.includes("modal.className")) {
@@ -45,6 +59,12 @@ if (!fallback.includes(clearModalClass) && fallback.includes("modal.className"))
 }
 if (!fallback.includes('if (old) return old;') || !fallback.includes('setTimeout(prepareEditor, 0);')) {
   throw new Error("Kesit Yer Belirleme açılış/hız hotfix'i uygulanamadı.");
+}
+if (!fallback.includes('data-rafex-print-scale') && !fallback.includes('rafexPrintScale')) {
+  throw new Error("Kesit Yer Belirleme PDF ölçek hotfix'i uygulanamadı.");
+}
+if (!fallback.includes('while (renderQueued)') || !fallback.includes('renderAllPerspective(saved, true)')) {
+  throw new Error("Kesit Yer Belirleme PDF render bekleme hotfix'i uygulanamadı.");
 }
 
 const scriptTag = `<script ${marker}>${fallback}<\/script>`;
@@ -83,6 +103,9 @@ if (!verifyHtml.includes("ÖLÇÜLERİ GÖSTER") || !verifyHtml.includes("Paletl
 }
 if (!verifyHtml.includes('if (old) return old;') || !verifyHtml.includes('setTimeout(prepareEditor, 0);')) {
   throw new Error("Kesit Yer Belirleme açılış/hız hotfix'i build çıktısına eklenemedi.");
+}
+if (!verifyHtml.includes('rafexPrintScale') || !verifyHtml.includes('while (renderQueued)')) {
+  throw new Error("Kesit Yer Belirleme PDF ölçek hotfix'i build çıktısına eklenemedi.");
 }
 if (!verifyHtml.includes(clarityMarker) || !verifyHtml.includes("backdrop-filter:none!important")) {
   throw new Error("Kesit Yer Belirleme net görünüm koruması build çıktısına eklenemedi.");
