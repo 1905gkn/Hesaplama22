@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "bash scripts/build-runtime.sh && node scripts/inject-b2b-section-positioner.mjs && node scripts/inject-b2b-free-layout-followup.mjs",
+    "build": "bash scripts/build-runtime.sh && node scripts/inject-b2b-section-positioner.mjs && node scripts/inject-b2b-free-layout-followup.mjs && node scripts/inject-b2b-performance.mjs",
     "validate": "node scripts/validate-artifact.mjs && node scripts/verify-mekik2.mjs",
     "verify:mekik2": "node scripts/verify-mekik2.mjs"
   },
