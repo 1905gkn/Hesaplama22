@@ -25,10 +25,26 @@ html = html.replaceAll(blurredModalClass, clearModalClass);
 let fallback = fs.readFileSync(fallbackPath, "utf8");
 fallback = fallback.replaceAll(oldActionsLookup, robustActionsLookup);
 fallback = fallback.replaceAll(blurredModalClass, clearModalClass);
+
+// v5 hotfix: modalı her tıklamada silip yeniden oluşturma. Bu, butonun açılış
+// zincirini gereksiz yere bozuyor ve tüm raporu yeniden render ederek arayüzü
+// donduruyordu. Mevcut modalı yeniden kullan ve editörü sonraki tick'te hazırla.
+fallback = fallback.replace(
+  'const old = document.getElementById("m2SectionPlacementModal");\n    if (old) old.remove();',
+  'const old = document.getElementById("m2SectionPlacementModal");\n    if (old) return old;',
+);
+fallback = fallback.replace(
+  `    try {\n      const render = typeof m2RenderCorporateReport === "function" ? m2RenderCorporateReport : null;\n      const result = render?.();\n      if (result && typeof result.then === "function") result.finally(() => setTimeout(prepareEditor, 0));\n      else setTimeout(prepareEditor, 70);\n    } catch { prepareEditor(); }`,
+  `    setTimeout(prepareEditor, 0);`,
+);
+
 fallback = fallback.replace(/<\/script/gi, "<\\/script");
 
 if (!fallback.includes(clearModalClass) && fallback.includes("modal.className")) {
   throw new Error("Kesit Yer Belirleme modal bulanıklık sınıfı kaldırılamadı.");
+}
+if (!fallback.includes('if (old) return old;') || !fallback.includes('setTimeout(prepareEditor, 0);')) {
+  throw new Error("Kesit Yer Belirleme açılış/hız hotfix'i uygulanamadı.");
 }
 
 const scriptTag = `<script ${marker}>${fallback}<\/script>`;
@@ -64,6 +80,9 @@ if (!verifyHtml.includes("Kesit Yer Belirleme") || !verifyHtml.includes(marker))
 }
 if (!verifyHtml.includes("ÖLÇÜLERİ GÖSTER") || !verifyHtml.includes("Paletleri Gizle")) {
   throw new Error("Kesit Yer Belirleme ölçü/palet kontrolleri build çıktısına eklenemedi.");
+}
+if (!verifyHtml.includes('if (old) return old;') || !verifyHtml.includes('setTimeout(prepareEditor, 0);')) {
+  throw new Error("Kesit Yer Belirleme açılış/hız hotfix'i build çıktısına eklenemedi.");
 }
 if (!verifyHtml.includes(clarityMarker) || !verifyHtml.includes("backdrop-filter:none!important")) {
   throw new Error("Kesit Yer Belirleme net görünüm koruması build çıktısına eklenemedi.");
