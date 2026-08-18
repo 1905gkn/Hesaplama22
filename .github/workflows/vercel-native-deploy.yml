@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  statuses: write
 
 env:
   VERCEL_ORG_ID: team_na0LSwDQ6yYTYeOdJgrjzUYj
@@ -19,37 +20,86 @@ jobs:
   promote_exact:
     if: ${{ contains(github.event.head_commit.message, '[promote-exact-artifact]') }}
     runs-on: ubuntu-latest
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
     steps:
-      - name: Let Vercel Git deployment settle first
-        run: sleep 35
-
-      - name: Promote the exact approved Vercel artifact
+      - name: Wait for native Vercel deploy, promote exact artifact, and verify
         shell: bash
         run: |
           set -euo pipefail
+
+          set_status() {
+            local state="$1"
+            local description="$2"
+            curl -fsS -X POST \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${GITHUB_SHA}" \
+              -d "$(node -e 'console.log(JSON.stringify({state:process.argv[1],context:"exact-production-artifact",description:process.argv[2]}))' "$state" "$description")" >/dev/null
+          }
+
+          fail() {
+            set_status failure "Exact 34vnlp6h8 promotion failed"
+          }
+          trap fail ERR
+
+          if [ -z "${VERCEL_TOKEN:-}" ]; then
+            echo "VERCEL_TOKEN is empty." >&2
+            exit 1
+          fi
+
+          set_status pending "Waiting for Vercel Git deploy to settle"
+
+          settled=0
+          for attempt in $(seq 1 30); do
+            payload=$(curl --fail-with-body -sS \
+              -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+              "https://api.vercel.com/v13/deployments/${PRODUCTION_HOST}?teamId=${VERCEL_ORG_ID}")
+            current_sha=$(printf '%s' "$payload" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.meta?.githubCommitSha||"")})')
+            current_state=$(printf '%s' "$payload" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);console.log(j.readyState||j.state||"")})')
+            echo "settle attempt ${attempt}: sha=${current_sha} state=${current_state}"
+            if [ "$current_sha" = "$GITHUB_SHA" ] && [ "$current_state" = "READY" ]; then
+              settled=1
+              break
+            fi
+            sleep 4
+          done
+
+          if [ "$settled" != "1" ]; then
+            echo "Native Vercel deployment for ${GITHUB_SHA} did not settle in time." >&2
+            exit 1
+          fi
+
+          set_status pending "Promoting exact 34vnlp6h8 artifact"
           curl --fail-with-body -sS -X POST \
-            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            -H "Authorization: Bearer ${VERCEL_TOKEN}" \
             "https://api.vercel.com/v10/projects/${VERCEL_PROJECT_ID}/promote/${APPROVED_DEPLOYMENT_ID}?teamId=${VERCEL_ORG_ID}"
           echo
 
-      - name: Verify production points to the exact deployment
-        shell: bash
-        run: |
-          set -euo pipefail
-          for attempt in $(seq 1 12); do
+          verified=0
+          for attempt in $(seq 1 30); do
             payload=$(curl --fail-with-body -sS \
-              -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+              -H "Authorization: Bearer ${VERCEL_TOKEN}" \
               "https://api.vercel.com/v13/deployments/${PRODUCTION_HOST}?teamId=${VERCEL_ORG_ID}")
             current_id=$(printf '%s' "$payload" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{console.log(JSON.parse(s).id||"")})')
-            echo "production deployment: ${current_id}"
+            echo "verify attempt ${attempt}: production=${current_id}"
             if [ "$current_id" = "$APPROVED_DEPLOYMENT_ID" ]; then
-              echo "Exact approved deployment is live."
-              exit 0
+              verified=1
+              break
             fi
-            sleep 5
+            sleep 4
           done
-          echo "Production alias did not move to ${APPROVED_DEPLOYMENT_ID}." >&2
-          exit 1
+
+          if [ "$verified" != "1" ]; then
+            echo "Production alias did not move to ${APPROVED_DEPLOYMENT_ID}." >&2
+            exit 1
+          fi
+
+          trap - ERR
+          set_status success "Exact 34vnlp6h8 artifact is live"
+          echo "Exact approved deployment is live on ${PRODUCTION_HOST}."
 
   deploy:
     if: ${{ !contains(github.event.head_commit.message, '[promote-exact-artifact]') }}
