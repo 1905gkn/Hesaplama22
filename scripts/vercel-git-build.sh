@@ -29,9 +29,13 @@ node scripts/patch-mobile-responsive.mjs
 # Keep the navigation full-height and fixed, and prefer 2,0 mm in Ayak calculation.
 node scripts/patch-foot-priority-fixed-sidebar.mjs
 
-# Keep Home free of the sidebar, make Customize controls resilient, and prevent
-# background section rendering from stealing/destroying the active 3D viewer.
+# Make Customize controls resilient and prevent background section rendering
+# from stealing/destroying the active 3D viewer.
 node scripts/patch-ui-runtime-stability.mjs
+
+# Final navigation rule: keep the left app menu fixed on Home and every signed-in
+# page, but never show it on the password/login screen.
+node scripts/patch-login-home-sidebar.mjs
 
 bash scripts/build.sh
 
