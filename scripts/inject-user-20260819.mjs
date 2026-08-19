@@ -214,7 +214,7 @@ if(bodyEnd<0)throw new Error("Portal </body> bulunamadı.");
 html=html.slice(0,bodyEnd)+style+runtime+html.slice(bodyEnd);
 
 if(!html.includes('Yatay açı: ${az}° · Yukarı/Aşağı:')) throw new Error('Kesit açı verisi eklenemedi.');
-if(!html.includes('Deprem çaprazı ekleme modu açık')||!html.includes('BASIC 125 mm')) throw new Error('Deprem sürekli ekleme/veri düzeltmesi eklenemedi.');
+if(!html.includes('__rafexPersistentV2')||!html.includes('BASIC 125 mm')) throw new Error('Deprem sürekli ekleme/veri düzeltmesi eklenemedi.');
 if(!html.includes('m2SetCustomizePalletsVisible?.(true,false)')||!html.includes('m2EnableCustomizeRackAccessory')) throw new Error('Özelleştir düzeltmeleri eklenemedi.');
 if(!html.includes('DEPREM ÇAPRAZI / DÜZ ARABAĞ DÖKÜMÜ')) throw new Error('Döküm güvenlik sayfası eklenemedi.');
 
