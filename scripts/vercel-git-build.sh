@@ -46,8 +46,13 @@ bash scripts/build.sh
 node scripts/inject-b2b-section-positioner.mjs
 
 # Apply the current user-requested production UX rules after the final section
-# locator exists in dist: Customize controls, persistent seismic placement,
-# seismic metadata/BOM and explicit perspective angle readouts.
+# locator exists in dist: persistent seismic placement, seismic metadata/BOM
+# and explicit perspective angle readouts.
 node scripts/inject-user-20260819.mjs
+
+# The V3 injector duplicated the already-working Customize controller and could
+# override native modal/preview/apply state. Strip that duplicate layer from the
+# final artifact and keep only the native Customize flow plus small safe sync fixes.
+node scripts/patch-customize-recovery.mjs
 
 echo "Approved 34vnlp6h8 prebuilt chain reproduced in dist with current B2B UX fixes."
