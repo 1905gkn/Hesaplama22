@@ -41,9 +41,10 @@ if (!html.includes('data-rafex-customize-accessories-style="source-v2"')) {
 .m2-customize-pallet-visibility>div{display:grid;gap:2px;min-width:0}
 .m2-customize-pallet-visibility b{font-size:10px;color:#173c2d;letter-spacing:.05em}
 .m2-customize-pallet-visibility small{font-size:8px;color:#718078}
-#m2CustomizePalletVisibilityButton{min-height:34px;padding:7px 9px;border:1px solid #214f3b;border-radius:8px;background:#214f3b;color:#fff;font-size:8px;font-weight:900;white-space:nowrap}
+#m2CustomizePalletVisibilityButton{min-height:34px;padding:7px 9px;border:1px solid #214f3b;border-radius:8px;background:#214f3b;color:#fff;font-size:8px;font-weight:900;white-space:nowrap;cursor:pointer;pointer-events:auto!important}
 #m2CustomizePalletVisibilityButton[aria-pressed="false"]{background:#fff;color:#214f3b}
-#m2CustomizeAccessories{display:block!important;visibility:visible!important;opacity:1!important;border:1px solid #d8e1db;border-radius:10px;background:#fff;overflow:hidden}
+#m2CustomizeAccessories{display:block!important;visibility:visible!important;opacity:1!important;border:1px solid #d8e1db;border-radius:10px;background:#fff;overflow:hidden;pointer-events:auto!important}
+#m2CustomizeAccessories button{cursor:pointer;pointer-events:auto!important}
 #m2CustomizeAccessories .m2-customize-section-head{width:100%;min-height:46px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 11px;border:0;border-radius:0;background:#f7faf8;color:#173c2d;text-align:left}
 #m2CustomizeAccessories .m2-customize-section-head>span{display:grid;gap:2px;min-width:0}
 #m2CustomizeAccessories .m2-customize-section-head b{font-size:11px;letter-spacing:.05em}
@@ -84,12 +85,13 @@ if (!html.includes(runtimeMarker)) {
   const runtime = `<script ${runtimeMarker}>
 (function(){
   const TYPES={palletStop:'Palet Dayama',hTraverse:'H Travers',tray:'Tava'};
+  const typeKeys=Object.keys(TYPES);
   let draft=[];
   let expandedType=null;
   let palletsVisible=true;
   const clone=(items)=>Array.isArray(items)?items.filter((item)=>TYPES[item?.type]).map((item)=>({type:item.type,levels:Array.isArray(item.levels)?[...new Set(item.levels.map(Number).filter(Number.isFinite))].sort((a,b)=>a-b):[],...(item.type==='tray'?{width:[200,250,300].includes(Number(item.width))?Number(item.width):300}:{})})):[];
   const levelCount=()=>Math.max(1,Math.min(15,Math.round(Number(document.getElementById('m2CustomizeLevels')?.value)||1)));
-  const preview=()=>{try{if(typeof window.m2PreviewRackCustomization==='function')window.m2PreviewRackCustomization();}catch{}};
+  const preview=()=>{try{if(typeof window.m2PreviewRackCustomization==='function')window.m2PreviewRackCustomization();}catch{}try{window.RafexB2BViewer?.update({showPallets:palletsVisible,accessories:clone(draft)});}catch{}};
   const itemFor=(type)=>draft.find((item)=>item.type===type)||null;
   const setSectionOpen=(open)=>{const section=document.getElementById('m2CustomizeAccessories');if(!section)return;section.classList.toggle('open',!!open);section.querySelector('.m2-customize-section-head')?.setAttribute('aria-expanded',String(!!open));};
   const renderPalletButton=()=>{const button=document.getElementById('m2CustomizePalletVisibilityButton');if(!button)return;button.textContent=palletsVisible?'PALETLERİ GİZLE':'PALETLERİ GÖSTER';button.setAttribute('aria-pressed',String(palletsVisible));};
@@ -97,7 +99,7 @@ if (!html.includes(runtimeMarker)) {
   window.m2CustomizePalletsVisible=()=>palletsVisible;
   window.m2SetCustomizePalletsVisible=(value,doPreview=true)=>{palletsVisible=value!==false;renderPalletButton();if(doPreview)preview();};
   window.m2ToggleCustomizePallets=()=>{palletsVisible=!palletsVisible;renderPalletButton();preview();};
-  window.m2ToggleCustomizeAccessoriesSection=()=>{const section=document.getElementById('m2CustomizeAccessories');setSectionOpen(!section?.classList.contains('open'));};
+  window.m2ToggleCustomizeAccessoriesSection=()=>{const section=document.getElementById('m2CustomizeAccessories');setSectionOpen(!section?.classList.contains('open'));if(section?.classList.contains('open'))window.m2RenderCustomizeRackAccessories();};
 
   window.m2CollectCustomizeRackAccessories=()=>clone(draft).map((item)=>({...item,levels:item.levels.filter((level)=>level>=1&&level<=levelCount())}));
   window.m2LoadCustomizeRackAccessories=(items)=>{draft=clone(items);expandedType=null;setSectionOpen(false);window.m2RenderCustomizeRackAccessories();};
@@ -113,16 +115,36 @@ if (!html.includes(runtimeMarker)) {
     draft=draft.map((item)=>({...item,levels:(item.levels||[]).filter((level)=>level>=1&&level<=count)}));
     host.innerHTML=Object.entries(TYPES).map(([type,title])=>{
       const item=itemFor(type),enabled=!!item,open=expandedType===type;
-      let body='<button type="button" class="m2-customize-accessory-enable" onclick="m2EnableCustomizeRackAccessory(\''+type+'\')">BU AKSESUARI EKLE</button>';
+      let body='<button type="button" class="m2-customize-accessory-enable">BU AKSESUARI EKLE</button>';
       if(item){
         const selected=new Set(item.levels||[]);
-        const levels=Array.from({length:count},(_,i)=>i+1).map((level)=>'<button type="button" class="'+(selected.has(level)?'active':'')+'" onclick="m2ToggleCustomizeRackAccessoryLevel(\''+type+'\','+level+')">K'+level+'</button>').join('');
-        const tray=type==='tray'?'<div class="m2-customize-accessory-tray"><span>Tava eni</span>'+[200,250,300].map((width)=>'<button type="button" class="'+(Number(item.width)===width?'active':'')+'" onclick="m2SetCustomizeRackTrayWidth(\''+type+'\','+width+')">'+width+' mm</button>').join('')+'</div>':'';
-        body=tray+'<div class="m2-customize-accessory-level-title"><span>Eklenecek katlar</span><button type="button" onclick="m2AllCustomizeRackAccessoryLevels(\''+type+'\')">'+(selected.size===count?'Tümünü Kaldır':'Tüm Katlar')+'</button></div><div class="m2-customize-accessory-levels">'+levels+'</div><button type="button" class="m2-customize-accessory-remove" onclick="m2RemoveCustomizeRackAccessory(\''+type+'\')">Aksesuarı Kaldır</button>';
+        const levels=Array.from({length:count},(_,i)=>i+1).map((level)=>'<button type="button" class="'+(selected.has(level)?'active':'')+'">K'+level+'</button>').join('');
+        const tray=type==='tray'?'<div class="m2-customize-accessory-tray"><span>Tava eni</span>'+[200,250,300].map((width)=>'<button type="button" class="'+(Number(item.width)===width?'active':'')+'">'+width+' mm</button>').join('')+'</div>':'';
+        body=tray+'<div class="m2-customize-accessory-level-title"><span>Eklenecek katlar</span><button type="button">'+(selected.size===count?'Tümünü Kaldır':'Tüm Katlar')+'</button></div><div class="m2-customize-accessory-levels">'+levels+'</div><button type="button" class="m2-customize-accessory-remove">Aksesuarı Kaldır</button>';
       }
-      return '<div class="m2-customize-accessory-card '+(enabled?'enabled ':'')+(open?'open':'')+'"><button type="button" class="m2-customize-accessory-type-head" aria-expanded="'+String(open)+'" onclick="m2ToggleCustomizeRackAccessoryPanel(\''+type+'\')"><span>'+title+'</span><span class="state">'+(enabled?'EKLİ':'EKLE')+'</span><i>⌄</i></button><div class="m2-customize-accessory-body">'+body+'</div></div>';
+      return '<div class="m2-customize-accessory-card '+(enabled?'enabled ':'')+(open?'open':'')+'" data-accessory-type="'+type+'"><button type="button" class="m2-customize-accessory-type-head" aria-expanded="'+String(open)+'"><span>'+title+'</span><span class="state">'+(enabled?'EKLİ':'EKLE')+'</span><i>⌄</i></button><div class="m2-customize-accessory-body">'+body+'</div></div>';
     }).join('');
   };
+
+  document.addEventListener('click',(event)=>{
+    const target=event.target instanceof Element?event.target:null;if(!target)return;
+    const palletButton=target.closest('#m2CustomizePalletVisibilityButton');
+    if(palletButton){event.preventDefault();event.stopPropagation();window.m2ToggleCustomizePallets();return;}
+    const sectionHead=target.closest('#m2CustomizeAccessories > .m2-customize-section-head');
+    if(sectionHead){event.preventDefault();event.stopPropagation();window.m2ToggleCustomizeAccessoriesSection();return;}
+    const card=target.closest('#m2CustomizeAccessories .m2-customize-accessory-card');
+    if(!card)return;
+    const type=card.dataset.accessoryType||typeKeys[[...card.parentElement?.children||[]].indexOf(card)];if(!TYPES[type])return;
+    const typeHead=target.closest('.m2-customize-accessory-type-head');
+    if(typeHead){event.preventDefault();event.stopPropagation();window.m2ToggleCustomizeRackAccessoryPanel(type);return;}
+    if(target.closest('.m2-customize-accessory-enable')){event.preventDefault();event.stopPropagation();window.m2EnableCustomizeRackAccessory(type);return;}
+    if(target.closest('.m2-customize-accessory-remove')){event.preventDefault();event.stopPropagation();window.m2RemoveCustomizeRackAccessory(type);return;}
+    const levelButton=target.closest('.m2-customize-accessory-levels button');
+    if(levelButton){event.preventDefault();event.stopPropagation();const level=Number((levelButton.textContent||'').replace(/\D/g,''));if(level)window.m2ToggleCustomizeRackAccessoryLevel(type,level);return;}
+    if(target.closest('.m2-customize-accessory-level-title button')){event.preventDefault();event.stopPropagation();window.m2AllCustomizeRackAccessoryLevels(type);return;}
+    const trayButton=target.closest('.m2-customize-accessory-tray button');
+    if(trayButton){event.preventDefault();event.stopPropagation();const width=Number((trayButton.textContent||'').replace(/\D/g,''));window.m2SetCustomizeRackTrayWidth(type,width);}
+  },true);
 })();
 </script>`;
   const bodyEnd = html.lastIndexOf("</body>");
@@ -131,7 +153,9 @@ if (!html.includes(runtimeMarker)) {
 }
 
 const openNeedle = '        $("m2CustomizeModal").hidden=false;';
-const openReplacement = '        if(typeof m2LoadCustomizeRackAccessories==="function")m2LoadCustomizeRackAccessories(Array.isArray(rack.b2b?.accessories)?rack.b2b.accessories:[]);\n        if(typeof m2SetCustomizePalletsVisible==="function")m2SetCustomizePalletsVisible(rack.b2b?.showPallets!==false,false);\n        $("m2CustomizeModal").hidden=false;';
+const openReplacement = '        if(typeof m2LoadCustomizeRackAccessories==="function")m2LoadCustomizeRackAccessories(Array.isArray(rack.b2b?.accessories)?rack.b2b.accessories:[]);\
+        if(typeof m2SetCustomizePalletsVisible==="function")m2SetCustomizePalletsVisible(rack.b2b?.showPallets!==false,false);\
+        $("m2CustomizeModal").hidden=false;';
 if (!html.includes(openReplacement)) {
   const openIndex = html.indexOf(openNeedle);
   if (openIndex < 0) throw new Error("Özelleştir açılış satırı bulunamadı.");
@@ -174,4 +198,4 @@ if (!html.includes('m2CollectCustomizeRackAccessories') || !html.includes('m2Cus
 if (!html.includes('rack.b2b.accessories=m2CollectCustomizeRackAccessories()') || !html.includes('rack.b2b.showPallets=m2CustomizePalletsVisible()')) throw new Error("Özelleştir kaydı bağlanamadı.");
 
 fs.writeFileSync(portalPath, html);
-console.log("Özelleştir > Palet görünürlüğü ve akordeon aksesuar alanı eklendi.");
+console.log("Özelleştir > Palet görünürlüğü ve aksesuar kontrolleri etkileşimli olarak bağlandı.");
