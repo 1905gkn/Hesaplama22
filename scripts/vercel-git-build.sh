@@ -29,6 +29,10 @@ node scripts/patch-mobile-responsive.mjs
 # Keep the navigation full-height and fixed, and prefer 2,0 mm in Ayak calculation.
 node scripts/patch-foot-priority-fixed-sidebar.mjs
 
+# Keep Home free of the sidebar, make Customize controls resilient, and prevent
+# background section rendering from stealing/destroying the active 3D viewer.
+node scripts/patch-ui-runtime-stability.mjs
+
 bash scripts/build.sh
 
 # The historical CLI/prebuilt deploy injected this after vercel build and then
@@ -37,4 +41,4 @@ bash scripts/build.sh
 # produces the same packaged server artifact.
 node scripts/inject-b2b-section-positioner.mjs
 
-echo "Approved 34vnlp6h8 prebuilt chain reproduced in dist with current UI patches."
+echo "Approved 34vnlp6h8 prebuilt chain reproduced in dist with current UI and runtime stability patches."
