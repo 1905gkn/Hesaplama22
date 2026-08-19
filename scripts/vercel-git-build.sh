@@ -45,4 +45,9 @@ bash scripts/build.sh
 # produces the same packaged server artifact.
 node scripts/inject-b2b-section-positioner.mjs
 
-echo "Approved 34vnlp6h8 prebuilt chain reproduced in dist with current UI and runtime stability patches."
+# Apply the current user-requested production UX rules after the final section
+# locator exists in dist: Customize controls, persistent seismic placement,
+# seismic metadata/BOM and explicit perspective angle readouts.
+node scripts/inject-user-20260819.mjs
+
+echo "Approved 34vnlp6h8 prebuilt chain reproduced in dist with current B2B UX fixes."
