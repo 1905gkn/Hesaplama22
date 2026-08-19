@@ -55,4 +55,8 @@ node scripts/inject-user-20260819.mjs
 # final artifact and keep only the native Customize flow plus small safe sync fixes.
 node scripts/patch-customize-recovery.mjs
 
+# Final pass after all injectors: requested 50/10/100 section defaults, real
+# front-view button sizing and resilient Customize accessory/pallet preview.
+node scripts/patch-current-ux-20260819.mjs
+
 echo "Approved 34vnlp6h8 prebuilt chain reproduced in dist with current B2B UX fixes."
