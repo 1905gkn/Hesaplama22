@@ -128,4 +128,9 @@ node scripts/patch-native-system-pdf-router.mjs
 # This pass does not touch the Mekik or B2B configuration screens.
 node scripts/patch-mekik-output-halves.mjs
 
-echo "Production chain verified: unified Serbest Cizim + shared catalogs + rack-system-routed controls/shortcuts + B2B-only Uzatma + B2B Kesit Yer Belirleme + system-native mixed PDF outputs + Mekik 50/50 common-scale output + prior controls."
+# Hard isolation guarantee: the system-routed shortcuts and B2B-only Uzatma changes
+# are allowed only inside Serbest Cizim. Native B2B and Mekik pages retain their
+# original m2ActiveModule click/double-click behavior and native UI.
+node scripts/patch-free-system-page-isolation.mjs
+
+echo "Production chain verified: native B2B/Mekik pages preserved + unified Serbest Cizim + shared catalogs + rack-system-routed controls/shortcuts + B2B-only Uzatma + B2B Kesit Yer Belirleme + system-native mixed PDF outputs + Mekik 50/50 common-scale output + prior controls."
