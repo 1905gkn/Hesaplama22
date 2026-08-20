@@ -18,8 +18,6 @@ if(!html.includes(marker)){
       viewer.__rafexMain3DGuardV2=true;
       const mount=viewer.mount?.bind(viewer);
       if(mount){viewer.mount=function(canvas,options){if(window.__rafexFreeLayout3DStopped&&canvas?.id==='b2bMain3DCanvas')return;return mount(canvas,options);};}
-      const update=viewer.update?.bind(viewer);
-      if(update){viewer.update=function(options){if(window.__rafexFreeLayout3DStopped&&document.getElementById('b2bMain3DCanvas')&&!document.getElementById('m2CustomizeModal')?.hidden===false)return;return update(options);};}
     }
 
     function stop3D(){
@@ -48,7 +46,6 @@ if(!html.includes(marker)){
   html=html.slice(0,bodyEnd)+runtime+html.slice(bodyEnd);
 }
 
-// Directly stop before the known free-layout entry points too, so event bubbling/order cannot bypass it.
 const direct=[
   ['function m2AddRack(drawing = null, typeName = null) {','function m2AddRack(drawing = null, typeName = null) { try{window.rafexStopMain3DForFreeLayout?.();}catch{}'],
   ['function m2DuplicateRack() {','function m2DuplicateRack() { try{window.rafexStopMain3DForFreeLayout?.();}catch{}'],
