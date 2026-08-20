@@ -1,0 +1,66 @@
+import fs from "node:fs";
+import path from "node:path";
+
+const root = process.cwd();
+const workerPath = path.join(root, "dist/server/index.js");
+const marker = 'data-rafex-free-copy-info-edge="v3"';
+let worker = fs.readFileSync(workerPath, "utf8");
+const match = worker.match(/(const\s+HTML_BASE64\s*=\s*)(["'])([A-Za-z0-9+/=]+)\2/);
+if (!match) throw new Error("Free copy/info/edge v3: HTML_BASE64 bulunamadi.");
+let html = Buffer.from(match[3], "base64").toString("utf8");
+
+html = html
+  .replace(/<style\s+data-rafex-free-copy-info-edge="v3">[\s\S]*?<\/style>\s*/g, "")
+  .replace(/<script\s+data-rafex-free-copy-info-edge="v3">[\s\S]*?<\/script>\s*/g, "");
+
+const usedNeedle = `const drawing = entry?.drawing || entry;\n        if (!drawing) return;`;
+const usedReplacement = `const drawing = entry?.drawing || entry;\n        if (!drawing || !(drawing?.b2b || drawing?.b2bLayout || entry?.rafexSystem === "b2b" || entry?.__rafexSystem === "b2b")) return;`;
+if (!html.includes(usedNeedle)) throw new Error("Free copy/info/edge v3: B2B Kesit used-type filtresi bulunamadi.");
+html = html.replace(usedNeedle, usedReplacement);
+
+const cardNeedle = `      [...host.querySelectorAll(".m2-corporate-type-card")].forEach((card, index) => {\n        const rawTitle =`;
+const cardReplacement = `      [...host.querySelectorAll(".m2-corporate-type-card")].forEach((card, index) => {\n        if ((card.dataset.rafexSystem && card.dataset.rafexSystem !== "b2b") || card.querySelector(".m2-set-projection")) return;\n        const rawTitle =`;
+if (!html.includes(cardNeedle)) throw new Error("Free copy/info/edge v3: B2B Kesit kart filtresi bulunamadi.");
+html = html.replace(cardNeedle, cardReplacement);
+
+const runtime = String.raw`<style data-rafex-free-copy-info-edge="v3">
+#page.rafex-free-drawing-page .m2-saved-type-row{grid-template-columns:minmax(0,1fr) 36px 36px 36px!important}
+#page.rafex-free-drawing-page .m2-saved-type-preview.rafex-free-info,
+#page.rafex-free-drawing-page .m2-saved-type-copy.rafex-free-copy{width:36px!important;min-width:36px!important;height:36px!important;padding:0!important;display:grid!important;place-items:center!important;border:1px solid #9fb5a7!important;border-radius:8px!important;background:#fff!important;color:#214f3b!important}
+#page.rafex-free-drawing-page .m2-saved-type-preview.rafex-free-info{font:900 17px/1 Georgia,serif!important}
+#page.rafex-free-drawing-page .m2-saved-type-copy.rafex-free-copy{font:900 12px/1 Arial,sans-serif!important}
+#page.rafex-free-drawing-page .m2-saved-type-preview.rafex-free-info:hover,
+#page.rafex-free-drawing-page .m2-saved-type-copy.rafex-free-copy:hover{background:#214f3b!important;color:#fff!important}
+.rafex-free-copy-pages{position:relative;width:17px;height:16px;display:block;color:currentColor}.rafex-free-copy-pages:before,.rafex-free-copy-pages:after{content:"";position:absolute;width:9px;height:11px;border:1.6px solid currentColor;border-radius:1.5px}.rafex-free-copy-pages:before{left:2px;top:1px}.rafex-free-copy-pages:after{left:6px;top:4px}
+.rafex-free-info-modal[hidden]{display:none!important}.rafex-free-info-modal{position:fixed;inset:0;z-index:13000;display:grid;place-items:center;padding:18px;background:#07150e99}.rafex-free-info-dialog{width:min(980px,96vw);max-height:92vh;overflow:auto;border-radius:14px;background:#fff;box-shadow:0 24px 70px #0005}.rafex-free-info-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #dfe5e0;background:#f6f8f6;color:#173c2d}.rafex-free-info-head button{width:34px;height:34px;padding:0;background:#173c2d;color:#fff}.rafex-free-info-body{padding:14px}.rafex-free-info-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.rafex-free-info-meta div{padding:10px;border:1px solid #e0e7e2;border-radius:9px;background:#f8faf8}.rafex-free-info-meta small{display:block;color:#6f7b73;font-size:8px;font-weight:800}.rafex-free-info-meta b{display:block;margin-top:3px;color:#173c2d;font-size:12px}.rafex-free-info-views{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.rafex-free-info-view{border:1px solid #e0e7e2;border-radius:9px;overflow:hidden}.rafex-free-info-view>strong{display:block;padding:7px 9px;background:#f4f7f5;color:#173c2d;font-size:9px;text-align:center}.rafex-free-info-view svg{display:block;width:100%!important;height:auto!important;min-height:240px}@media(max-width:760px){.rafex-free-info-meta,.rafex-free-info-views{grid-template-columns:1fr}}
+</style>
+<script data-rafex-free-copy-info-edge="v3">(function(){
+  if(window.__rafexFreeCopyInfoEdgeV3)return;window.__rafexFreeCopyInfoEdgeV3=true;
+  var EDGE_KEY='rafex_free_edge_editor_open_v1';
+  function freePage(){var p=document.getElementById('page');return !!(p&&p.classList.contains('rafex-free-drawing-page'));}
+  function qsa(root,sel){try{return Array.from((root||document).querySelectorAll(sel));}catch{return[];}}
+  function systemOf(entry){var d=entry&&entry.drawing?entry.drawing:entry||{};var s=String(entry&&entry.__rafexSystem||entry&&entry.rafexSystem||d.rafexSystem||'').toLowerCase();if(s==='b2b'||s==='mekik2')return s;return d.b2b||d.b2bLayout?'b2b':'mekik2';}
+  function savedEntries(){try{return Array.isArray(m2SavedRackTypes)?m2SavedRackTypes:[];}catch{return[];}}
+  function status(text){var el=document.getElementById('m2FloorStatus');if(el)el.textContent=text;}
+  function ensureModal(){var m=document.getElementById('rafexFreeInfoModal');if(m)return m;m=document.createElement('div');m.id='rafexFreeInfoModal';m.className='rafex-free-info-modal';m.hidden=true;m.innerHTML='<div class="rafex-free-info-dialog"><div class="rafex-free-info-head"><b id="rafexFreeInfoTitle">RAF İÇERİĞİ</b><button type="button" aria-label="Kapat">×</button></div><div class="rafex-free-info-body" id="rafexFreeInfoBody"></div></div>';m.addEventListener('click',function(e){if(e.target===m)m.hidden=true;});m.querySelector('button').onclick=function(){m.hidden=true;};document.body.appendChild(m);return m;}
+  function esc(v){return String(v==null?'':v).replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c];});}
+  function showInfo(index){var entry=savedEntries()[index];if(!entry||!entry.drawing)return;var d=entry.drawing,sys=systemOf(entry),m=ensureModal(),body=m.querySelector('#rafexFreeInfoBody');m.querySelector('#rafexFreeInfoTitle').textContent=(sys==='b2b'?'B2B':'MEKİK')+' · '+String(entry.name||'Raf')+' · İÇERİĞİ';var meta=[['Sistem',sys==='b2b'?'B2B':'Mekik'],['Toplam genişlik',(Math.round(Number(d.totalWidth)||0))+' mm'],['Toplam derinlik',(Math.round(Number(d.railLength)||0))+' mm'],['Kat',Math.round(Number(d.levels)||0)],['Palet',Math.round(Number(d.palW)||0)+' × '+Math.round(Number(d.palD)||0)+' mm'],['Ayak',String(d.footProfile||d.footType||'-')]];var views='';try{if(typeof m2ReportElevationSvg==='function'){var front=m2ReportElevationSvg(d,'front',true),side=m2ReportElevationSvg(d,'side',true);if(front||side)views='<div class="rafex-free-info-views">'+(front?'<div class="rafex-free-info-view"><strong>ÖNDEN GÖRÜŞ</strong>'+front+'</div>':'')+(side?'<div class="rafex-free-info-view"><strong>YAN GÖRÜŞ</strong>'+side+'</div>':'')+'</div>';}}catch(e){}body.innerHTML='<div class="rafex-free-info-meta">'+meta.map(function(x){return '<div><small>'+esc(x[0])+'</small><b>'+esc(x[1])+'</b></div>';}).join('')+'</div>'+views;m.hidden=false;}
+  function activateAndLoad(index){var entry=savedEntries()[index];if(!entry||!entry.drawing)return;var sys=systemOf(entry),copy=JSON.parse(JSON.stringify(entry));var radio=document.querySelector('input[name="rafexUnifiedSystem"][value="'+sys+'"]');if(radio){radio.checked=true;radio.dispatchEvent(new Event('change',{bubbles:true}));}try{window.rafexFreeDrawingContinue?.();}catch(e){}var attempt=function(){try{var old=Array.isArray(m2SavedRackTypes)?m2SavedRackTypes:null,oldSel=m2SelectedSavedType;m2SavedRackTypes=[copy];m2SelectedSavedType=0;if(typeof m2SelectSavedRackType==='function')m2SelectSavedRackType(0);if(old){m2SavedRackTypes=old;m2SelectedSavedType=oldSel;}status((sys==='b2b'?'B2B':'Mekik')+' · '+String(copy.name||'Raf')+' üst özellik alanına kopyalandı.');window.rafexUnifiedCatalogSync?.();syncEdge();var target=document.querySelector('#page.rafex-free-drawing-page .m2-configurator,#page.rafex-free-drawing-page .m2-config,#page.rafex-free-drawing-page .m2-layout');target?.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){console.warn('Serbest Cizim kopya yukleme hatasi',e);}};setTimeout(attempt,40);setTimeout(attempt,180);}
+  function enhanceRows(){if(!freePage())return;var list=document.getElementById('m2SavedTypeList');if(!list)return;qsa(list,'.m2-saved-type-row').forEach(function(row,index){var del=row.querySelector('.m2-type-delete');var info=row.querySelector('.m2-saved-type-preview');if(!info){info=document.createElement('button');info.type='button';info.className='m2-saved-type-preview';row.insertBefore(info,del||null);}info.classList.add('rafex-free-info');info.textContent='i';info.title='İçeriğini göster';info.onclick=function(e){e.preventDefault();e.stopPropagation();showInfo(index);};var copy=row.querySelector('.m2-saved-type-copy');if(!copy){copy=document.createElement('button');copy.type='button';copy.className='m2-saved-type-copy';row.insertBefore(copy,del||null);}copy.classList.add('rafex-free-copy');copy.innerHTML='<span class="rafex-free-copy-pages" aria-hidden="true"></span>';copy.title='Kopyala ve bu sistemin özelliklerini aç';copy.onclick=function(e){e.preventDefault();e.stopPropagation();activateAndLoad(index);};});if(!list.dataset.rafexActionObserver){list.dataset.rafexActionObserver='1';new MutationObserver(function(){setTimeout(enhanceRows,0);}).observe(list,{childList:true,subtree:false});}}
+  function enableAutoFill(){if(!freePage())return;var c=document.getElementById('m2AutoFillControls');if(!c||c.hidden)return;c.classList.remove('is-disabled');qsa(c,'input,button').forEach(function(el){el.disabled=false;});var input=document.getElementById('m2AutoFillLength');if(input){input.disabled=false;input.readOnly=false;input.inputMode='numeric';input.setAttribute('step','1');}}
+  function syncEdge(){if(!freePage())return;var editor=document.getElementById('m2EdgeEditor'),button=document.getElementById('m2EdgeDimensionsButton');if(!editor||!button)return;var pref=localStorage.getItem(EDGE_KEY);if(pref==null){pref='1';localStorage.setItem(EDGE_KEY,'1');}if(pref==='1'&&editor.hidden){try{button.click();}catch(e){}}}
+  document.addEventListener('dblclick',function(e){if(!freePage())return;var node=e.target?.closest?.('#m2LayoutSvg [data-rack]');if(!node)return;var rack=null;try{rack=m2LayoutState.racks.find(function(r){return Number(r.id)===Number(node.dataset.rack);});}catch(e){}if(systemOf(rack)!=='b2b')return;[0,40,120,260].forEach(function(ms){setTimeout(enableAutoFill,ms);});},true);
+  document.addEventListener('click',function(e){if(!freePage())return;var b=e.target?.closest?.('#m2EdgeDimensionsButton');if(b&&e.isTrusted){setTimeout(function(){var editor=document.getElementById('m2EdgeEditor');if(editor)localStorage.setItem(EDGE_KEY,editor.hidden?'0':'1');},0);}setTimeout(function(){enhanceRows();syncEdge();enableAutoFill();},0);},false);
+  function boot(){enhanceRows();syncEdge();[50,180,500,1000].forEach(function(ms){setTimeout(function(){enhanceRows();syncEdge();},ms);});}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();</script>`;
+
+const closing = html.lastIndexOf("</body>");
+if (closing < 0) throw new Error("Free copy/info/edge v3: </body> bulunamadi.");
+html = html.slice(0, closing) + runtime + "\n" + html.slice(closing);
+const encoded = Buffer.from(html, "utf8").toString("base64");
+worker = worker.replace(match[0], `${match[1]}${match[2]}${encoded}${match[2]}`);
+fs.writeFileSync(workerPath, worker);
+const finalHtml = Buffer.from(encoded, "base64").toString("utf8");
+for (const required of [marker,'rafex-free-copy-pages','rafex_free_edge_editor_open_v1','Kopyala ve bu sistemin özelliklerini aç','entry?.rafexSystem === "b2b"']) if (!finalHtml.includes(required)) throw new Error(`Free copy/info/edge v3 doğrulama hatası: ${required}`);
+console.log("FINAL: Serbest Cizim i/kopya aksiyonlari kalici; kopya hedef sistemi acar; Uzatma manuel giris aktif; Kenar Olculeri varsayilan acik; B2B Kesit yalniz B2B tiplerini listeler (v3).");
