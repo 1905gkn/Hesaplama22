@@ -113,9 +113,9 @@ node scripts/patch-unified-free-drawing-catalog.mjs
 # receives those controls, while shared keyboard/layout actions remain common.
 node scripts/patch-unified-free-system-controls.mjs
 
-# Extend only Kesit Yer Belirleme / output with Mekik views. A Mekik rack used at
-# more than one layout angle becomes a separate labelled section, while the native
-# B2B and Mekik configuration screens remain untouched.
+# Legacy mixed-system section extension is still built here because the subsequent
+# native PDF layers expect its marker while building. The final production pass
+# removes its runtime entirely, leaving Kesit Yer Belirleme B2B-only.
 node scripts/patch-unified-section-positioner.mjs
 
 # Final PDF routing rule: every system keeps the output renderer defined in its own
@@ -124,7 +124,7 @@ node scripts/patch-unified-section-positioner.mjs
 node scripts/patch-native-system-pdf-router.mjs
 
 # Final Mekik-only PDF presentation rule: keep Mekik out of Kesit Yer Belirleme,
-# split its native output exactly 50/50 and use one common drawing scale for On/Yan.
+# split its native output exactly 50/50 and keep front enlargement within fit bounds.
 # This pass does not touch the Mekik or B2B configuration screens.
 node scripts/patch-mekik-output-halves.mjs
 
@@ -133,4 +133,10 @@ node scripts/patch-mekik-output-halves.mjs
 # original m2ActiveModule click/double-click behavior and native UI.
 node scripts/patch-free-system-page-isolation.mjs
 
-echo "Production chain verified: native B2B/Mekik pages preserved + unified Serbest Cizim + shared catalogs + rack-system-routed controls/shortcuts + B2B-only Uzatma + B2B Kesit Yer Belirleme + system-native mixed PDF outputs + Mekik 50/50 common-scale output + prior controls."
+# Final user-facing pass: disable the obsolete Mekik section-positioner runtime,
+# keep Ozel Cikti as option 2, restore B2B saved-type actions, split Serbest Cizim
+# product lists by system, migrate B2B PDF pallets ON once, and lock Mekik PDF
+# halves to equal height with each green detail bar at the bottom of its own half.
+node scripts/patch-final-free-pdf-ux-v1.mjs
+
+echo "Production chain verified: native B2B/Mekik pages preserved + unified Serbest Cizim + system product lists + B2B-only Kesit Yer Belirleme + pallet-first B2B PDF + system-native mixed PDF + final Mekik equal-height output."
