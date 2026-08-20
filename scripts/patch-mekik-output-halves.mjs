@@ -20,13 +20,13 @@ if (!html.includes('data-rafex-unified-section-positioner="v1"')) {
 html = html.replace(/<style\s+data-rafex-mekik-output-halves="v1">[\s\S]*?<\/style>\s*<script\s+data-rafex-mekik-output-halves="v1">[\s\S]*?<\/script>/g, "");
 
 const runtime = String.raw`<style data-rafex-mekik-output-halves="v1">
-/* Mekik artik Kesit Yer Belirleme listesine / calisma alanina girmez. */
+/* Mekik Kesit Yer Belirleme listesine / calisma alanina girmez. */
 #m2SectionPlacementModal .rafex-mekik-section-divider,
 #m2SectionPlacementModal .rafex-mekik-section-entry,
 #m2SectionPlacementModal [data-rafex-mekik-workspace]{display:none!important}
 
-/* Yalniz PDF/kurumsal cikti icin: Mekik kartinin basligi tam genislik,
-   altindaki On ve Yan gorunusler tam ortadan 50/50 bolunur. */
+/* Yalniz PDF/kurumsal cikti icin: Mekik karti 50/50 iki bolumdur.
+   Her gorusun kendi bilgi alani, kendi ciziminin hemen altindadir. */
 .m2-corporate-type-card[data-rafex-system="mekik2"]{
   display:grid!important;
   grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
@@ -58,7 +58,8 @@ const runtime = String.raw`<style data-rafex-mekik-output-halves="v1">
   overflow:hidden!important;
   border-left:0!important;
   display:grid!important;
-  grid-template-rows:22px minmax(0,1fr)!important;
+  grid-template-rows:22px minmax(0,68%) auto minmax(0,1fr)!important;
+  align-content:stretch!important;
   background:#fff!important;
 }
 .m2-corporate-type-card[data-rafex-system="mekik2"]>.m2-corporate-view[data-rafex-native-output="mekik-front"]{
@@ -70,14 +71,51 @@ const runtime = String.raw`<style data-rafex-mekik-output-halves="v1">
   border-right:0!important;
 }
 .m2-corporate-type-card[data-rafex-system="mekik2"]>.m2-corporate-view>b{
+  grid-row:1!important;
   min-width:0!important;
   display:grid!important;
   place-items:center!important;
 }
 .m2-corporate-type-card[data-rafex-system="mekik2"]>.m2-corporate-view>svg[data-rafex-native-positioned="1"]{
+  grid-row:2!important;
   align-self:stretch!important;
   justify-self:stretch!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
   overflow:visible!important;
+}
+.m2-corporate-type-card[data-rafex-system="mekik2"] .rafex-mekik-view-details{
+  grid-row:3!important;
+  min-width:0!important;
+  min-height:36px!important;
+  margin:8px 38px 0!important;
+  padding:7px 12px!important;
+  box-sizing:border-box!important;
+  border-radius:4px!important;
+  background:#123f2f!important;
+  color:#fff!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:2px!important;
+  text-align:center!important;
+  font:800 8px/1.28 Arial,sans-serif!important;
+  letter-spacing:.01em!important;
+  overflow:hidden!important;
+}
+.m2-corporate-type-card[data-rafex-system="mekik2"] .rafex-mekik-view-details:empty{
+  visibility:hidden!important;
+}
+.m2-corporate-type-card[data-rafex-system="mekik2"] .rafex-mekik-detail-line{
+  display:block!important;
+  width:100%!important;
+  white-space:normal!important;
+}
+.m2-corporate-type-card[data-rafex-system="mekik2"] .rafex-mekik-extra-details:empty{
+  display:none!important;
 }
 .m2-corporate-type-card[data-rafex-system="mekik2"]>.rafex-native-system-chip{
   top:7px!important;
@@ -85,13 +123,16 @@ const runtime = String.raw`<style data-rafex-mekik-output-halves="v1">
 }
 </style>
 <script data-rafex-mekik-output-halves="v1">(function(){
-  if(window.__rafexMekikOutputHalvesV1)return;
-  window.__rafexMekikOutputHalvesV1=true;
+  if(window.__rafexMekikOutputHalvesV2)return;
+  window.__rafexMekikOutputHalvesV2=true;
 
   var balanceTimer=0;
   var modalTimer=0;
 
   function qsa(root,selector){try{return Array.from((root||document).querySelectorAll(selector));}catch{return[];}}
+  function normalized(value){
+    return String(value||'').replace(/\s+/g,' ').trim().toLocaleUpperCase('tr-TR');
+  }
 
   function cleanSectionPlacement(){
     var modal=document.getElementById('m2SectionPlacementModal');
@@ -120,6 +161,68 @@ const runtime = String.raw`<style data-rafex-mekik-output-halves="v1">
     svg.style.setProperty('transform-box','fill-box','important');
   }
 
+  function footerSignature(kind,text){
+    var value=normalized(text);
+    if(!value)return false;
+    if(kind==='front')return value.includes('BÖLÜMDEN OLUŞUR')||value.includes('BOLUMDEN OLUSUR');
+    return value.includes('GERÇEK PROJE')||value.includes('GERCEK PROJE')||value.includes('PALET DERİNLİK')||value.includes('PALET DERINLIK');
+  }
+
+  function hideFooterGraphic(textNode,svg){
+    if(!textNode||!svg)return;
+    var node=textNode;
+    for(var depth=0;depth<4&&node&&node!==svg;depth++,node=node.parentElement){
+      if(node.tagName&&String(node.tagName).toLowerCase()==='g'){
+        var value=normalized(node.textContent);
+        var hasFooter=value.includes('BÖLÜMDEN OLUŞUR')||value.includes('BOLUMDEN OLUSUR')||value.includes('GERÇEK PROJE')||value.includes('GERCEK PROJE')||value.includes('PALET DERİNLİK')||value.includes('PALET DERINLIK');
+        if(hasFooter&&node.querySelector('rect')){
+          node.dataset.rafexMekikFooterGraphic='1';
+          node.style.setProperty('display','none','important');
+          return;
+        }
+      }
+    }
+    textNode.dataset.rafexMekikFooterGraphic='1';
+    textNode.style.setProperty('display','none','important');
+  }
+
+  function collectFooterLines(svg,kind){
+    if(!svg)return[];
+    var lines=[];
+    qsa(svg,'text').forEach(function(text){
+      var raw=String(text.textContent||'').replace(/\s+/g,' ').trim();
+      if(!footerSignature(kind,raw))return;
+      if(!lines.some(function(line){return normalized(line)===normalized(raw);})){lines.push(raw);}
+      hideFooterGraphic(text,svg);
+    });
+    return lines;
+  }
+
+  function ensureDetails(view,svg,kind){
+    if(!view||!svg)return;
+    var details=view.querySelector(':scope > .rafex-mekik-view-details');
+    if(!details){
+      details=document.createElement('div');
+      details.className='rafex-mekik-view-details';
+      details.dataset.rafexMekikView=kind;
+      view.appendChild(details);
+    }
+    var lines=collectFooterLines(svg,kind);
+    var previous=qsa(details,':scope > .rafex-mekik-detail-line').map(function(node){return node.textContent||'';});
+    if(!lines.length&&previous.length)return;
+    details.replaceChildren();
+    lines.forEach(function(line){
+      var row=document.createElement('span');
+      row.className='rafex-mekik-detail-line';
+      row.textContent=line;
+      details.appendChild(row);
+    });
+    var extra=document.createElement('div');
+    extra.className='rafex-mekik-extra-details';
+    extra.dataset.rafexMekikExtraDetails=kind;
+    details.appendChild(extra);
+  }
+
   function metrics(view,svg){
     if(!view||!svg)return null;
     var rect=svg.getBoundingClientRect();
@@ -129,26 +232,34 @@ const runtime = String.raw`<style data-rafex-mekik-output-halves="v1">
     if(!vb||!box||!rect.width||!rect.height||!vb.width||!vb.height||!box.width||!box.height)return null;
     var base=Math.min(rect.width/vb.width,rect.height/vb.height);
     if(!Number.isFinite(base)||base<=0)return null;
-    var maxPxPerUnit=Math.min((rect.width*.90)/box.width,(rect.height*.84)/box.height);
+    var maxPxPerUnit=Math.min((rect.width*.90)/box.width,(rect.height*.86)/box.height);
     if(!Number.isFinite(maxPxPerUnit)||maxPxPerUnit<=0)return null;
     return{svg:svg,base:base,max:maxPxPerUnit};
   }
 
-  function applyCommonScale(frontView,frontSvg,sideView,sideSvg){
+  function setScale(item,target){
+    if(!item)return;
+    var factor=target/item.base;
+    if(!Number.isFinite(factor)||factor<=0)factor=1;
+    factor=Math.max(.35,Math.min(3.75,factor));
+    item.svg.style.setProperty('transform','scale('+factor+')','important');
+  }
+
+  function applyViewScale(frontView,frontSvg,sideView,sideSvg){
     resetSvgForNativeHalf(frontSvg);
     resetSvgForNativeHalf(sideSvg);
     requestAnimationFrame(function(){
-      var a=metrics(frontView,frontSvg),b=metrics(sideView,sideSvg);
-      if(!a||!b)return;
-      /* Her iki cizimde de ayni SVG user-unit -> piksel orani kullanilir.
-         Boylece sadece kutular 50/50 degil, On ve Yan kesit de ayni olcekte olur. */
-      var common=Math.min(a.max,b.max);
-      [a,b].forEach(function(item){
-        var factor=common/item.base;
-        if(!Number.isFinite(factor)||factor<=0)factor=1;
-        factor=Math.max(.35,Math.min(3.25,factor));
-        item.svg.style.setProperty('transform','scale('+factor+')','important');
-      });
+      var front=metrics(frontView,frontSvg),side=metrics(sideView,sideSvg);
+      if(!front||!side)return;
+      /* Onceki ortak olcek referans olarak korunur. Yan gorunus bu olcekte kalir;
+         On gorunus %30 buyutulur, ancak kendi yarim sayfasina sigabilecegi maksimum
+         olcegi asamaz. Boylece +%30 istekli ama tasmasiz bir fit-scale elde edilir. */
+      var common=Math.min(front.max,side.max);
+      var sideTarget=Math.min(side.max,common);
+      var frontTarget=Math.min(front.max,common*1.30);
+      setScale(side,sideTarget);
+      setScale(front,frontTarget);
+      frontSvg.dataset.rafexMekikScaleBoost='1.30';
     });
   }
 
@@ -168,7 +279,11 @@ const runtime = String.raw`<style data-rafex-mekik-output-halves="v1">
     });
     var frontSvg=front.querySelector(':scope > svg')||front.querySelector('svg');
     var sideSvg=side.querySelector(':scope > svg')||side.querySelector('svg');
-    if(frontSvg&&sideSvg)applyCommonScale(front,frontSvg,side,sideSvg);
+    if(frontSvg&&sideSvg){
+      ensureDetails(front,frontSvg,'front');
+      ensureDetails(side,sideSvg,'side');
+      applyViewScale(front,frontSvg,side,sideSvg);
+    }
   }
 
   function balanceAll(){
@@ -197,7 +312,7 @@ const runtime = String.raw`<style data-rafex-mekik-output-halves="v1">
         try{m2RenderCorporateReport=wrapped;}catch{}
         window.m2RenderCorporateReport=wrapped;
       }
-    }catch(error){console.warn('Mekik 50/50 rapor kancasi kurulamadi',error);}
+    }catch(error){console.warn('Mekik PDF rapor kancasi kurulamadi',error);}
 
     try{
       var originalPrepare=window.__rafexPrepareCorporatePrint;
@@ -211,7 +326,7 @@ const runtime = String.raw`<style data-rafex-mekik-output-halves="v1">
         wrappedPrepare.__rafexMekikHalfWrapped=true;
         window.__rafexPrepareCorporatePrint=wrappedPrepare;
       }
-    }catch(error){console.warn('Mekik 50/50 yazdirma kancasi kurulamadi',error);}
+    }catch(error){console.warn('Mekik PDF yazdirma kancasi kurulamadi',error);}
   }
 
   function observe(){
@@ -251,7 +366,7 @@ worker = worker.replace(match[0], `${match[1]}${match[2]}${encoded}${match[2]}`)
 fs.writeFileSync(workerPath, worker);
 
 const finalHtml = Buffer.from(encoded, "base64").toString("utf8");
-for (const required of [marker, 'grid-template-columns:minmax(0,1fr) minmax(0,1fr)', 'rafex-mekik-section-entry', 'applyCommonScale']) {
+for (const required of [marker, 'rafex-mekik-view-details', 'rafex-mekik-extra-details', 'frontTarget=Math.min(front.max,common*1.30)', 'grid-template-columns:minmax(0,1fr) minmax(0,1fr)']) {
   if (!finalHtml.includes(required)) throw new Error(`Mekik output halves dogrulama hatasi: ${required}`);
 }
-console.log("FINAL: Mekik Kesit Yer Belirleme'den kaldirildi; PDF On/Yan 50/50 ve ortak olcege getirildi (v1).");
+console.log("FINAL: Mekik PDF bilgi bantlari kendi goruslerinin altina alindi; On gorunus +%30 fit-scale uygulandi (v2). Kesit Yer Belirleme'de Mekik kapali.");
