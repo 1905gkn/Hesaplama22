@@ -103,4 +103,9 @@ node scripts/patch-live-b2b-3d-add-hook.mjs
 node scripts/patch-unified-free-drawing.mjs
 node scripts/patch-unified-free-drawing-safety.mjs
 
-echo "Production chain verified: hardened unified Serbest Cizim + shared B2B/Mekik layout + real block-add 3D hide + prior controls."
+# Merge the saved rack catalogs from every currently drawable system into the
+# same Serbest Cizim library without changing each system's own saved-type store.
+# A saved B2B or Mekik type can then be added to the same layout and same PDF.
+node scripts/patch-unified-free-drawing-catalog.mjs
+
+echo "Production chain verified: hardened unified Serbest Cizim + shared B2B/Mekik saved-type catalog + mixed layout/PDF + real block-add 3D hide + prior controls."
