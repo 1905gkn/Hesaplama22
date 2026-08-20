@@ -3,13 +3,24 @@ import path from "node:path";
 
 const root = process.cwd();
 const workerPath = path.join(root, "dist/server/index.js");
-const marker = 'data-rafex-b2b-3d-persistence="v1"';
+const marker = 'data-rafex-b2b-3d-persistence="v2"';
 
 let worker = fs.readFileSync(workerPath, "utf8");
 const match = worker.match(/(const\s+HTML_BASE64\s*=\s*)(["'])([A-Za-z0-9+/=]+)\2/);
 if (!match) throw new Error("B2B 3D persistence: HTML_BASE64 bulunamadı.");
 
 let html = Buffer.from(match[3], "base64").toString("utf8");
+
+// Eski performans katmanlari serbest yerlesimde gercek kullanici tiklamasini
+// yakalayip ana 3D viewer'i destroy ediyor ve paneli display:none yapiyordu.
+// Bu iki runtime'i final artifact'tan tamamen kaldiriyoruz; boylece raf ekleme,
+// secme, surukleme ve arac dugmeleri ust 3D gorunumu kapatmayacak.
+html = html
+  .replace(/<script\s+data-rafex-free-layout-stop3d="v1">[\s\S]*?<\/script>/g, "")
+  .replace(/<style\s+data-rafex-free-layout-stop3d-hard="v5">[\s\S]*?<\/style>\s*<script\s+data-rafex-free-layout-stop3d-hard="v5">[\s\S]*?<\/script>/g, "");
+
+// Onceki v1 persistence runtime'i varsa yeni davranisla cakismamasi icin temizle.
+html = html.replace(/<style\s+data-rafex-b2b-3d-persistence="v1">[\s\S]*?<\/style>\s*<script\s+data-rafex-b2b-3d-persistence="v1">[\s\S]*?<\/script>/g, "");
 
 if (!html.includes(marker)) {
   const runtime = `<style ${marker}>
@@ -23,15 +34,29 @@ if (!html.includes(marker)) {
 .mobile-app-logo.rafex-module-refresh-mobile{cursor:pointer}
 </style>
 <script ${marker}>(function(){
-  if(window.__rafexB2B3DPersistenceV1)return;
-  window.__rafexB2B3DPersistenceV1=true;
+  if(window.__rafexB2B3DPersistenceV2)return;
+  window.__rafexB2B3DPersistenceV2=true;
 
   function mainCanvas(){return document.getElementById('b2bMain3DCanvas');}
   function pausedOverlay(){return document.getElementById('rafexB2BPausedOverlay');}
+  function oldResumeLauncher(){return document.getElementById('rafexMain3DResumeLauncher');}
   function cleanPausedState(){
+    window.__rafexFreeLayout3DStopped=false;
     pausedOverlay()?.remove();
+    oldResumeLauncher()?.remove();
     const canvas=mainCanvas();
-    if(canvas)canvas.style.visibility='visible';
+    if(canvas){
+      canvas.style.visibility='visible';
+      const host=canvas.closest?.('.b2b-main-3d-canvas')||canvas.parentElement;
+      if(host)host.style.display='';
+      let node=host;
+      for(let i=0;i<4&&node;i++,node=node.parentElement){
+        if(node?.dataset?.rafex3dStopped==='1'){
+          node.style.display='';
+          delete node.dataset.rafex3dStopped;
+        }
+      }
+    }
     const loading=document.getElementById('b2b3DLoading');
     if(loading&&canvas)loading.hidden=true;
   }
@@ -39,7 +64,7 @@ if (!html.includes(marker)) {
   function refreshMain3D(){
     const canvas=mainCanvas();
     if(!canvas){cleanPausedState();return false;}
-    pausedOverlay()?.remove();
+    cleanPausedState();
     const loading=document.getElementById('b2b3DLoading');
     canvas.style.visibility='hidden';
     if(loading)loading.hidden=false;
@@ -48,30 +73,27 @@ if (!html.includes(marker)) {
     canvas.addEventListener('b2b-viewer-error',reveal,{once:true});
     try{
       window.RafexB2BViewer?.destroy?.();
-      window.RafexB2BViewer?.mount?.(canvas,b2b3DOptions());
+      const options=typeof b2b3DOptions==='function'?b2b3DOptions():{};
+      window.RafexB2BViewer?.mount?.(canvas,options);
       if(typeof b2bUpdateMain3D==='function')b2bUpdateMain3D();
       if(typeof b2bSetCameraAngles==='function')b2bSetCameraAngles();
       if(typeof b2bApplyAutoRotate==='function')b2bApplyAutoRotate();
       setTimeout(()=>{if(canvas.style.visibility==='hidden')reveal();},2500);
       return true;
     }catch(error){
-      console.warn('B2B 3D yeniden başlatılamadı',error);
+      console.warn('B2B 3D yeniden baslatilamadi',error);
       reveal();
       return false;
     }
   }
   window.rafexRefreshMainB2B3D=refreshMain3D;
 
-  // Serbest yerleşime raf ekleme/seçme sırasında üst 3D artık kapatılmayacak.
-  // Eski performans kancası çağrılsa bile aktif viewer'ı yok etmek yerine görünümü koru.
+  // Her eski durdurma girisini no-op yap. Final artifact'taki capture listener
+  // runtime'lari yukarida tamamen silindigi icin serbest alan etkilesimi kesilmez.
   window.rafexPauseB2B3D=function(){cleanPausedState();};
-
-  const previousResume=window.rafexResumeB2B3D;
-  window.rafexResumeB2B3D=function(){
-    if(mainCanvas())return refreshMain3D();
-    if(typeof previousResume==='function')return previousResume.apply(this,arguments);
-    cleanPausedState();
-  };
+  window.rafexStopMain3DForFreeLayout=function(){cleanPausedState();};
+  window.rafexResumeMain3D=refreshMain3D;
+  window.rafexResumeB2B3D=refreshMain3D;
 
   function ensureMainRefreshButton(){
     const canvas=mainCanvas();
@@ -125,7 +147,7 @@ if (!html.includes(marker)) {
 
   function repair(){cleanPausedState();ensureMainRefreshButton();ensureSidebarRefresh();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',repair,{once:true});else repair();
-  const observer=new MutationObserver(()=>{ensureMainRefreshButton();ensureSidebarRefresh();if(pausedOverlay())cleanPausedState();});
+  const observer=new MutationObserver(()=>{ensureMainRefreshButton();ensureSidebarRefresh();if(pausedOverlay()||oldResumeLauncher())cleanPausedState();});
   observer.observe(document.documentElement,{childList:true,subtree:true});
 })();</script>`;
   const bodyEnd = html.lastIndexOf("</body>");
@@ -133,11 +155,14 @@ if (!html.includes(marker)) {
   html = html.slice(0, bodyEnd) + runtime + html.slice(bodyEnd);
 }
 
-if (!html.includes(marker) || !html.includes('rafexRefreshMainB2B3D') || !html.includes('window.rafexPauseB2B3D=function(){cleanPausedState();}')) {
+if (html.includes('data-rafex-free-layout-stop3d="v1"') || html.includes('data-rafex-free-layout-stop3d-hard="v5"')) {
+  throw new Error("B2B 3D persistence: eski serbest yerlesim 3D durdurma runtime'i final artifact'ta kaldi.");
+}
+if (!html.includes(marker) || !html.includes('rafexRefreshMainB2B3D') || !html.includes('window.rafexStopMain3DForFreeLayout=function(){cleanPausedState();}')) {
   throw new Error("B2B 3D persistence patch doğrulanamadı.");
 }
 
 const encoded = Buffer.from(html, "utf8").toString("base64");
 worker = worker.slice(0, match.index) + match[1] + match[2] + encoded + match[2] + worker.slice(match.index + match[0].length);
 fs.writeFileSync(workerPath, worker);
-console.log("B2B 3D kalıcılığı aktif: serbest yerleşim üst 3D'yi kapatmıyor ve Modülü Yenile kullanılabilir.");
+console.log("FINAL: Serbest yerlesimde ana 3D kalici; eski stop3D katmanlari kaldirildi ve Modulu Yenile aktif.");
