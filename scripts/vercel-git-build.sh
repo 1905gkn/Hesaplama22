@@ -67,12 +67,11 @@ node scripts/patch-customize-recovery.mjs
 # front-view button sizing and resilient Customize accessory/pallet preview.
 node scripts/patch-current-ux-20260819.mjs
 
-# These MUST run on the final embedded HTML, after every legacy injector.
-# Keep accessory interaction light, apply the correct ground K1 rule, and finally
-# assert that Arası Ölç + single-click accessory levels are physically present
-# in the production HTML_BASE64 artifact.
-node scripts/patch-customize-levels-performance.mjs
+# Keep final functional rules, but DO NOT inject the aggressive performance wrapper.
+# That wrapper replaced the viewer animation loop and wrapped multiple Customize
+# functions, which could stack with the existing runtime and cause severe UI lag.
+# The final controls below preserve Arasi Olc, single-click accessory levels and K1.
 node scripts/patch-customize-ground-k1-final.mjs
 node scripts/patch-final-live-controls.mjs
 
-echo "Production chain verified: Arasi Olc + accessory level single-click + ground K1 final artifact patch applied."
+echo "Production chain verified: safe runtime + Arasi Olc + accessory level single-click + ground K1."
