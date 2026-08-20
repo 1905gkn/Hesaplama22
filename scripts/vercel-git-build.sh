@@ -113,4 +113,9 @@ node scripts/patch-unified-free-drawing-catalog.mjs
 # B2B and Mekik configuration screens remain untouched.
 node scripts/patch-unified-section-positioner.mjs
 
-echo "Production chain verified: unified Serbest Cizim + shared B2B/Mekik catalog + angle-separated Mekik Kesit Yer Belirleme/output + mixed PDF + prior controls."
+# Final PDF routing rule: every system keeps the output renderer defined in its own
+# section. B2B remains B2B perspective, Mekik remains native front/side, and later
+# systems can register their own native output adapter without being rewritten by B2B.
+node scripts/patch-native-system-pdf-router.mjs
+
+echo "Production chain verified: unified Serbest Cizim + shared catalogs + separate Kesit Yer Belirleme + system-native mixed PDF outputs + prior controls."
