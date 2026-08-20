@@ -91,4 +91,8 @@ node scripts/patch-final-live-controls.mjs
 # main 3D viewer as soon as the free-layout workspace is interacted with.
 node scripts/patch-ground-pallet-stop-tunnel-stop3d.mjs
 
-echo "Production chain verified: ground pallet stop + no tunnel input + free-layout 3D stop + prior controls."
+# Hard-stop the main 3D persistently after free-layout interaction and block any
+# later automatic remount of b2bMain3DCanvas, while still allowing Customize 3D.
+node scripts/patch-free-layout-stop3d-hard.mjs
+
+echo "Production chain verified: persistent free-layout main 3D stop + ground pallet stop + no tunnel input + prior controls."
