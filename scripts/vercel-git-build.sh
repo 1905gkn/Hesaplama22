@@ -108,6 +108,11 @@ node scripts/patch-unified-free-drawing-safety.mjs
 # A saved B2B or Mekik type can then be added to the same layout and same PDF.
 node scripts/patch-unified-free-drawing-catalog.mjs
 
+# Route Serbest Cizim controls by the actual selected rack system. B2B-only
+# functions such as Uzatma/Ozellestir/Birlestir stay on B2B racks; Mekik never
+# receives those controls, while shared keyboard/layout actions remain common.
+node scripts/patch-unified-free-system-controls.mjs
+
 # Extend only Kesit Yer Belirleme / output with Mekik views. A Mekik rack used at
 # more than one layout angle becomes a separate labelled section, while the native
 # B2B and Mekik configuration screens remain untouched.
@@ -123,4 +128,4 @@ node scripts/patch-native-system-pdf-router.mjs
 # This pass does not touch the Mekik or B2B configuration screens.
 node scripts/patch-mekik-output-halves.mjs
 
-echo "Production chain verified: unified Serbest Cizim + shared catalogs + B2B Kesit Yer Belirleme + system-native mixed PDF outputs + Mekik 50/50 common-scale output + prior controls."
+echo "Production chain verified: unified Serbest Cizim + shared catalogs + rack-system-routed controls/shortcuts + B2B-only Uzatma + B2B Kesit Yer Belirleme + system-native mixed PDF outputs + Mekik 50/50 common-scale output + prior controls."
