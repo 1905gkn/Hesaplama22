@@ -118,4 +118,9 @@ node scripts/patch-unified-section-positioner.mjs
 # systems can register their own native output adapter without being rewritten by B2B.
 node scripts/patch-native-system-pdf-router.mjs
 
-echo "Production chain verified: unified Serbest Cizim + shared catalogs + separate Kesit Yer Belirleme + system-native mixed PDF outputs + prior controls."
+# Final Mekik-only PDF presentation rule: keep Mekik out of Kesit Yer Belirleme,
+# split its native output exactly 50/50 and use one common drawing scale for On/Yan.
+# This pass does not touch the Mekik or B2B configuration screens.
+node scripts/patch-mekik-output-halves.mjs
+
+echo "Production chain verified: unified Serbest Cizim + shared catalogs + B2B Kesit Yer Belirleme + system-native mixed PDF outputs + Mekik 50/50 common-scale output + prior controls."
