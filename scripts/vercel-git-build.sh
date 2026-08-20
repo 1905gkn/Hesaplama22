@@ -23,6 +23,14 @@ node /tmp/apply-b2b-h-traverse-lower-v5.cjs
 # after the legacy source patches and before dist is built.
 node scripts/patch-customize-accessories-source.mjs
 
+# Tunnel tray geometry/rule and remove the duplicate pointerdown level handler
+# before portal.html is embedded into the production server artifact.
+node scripts/patch-tunnel-tray-level-fix.mjs
+node scripts/patch-tunnel-level-click-cleanup.mjs
+
+# Add editable rack-to-rack measurement at source level before final packaging.
+node scripts/patch-between-measure-source.mjs
+
 # Optimize the full configurator for phone-sized screens before the production build.
 node scripts/patch-mobile-responsive.mjs
 
@@ -59,4 +67,12 @@ node scripts/patch-customize-recovery.mjs
 # front-view button sizing and resilient Customize accessory/pallet preview.
 node scripts/patch-current-ux-20260819.mjs
 
-echo "Approved 34vnlp6h8 prebuilt chain reproduced in dist with current B2B UX fixes."
+# These MUST run on the final embedded HTML, after every legacy injector.
+# Keep accessory interaction light, apply the correct ground K1 rule, and finally
+# assert that Arası Ölç + single-click accessory levels are physically present
+# in the production HTML_BASE64 artifact.
+node scripts/patch-customize-levels-performance.mjs
+node scripts/patch-customize-ground-k1-final.mjs
+node scripts/patch-final-live-controls.mjs
+
+echo "Production chain verified: Arasi Olc + accessory level single-click + ground K1 final artifact patch applied."
