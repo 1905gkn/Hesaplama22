@@ -86,13 +86,14 @@ node scripts/patch-current-ux-20260819.mjs
 node scripts/patch-customize-ground-k1-final.mjs
 node scripts/patch-final-live-controls.mjs
 
-# Latest UX/performance rule: Palet Dayama may also be placed on the ground only
-# when the rack starts from ground; remove the obsolete tunnel input; and stop the
-# main 3D viewer as soon as the free-layout workspace is interacted with.
+# Keep ground pallet-stop and tunnel-input rules from the previous approved build.
+# These legacy scripts also inject a free-layout 3D hard-stop, so run them first
+# for their functional checks and remove only the stop3D runtime in the final pass.
 node scripts/patch-ground-pallet-stop-tunnel-stop3d.mjs
-
-# Hard-stop the main 3D persistently after free-layout interaction and block any
-# later automatic remount of b2bMain3DCanvas, while still allowing Customize 3D.
 node scripts/patch-free-layout-stop3d-hard.mjs
 
-echo "Production chain verified: persistent free-layout main 3D stop + ground pallet stop + no tunnel input + prior controls."
+# Final production rule: free-layout interaction must never hide/destroy the main
+# B2B 3D panel. Also expose a reliable Modülü Yenile control for manual recovery.
+node scripts/patch-live-b2b-3d-persistence.mjs
+
+echo "Production chain verified: persistent free-layout main 3D + module refresh + ground pallet stop + no tunnel input + prior controls."
