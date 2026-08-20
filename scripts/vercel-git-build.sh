@@ -140,4 +140,10 @@ node scripts/patch-final-free-pdf-ux-v1.mjs
 # three areas, and Serbest Cizim product lists update immediately when racks change.
 node scripts/patch-restore-native-output-and-free-ux-v2.mjs
 
-echo "Production chain verified: native B2B/Mekik corporate outputs restored + unified Serbest Cizim preserved + Kurumsal Cikti first/default + global info/copy icons + immediate system product lists."
+# Final Serbest Cizim UX correction: keep i/copy actions always visible and functional,
+# copy into the matching B2B/Mekik editor immediately, re-enable manual Uzatma input,
+# default Kenar Olculeri open with manual hide preference, and exclude Mekik Tip 1
+# from the B2B-only Kesit Yer Belirleme list.
+node scripts/patch-free-copy-info-edge-v3.mjs
+
+echo "Production chain verified: native B2B/Mekik outputs + unified Serbest Cizim + working i/copy actions + system-opening copy + manual B2B Uzatma + persistent edge editor + B2B-only Kesit types."
