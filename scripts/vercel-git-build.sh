@@ -35,6 +35,10 @@ node scripts/patch-between-measure-source.mjs
 # capture undo before movement starts and queue the selection render.
 node scripts/patch-free-layout-drag-start-performance.mjs
 
+# A newly added rack is staged/free until first drop. Do not build the heavy
+# report preview during that short placement phase; refresh normally after drop.
+node scripts/patch-free-layout-staged-report-performance.mjs
+
 # Optimize the full configurator for phone-sized screens before the production build.
 node scripts/patch-mobile-responsive.mjs
 
@@ -78,4 +82,4 @@ node scripts/patch-current-ux-20260819.mjs
 node scripts/patch-customize-ground-k1-final.mjs
 node scripts/patch-final-live-controls.mjs
 
-echo "Production chain verified: safe runtime + fast drag start + Arasi Olc + accessory level single-click + ground K1."
+echo "Production chain verified: safe runtime + fast staged rack placement + Arasi Olc + accessory level single-click + ground K1."
