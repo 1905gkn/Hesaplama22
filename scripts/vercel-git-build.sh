@@ -92,8 +92,9 @@ node scripts/patch-final-live-controls.mjs
 node scripts/patch-ground-pallet-stop-tunnel-stop3d.mjs
 node scripts/patch-free-layout-stop3d-hard.mjs
 
-# Final production rule: free-layout interaction must never hide/destroy the main
-# B2B 3D panel. Also expose a reliable Modülü Yenile control for manual recovery.
+# Final production rule: initial 3D stays visible, but a real user-added free-layout
+# block hides the upper 3D and RAFEX + Yenile brings it back.
 node scripts/patch-live-b2b-3d-persistence.mjs
+node scripts/patch-live-b2b-3d-add-hook.mjs
 
-echo "Production chain verified: persistent free-layout main 3D + module refresh + ground pallet stop + no tunnel input + prior controls."
+echo "Production chain verified: real block add hides upper 3D + RAFEX refresh recovery + ground pallet stop + no tunnel input + prior controls."
