@@ -39,6 +39,10 @@ node scripts/patch-free-layout-drag-start-performance.mjs
 # report preview during that short placement phase; refresh normally after drop.
 node scripts/patch-free-layout-staged-report-performance.mjs
 
+# Treat the entire staged/free placement interval as interactive and queue the
+# first add render, so expensive normalization/product/report work waits for drop.
+node scripts/patch-free-layout-staged-fast-v2.mjs
+
 # Optimize the full configurator for phone-sized screens before the production build.
 node scripts/patch-mobile-responsive.mjs
 
@@ -82,4 +86,4 @@ node scripts/patch-current-ux-20260819.mjs
 node scripts/patch-customize-ground-k1-final.mjs
 node scripts/patch-final-live-controls.mjs
 
-echo "Production chain verified: safe runtime + fast staged rack placement + Arasi Olc + accessory level single-click + ground K1."
+echo "Production chain verified: safe runtime + faster staged rack placement + Arasi Olc + accessory level single-click + ground K1."
