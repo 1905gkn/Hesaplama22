@@ -86,4 +86,9 @@ node scripts/patch-current-ux-20260819.mjs
 node scripts/patch-customize-ground-k1-final.mjs
 node scripts/patch-final-live-controls.mjs
 
-echo "Production chain verified: safe runtime + faster staged rack placement + Arasi Olc + accessory level single-click + ground K1."
+# Latest UX/performance rule: Palet Dayama may also be placed on the ground only
+# when the rack starts from ground; remove the obsolete tunnel input; and stop the
+# main 3D viewer as soon as the free-layout workspace is interacted with.
+node scripts/patch-ground-pallet-stop-tunnel-stop3d.mjs
+
+echo "Production chain verified: ground pallet stop + no tunnel input + free-layout 3D stop + prior controls."
