@@ -118,14 +118,12 @@ node scripts/patch-unified-free-system-controls.mjs
 # removes its runtime entirely, leaving Kesit Yer Belirleme B2B-only.
 node scripts/patch-unified-section-positioner.mjs
 
-# Final PDF routing rule: every system keeps the output renderer defined in its own
-# section. B2B remains B2B perspective, Mekik remains native front/side, and later
-# systems can register their own native output adapter without being rewritten by B2B.
+# Keep system-aware grouping and B2B/Mekik separation while the later final pass
+# removes only the visual runtime that was changing the native Mekik output geometry.
 node scripts/patch-native-system-pdf-router.mjs
 
-# Final Mekik-only PDF presentation rule: keep Mekik out of Kesit Yer Belirleme,
-# split its native output exactly 50/50 and keep front enlargement within fit bounds.
-# This pass does not touch the Mekik or B2B configuration screens.
+# Kept in the chain for build compatibility; the final v2 pass removes this visual
+# runtime so Mekik returns to its native pre-Serbest corporate output layout.
 node scripts/patch-mekik-output-halves.mjs
 
 # Hard isolation guarantee: the system-routed shortcuts and B2B-only Uzatma changes
@@ -133,10 +131,13 @@ node scripts/patch-mekik-output-halves.mjs
 # original m2ActiveModule click/double-click behavior and native UI.
 node scripts/patch-free-system-page-isolation.mjs
 
-# Final user-facing pass: disable the obsolete Mekik section-positioner runtime,
-# keep Ozel Cikti as option 2, restore B2B saved-type actions, split Serbest Cizim
-# product lists by system, migrate B2B PDF pallets ON once, and lock Mekik PDF
-# halves to equal height with each green detail bar at the bottom of its own half.
+# Legacy final pass still performs its build-time cleanup/migrations. Its browser
+# runtime is removed by the v2 pass below before the artifact is packaged.
 node scripts/patch-final-free-pdf-ux-v1.mjs
 
-echo "Production chain verified: native B2B/Mekik pages preserved + unified Serbest Cizim + system product lists + B2B-only Kesit Yer Belirleme + pallet-first B2B PDF + system-native mixed PDF + final Mekik equal-height output."
+# Actual final production state: B2B/Mekik native outputs are restored, Kurumsal
+# Cikti is option 1/default, saved-type info/copy actions use compact icons in all
+# three areas, and Serbest Cizim product lists update immediately when racks change.
+node scripts/patch-restore-native-output-and-free-ux-v2.mjs
+
+echo "Production chain verified: native B2B/Mekik corporate outputs restored + unified Serbest Cizim preserved + Kurumsal Cikti first/default + global info/copy icons + immediate system product lists."
