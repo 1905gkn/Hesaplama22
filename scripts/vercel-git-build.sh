@@ -108,4 +108,9 @@ node scripts/patch-unified-free-drawing-safety.mjs
 # A saved B2B or Mekik type can then be added to the same layout and same PDF.
 node scripts/patch-unified-free-drawing-catalog.mjs
 
-echo "Production chain verified: hardened unified Serbest Cizim + shared B2B/Mekik saved-type catalog + mixed layout/PDF + real block-add 3D hide + prior controls."
+# Extend only Kesit Yer Belirleme / output with Mekik views. A Mekik rack used at
+# more than one layout angle becomes a separate labelled section, while the native
+# B2B and Mekik configuration screens remain untouched.
+node scripts/patch-unified-section-positioner.mjs
+
+echo "Production chain verified: unified Serbest Cizim + shared B2B/Mekik catalog + angle-separated Mekik Kesit Yer Belirleme/output + mixed PDF + prior controls."
