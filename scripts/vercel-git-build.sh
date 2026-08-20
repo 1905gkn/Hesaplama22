@@ -97,4 +97,8 @@ node scripts/patch-free-layout-stop3d-hard.mjs
 node scripts/patch-live-b2b-3d-persistence.mjs
 node scripts/patch-live-b2b-3d-add-hook.mjs
 
-echo "Production chain verified: real block add hides upper 3D + RAFEX refresh recovery + ground pallet stop + no tunnel input + prior controls."
+# Add a new unified Serbest Cizim workspace above B2B. It shares one placement
+# state between B2B and Mekik while leaving each standalone module untouched.
+node scripts/patch-unified-free-drawing.mjs
+
+echo "Production chain verified: unified Serbest Cizim + system selector + shared B2B/Mekik layout + real block-add 3D hide + prior controls."
