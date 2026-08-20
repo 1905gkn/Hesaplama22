@@ -5,13 +5,20 @@ let worker=fs.readFileSync(p,"utf8");
 const match=worker.match(/(const\s+HTML_BASE64\s*=\s*)(["'])([A-Za-z0-9+/=]+)\2/);
 if(!match)throw new Error('HTML_BASE64 bulunamadi.');
 let html=Buffer.from(match[3],'base64').toString('utf8');
-html=html.replace("function hideK1(){\n    const rack=activeRack();\n    const pos=String(rack?.b2b?.firstPalletPosition||'').toLowerCase();\n    return !!pos&&pos!=='ground';\n  }","function hideK1(type){\n    const rack=activeRack();\n    const pos=String(rack?.b2b?.firstPalletPosition||'ground').toLowerCase();\n    return pos==='ground'&&(type==='hTraverse'||type==='tray');\n  }");
-html=html.replace("const hidden=hideK1();\n    host.querySelectorAll('.m2-customize-accessory-levels button').forEach((button)=>{\n      const level=Number((button.textContent||'').replace(/\\\\D/g,''));\n      if(level===1)button.hidden=hidden;\n    });","host.querySelectorAll('.m2-customize-accessory-card').forEach((card)=>{\n      const type=card?.dataset?.accessoryType||'';\n      card.querySelectorAll('.m2-customize-accessory-levels button').forEach((button)=>{\n        const level=Number((button.textContent||'').replace(/\\\\D/g,''));\n        if(level===1)button.hidden=hideK1(type);\n      });\n    });");
-html=html.replace("if(!hideK1()||!Array.isArray(items))return items;\n      return items.map((item)=>({...item,levels:Array.isArray(item?.levels)?item.levels.filter((level)=>Number(level)!==1):[]}));","if(!Array.isArray(items))return items;\n      return items.map((item)=>({...item,levels:Array.isArray(item?.levels)?item.levels.filter((level)=>!(Number(level)===1&&hideK1(item?.type))):[]}));");
-html=html.replaceAll("if(hideK1()&&Number(level)===1)return;","if(hideK1(type)&&Number(level)===1)return;");
-html=html.replaceAll("if(hideK1()){","if(hideK1(type)){");
-if(!html.includes("return pos==='ground'&&(type==='hTraverse'||type==='tray');"))throw new Error('Ground K1 kuralı uygulanamadi.');
+
+// This patch historically corrected the K1 logic inside the optional aggressive
+// performance wrapper. If that wrapper is intentionally not present, do nothing:
+// patch-final-live-controls.mjs applies the same final ground K1 rule directly.
+const oldHide="function hideK1(){\n    const rack=activeRack();\n    const pos=String(rack?.b2b?.firstPalletPosition||'').toLowerCase();\n    return !!pos&&pos!=='ground';\n  }";
+if(html.includes(oldHide)){
+  html=html.replace(oldHide,"function hideK1(type){\n    const rack=activeRack();\n    const pos=String(rack?.b2b?.firstPalletPosition||'ground').toLowerCase();\n    return pos==='ground'&&(type==='hTraverse'||type==='tray');\n  }");
+  html=html.replace("const hidden=hideK1();\n    host.querySelectorAll('.m2-customize-accessory-levels button').forEach((button)=>{\n      const level=Number((button.textContent||'').replace(/\\\\D/g,''));\n      if(level===1)button.hidden=hidden;\n    });","host.querySelectorAll('.m2-customize-accessory-card').forEach((card)=>{\n      const type=card?.dataset?.accessoryType||'';\n      card.querySelectorAll('.m2-customize-accessory-levels button').forEach((button)=>{\n        const level=Number((button.textContent||'').replace(/\\\\D/g,''));\n        if(level===1)button.hidden=hideK1(type);\n      });\n    });");
+  html=html.replace("if(!hideK1()||!Array.isArray(items))return items;\n      return items.map((item)=>({...item,levels:Array.isArray(item?.levels)?item.levels.filter((level)=>Number(level)!==1):[]}));","if(!Array.isArray(items))return items;\n      return items.map((item)=>({...item,levels:Array.isArray(item?.levels)?item.levels.filter((level)=>!(Number(level)===1&&hideK1(item?.type))):[]}));");
+  html=html.replaceAll("if(hideK1()&&Number(level)===1)return;","if(hideK1(type)&&Number(level)===1)return;");
+  html=html.replaceAll("if(hideK1()){","if(hideK1(type)){");
+}
+
 const encoded=Buffer.from(html,'utf8').toString('base64');
 worker=worker.slice(0,match.index)+match[1]+match[2]+encoded+match[2]+worker.slice(match.index+match[0].length);
 fs.writeFileSync(p,worker);
-console.log('Zemin K1 yalniz H Travers ve Tava icin kaldirildi.');
+console.log(html.includes("return pos==='ground'&&(type==='hTraverse'||type==='tray');")?'Zemin K1 performans katmani duzeltildi.':'Performans katmani yok; Zemin K1 final controls tarafindan uygulanacak.');
