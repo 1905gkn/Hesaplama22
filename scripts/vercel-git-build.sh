@@ -97,4 +97,10 @@ node scripts/patch-free-layout-stop3d-hard.mjs
 node scripts/patch-live-b2b-3d-persistence.mjs
 node scripts/patch-live-b2b-3d-add-hook.mjs
 
-echo "Production chain verified: real block add hides upper 3D + RAFEX refresh recovery + ground pallet stop + no tunnel input + prior controls."
+# Restore the unified Serbest Cizim workspace, then harden its injected runtime.
+# The safety pass removes the recursive document-wide MutationObserver that could
+# starve the browser event loop and make the portal appear unreachable.
+node scripts/patch-unified-free-drawing.mjs
+node scripts/patch-unified-free-drawing-safety.mjs
+
+echo "Production chain verified: hardened unified Serbest Cizim + shared B2B/Mekik layout + real block-add 3D hide + prior controls."
