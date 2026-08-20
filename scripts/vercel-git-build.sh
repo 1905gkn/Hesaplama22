@@ -31,6 +31,10 @@ node scripts/patch-tunnel-level-click-cleanup.mjs
 # Add editable rack-to-rack measurement at source level before final packaging.
 node scripts/patch-between-measure-source.mjs
 
+# Keep free-layout dragging responsive without changing placement rules:
+# capture undo before movement starts and queue the selection render.
+node scripts/patch-free-layout-drag-start-performance.mjs
+
 # Optimize the full configurator for phone-sized screens before the production build.
 node scripts/patch-mobile-responsive.mjs
 
@@ -74,4 +78,4 @@ node scripts/patch-current-ux-20260819.mjs
 node scripts/patch-customize-ground-k1-final.mjs
 node scripts/patch-final-live-controls.mjs
 
-echo "Production chain verified: safe runtime + Arasi Olc + accessory level single-click + ground K1."
+echo "Production chain verified: safe runtime + fast drag start + Arasi Olc + accessory level single-click + ground K1."
