@@ -7,13 +7,21 @@ const match=worker.match(/(const\s+HTML_BASE64\s*=\s*)(["'])([A-Za-z0-9+/=]+)\2/
 if(!match)throw new Error("HTML_BASE64 bulunamadi.");
 let html=Buffer.from(match[3],"base64").toString("utf8");
 
-const marker='data-rafex-free-layout-stop3d-hard="v4"';
+// Older versions injected stop3D directly into m2AddRack / duplicate / customize.
+// That also runs while saved layout is being restored after a page refresh, which
+// immediately killed the main 3D without a real user action. Remove those direct
+// injections and rely only on trusted pointer/click interaction in free layout.
+html=html.replace(/function m2AddRack\(drawing = null, typeName = null\) \{\s*try\{window\.rafexStopMain3DForFreeLayout\?\.\(\);\}catch\{\}/g,"function m2AddRack(drawing = null, typeName = null) {");
+html=html.replace(/function m2DuplicateRack\(\) \{\s*try\{window\.rafexStopMain3DForFreeLayout\?\.\(\);\}catch\{\}/g,"function m2DuplicateRack() {");
+html=html.replace(/function m2OpenCustomizeModal\(rackId\)\{\s*try\{window\.rafexStopMain3DForFreeLayout\?\.\(\);\}catch\{\}/g,"function m2OpenCustomizeModal(rackId){");
+
+const marker='data-rafex-free-layout-stop3d-hard="v5"';
 if(!html.includes(marker)){
   const runtime=`<style ${marker}>
     #rafexMain3DResumeLauncher{position:fixed;right:22px;bottom:22px;z-index:9999;padding:11px 16px;border:0;border-radius:10px;background:#7f1623;color:#fff;font-weight:800;box-shadow:0 8px 24px #0003;cursor:pointer}
     #rafexMain3DResumeLauncher[hidden]{display:none!important}
   </style><script ${marker}>(function(){
-    if(window.__rafexFreeLayoutStop3DHardV4)return;window.__rafexFreeLayoutStop3DHardV4=true;
+    if(window.__rafexFreeLayoutStop3DHardV5)return;window.__rafexFreeLayoutStop3DHardV5=true;
     window.__rafexFreeLayout3DStopped=false;
     let hiddenPanel=null;
 
@@ -33,17 +41,17 @@ if(!html.includes(marker)){
       if(!host)return {canvas:null,host:null,panel:null};
       let panel=host.parentElement||host;
       const header=panel?.querySelector?.('header');
-      if(!header||!/3D\s*Raf\s*Görünüşü/i.test(header.textContent||'')){
+      if(!header||!/3D\\s*Raf\\s*Görünüşü/i.test(header.textContent||'')){
         const candidate=host.closest?.('.m2-view,.m2-drawing-view,.card,section');
-        if(candidate&&/3D\s*Raf\s*Görünüşü/i.test(candidate.textContent||''))panel=candidate;
+        if(candidate&&/3D\\s*Raf\\s*Görünüşü/i.test(candidate.textContent||''))panel=candidate;
         else panel=host;
       }
       return {canvas,host,panel};
     }
 
     function guardViewer(){
-      const viewer=window.RafexB2BViewer;if(!viewer||viewer.__rafexMain3DGuardV4)return;
-      viewer.__rafexMain3DGuardV4=true;
+      const viewer=window.RafexB2BViewer;if(!viewer||viewer.__rafexMain3DGuardV5)return;
+      viewer.__rafexMain3DGuardV5=true;
       const mount=viewer.mount?.bind(viewer);
       if(mount){viewer.mount=function(canvas,options){if(window.__rafexFreeLayout3DStopped&&canvas?.id==='b2bMain3DCanvas')return;return mount(canvas,options);};}
     }
@@ -83,12 +91,16 @@ if(!html.includes(marker)){
     ensureLauncher();
     window.addEventListener('rafex-b2b-viewer-ready',guardViewer);
 
+    // Only genuine user interaction is allowed to stop the main 3D. Programmatic
+    // restore/render events during page load must never trigger this.
     document.addEventListener('pointerdown',(event)=>{
+      if(!event.isTrusted)return;
       const t=event.target instanceof Element?event.target:null;if(!t)return;
       if(t.closest('#rafexMain3DResumeLauncher'))return;
       if(t.closest('#m2LayoutSvg,#m2LayoutContent,.m2-floor-canvas,.m2-floor-canvas-wrap'))stop3D();
     },true);
     document.addEventListener('click',(event)=>{
+      if(!event.isTrusted)return;
       const t=event.target instanceof Element?event.target:null;if(!t)return;
       if(t.closest('#rafexMain3DResumeLauncher'))return;
       if(t.closest('.m2-floor-tools button,.m2-floor-head-actions button,#m2SavedTypesPanel button,#m2LayoutSvg'))stop3D();
@@ -99,15 +111,8 @@ if(!html.includes(marker)){
   html=html.slice(0,bodyEnd)+runtime+html.slice(bodyEnd);
 }
 
-const direct=[
-  ['function m2AddRack(drawing = null, typeName = null) {','function m2AddRack(drawing = null, typeName = null) { try{window.rafexStopMain3DForFreeLayout?.();}catch{}'],
-  ['function m2DuplicateRack() {','function m2DuplicateRack() { try{window.rafexStopMain3DForFreeLayout?.();}catch{}'],
-  ['function m2OpenCustomizeModal(rackId){','function m2OpenCustomizeModal(rackId){try{window.rafexStopMain3DForFreeLayout?.();}catch{}']
-];
-for(const [from,to] of direct){if(html.includes(from)&&!html.includes(to))html=html.replace(from,to);}
-
-if(!html.includes(marker)||!html.includes('rafexMain3DResumeLauncher'))throw new Error('Hard 3D stop/resume v4 runtime eklenemedi.');
+if(!html.includes(marker)||!html.includes('rafexMain3DResumeLauncher'))throw new Error('Hard 3D stop/resume v5 runtime eklenemedi.');
 const encoded=Buffer.from(html,'utf8').toString('base64');
 worker=worker.slice(0,match.index)+match[1]+match[2]+encoded+match[2]+worker.slice(match.index+match[0].length);
 fs.writeFileSync(p,worker);
-console.log('FINAL: Serbest yerlesimde 3D panel gizleme + sabit geri ac butonu v4 uygulandi.');
+console.log('FINAL: 3D page refreshte acik; yalniz gercek serbest-yerlesim etkilesiminde gizlenir (v5).');
