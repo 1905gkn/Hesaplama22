@@ -19,150 +19,48 @@ node /tmp/apply-b2b-accessory-fit-v3.cjs
 cp scripts/apply-b2b-h-traverse-lower-v5.js /tmp/apply-b2b-h-traverse-lower-v5.cjs
 node /tmp/apply-b2b-h-traverse-lower-v5.cjs
 
-# Put the requested accessory controls inside the actual Modülü Özelleştir modal
-# after the legacy source patches and before dist is built.
 node scripts/patch-customize-accessories-source.mjs
-
-# Tunnel tray geometry/rule and remove the duplicate pointerdown level handler
-# before portal.html is embedded into the production server artifact.
 node scripts/patch-tunnel-tray-level-fix.mjs
 node scripts/patch-tunnel-level-click-cleanup.mjs
-
-# 2026-08-21 source correction: remove every traverse intersecting the tunnel zone,
-# support real ground Palet Dayama at 0/+250 mm, and allow accessories on the top K level.
 node scripts/patch-b2b-tunnel-accessory-source-v5.mjs
-
-# Add editable rack-to-rack measurement at source level before final packaging.
 node scripts/patch-between-measure-source.mjs
-
-# Keep free-layout dragging responsive without changing placement rules:
-# capture undo before movement starts and queue the selection render.
 node scripts/patch-free-layout-drag-start-performance.mjs
-
-# A newly added rack is staged/free until first drop. Do not build the heavy
-# report preview during that short placement phase; refresh normally after drop.
 node scripts/patch-free-layout-staged-report-performance.mjs
-
-# Treat the entire staged/free placement interval as interactive and queue the
-# first add render, so expensive normalization/product/report work waits for drop.
 node scripts/patch-free-layout-staged-fast-v2.mjs
-
-# Optimize the full configurator for phone-sized screens before the production build.
 node scripts/patch-mobile-responsive.mjs
-
-# Keep the navigation full-height and fixed, and prefer 2,0 mm in Ayak calculation.
 node scripts/patch-foot-priority-fixed-sidebar.mjs
-
-# Make Customize controls resilient and prevent background section rendering
-# from stealing/destroying the active 3D viewer.
 node scripts/patch-ui-runtime-stability.mjs
-
-# Final navigation rule: keep the left app menu fixed on Home and every signed-in
-# page, but never show it on the password/login screen.
 node scripts/patch-login-home-sidebar.mjs
 
 bash scripts/build.sh
 
-# The historical CLI/prebuilt deploy injected this after vercel build and then
-# copied dist/server/index.js into the prebuilt function. During a native Git
-# build Vercel packages dist only after buildCommand exits, so injecting here
-# produces the same packaged server artifact.
 node scripts/inject-b2b-section-positioner.mjs
-
-# Apply the current user-requested production UX rules after the final section
-# locator exists in dist: persistent seismic placement, seismic metadata/BOM
-# and explicit perspective angle readouts.
 node scripts/inject-user-20260819.mjs
-
-# The V3 injector duplicated the already-working Customize controller and could
-# override native modal/preview/apply state. Strip that duplicate layer from the
-# final artifact and keep only the native Customize flow plus small safe sync fixes.
 node scripts/patch-customize-recovery.mjs
-
-# Final pass after all injectors: requested 50/10/100 section defaults, real
-# front-view button sizing and resilient Customize accessory/pallet preview.
 node scripts/patch-current-ux-20260819.mjs
-
-# Keep final functional rules, but DO NOT inject the aggressive performance wrapper.
-# That wrapper replaced the viewer animation loop and wrapped multiple Customize
-# functions, which could stack with the existing runtime and cause severe UI lag.
-# The final controls below preserve Arasi Olc, single-click accessory levels and K1.
 node scripts/patch-customize-ground-k1-final.mjs
 node scripts/patch-final-live-controls.mjs
-
-# Keep ground pallet-stop and tunnel-input rules from the previous approved build.
-# These legacy scripts also inject a free-layout 3D hard-stop, so run them first
-# for their functional checks and remove only the stop3D runtime in the final pass.
 node scripts/patch-ground-pallet-stop-tunnel-stop3d.mjs
 node scripts/patch-free-layout-stop3d-hard.mjs
-
-# Final production rule: initial 3D stays visible, but a real user-added free-layout
-# block hides the upper 3D and RAFEX + Yenile brings it back.
 node scripts/patch-live-b2b-3d-persistence.mjs
 node scripts/patch-live-b2b-3d-add-hook.mjs
-
-# Restore the unified Serbest Cizim workspace, then harden its injected runtime.
-# The safety pass removes the recursive document-wide MutationObserver that could
-# starve the browser event loop and make the portal appear unreachable.
 node scripts/patch-unified-free-drawing.mjs
 node scripts/patch-unified-free-drawing-safety.mjs
-
-# Merge the saved rack catalogs from every currently drawable system into the
-# same Serbest Cizim library without changing each system's own saved-type store.
-# A saved B2B or Mekik type can then be added to the same layout and same PDF.
 node scripts/patch-unified-free-drawing-catalog.mjs
-
-# Route Serbest Cizim controls by the actual selected rack system. B2B-only
-# functions such as Uzatma/Ozellestir/Birlestir stay on B2B racks; Mekik never
-# receives those controls, while shared keyboard/layout actions remain common.
 node scripts/patch-unified-free-system-controls.mjs
-
-# Legacy mixed-system section extension is still built here because the subsequent
-# native PDF layers expect its marker while building. The final production pass
-# removes its runtime entirely, leaving Kesit Yer Belirleme B2B-only.
 node scripts/patch-unified-section-positioner.mjs
-
-# Keep system-aware grouping and B2B/Mekik separation while the later final pass
-# removes only the visual runtime that was changing the native Mekik output geometry.
 node scripts/patch-native-system-pdf-router.mjs
-
-# Kept in the chain for build compatibility; the final v2 pass removes this visual
-# runtime so Mekik returns to its native pre-Serbest corporate output layout.
 node scripts/patch-mekik-output-halves.mjs
-
-# Hard isolation guarantee: the system-routed shortcuts and B2B-only Uzatma changes
-# are allowed only inside Serbest Cizim. Native B2B and Mekik pages retain their
-# original m2ActiveModule click/double-click behavior and native UI.
 node scripts/patch-free-system-page-isolation.mjs
-
-# Legacy final pass still performs its build-time cleanup/migrations. Its browser
-# runtime is removed by the v2 pass below before the artifact is packaged.
 node scripts/patch-final-free-pdf-ux-v1.mjs
-
-# Actual final production state: B2B/Mekik native outputs are restored, Kurumsal
-# Cikti is option 1/default, saved-type info/copy actions use compact icons in all
-# three areas, and Serbest Cizim product lists update immediately when racks change.
 node scripts/patch-restore-native-output-and-free-ux-v2.mjs
-
-# Final Serbest Cizim UX correction: keep i/copy actions always visible and functional,
-# copy into the matching B2B/Mekik editor immediately, re-enable manual Uzatma input,
-# default Kenar Olculeri open with manual hide preference, and exclude Mekik Tip 1
-# from the B2B-only Kesit Yer Belirleme list.
 node scripts/patch-free-copy-info-edge-v3.mjs
-
-# Final mixed-project presentation and BOM pass: stable tool height and B2B type colors,
-# fit each Mekik front/side pair inside one half-page slot, count tunnel/accessories,
-# use requested technical BOM order, and add protection clip-anchor quantities.
 node scripts/patch-final-products-mekik-layout-v4.mjs
-
-# 2026-08-21 final correction: repair blank Mekik cards before preview/print, restore
-# ZEMIN/K1/top accessory controls, keep product panels collapsible, remove duplicate
-# Ayak Profili when Ayak Takimi exists, enlarge 3-column product details and preserve
-# the Serbest Cizim state while B2B type/foot selectors are changed.
 node scripts/patch-user-request-20260821-v5.mjs
-
-# Correct the final Serbest Cizim accessory merge so accessory quantities remain on
-# their own rows and are never added to the first product row.
 node scripts/patch-user-request-20260821-v6.mjs
 
-echo "Production chain verified: tunnel lower traverses removed + ZEMIN/+250 pallet stop + K1/top accessories + Mekik PDF repair + collapsible product lists + 3-column BOM + correct accessory rows + free-layout state preservation."
+# Final authority for mixed corporate output: keep Mekik front/side drawings inside
+# the exact report card slot and prevent same-named B2B/Mekik types from merging.
+node scripts/patch-mekik-report-slot-v7.mjs
+
+echo "Production chain verified: tunnel/accessory fixes + unified Serbest Cizim + correct product rows + Mekik report views locked to their own front/side slots."
