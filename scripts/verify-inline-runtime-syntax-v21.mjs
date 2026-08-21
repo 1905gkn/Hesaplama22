@@ -9,12 +9,12 @@ const response = await workerModule.default.fetch(
   {},
 );
 const html = await response.text();
-const scripts = [...html.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script>/gi)];
+const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)];
 const errors = [];
 
 scripts.forEach((entry, index) => {
   const attributes = entry[1] || "";
-  if (/\\bsrc\\s*=/.test(attributes)) return;
+  if (/\bsrc\s*=/.test(attributes)) return;
   try {
     new vm.Script(entry[2], { filename: `inline-runtime-${index}.js` });
   } catch (error) {
