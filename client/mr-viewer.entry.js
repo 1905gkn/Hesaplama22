@@ -12,6 +12,8 @@ const FINISHES = {
   ral2004: { color: 0xe25303, metalness: 0.34, roughness: 0.3 },
 };
 const cache = new Map();
+const normalizedCache = new Map();
+const finishedCache = new Map();
 
 function loadPart(key) {
   if (cache.has(key)) return cache.get(key);
@@ -69,6 +71,25 @@ function normalizedPart(scene, kind) {
   return { object: wrapper, size };
 }
 
+function loadNormalizedPart(kind) {
+  if (normalizedCache.has(kind)) return normalizedCache.get(kind);
+  const task = loadPart(kind).then((gltf) => normalizedPart(gltf.scene, kind));
+  normalizedCache.set(kind, task);
+  return task;
+}
+
+async function loadFinishedPart(kind, finishKey = "default") {
+  const key = `${kind}:${finishKey}`;
+  if (finishedCache.has(key)) return finishedCache.get(key);
+  const task = loadNormalizedPart(kind).then((template) => {
+    const object = finishMaterials(template.object.clone(true));
+    if (finishKey !== "default") applyFinish(object, finishKey);
+    return { object, size: template.size.clone() };
+  });
+  finishedCache.set(key, task);
+  return task;
+}
+
 function bounded(value, fallback, min, max) { return Math.min(max, Math.max(min, Number(value) || fallback)); }
 
 class MRViewer {
@@ -78,6 +99,8 @@ class MRViewer {
     this.destroyed = false;
     this.loadToken = 0;
     this.dimensionLabels = [];
+    this.dimensionLayer = null;
+    this.configSignature = "";
     this.config = this.cleanConfig(options.config);
     this.bounds = new THREE.Box3();
     this.size = new THREE.Vector3(2400, 3300, 800);
@@ -86,7 +109,7 @@ class MRViewer {
     this.animate = this.animate.bind(this);
 
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: "high-performance" });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 0.95;
@@ -105,7 +128,7 @@ class MRViewer {
     const key = new THREE.DirectionalLight(0xffffff, 3.2);
     key.position.set(7000, 11000, 9000);
     key.castShadow = true;
-    key.shadow.mapSize.set(2048, 2048);
+    key.shadow.mapSize.set(1024, 1024);
     this.scene.add(key);
     const fill = new THREE.DirectionalLight(0xfff2df, 1.1);
     fill.position.set(-7000, 3500, 4000);
@@ -160,16 +183,18 @@ class MRViewer {
 
   async build(config = {}) {
     this.config = this.cleanConfig(config);
+    const signature = JSON.stringify(this.config);
+    if (signature === this.configSignature && this.root.children.length) return;
     const token = ++this.loadToken;
     this.canvas.dispatchEvent(new CustomEvent("mr-viewer-loading", { detail: { label: "MR rafı" } }));
     try {
-      const [uprightGLB, traverseGLB, trayGLB] = await Promise.all([loadPart("upright"), loadPart("traverse"), loadPart("tray")]);
+      const [upright, traverse, tray] = await Promise.all([
+        loadFinishedPart("upright", this.config.uprightFinish),
+        loadFinishedPart("traverse", this.config.traverseFinish),
+        loadFinishedPart("tray"),
+      ]);
       if (this.destroyed || token !== this.loadToken) return;
-      const upright = normalizedPart(uprightGLB.scene, "upright");
-      const traverse = normalizedPart(traverseGLB.scene, "traverse");
-      const tray = normalizedPart(trayGLB.scene, "tray");
-      applyFinish(upright.object, this.config.uprightFinish);
-      applyFinish(traverse.object, this.config.traverseFinish);
+      this.disposeDimensions();
       this.root.clear();
       const { modules, levels, width, depth, firstTraverse, levelGap, uprightHeight } = this.config;
       const levelYs = Array.from({ length: levels }, (_, index) => firstTraverse + index * levelGap);
@@ -224,6 +249,7 @@ class MRViewer {
       const gridSize = Math.max(1800, this.size.x, this.size.z) * 2.2;
       this.grid.scale.setScalar(gridSize / 12000);
       this.setView(this.view);
+      this.configSignature = signature;
       const detail = { label: `${modules} modül · ${levels} kat`, config: this.config };
       this.canvas.dispatchEvent(new CustomEvent("mr-viewer-model", { detail }));
       this.canvas.dispatchEvent(new CustomEvent("mr-viewer-ready", { detail }));
@@ -262,6 +288,7 @@ class MRViewer {
   addDimensions(levelYs, totalWidth, depth, uprightHeight) {
     this.dimensionLabels = [];
     const layer = new THREE.Group(); layer.name = "MR 3D Ölçüler"; const z = depth + 180, x = -Math.max(260, totalWidth * .06);
+    this.dimensionLayer = layer;
     if (this.config.dimensions.levels) levelYs.forEach((height, index) => {
       const from = index === 0 ? 0 : levelYs[index - 1], label = index === 0 ? `ZEMİN → K1 · ${this.dimensionValue(height)}` : `K${index} → K${index+1} · ${this.dimensionValue(height-from)}`;
       this.addVerticalDimension(layer, x, z, from, height, label, 0);
@@ -279,6 +306,18 @@ class MRViewer {
       this.addDimensionLine(layer,[front,back]);this.addDimensionLine(layer,[new THREE.Vector3(totalWidth,y,0),front]);this.addDimensionLine(layer,[new THREE.Vector3(totalWidth,y,depth),back]);this.addDimensionPoint(layer,front);this.addDimensionPoint(layer,back);this.addDimensionLabel(layer,dx+350,y,depth/2,`DERİNLİK · ${this.dimensionValue(depth)}`,650);
     }
     this.root.add(layer);
+  }
+
+  disposeDimensions() {
+    if (!this.dimensionLayer) return;
+    this.dimensionLayer.traverse((part) => {
+      part.geometry?.dispose?.();
+      const materials = Array.isArray(part.material) ? part.material : part.material ? [part.material] : [];
+      materials.forEach((material) => { material.map?.dispose?.(); material.dispose?.(); });
+    });
+    this.dimensionLayer.removeFromParent();
+    this.dimensionLayer = null;
+    this.dimensionLabels = [];
   }
 
   setConfiguration(config) { return this.build({ ...this.config, ...config }); }
@@ -313,7 +352,7 @@ class MRViewer {
     this.camera.updateProjectionMatrix();
   }
   animate() { if (!this.destroyed) { this.controls.update(); this.renderer.render(this.scene, this.camera); requestAnimationFrame(this.animate); } }
-  destroy() { this.destroyed = true; this.loadToken += 1; this.resizeObserver.disconnect(); this.controls.dispose(); this.renderer.dispose(); }
+  destroy() { this.destroyed = true; this.loadToken += 1; this.disposeDimensions(); this.resizeObserver.disconnect(); this.controls.dispose(); this.renderer.dispose(); }
 }
 
 let active = null;
