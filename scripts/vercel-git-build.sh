@@ -90,8 +90,11 @@ node scripts/patch-force-mekik-pdf-card-v12.mjs
 # projection, scale it down to fit the half-page slot, and restore the green detail labels.
 node scripts/patch-mekik-native-front-details-v13.mjs
 
-# Final layout authority: detect the real card parent, force exactly two page halves,
-# and recreate any missing B2B cards from the used Serbest Cizim type list.
+# Restore missing Serbest Cizim B2B cards and establish the generic two-half container.
 node scripts/patch-final-pdf-two-halves-v14.mjs
 
-echo "Production chain verified: true left/right half-page PDF layout + B2B cards restored + Mekik front/side stacked inside one half."
+# Absolute final geometry follows the user's Excel sketch exactly:
+# left half = Mekik front above side; right half = B2B full-height view.
+node scripts/patch-pdf-excel-sketch-layout-v15.mjs
+
+echo "Production chain verified: Excel sketch PDF layout - Mekik left front/side, B2B right full-height, Serbest B2B restored."
