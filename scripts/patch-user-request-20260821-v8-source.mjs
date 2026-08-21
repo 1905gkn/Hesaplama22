@@ -45,22 +45,6 @@ html = replaceOnce(
   "all levels preserve ZEMIN"
 );
 
-// Özelleştir açılırken seçili rack aksesuarlarını yükle.
-html = replaceOnce(
-  html,
-  "if($(\"m2CustomizeManualLevels\").checked){[...document.querySelectorAll(\"#m2CustomizeLevelRows .m2-custom-level-row\")].forEach((row,index)=>{const item=rack.b2b.customLevels[index];if(!item)return;row.querySelector('[data-custom-interval]').value=String(item.interval);row.querySelector('[data-custom-pallet]').value=String(item.palletHeight);});}\n        $(\"m2CustomizeModal\").hidden=false;",
-  "if($(\"m2CustomizeManualLevels\").checked){[...document.querySelectorAll(\"#m2CustomizeLevelRows .m2-custom-level-row\")].forEach((row,index)=>{const item=rack.b2b.customLevels[index];if(!item)return;row.querySelector('[data-custom-interval]').value=String(item.interval);row.querySelector('[data-custom-pallet]').value=String(item.palletHeight);});}\n        if(typeof m2LoadCustomizeRackAccessories==='function')m2LoadCustomizeRackAccessories(rack.b2b?.accessories||[]);\n        $(\"m2CustomizeModal\").hidden=false;",
-  "load rack accessories"
-);
-
-// Kaydet dediğinde draft aksesuarlar gerçek rack state'ine yazılsın.
-html = replaceOnce(
-  html,
-  "rack.b2b={...(rack.b2b||{}),rowType:rowCount===2?\"double\":\"single\",rowGap,levels:rack.levels,palletHeight:rack.palletHeight,customLevels:$(\"m2CustomizeManualLevels\")?.checked?m2CustomizeLevelData():[],tunnelHeight:$(\"m2CustomizeTunnel\")?.checked?Math.max(500,Number($(\"m2CustomizeTunnelHeight\")?.value)||3600):0};",
-  "rack.b2b={...(rack.b2b||{}),rowType:rowCount===2?\"double\":\"single\",rowGap,levels:rack.levels,palletHeight:rack.palletHeight,customLevels:$(\"m2CustomizeManualLevels\")?.checked?m2CustomizeLevelData():[],tunnelHeight:$(\"m2CustomizeTunnel\")?.checked?Math.max(500,Number($(\"m2CustomizeTunnelHeight\")?.value)||3600):0,accessories:typeof m2CollectCustomizeRackAccessories==='function'?m2CollectCustomizeRackAccessories():(rack.b2b?.accessories||[])};",
-  "save rack accessories"
-);
-
 // Native B2B aksesuar panelinde de ZEMİN kaybolmasın ve seçilebilir olsun.
 accessories = replaceOnce(
   accessories,
@@ -93,10 +77,9 @@ accessories = accessories.replace(
   "if (accessory.type === 'palletStop' && numericLevel === 0 && this.models.palletStop) {\n            if (this.options.tunnelHeight > 0) return;\n            [0, 250].forEach((baseHeight, groundIndex) => {"
 );
 
-if (!html.includes("m2LoadCustomizeRackAccessories(rack.b2b?.accessories||[])") || !html.includes("accessories:typeof m2CollectCustomizeRackAccessories")) throw new Error("v8-source: customize save/load baglantisi yok");
 if (!html.includes("data-level=\"'+level+'\"")) throw new Error("v8-source: ZEMIN data-level duzeltmesi yok");
 if (!accessories.includes("this.traverseBottom(level) < this.options.tunnelHeight")) throw new Error("v8-source: dinamik tunnel filtresi yok");
 
 fs.writeFileSync(portalPath, html);
 fs.writeFileSync(accessoryPath, accessories);
-console.log(`SOURCE v8: ${changes} kaynak duzeltmesi; aksesuar katlari/ZEMIN, save-load ve dinamik tunnel filtresi aktif.`);
+console.log(`SOURCE v8: ${changes} kaynak duzeltmesi; aksesuar katlari/ZEMIN ve dinamik tunnel filtresi aktif.`);
