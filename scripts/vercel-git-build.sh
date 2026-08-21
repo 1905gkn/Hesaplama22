@@ -114,7 +114,14 @@ node scripts/patch-pdf-excel-layout-v18.mjs
 # Mekik = front over side. B2B = one full-height front/technical view.
 node scripts/patch-pdf-direct-type-pages-v19.mjs
 
+# User-facing final authority: restore the exact B2B Kesit Yer Belirleme capture
+# after v19 rebuilds pages; keep Mekik front/side separate; make product arrows
+# reliable and keep Uzatma Mesafesi fixed above the disclosures.
+node scripts/patch-final-user-repairs-v20.mjs
+
 grep -q "m2SharedScaleReportSvg(d,mode,mode==='front')" scripts/patch-pdf-direct-type-pages-v19.mjs
 grep -q "m2LayoutState.racks.filter" scripts/patch-pdf-direct-type-pages-v19.mjs
 ! grep -q "rafex-v19-detail-chip" scripts/patch-pdf-direct-type-pages-v19.mjs
+grep -q "rafexRenderSelectedB2BSections" client/b2b-section-positioner-v5.js
+grep -q 'data-rafex-final-user-repairs="v20"' scripts/patch-final-user-repairs-v20.mjs
 echo "Production chain verified: technical Mekik front section + direct used-rack PDF type pages + two 50% slots + B2B front-only + saved-rack click performance fix."
