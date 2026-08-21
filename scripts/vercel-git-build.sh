@@ -28,6 +28,10 @@ node scripts/patch-customize-accessories-source.mjs
 node scripts/patch-tunnel-tray-level-fix.mjs
 node scripts/patch-tunnel-level-click-cleanup.mjs
 
+# 2026-08-21 source correction: remove every traverse intersecting the tunnel zone,
+# support real ground Palet Dayama at 0/+250 mm, and allow accessories on the top K level.
+node scripts/patch-b2b-tunnel-accessory-source-v5.mjs
+
 # Add editable rack-to-rack measurement at source level before final packaging.
 node scripts/patch-between-measure-source.mjs
 
@@ -151,4 +155,10 @@ node scripts/patch-free-copy-info-edge-v3.mjs
 # use requested technical BOM order, and add protection clip-anchor quantities.
 node scripts/patch-final-products-mekik-layout-v4.mjs
 
-echo "Production chain verified: native B2B/Mekik outputs + unified Serbest Cizim + final BOM/accessory counts + stable controls/colors + half-page Mekik front/side fit."
+# 2026-08-21 final correction: repair blank Mekik cards before preview/print, restore
+# ZEMIN/K1/top accessory controls, keep product panels collapsible, remove duplicate
+# Ayak Profili when Ayak Takimi exists, enlarge 3-column product details and preserve
+# the Serbest Cizim state while B2B type/foot selectors are changed.
+node scripts/patch-user-request-20260821-v5.mjs
+
+echo "Production chain verified: tunnel lower traverses removed + ZEMIN/+250 pallet stop + K1/top accessories + Mekik PDF repair + collapsible product lists + 3-column BOM + free-layout state preservation."
