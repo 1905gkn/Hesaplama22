@@ -82,4 +82,8 @@ node scripts/patch-pdf-two-column-slots-v10.mjs
 # Mekik uses equal front/side views stacked vertically inside its half.
 node scripts/patch-final-pdf-halves-extension-v11.mjs
 
-echo "Production chain verified: fixed extension field + B2B active/Mekik disabled + max two half-page PDF cards + equal stacked Mekik front/side views."
+# Some report paths omit the Mekik card entirely. This final pass creates any
+# missing used Mekik type card and regenerates its native front/side SVGs.
+node scripts/patch-force-mekik-pdf-card-v12.mjs
+
+echo "Production chain verified: fixed extension field + B2B active/Mekik disabled + max two half-page PDF cards + forced Mekik front/side cards."
