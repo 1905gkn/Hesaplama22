@@ -102,9 +102,13 @@ node scripts/patch-pdf-type-layout-v16.mjs
 # Repair empty B2B shells by locating the richer rendered card.
 node scripts/patch-pdf-b2b-rich-card-v17.mjs
 
-# Absolute final report authority. Re-parent the actual rendered cards into the exact
-# Kitap2.xlsx layout: Mekik left (front over side), B2B right full height. This also
-# removes the separate lower B2B page that caused the right-hand slot to stay empty.
+# Legacy card-reparenting pass retained for compatibility with old reports.
 node scripts/patch-pdf-excel-layout-v18.mjs
 
-echo "Production chain verified: Kitap2 Excel layout + real B2B card in Serbest/PDF right half + Mekik front/side on left."
+# Absolute final PDF authority: do not infer cards from already-mutated DOM. Rebuild
+# technical type pages directly from the racks actually used in Serbest Cizim.
+# Every page has exactly two 50% slots; order decides left/right, not system type.
+# Mekik = front over side. B2B = one full-height front/technical view.
+node scripts/patch-pdf-direct-type-pages-v19.mjs
+
+echo "Production chain verified: direct used-rack PDF type pages + two 50% slots + Mekik front/side + B2B front-only."
