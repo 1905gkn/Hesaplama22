@@ -82,8 +82,12 @@ node scripts/patch-pdf-two-column-slots-v10.mjs
 # Mekik uses equal front/side views stacked vertically inside its half.
 node scripts/patch-final-pdf-halves-extension-v11.mjs
 
-# Some report paths omit the Mekik card entirely. This final pass creates any
-# missing used Mekik type card and regenerates its native front/side SVGs.
+# Some report paths omit the Mekik card entirely. This pass creates any missing used
+# Mekik type card before the native-detail restoration below.
 node scripts/patch-force-mekik-pdf-card-v12.mjs
 
-echo "Production chain verified: fixed extension field + B2B active/Mekik disabled + max two half-page PDF cards + forced Mekik front/side cards."
+# Absolute final Mekik visual authority: use the detailed native Mekik front/side
+# projection, scale it down to fit the half-page slot, and restore the green detail labels.
+node scripts/patch-mekik-native-front-details-v13.mjs
+
+echo "Production chain verified: fixed extension field + max two half-page PDF cards + forced Mekik cards + detailed native Mekik front/side views + restored green detail labels."
