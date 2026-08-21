@@ -209,7 +209,7 @@ if (!html.includes(marker)) {
     const button=target?.closest?.('button');
     if(button){
       const onclick=button.getAttribute('onclick')||'';
-      if(/m2AddRack\s*\(|m2AddSelectedSavedRack\s*\(|m2DuplicateRack\s*\(|m2ApplyAutoFillLength\s*\(|m2SaveRackType\s*\(/.test(onclick))return true;
+      if(/m2AddRack\\s*\\(|m2AddSelectedSavedRack\\s*\\(|m2DuplicateRack\\s*\\(|m2ApplyAutoFillLength\\s*\\(|m2SaveRackType\\s*\\(/.test(onclick))return true;
       if(button.id==='m2AutoFillApplyButton'||button.id==='m2SaveRackButton')return true;
     }
     if(target?.closest?.('.m2-saved-type')&&Number(event?.detail)>=2)return true;
