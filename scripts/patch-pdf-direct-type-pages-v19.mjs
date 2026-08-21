@@ -125,6 +125,18 @@ const runtime = String.raw`<style data-rafex-pdf-direct-types="v19">
   }
   function mekikSvg(d,mode){
     try{
+      /* The shared report renderer is the approved technical section: it keeps
+         KOT ARALIKLARI, ZEMIN/K levels, the overall upright dimension and the
+         real yellow rail/traverse details.  Do not replace it with the compact
+         thumbnail projection on the final PDF page. */
+      if(typeof m2SharedScaleReportSvg==='function'){
+        var technical=m2SharedScaleReportSvg(d,mode,mode==='front');
+        if(technical)return technical;
+      }
+      if(typeof m2ReportElevationSvg==='function'){
+        var report=m2ReportElevationSvg(d,mode);
+        if(report)return report;
+      }
       if(typeof m2MekikSetProjection!=='function')return '';
       var projection=m2MekikSetProjection(mode,d,0,0,200,112);
       var aria=mode==='front'?'Detaylı Mekik ön görünüş':'Mekik yan görünüş';
@@ -145,7 +157,7 @@ const runtime = String.raw`<style data-rafex-pdf-direct-types="v19">
     var frontDetail=fmtN(Number(d&&d.bays)||1)+' BÖLÜM · '+fmtN(Number(d&&d.levels)||1)+' KAT · PALET '+fmtN(Number(d&&d.palW)||1200)+' mm';
     var sideDetail=gapSummary(d)||('PALET DERİNLİK · '+fmtN(Number(d&&d.palD)||800)+' mm');
     return '<article class="rafex-v19-type-card" data-rafex-system="mekik2" data-rafex-type-name="'+htmlEsc(group.name)+'" style="--m2-type-color:#1d5f8a">'+headHtml(group,index)+
-      '<div class="rafex-v19-view"><div class="rafex-v19-view-title">ÖNDEN GÖRÜNÜŞ</div><div class="rafex-v19-visual">'+front+'</div>'+mekikCallouts(d)+'<div class="rafex-v19-detail-chip">'+htmlEsc(frontDetail)+'</div></div>'+
+      '<div class="rafex-v19-view"><div class="rafex-v19-view-title">ÖNDEN GÖRÜNÜŞ</div><div class="rafex-v19-visual">'+front+'</div><div class="rafex-v19-detail-chip">'+htmlEsc(frontDetail)+'</div></div>'+
       '<div class="rafex-v19-view"><div class="rafex-v19-view-title">YAN GÖRÜNÜŞ</div><div class="rafex-v19-visual">'+side+'</div><div class="rafex-v19-detail-chip">'+htmlEsc(sideDetail)+'</div></div></article>';
   }
   function b2bFront(d){
