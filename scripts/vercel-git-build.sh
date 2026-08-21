@@ -72,5 +72,6 @@ node scripts/patch-mekik-report-slot-v7.mjs
 # after every legacy wrapper so stale behavior cannot win.
 node scripts/patch-user-request-20260821-v8-final.mjs
 node scripts/patch-user-request-20260821-v8-click-final.mjs
+node scripts/patch-serbest-block-freeze-v9.mjs
 
-echo "Production chain verified: clickable accessory levels + entered-height tunnel filtering + live quantities/codes + collapsible product lists + clip anchors + Serbest state preservation + Mekik report slots."
+echo "Production chain verified: clickable accessory levels + entered-height tunnel filtering + live quantities/codes + collapsible product lists + clip anchors + Serbest state preservation + no free-layout product observer loop + Mekik report slots."
