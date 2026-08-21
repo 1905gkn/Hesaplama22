@@ -96,9 +96,12 @@ node scripts/patch-final-pdf-two-halves-v14.mjs
 # Previous Excel-layout pass; final v16 below removes fixed left/right assumptions.
 node scripts/patch-pdf-excel-sketch-layout-v15.mjs
 
-# Absolute final layout: side does not matter. Template is driven by system type.
-# Mekik = front/side stacked in one half; B2B = one full-height view in one half.
-# Duplicate same-system/same-type cards are hidden so nothing drops below the page pair.
+# Type-driven layout: side does not matter.
 node scripts/patch-pdf-type-layout-v16.mjs
 
-echo "Production chain verified: type-driven PDF layout - Mekik stacked, B2B full-height, no fixed side, duplicates removed."
+# Absolute final repair for the live bug seen in inspection: an empty explicit B2B shell
+# can coexist with a rich legacy B2B card below it. Pick the richest non-Mekik card with
+# the same type name, mark it as B2B, fit it into one half, and hide the empty duplicate.
+node scripts/patch-pdf-b2b-rich-card-v17.mjs
+
+echo "Production chain verified: type-driven PDF layout + rendered B2B card moved into the half-page slot + empty duplicate removed."
