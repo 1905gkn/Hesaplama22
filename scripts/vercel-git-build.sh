@@ -37,6 +37,9 @@ node scripts/patch-foot-priority-fixed-sidebar.mjs
 node scripts/patch-ui-runtime-stability.mjs
 node scripts/patch-login-home-sidebar.mjs
 
+# Saved rack type selection must not trigger a full free-layout SVG rerender.
+node scripts/patch-saved-rack-type-click-performance-v20.mjs
+
 bash scripts/build.sh
 
 node scripts/inject-b2b-section-positioner.mjs
@@ -111,4 +114,4 @@ node scripts/patch-pdf-excel-layout-v18.mjs
 # Mekik = front over side. B2B = one full-height front/technical view.
 node scripts/patch-pdf-direct-type-pages-v19.mjs
 
-echo "Production chain verified: direct used-rack PDF type pages + two 50% slots + Mekik front/side + B2B front-only."
+echo "Production chain verified: direct used-rack PDF type pages + two 50% slots + Mekik front/side + B2B front-only + saved-rack click performance fix."
