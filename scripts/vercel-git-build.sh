@@ -146,4 +146,9 @@ node scripts/patch-restore-native-output-and-free-ux-v2.mjs
 # from the B2B-only Kesit Yer Belirleme list.
 node scripts/patch-free-copy-info-edge-v3.mjs
 
-echo "Production chain verified: native B2B/Mekik outputs + unified Serbest Cizim + working i/copy actions + system-opening copy + manual B2B Uzatma + persistent edge editor + B2B-only Kesit types."
+# Final mixed-project presentation and BOM pass: stable tool height and B2B type colors,
+# fit each Mekik front/side pair inside one half-page slot, count tunnel/accessories,
+# use requested technical BOM order, and add protection clip-anchor quantities.
+node scripts/patch-final-products-mekik-layout-v4.mjs
+
+echo "Production chain verified: native B2B/Mekik outputs + unified Serbest Cizim + final BOM/accessory counts + stable controls/colors + half-page Mekik front/side fit."
