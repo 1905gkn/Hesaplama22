@@ -93,8 +93,12 @@ node scripts/patch-mekik-native-front-details-v13.mjs
 # Restore missing Serbest Cizim B2B cards and establish the generic two-half container.
 node scripts/patch-final-pdf-two-halves-v14.mjs
 
-# Absolute final geometry follows the user's Excel sketch exactly:
-# left half = Mekik front above side; right half = B2B full-height view.
+# Previous Excel-layout pass; final v16 below removes fixed left/right assumptions.
 node scripts/patch-pdf-excel-sketch-layout-v15.mjs
 
-echo "Production chain verified: Excel sketch PDF layout - Mekik left front/side, B2B right full-height, Serbest B2B restored."
+# Absolute final layout: side does not matter. Template is driven by system type.
+# Mekik = front/side stacked in one half; B2B = one full-height view in one half.
+# Duplicate same-system/same-type cards are hidden so nothing drops below the page pair.
+node scripts/patch-pdf-type-layout-v16.mjs
+
+echo "Production chain verified: type-driven PDF layout - Mekik stacked, B2B full-height, no fixed side, duplicates removed."
