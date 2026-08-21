@@ -74,4 +74,9 @@ node scripts/patch-user-request-20260821-v8-final.mjs
 node scripts/patch-user-request-20260821-v8-click-final.mjs
 node scripts/patch-serbest-block-freeze-v9.mjs
 
-echo "Production chain verified: clickable accessory levels + entered-height tunnel filtering + live quantities/codes + collapsible product lists + clip anchors + Serbest state preservation + no free-layout product observer loop + Mekik report slots."
+# Final PDF geometry authority: one page is split into left/right vertical slots.
+# B2B keeps its current single-module vertical rendering in one slot; Mekik uses
+# the same slot size with front view on top and side view below.
+node scripts/patch-pdf-two-column-slots-v10.mjs
+
+echo "Production chain verified: clickable accessory levels + entered-height tunnel filtering + live quantities/codes + collapsible product lists + clip anchors + Serbest state preservation + no free-layout product observer loop + Mekik report slots + two-column PDF system slots."
