@@ -90,4 +90,8 @@ node scripts/patch-force-mekik-pdf-card-v12.mjs
 # projection, scale it down to fit the half-page slot, and restore the green detail labels.
 node scripts/patch-mekik-native-front-details-v13.mjs
 
-echo "Production chain verified: fixed extension field + max two half-page PDF cards + forced Mekik cards + detailed native Mekik front/side views + restored green detail labels."
+# Final layout authority: detect the real card parent, force exactly two page halves,
+# and recreate any missing B2B cards from the used Serbest Cizim type list.
+node scripts/patch-final-pdf-two-halves-v14.mjs
+
+echo "Production chain verified: true left/right half-page PDF layout + B2B cards restored + Mekik front/side stacked inside one half."
