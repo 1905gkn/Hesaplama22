@@ -40,6 +40,9 @@ node scripts/patch-login-home-sidebar.mjs
 # Saved rack type selection must not trigger a full free-layout SVG rerender.
 node scripts/patch-saved-rack-type-click-performance-v20.mjs
 
+# Mekik code must stay in the main application script, before later repair runtimes.
+node scripts/patch-runtime-insertion-order-v22.mjs
+
 bash scripts/build.sh
 
 node scripts/inject-b2b-section-positioner.mjs
