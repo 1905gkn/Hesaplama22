@@ -5,6 +5,12 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 
 const PARTS = { upright: "/mr-ayak-top.glb", traverse: "/mr-zs-travers.glb", tray: "/mr-tava.glb" };
+const FINISHES = {
+  ral5010: { color: 0x004f7c, metalness: 0.42, roughness: 0.32 },
+  pgv: { color: 0xb7bec1, metalness: 0.82, roughness: 0.28 },
+  ral1007: { color: 0xe5a100, metalness: 0.34, roughness: 0.3 },
+  ral2004: { color: 0xe25303, metalness: 0.34, roughness: 0.3 },
+};
 const cache = new Map();
 
 function loadPart(key) {
@@ -29,6 +35,21 @@ function finishMaterials(object) {
       : part.material.clone();
   });
   return object;
+}
+
+function applyFinish(object, finishKey) {
+  const finish = FINISHES[finishKey];
+  if (!finish) return;
+  object.traverse((part) => {
+    if (!part.isMesh || !part.material) return;
+    const materials = Array.isArray(part.material) ? part.material : [part.material];
+    materials.forEach((material) => {
+      if (material.color) material.color.setHex(finish.color);
+      if ("metalness" in material) material.metalness = finish.metalness;
+      if ("roughness" in material) material.roughness = finish.roughness;
+      material.needsUpdate = true;
+    });
+  });
 }
 
 function normalizedPart(scene, kind) {
@@ -108,6 +129,8 @@ class MRViewer {
       width: bounded(config.width, 2400, 300, 6000),
       depth: bounded(config.depth, 800, 300, 2500),
       height: bounded(config.height, Math.max(1200, levels * 800 + 100), 600, 12000),
+      uprightFinish: ["ral5010", "pgv"].includes(config.uprightFinish) ? config.uprightFinish : "ral5010",
+      traverseFinish: ["ral1007", "ral2004"].includes(config.traverseFinish) ? config.traverseFinish : "ral1007",
     };
   }
 
@@ -121,6 +144,8 @@ class MRViewer {
       const upright = normalizedPart(uprightGLB.scene, "upright");
       const traverse = normalizedPart(traverseGLB.scene, "traverse");
       const tray = normalizedPart(trayGLB.scene, "tray");
+      applyFinish(upright.object, this.config.uprightFinish);
+      applyFinish(traverse.object, this.config.traverseFinish);
       this.root.clear();
       const { modules, levels, width, depth, height } = this.config;
       const uprightScale = new THREE.Vector3(1, height / upright.size.y, depth / upright.size.z);
