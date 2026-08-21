@@ -119,6 +119,9 @@ node scripts/patch-pdf-direct-type-pages-v19.mjs
 # reliable and keep Uzatma Mesafesi fixed above the disclosures.
 node scripts/patch-final-user-repairs-v20.mjs
 
+# Fail the deployment if any generated inline browser runtime has invalid syntax.
+node scripts/verify-inline-runtime-syntax-v21.mjs
+
 grep -q "m2SharedScaleReportSvg(d,mode,mode==='front')" scripts/patch-pdf-direct-type-pages-v19.mjs
 grep -q "m2LayoutState.racks.filter" scripts/patch-pdf-direct-type-pages-v19.mjs
 ! grep -q "rafex-v19-detail-chip" scripts/patch-pdf-direct-type-pages-v19.mjs
