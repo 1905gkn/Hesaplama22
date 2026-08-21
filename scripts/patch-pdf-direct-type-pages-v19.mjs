@@ -82,7 +82,6 @@ const runtime = String.raw`<style data-rafex-pdf-direct-types="v19">
 .rafex-v19-mekik-callouts .pallet-chip{font:900 7px/1 Arial;color:#4d4300;background:#fff3a5;border:1px solid #d2a900;padding:3px 7px;border-radius:9px}
 .rafex-v19-mekik-callouts .upright-chip{position:absolute;right:3.5%;top:47%;transform:translateY(-50%);background:#173c2d;color:#fff;border-radius:7px;padding:6px 9px;text-align:center;font:900 6.5px/1.2 Arial;min-width:84px}
 .rafex-v19-mekik-callouts .upright-chip b{display:block;margin-top:2px;font-size:10px}
-.rafex-v19-detail-chip{position:absolute;left:50%;bottom:5px;transform:translateX(-50%);z-index:8;max-width:86%;padding:5px 10px;border-radius:5px;background:#173c2d;color:#fff;font:900 7px/1.2 Arial,sans-serif;white-space:nowrap;text-align:center}
 @media print{
   .rafex-v19-type-page .rafex-v19-type-grid{grid-template-columns:50% 50%!important;gap:0!important}
   .rafex-v19-type-page{break-after:page!important;page-break-after:always!important}
@@ -99,7 +98,20 @@ const runtime = String.raw`<style data-rafex-pdf-direct-types="v19">
     return d&&((d.b2bLayout)||(d.b2b))?'b2b':'mekik2';
   }
   function typeName(entry,index){return String(entry&&entry.name||entry&&entry.typeName||('Tip '+(index+1))).trim()}
-  function usedTypes(){try{return typeof m2CorporateUsedTypes==='function'?(m2CorporateUsedTypes()||[]):[]}catch(e){console.warn('v19 used types',e);return[]}}
+  function usedTypes(){
+    /* The PDF must reflect what is physically present in Serbest Cizim.  Some
+       report entry points run before the saved-type cache is refreshed, so the
+       live layout is the source of truth and the legacy helper is only a
+       fallback. */
+    try{
+      if(typeof m2LayoutState!=='undefined'&&Array.isArray(m2LayoutState.racks)&&m2LayoutState.racks.length){
+        return m2LayoutState.racks.filter(function(rack){return rack&&!rack.staged}).map(function(rack,index){
+          return {name:String(rack.typeName||rack.name||('Raf Tipi '+(index+1))).trim(),drawing:rack,rackCount:1,rafexSystem:rack.rafexSystem||(rack.b2bLayout||rack.b2b?'b2b':'mekik2')};
+        });
+      }
+    }catch(e){console.warn('v19 layout racks',e)}
+    try{return typeof m2CorporateUsedTypes==='function'?(m2CorporateUsedTypes()||[]):[]}catch(e){console.warn('v19 used types',e);return[]}
+  }
   function groupedUsed(){
     var map=new Map();
     usedTypes().forEach(function(entry,index){
@@ -154,11 +166,9 @@ const runtime = String.raw`<style data-rafex-pdf-direct-types="v19">
   function buildMekikCard(group,index){
     var d=group.entry&&group.entry.drawing||group.entry||{};
     var front=mekikSvg(d,'front'),side=mekikSvg(d,'side');
-    var frontDetail=fmtN(Number(d&&d.bays)||1)+' BÖLÜM · '+fmtN(Number(d&&d.levels)||1)+' KAT · PALET '+fmtN(Number(d&&d.palW)||1200)+' mm';
-    var sideDetail=gapSummary(d)||('PALET DERİNLİK · '+fmtN(Number(d&&d.palD)||800)+' mm');
     return '<article class="rafex-v19-type-card" data-rafex-system="mekik2" data-rafex-type-name="'+htmlEsc(group.name)+'" style="--m2-type-color:#1d5f8a">'+headHtml(group,index)+
-      '<div class="rafex-v19-view"><div class="rafex-v19-view-title">ÖNDEN GÖRÜNÜŞ</div><div class="rafex-v19-visual">'+front+'</div><div class="rafex-v19-detail-chip">'+htmlEsc(frontDetail)+'</div></div>'+
-      '<div class="rafex-v19-view"><div class="rafex-v19-view-title">YAN GÖRÜNÜŞ</div><div class="rafex-v19-visual">'+side+'</div><div class="rafex-v19-detail-chip">'+htmlEsc(sideDetail)+'</div></div></article>';
+      '<div class="rafex-v19-view"><div class="rafex-v19-view-title">ÖNDEN GÖRÜNÜŞ</div><div class="rafex-v19-visual">'+front+'</div></div>'+
+      '<div class="rafex-v19-view"><div class="rafex-v19-view-title">YAN GÖRÜNÜŞ</div><div class="rafex-v19-visual">'+side+'</div></div></article>';
   }
   function b2bFront(d){
     try{
@@ -195,8 +205,13 @@ const runtime = String.raw`<style data-rafex-pdf-direct-types="v19">
     var groups=groupedUsed();if(!groups.length)return;
     Array.from(host.querySelectorAll(':scope>.m2-corporate-page')).filter(isOldTypePage).forEach(function(p){p.remove()});
     host.querySelectorAll(':scope>.rafex-v19-type-page').forEach(function(p){p.remove()});
-    var floorPage=Array.from(host.querySelectorAll(':scope>.m2-corporate-page')).find(function(p){return !!p.querySelector('.m2-corporate-floor')});
-    if(!floorPage)return;
+    var pages=Array.from(host.querySelectorAll(':scope>.m2-corporate-page'));
+    var floorPage=pages.find(function(p){return !!p.querySelector('.m2-corporate-floor')});
+    /* Older/free-drawing report shells do not carry the corporate-floor class.
+       Insert after the floor page when available, otherwise after the final
+       existing report page so B2B and Mekik sections never disappear. */
+    if(!floorPage)floorPage=pages[pages.length-1];
+    if(!floorPage){floorPage=document.createElement('section');floorPage.className='m2-corporate-page rafex-v19-anchor-page';host.appendChild(floorPage)}
     var anchor=floorPage;
     for(var start=0,pageIndex=0;start<groups.length;start+=2,pageIndex++){
       var page=makePage(groups.slice(start,start+2),pageIndex);anchor.insertAdjacentElement('afterend',page);anchor=page;
