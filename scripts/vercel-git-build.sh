@@ -161,4 +161,8 @@ node scripts/patch-final-products-mekik-layout-v4.mjs
 # the Serbest Cizim state while B2B type/foot selectors are changed.
 node scripts/patch-user-request-20260821-v5.mjs
 
-echo "Production chain verified: tunnel lower traverses removed + ZEMIN/+250 pallet stop + K1/top accessories + Mekik PDF repair + collapsible product lists + 3-column BOM + free-layout state preservation."
+# Correct the final Serbest Cizim accessory merge so accessory quantities remain on
+# their own rows and are never added to the first product row.
+node scripts/patch-user-request-20260821-v6.mjs
+
+echo "Production chain verified: tunnel lower traverses removed + ZEMIN/+250 pallet stop + K1/top accessories + Mekik PDF repair + collapsible product lists + 3-column BOM + correct accessory rows + free-layout state preservation."
