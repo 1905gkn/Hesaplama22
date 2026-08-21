@@ -114,4 +114,5 @@ node scripts/patch-pdf-excel-layout-v18.mjs
 # Mekik = front over side. B2B = one full-height front/technical view.
 node scripts/patch-pdf-direct-type-pages-v19.mjs
 
-echo "Production chain verified: direct used-rack PDF type pages + two 50% slots + Mekik front/side + B2B front-only + saved-rack click performance fix."
+grep -q "m2SharedScaleReportSvg(d,mode,mode==='front')" scripts/patch-pdf-direct-type-pages-v19.mjs
+echo "Production chain verified: technical Mekik front section + direct used-rack PDF type pages + two 50% slots + B2B front-only + saved-rack click performance fix."
