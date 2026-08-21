@@ -706,6 +706,9 @@ async function ensureDb(db) {
       "CREATE TABLE IF NOT EXISTS b2b_rack_types (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, type_no INTEGER NOT NULL, name TEXT NOT NULL, drawing TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(user_id,type_no), FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)",
     ),
     db.prepare(
+      "CREATE TABLE IF NOT EXISTS mr_rack_types (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, type_no INTEGER NOT NULL CHECK(type_no BETWEEN 1 AND 26), name TEXT NOT NULL, drawing TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(user_id,type_no), FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)",
+    ),
+    db.prepare(
       "CREATE TABLE IF NOT EXISTS app_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)",
     ),
     db.prepare(
@@ -722,6 +725,9 @@ async function ensureDb(db) {
     ),
     db.prepare(
       "CREATE INDEX IF NOT EXISTS b2b_rack_types_user_idx ON b2b_rack_types(user_id,type_no)",
+    ),
+    db.prepare(
+      "CREATE INDEX IF NOT EXISTS mr_rack_types_user_idx ON mr_rack_types(user_id,type_no)",
     ),
   ]);
   const userColumns = await db.prepare("PRAGMA table_info(users)").all();
@@ -1060,6 +1066,34 @@ async function api(request, env, path) {
   if (b2bTypeMatch && request.method === "DELETE") {
     const result = await db.prepare("DELETE FROM b2b_rack_types WHERE id=? AND user_id=?").bind(Number(b2bTypeMatch[1]),user.id).run();
     if (!Number(result.meta.changes)) return json({ error: "B2B raf tipi bulunamadı." }, 404);
+    return json({ ok:true });
+  }
+  if (path === "/api/mr-types" && request.method === "DELETE") {
+    const result = await db.prepare("DELETE FROM mr_rack_types WHERE user_id=?").bind(user.id).run();
+    return json({ ok:true, deleted:Number(result.meta.changes || 0) });
+  }
+  if (path === "/api/mr-types" && request.method === "GET") {
+    const rows = await db.prepare("SELECT id,type_no,name,drawing,created_at FROM mr_rack_types WHERE user_id=? ORDER BY type_no").bind(user.id).all();
+    return json({ types:rows.results.map((row) => ({ id:row.id, typeNo:row.type_no, name:b2bTypeLetter(row.type_no), drawing:JSON.parse(row.drawing), createdAt:row.created_at })) });
+  }
+  if (path === "/api/mr-types" && request.method === "POST") {
+    const x = await body(request), drawing = x.drawing;
+    if (!drawing?.b2b?.mr || !drawing.plan || !Array.isArray(drawing.plan.feet) || !Array.isArray(drawing.plan.braces) || !Number(drawing.totalWidth) || !Number(drawing.railLength))
+      return json({ error:"Kaydedilecek geçerli bir MR raf hesabı bulunamadı." }, 400);
+    const serialized = JSON.stringify(drawing);
+    if (serialized.length > 250000) return json({ error:"MR raf tipi kaydı çok büyük." }, 413);
+    const usedRows = await db.prepare("SELECT type_no FROM mr_rack_types WHERE user_id=? ORDER BY type_no").bind(user.id).all();
+    const used = new Set(usedRows.results.map((row) => Number(row.type_no)));
+    let typeNo = 1; while (typeNo <= 26 && used.has(typeNo)) typeNo += 1;
+    if (typeNo > 26) return json({ error:"A–Z arasındaki 26 MR bloğunun tamamı kayıtlı." }, 409);
+    const name = b2bTypeLetter(typeNo), createdAt = now();
+    const result = await db.prepare("INSERT INTO mr_rack_types(user_id,type_no,name,drawing,created_at) VALUES(?,?,?,?,?)").bind(user.id,typeNo,name,serialized,createdAt).run();
+    return json({ id:result.meta.last_row_id, typeNo, name, drawing, createdAt }, 201);
+  }
+  const mrTypeMatch = path.match(/^\/api\/mr-types\/(\d+)$/);
+  if (mrTypeMatch && request.method === "DELETE") {
+    const result = await db.prepare("DELETE FROM mr_rack_types WHERE id=? AND user_id=?").bind(Number(mrTypeMatch[1]),user.id).run();
+    if (!Number(result.meta.changes)) return json({ error:"MR raf tipi bulunamadı." }, 404);
     return json({ ok:true });
   }
   if (path === "/api/todos" && request.method === "GET") {
