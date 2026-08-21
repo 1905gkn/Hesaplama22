@@ -186,10 +186,15 @@ class MRViewer {
         const moduleX = module * width;
         for (let level = 1; level <= levels; level += 1) {
           const levelY = levelYs[level - 1];
-          for (const z of [0, Math.max(0, depth - beamDepth)]) {
+          for (const side of ["front", "back"]) {
             const beam = traverse.object.clone(true);
             beam.scale.set(width / traverse.size.x, 1, 1);
-            beam.position.set(moduleX, levelY, z);
+            if (side === "front") {
+              beam.rotation.y = Math.PI;
+              beam.position.set(moduleX + width, levelY, beamDepth);
+            } else {
+              beam.position.set(moduleX, levelY, Math.max(0, depth - beamDepth));
+            }
             this.root.add(beam);
           }
           trayAccessories.filter((item) => item.levels.includes(level)).forEach((accessory) => {
@@ -198,7 +203,7 @@ class MRViewer {
               const shelf = tray.object.clone(true);
               shelf.scale.set(pieceWidth / tray.size.x, 1, depth / tray.size.z);
               shelf.rotation.x = Math.PI;
-              shelf.position.set(moduleX + cursor, levelY + traverse.size.y + tray.size.y, depth);
+              shelf.position.set(moduleX + cursor, levelY + traverse.size.y + tray.size.y - 50, depth);
               this.root.add(shelf);
               cursor += pieceWidth;
             });
