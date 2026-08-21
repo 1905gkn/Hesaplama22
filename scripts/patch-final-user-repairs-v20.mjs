@@ -43,6 +43,11 @@ const runtime = String.raw`<style data-rafex-final-user-repairs="v20">
     event.preventDefault();event.stopImmediatePropagation();var details=summary.parentElement,key=details.dataset.rafexProductSystem;details.open=!details.open;var state=productState();state[key]=details.open;saveProductState(state);
   },true);
   var products=document.getElementById('m2LayoutProductList');if(products)new MutationObserver(function(){stabilizeExtension();restoreProductOpenState()}).observe(products,{childList:true,subtree:false});
+  var mutationQueued=false;
+  new MutationObserver(function(){
+    if(mutationQueued)return;mutationQueued=true;
+    setTimeout(function(){mutationQueued=false;stabilizeExtension();restoreProductOpenState()},0);
+  }).observe(document.documentElement,{childList:true,subtree:true});
   async function restoreSelectedB2B(){try{if(typeof window.rafexRenderSelectedB2BSections==='function')await window.rafexRenderSelectedB2BSections(true)}catch(error){console.warn('Kesit Yer Belirleme PDF goruntusu restore edilemedi',error)}}
   function finish(){stabilizeExtension();restoreProductOpenState();return restoreSelectedB2B()}
   function schedule(){[0,60,180,420,900,1600,2600,3400].forEach(function(ms){setTimeout(finish,ms)})}
