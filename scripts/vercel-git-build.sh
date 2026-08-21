@@ -99,9 +99,12 @@ node scripts/patch-pdf-excel-sketch-layout-v15.mjs
 # Type-driven layout: side does not matter.
 node scripts/patch-pdf-type-layout-v16.mjs
 
-# Absolute final repair for the live bug seen in inspection: an empty explicit B2B shell
-# can coexist with a rich legacy B2B card below it. Pick the richest non-Mekik card with
-# the same type name, mark it as B2B, fit it into one half, and hide the empty duplicate.
+# Repair empty B2B shells by locating the richer rendered card.
 node scripts/patch-pdf-b2b-rich-card-v17.mjs
 
-echo "Production chain verified: type-driven PDF layout + rendered B2B card moved into the half-page slot + empty duplicate removed."
+# Absolute final report authority. Re-parent the actual rendered cards into the exact
+# Kitap2.xlsx layout: Mekik left (front over side), B2B right full height. This also
+# removes the separate lower B2B page that caused the right-hand slot to stay empty.
+node scripts/patch-pdf-excel-layout-v18.mjs
+
+echo "Production chain verified: Kitap2 Excel layout + real B2B card in Serbest/PDF right half + Mekik front/side on left."
