@@ -45,13 +45,6 @@ html = replaceOnce(
   "all levels preserve ZEMIN"
 );
 
-html = replaceOnce(
-  html,
-  "if(levelButton){event.preventDefault();event.stopPropagation();const level=Number((levelButton.textContent||'').replace(/\\D/g,''));if(level)window.m2ToggleCustomizeRackAccessoryLevel(type,level);return;}",
-  "if(levelButton){event.preventDefault();event.stopPropagation();const raw=levelButton.dataset.level;const level=raw!==undefined?Number(raw):((levelButton.textContent||'').toLocaleUpperCase('tr-TR').includes('ZEM')?0:Number((levelButton.textContent||'').replace(/\\D/g,'')));if(Number.isFinite(level)&&level>=0)window.m2ToggleCustomizeRackAccessoryLevel(type,level);return;}",
-  "level click 0"
-);
-
 // Özelleştir açılırken seçili rack aksesuarlarını yükle.
 html = replaceOnce(
   html,
@@ -101,7 +94,7 @@ accessories = accessories.replace(
 );
 
 if (!html.includes("m2LoadCustomizeRackAccessories(rack.b2b?.accessories||[])") || !html.includes("accessories:typeof m2CollectCustomizeRackAccessories")) throw new Error("v8-source: customize save/load baglantisi yok");
-if (!html.includes("data-level=\"'+level+'\"") || !html.includes("level>=0")) throw new Error("v8-source: ZEMIN click duzeltmesi yok");
+if (!html.includes("data-level=\"'+level+'\"")) throw new Error("v8-source: ZEMIN data-level duzeltmesi yok");
 if (!accessories.includes("this.traverseBottom(level) < this.options.tunnelHeight")) throw new Error("v8-source: dinamik tunnel filtresi yok");
 
 fs.writeFileSync(portalPath, html);
