@@ -93,7 +93,7 @@ class MRViewer {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xf2c500);
+    this.scene.background = new THREE.Color(0xffffff);
     this.camera = new THREE.PerspectiveCamera(32, 1, 1, 200000);
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
@@ -112,8 +112,8 @@ class MRViewer {
     this.scene.add(fill);
     this.root = new THREE.Group();
     this.scene.add(this.root);
-    this.grid = new THREE.GridHelper(12000, 48, 0x806a00, 0xb99700);
-    this.grid.material.opacity = 0.42;
+    this.grid = new THREE.GridHelper(12000, 48, 0xaab2b7, 0xdfe5e8);
+    this.grid.material.opacity = 0.5;
     this.grid.material.transparent = true;
     this.scene.add(this.grid);
     this.resizeObserver = new ResizeObserver(this.onResize);
