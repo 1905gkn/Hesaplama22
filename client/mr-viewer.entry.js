@@ -148,21 +148,22 @@ class MRViewer {
       applyFinish(traverse.object, this.config.traverseFinish);
       this.root.clear();
       const { modules, levels, width, depth, height } = this.config;
-      const uprightScale = new THREE.Vector3(1, height / upright.size.y, depth / upright.size.z);
+      const levelGap = height / levels;
+      const uprightHeight = height + levelGap / 2;
+      const uprightScale = new THREE.Vector3(1, uprightHeight / upright.size.y, depth / upright.size.z);
       for (let frame = 0; frame <= modules; frame += 1) {
         const instance = upright.object.clone(true);
         instance.scale.copy(uprightScale);
         instance.position.x = frame * width - upright.size.x / 2;
         this.root.add(instance);
       }
-      const levelGap = height / levels;
       const beamDepth = Math.max(1, traverse.size.z);
       const trayColumns = Math.max(1, Math.round(width / 300));
       const trayWidth = width / trayColumns;
       for (let module = 0; module < modules; module += 1) {
         const moduleX = module * width;
         for (let level = 1; level <= levels; level += 1) {
-          const levelY = Math.min(height - 30, level * levelGap);
+          const levelY = level * levelGap;
           for (const z of [0, Math.max(0, depth - beamDepth)]) {
             const beam = traverse.object.clone(true);
             beam.scale.set(width / traverse.size.x, 1, 1);
