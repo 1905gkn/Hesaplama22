@@ -23,6 +23,12 @@ node scripts/patch-customize-accessories-source.mjs
 node scripts/patch-tunnel-tray-level-fix.mjs
 node scripts/patch-tunnel-level-click-cleanup.mjs
 node scripts/patch-b2b-tunnel-accessory-source-v5.mjs
+
+# Root correction for the 2026-08-21 accessory issues: ZEMIN/K levels remain clickable,
+# customize save/load persists accessory state, and tunnel filtering uses the entered
+# tunnel height instead of a fixed 3600 mm assumption.
+node scripts/patch-user-request-20260821-v8-source.mjs
+
 node scripts/patch-between-measure-source.mjs
 node scripts/patch-free-layout-drag-start-performance.mjs
 node scripts/patch-free-layout-staged-report-performance.mjs
@@ -63,4 +69,8 @@ node scripts/patch-user-request-20260821-v6.mjs
 # the exact report card slot and prevent same-named B2B/Mekik types from merging.
 node scripts/patch-mekik-report-slot-v7.mjs
 
-echo "Production chain verified: tunnel/accessory fixes + unified Serbest Cizim + correct product rows + Mekik report views locked to their own front/side slots."
+# Final authority for accessory/product UX and Serbest state preservation. This pass
+# deliberately runs after every older wrapper so stale v4-v6 behavior cannot win.
+node scripts/patch-user-request-20260821-v8-final.mjs
+
+echo "Production chain verified: clickable accessory levels + persisted accessory state + entered-height tunnel filtering + live quantities/codes + collapsible product lists + clip anchors + Serbest state preservation + Mekik report slots."
