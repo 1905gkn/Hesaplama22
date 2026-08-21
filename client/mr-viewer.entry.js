@@ -20,7 +20,7 @@ function loadPart(key) {
   draco.setDecoderPath("/draco/");
   loader.setDRACOLoader(draco);
   loader.setMeshoptDecoder(MeshoptDecoder);
-  const task = loader.loadAsync(`${PARTS[key]}?v=mr-assembly-2`).finally(() => draco.dispose());
+  const task = loader.loadAsync(`${PARTS[key]}?v=mr-assembly-3`).finally(() => draco.dispose());
   cache.set(key, task);
   return task;
 }
@@ -77,6 +77,7 @@ class MRViewer {
     this.view = "perspective";
     this.destroyed = false;
     this.loadToken = 0;
+    this.dimensionLabels = [];
     this.config = this.cleanConfig(options.config);
     this.bounds = new THREE.Box3();
     this.size = new THREE.Vector3(2400, 3300, 800);
@@ -92,7 +93,7 @@ class MRViewer {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0xf4f6f3);
+    this.scene.background = new THREE.Color(0xf2c500);
     this.camera = new THREE.PerspectiveCamera(32, 1, 1, 200000);
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
@@ -111,8 +112,8 @@ class MRViewer {
     this.scene.add(fill);
     this.root = new THREE.Group();
     this.scene.add(this.root);
-    this.grid = new THREE.GridHelper(12000, 48, 0xcbd5cf, 0xe3e9e5);
-    this.grid.material.opacity = 0.52;
+    this.grid = new THREE.GridHelper(12000, 48, 0x806a00, 0xb99700);
+    this.grid.material.opacity = 0.42;
     this.grid.material.transparent = true;
     this.scene.add(this.grid);
     this.resizeObserver = new ResizeObserver(this.onResize);
@@ -124,14 +125,37 @@ class MRViewer {
 
   cleanConfig(config = {}) {
     const levels = Math.round(bounded(config.levels, 4, 1, 15));
+    const firstTraverse = bounded(config.firstTraverse, 200, 0, 5000);
+    const levelGap = bounded(config.levelGap, 1000, 100, 5000);
+    const topTraverse = firstTraverse + Math.max(0, levels - 1) * levelGap;
     return {
       modules: Math.round(bounded(config.modules, 1, 1, 50)), levels,
       width: bounded(config.width, 2400, 300, 6000),
       depth: bounded(config.depth, 800, 300, 2500),
-      height: bounded(config.height, Math.max(1200, levels * 800 + 100), 600, 12000),
+      firstTraverse, levelGap, height: topTraverse,
+      uprightHeight: topTraverse + levelGap / 2,
       uprightFinish: ["ral5010", "pgv"].includes(config.uprightFinish) ? config.uprightFinish : "ral5010",
       traverseFinish: ["ral1007", "ral2004"].includes(config.traverseFinish) ? config.traverseFinish : "ral1007",
+      accessories: Array.isArray(config.accessories) ? config.accessories.filter((item) => item?.type === "tray").map((item) => ({
+        type: "tray",
+        width: [200, 250, 300].includes(Number(item.width)) ? Number(item.width) : 300,
+        levels: [...new Set((item.levels || []).map(Number).filter((level) => level >= 1 && level <= levels))],
+      })) : [],
+      dimensions: {
+        levels: config.dimensions?.levels !== false,
+        markers: config.dimensions?.markers !== false,
+        width: config.dimensions?.width !== false,
+        depth: config.dimensions?.depth !== false,
+      },
+      dimensionScale: bounded(config.dimensionScale, 1, .7, 1.5),
     };
+  }
+
+  trayPiecePlan(clearWidth, requestedWidth) {
+    const width = Math.max(0, Math.round(Number(clearWidth) || 0));
+    const trayWidth = [200, 250, 300].includes(Number(requestedWidth)) ? Number(requestedWidth) : 300;
+    const full = Math.floor(width / trayWidth), remainder = width - full * trayWidth;
+    return [...Array(full).fill(trayWidth), ...(remainder >= 50 ? [remainder] : [])];
   }
 
   async build(config = {}) {
@@ -147,9 +171,8 @@ class MRViewer {
       applyFinish(upright.object, this.config.uprightFinish);
       applyFinish(traverse.object, this.config.traverseFinish);
       this.root.clear();
-      const { modules, levels, width, depth, height } = this.config;
-      const levelGap = height / levels;
-      const uprightHeight = height + levelGap / 2;
+      const { modules, levels, width, depth, firstTraverse, levelGap, uprightHeight } = this.config;
+      const levelYs = Array.from({ length: levels }, (_, index) => firstTraverse + index * levelGap);
       const uprightScale = new THREE.Vector3(1, uprightHeight / upright.size.y, depth / upright.size.z);
       for (let frame = 0; frame <= modules; frame += 1) {
         const instance = upright.object.clone(true);
@@ -158,24 +181,28 @@ class MRViewer {
         this.root.add(instance);
       }
       const beamDepth = Math.max(1, traverse.size.z);
-      const trayColumns = Math.max(1, Math.round(width / 300));
-      const trayWidth = width / trayColumns;
+      const trayAccessories = this.config.accessories.filter((item) => item.type === "tray");
       for (let module = 0; module < modules; module += 1) {
         const moduleX = module * width;
         for (let level = 1; level <= levels; level += 1) {
-          const levelY = level * levelGap;
+          const levelY = levelYs[level - 1];
           for (const z of [0, Math.max(0, depth - beamDepth)]) {
             const beam = traverse.object.clone(true);
             beam.scale.set(width / traverse.size.x, 1, 1);
-            beam.position.set(moduleX, levelY - traverse.size.y, z);
+            beam.position.set(moduleX, levelY, z);
             this.root.add(beam);
           }
-          for (let column = 0; column < trayColumns; column += 1) {
-            const shelf = tray.object.clone(true);
-            shelf.scale.set(trayWidth / tray.size.x, 1, depth / tray.size.z);
-            shelf.position.set(moduleX + column * trayWidth, levelY, 0);
-            this.root.add(shelf);
-          }
+          trayAccessories.filter((item) => item.levels.includes(level)).forEach((accessory) => {
+            let cursor = 0;
+            this.trayPiecePlan(width, accessory.width).forEach((pieceWidth) => {
+              const shelf = tray.object.clone(true);
+              shelf.scale.set(pieceWidth / tray.size.x, 1, depth / tray.size.z);
+              shelf.rotation.x = Math.PI;
+              shelf.position.set(moduleX + cursor, levelY + traverse.size.y + tray.size.y, depth);
+              this.root.add(shelf);
+              cursor += pieceWidth;
+            });
+          });
         }
       }
       this.root.updateMatrixWorld(true);
@@ -188,6 +215,7 @@ class MRViewer {
       this.bounds.setFromObject(this.root);
       this.bounds.getCenter(this.center);
       this.bounds.getSize(this.size);
+      this.addDimensions(levelYs, modules * width, depth, uprightHeight);
       const gridSize = Math.max(1800, this.size.x, this.size.z) * 2.2;
       this.grid.scale.setScalar(gridSize / 12000);
       this.setView(this.view);
@@ -200,6 +228,54 @@ class MRViewer {
     }
   }
 
+  dimensionValue(value) { return `${Math.round(value).toLocaleString("tr-TR")} mm`; }
+  dimensionMaterial() { return new THREE.LineBasicMaterial({ color:0x0b5477, depthTest:false, transparent:true, opacity:.95 }); }
+  addDimensionLine(layer, points) {
+    const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), this.dimensionMaterial());
+    line.renderOrder = 100; layer.add(line);
+  }
+  addDimensionPoint(layer, position) {
+    const marker = new THREE.Mesh(new THREE.SphereGeometry(18, 10, 8), new THREE.MeshBasicMaterial({ color:0x0b5477, depthTest:false }));
+    marker.position.copy(position); marker.renderOrder = 102; layer.add(marker);
+  }
+  addDimensionLabel(layer, x, y, z, text, width = 760) {
+    const canvas = document.createElement("canvas"), scale = 3, labelHeight = 112;
+    canvas.width = width * scale; canvas.height = labelHeight * scale;
+    const context = canvas.getContext("2d"); context.scale(scale, scale); context.font = "900 48px Arial";
+    context.fillStyle = "rgba(5,40,72,.96)"; context.beginPath(); context.roundRect(0, 0, width, labelHeight, 16); context.fill();
+    context.strokeStyle = "#3e8fb2"; context.lineWidth = 4; context.stroke(); context.fillStyle = "#fff"; context.textAlign = "center"; context.textBaseline = "middle"; context.fillText(text, width / 2, labelHeight / 2, width - 30);
+    const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace;
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map:texture, depthTest:false, transparent:true }));
+    const factor = this.config.dimensionScale; sprite.position.set(x, y, z); sprite.scale.set(width * factor, labelHeight * factor, 1); sprite.renderOrder = 101; this.dimensionLabels.push(sprite); layer.add(sprite);
+  }
+  addVerticalDimension(layer, x, z, from, to, label, witnessX = 0) {
+    const bottom = new THREE.Vector3(x, from, z), top = new THREE.Vector3(x, to, z), arrow = 55;
+    this.addDimensionLine(layer, [bottom, top]); this.addDimensionLine(layer, [bottom, new THREE.Vector3(witnessX, from, z)]); this.addDimensionLine(layer, [top, new THREE.Vector3(witnessX, to, z)]);
+    this.addDimensionLine(layer, [new THREE.Vector3(x-arrow, from+arrow, z), bottom, new THREE.Vector3(x+arrow, from+arrow, z)]); this.addDimensionLine(layer, [new THREE.Vector3(x-arrow, to-arrow, z), top, new THREE.Vector3(x+arrow, to-arrow, z)]);
+    this.addDimensionPoint(layer, bottom); this.addDimensionPoint(layer, top); this.addDimensionLabel(layer, x-420, (from+to)/2, z, label, 700);
+  }
+  addDimensions(levelYs, totalWidth, depth, uprightHeight) {
+    this.dimensionLabels = [];
+    const layer = new THREE.Group(); layer.name = "MR 3D Ölçüler"; const z = depth + 180, x = -Math.max(260, totalWidth * .06);
+    if (this.config.dimensions.levels) levelYs.forEach((height, index) => {
+      const from = index === 0 ? 0 : levelYs[index - 1], label = index === 0 ? `ZEMİN → K1 · ${this.dimensionValue(height)}` : `K${index} → K${index+1} · ${this.dimensionValue(height-from)}`;
+      this.addVerticalDimension(layer, x, z, from, height, label, 0);
+    });
+    if (this.config.dimensions.markers) {
+      const topTraverse = levelYs.at(-1) || 0; this.addVerticalDimension(layer, totalWidth+280, z, topTraverse, uprightHeight, `SON KAT ÜSTÜ · ${this.dimensionValue(uprightHeight-topTraverse)}`, totalWidth);
+      this.addDimensionLabel(layer, totalWidth+510, uprightHeight, z, `AYAK BOYU · ${this.dimensionValue(uprightHeight)}`, 760);
+    }
+    if (this.config.dimensions.width) {
+      const y = -90, left = new THREE.Vector3(0,y,z+220), right = new THREE.Vector3(totalWidth,y,z+220);
+      this.addDimensionLine(layer,[left,right]);this.addDimensionLine(layer,[left,new THREE.Vector3(0,0,z)]);this.addDimensionLine(layer,[right,new THREE.Vector3(totalWidth,0,z)]);this.addDimensionPoint(layer,left);this.addDimensionPoint(layer,right);this.addDimensionLabel(layer,totalWidth/2,y,z+220,`TOPLAM GENİŞLİK · ${this.dimensionValue(totalWidth)}`,900);
+    }
+    if (this.config.dimensions.depth) {
+      const dx=totalWidth+620,y=0,front=new THREE.Vector3(dx,y,0),back=new THREE.Vector3(dx,y,depth);
+      this.addDimensionLine(layer,[front,back]);this.addDimensionLine(layer,[new THREE.Vector3(totalWidth,y,0),front]);this.addDimensionLine(layer,[new THREE.Vector3(totalWidth,y,depth),back]);this.addDimensionPoint(layer,front);this.addDimensionPoint(layer,back);this.addDimensionLabel(layer,dx+350,y,depth/2,`DERİNLİK · ${this.dimensionValue(depth)}`,650);
+    }
+    this.root.add(layer);
+  }
+
   setConfiguration(config) { return this.build({ ...this.config, ...config }); }
   setView(view = "perspective") {
     this.view = ["front", "side", "top", "perspective"].includes(view) ? view : "perspective";
@@ -210,7 +286,7 @@ class MRViewer {
     const fitHeight = Math.max(50, displayHeight) / (2 * Math.tan(vFov / 2));
     const horizontal = this.view === "side" ? this.size.z : this.size.x;
     const fitWidth = Math.max(50, horizontal) / (2 * Math.tan(vFov / 2) * Math.max(this.camera.aspect, 0.25));
-    const distance = Math.max(fitHeight, fitWidth, 200) * 1.3;
+    const distance = Math.max(fitHeight, fitWidth, 200) * 1.55;
     const direction = this.view === "front" ? new THREE.Vector3(0, 0, 1)
       : this.view === "side" ? new THREE.Vector3(1, 0, 0)
       : this.view === "top" ? new THREE.Vector3(0, 1, 0.001)
