@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 200869)
-Total output lines: 7369
-
 <!doctype html>
 <html lang="tr">
   <head>
@@ -4283,7 +4280,26 @@ Total output lines: 7369
         return `<svg viewBox="0 0 ${totalW} 166" role="img" aria-label="${esc(labels.front||"Önden görünüş")}"><rect width="${totalW}" height="166" fill="#fff"/>${panels}</svg>`;
       }
       function m2B2BSideElevationSvg(drawing, labels=m2ReportDictionary("tr")) {
-        const layout=drawing.b2bLayout||{},rowCount=Math.max(1,Number(layout.rowCount)||1),levels=Math.max(1,Math.round(Number(drawing.levels)||1)),ground=(drawing.b2b?.firstPalletPosition||drawing.footLoadStart||"ground")==="ground",frameDepth=Math.max(1,Number(layout.frameDepth)||1100),rowGap=Math.max(0,Number(layout.rowGap)||200),uprightHeight=Ma…869 tokens truncated…)"></label>`).join("");
+        const layout=drawing.b2bLayout||{},rowCount=Math.max(1,Number(layout.rowCount)||1),levels=Math.max(1,Math.round(Number(drawing.levels)||1)),ground=(drawing.b2b?.firstPalletPosition||drawing.footLoadStart||"ground")==="ground",frameDepth=Math.max(1,Number(layout.frameDepth)||1100),rowGap=Math.max(0,Number(layout.rowGap)||200),uprightHeight=Math.max(1,Number(drawing.sideUprightHeight)||Number(drawing.totalRackHeight)||Number(drawing.footLy)||5000),tiePlan=b2bStraightTiePlan(drawing),upright="#006391",beam="#e0c600",pallet="#d8a44d",wood="#a96928",galvanized="#b9c0c3",canvasW=200,canvasH=150,modelTop=13,modelBottom=132,modelH=modelBottom-modelTop,frameW=rowCount===2?42:62,gapW=rowCount===2?12:0,totalModelW=rowCount*frameW+(rowCount-1)*gapW,left=(canvasW-totalModelW)/2,levelStep=modelH/levels,palletH=Math.min(21,levelStep*.72);
+        let structure="";
+        for(let row=0;row<rowCount;row++){
+          const x=left+row*(frameW+gapW),right=x+frameW;
+          structure+=`<line x1="${x}" y1="${modelTop}" x2="${x}" y2="${modelBottom}" stroke="${upright}" stroke-width="4"/><line x1="${right}" y1="${modelTop}" x2="${right}" y2="${modelBottom}" stroke="${upright}" stroke-width="4"/>`;
+          for(let level=0;level<levels;level++){
+            const cellTop=modelBottom-(level+1)*levelStep,y=cellTop+(levelStep-palletH)/2;
+            if(!(ground&&level===0))structure+=`<line x1="${x}" y1="${y+palletH+1.5}" x2="${right}" y2="${y+palletH+1.5}" stroke="${beam}" stroke-width="3"/>`;
+            structure+=`<rect x="${x-8}" y="${y}" width="${frameW+16}" height="${palletH}" rx="1" fill="${pallet}" stroke="${wood}" stroke-width=".7"/><rect x="${x-8}" y="${y+palletH-3}" width="${frameW+16}" height="3" fill="${wood}"/>`;
+            const braceTop=cellTop+2,braceBottom=cellTop+levelStep-2;
+            structure+=`<path d="M${x+2} ${braceBottom}L${right-2} ${braceTop}" fill="none" stroke="${galvanized}" stroke-width="2"/>`;
+          }
+        }
+        if(rowCount===2&&tiePlan.count){const innerLeft=left+frameW,innerRight=innerLeft+gapW;tiePlan.positions.forEach((height)=>{const ratio=Math.max(0,Math.min(1,height/uprightHeight)),y=modelBottom-ratio*modelH;structure+=`<rect x="${innerLeft-1}" y="${y-2.2}" width="${innerRight-innerLeft+2}" height="4.4" rx=".7" fill="${galvanized}" stroke="#7d898e" stroke-width=".6"/>`;});}
+        const depthText=rowCount===2?`${fmt(frameDepth)} + ${fmt(rowGap)} + ${fmt(frameDepth)} mm`:`${fmt(frameDepth)} mm`;
+        return `<svg viewBox="0 0 ${canvasW} ${canvasH}" role="img" aria-label="${rowCount===2?"Arka arkaya iki ayrı B2B raf yandan görünüşü":"Tek sıra B2B raf yandan görünüşü"}"><rect width="${canvasW}" height="${canvasH}" fill="#fff"/><text x="100" y="7" text-anchor="middle" font-size="5.5" font-family="Arial" font-weight="800" fill="#64748b">${rowCount===2?"2 AYRI RAF · GALVANİZ DÜZ ARABAĞ":"TEK SIRA RAF"}</text>${structure}<line x1="${left}" y1="141" x2="${left+totalModelW}" y2="141" stroke="#1378db" stroke-width=".8"/><line x1="${left}" y1="137" x2="${left}" y2="144" stroke="#1378db" stroke-width=".8"/><line x1="${left+totalModelW}" y1="137" x2="${left+totalModelW}" y2="144" stroke="#1378db" stroke-width=".8"/><text x="100" y="148" text-anchor="middle" font-size="6" font-family="Arial" font-weight="800" fill="#26313b">${esc(labels.depth||"DERİNLİK")} · ${depthText}</text></svg>`;
+      }
+      function m2RenderReportImages() {
+        const host = $("m2ReportImages"); if (!host) return;
+        host.innerHTML = m2ReportImages.map((source, index) => `<label class="m2-report-image-slot">${source ? `<img src="${source}" alt="Resim ${index + 1}">` : `<span>RESİM ${index + 1}<br>EKLE</span>`}<input type="file" accept="image/*" aria-label="Resim ${index + 1} yükle" onchange="m2LoadReportImage(${index},this)"></label>`).join("");
       }
       function m2RenderPalletSpec(types, palletTotal) {
         const host = $("m2ReportPalletSpec"); if (!host) return;
