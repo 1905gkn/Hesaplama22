@@ -463,6 +463,15 @@
     }
   }
 
+  // Final PDF builders run after this module. Expose the exact same renderer
+  // used by Kesit Yer Belirleme so a later page rebuild can restore the saved
+  // camera, dimensions, pallet visibility, position and scale without falling
+  // back to a generic rack illustration.
+  window.rafexRenderSelectedB2BSections = async function(force = true) {
+    saved = loadSettings();
+    return renderAllPerspective(saved, force);
+  };
+
   function queueReportRender(source = saved, force = false, delay = 320) {
     clearTimeout(reportRenderTimer);
     reportRenderTimer = setTimeout(() => {
