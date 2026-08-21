@@ -115,4 +115,6 @@ node scripts/patch-pdf-excel-layout-v18.mjs
 node scripts/patch-pdf-direct-type-pages-v19.mjs
 
 grep -q "m2SharedScaleReportSvg(d,mode,mode==='front')" scripts/patch-pdf-direct-type-pages-v19.mjs
+grep -q "m2LayoutState.racks.filter" scripts/patch-pdf-direct-type-pages-v19.mjs
+! grep -q "rafex-v19-detail-chip" scripts/patch-pdf-direct-type-pages-v19.mjs
 echo "Production chain verified: technical Mekik front section + direct used-rack PDF type pages + two 50% slots + B2B front-only + saved-rack click performance fix."
