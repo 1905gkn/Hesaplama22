@@ -77,12 +77,12 @@
 
     const hosts = [document.getElementById("m2CorporatePreview"), document.getElementById("m2CorporatePrint"), document.getElementById("m2CorporatePrintArea")].filter(Boolean);
     hosts.forEach((host) => {
-      [...host.querySelectorAll(".m2-corporate-type-card")].forEach((card, index) => {
+      [...host.querySelectorAll('.m2-corporate-type-card,.rafex-v19-type-card[data-rafex-system="b2b"]')].forEach((card, index) => {
         const rawTitle = card.dataset.rafexTypeName || card.querySelector(":scope > strong > span")?.textContent || card.querySelector(":scope > strong")?.textContent || card.querySelector("strong")?.textContent || `Raf Tipi ${index + 1}`;
         const label = safeKey(rawTitle);
         card.dataset.rafexTypeName = label;
         if (!groups.has(label)) groups.set(label, { key: label, label, entries: new Map(), cards: [] });
-        groups.get(label).cards.push(card);
+        if (!groups.get(label).cards.includes(card)) groups.get(label).cards.push(card);
       });
     });
 
@@ -244,7 +244,7 @@
       .rafex-section-editor-shell{display:grid;grid-template-columns:260px minmax(0,1fr);gap:12px;min-height:520px}.rafex-section-list-panel{border:1px solid #dfe5e0;border-radius:11px;background:#f8faf8;overflow:hidden}.rafex-section-list-title{padding:10px 11px;background:#173c2d;color:#fff;font-size:11px;font-weight:900}.rafex-section-list-note{padding:8px 10px;color:#68736c;font-size:9px;line-height:1.35;border-bottom:1px solid #e2e8e4}.rafex-section-list{display:flex;flex-direction:column;gap:6px;padding:8px;max-height:68vh;overflow:auto}.rafex-section-list button{display:grid;grid-template-columns:28px 1fr;gap:7px;align-items:center;width:100%;padding:9px;text-align:left;background:#edf2ee;color:#173c2d;border:1px solid transparent;border-radius:8px}.rafex-section-list button.active{background:#fff8d5;border-color:#e5c544}.rafex-section-list button span:first-child{display:grid;place-items:center;width:24px;height:24px;border-radius:999px;background:#173c2d;color:#fff;font-size:9px}.rafex-section-list button b{font-size:10px;line-height:1.25;overflow:hidden;text-overflow:ellipsis}
       .rafex-section-workspace{min-width:0}.rafex-active-section-title{padding:9px 11px;margin-bottom:8px;border:1px solid #dfe5e0;border-radius:9px;background:#f8faf8;color:#173c2d;font-size:11px;font-weight:900}.rafex-perspective-card{border:1px solid #dfe5e0;border-radius:11px;overflow:hidden;background:#f8faf8}.rafex-perspective-card>b{display:block;padding:8px 10px;background:#dceaf1;color:#0b2b45;text-align:center;font-size:10px}.rafex-placement-stage{position:relative;height:min(56vh,530px);min-height:370px;overflow:hidden;background:#fff;cursor:grab;touch-action:none;user-select:none;border-bottom:1px solid #e2e8e4}.rafex-placement-stage.is-dragging{cursor:grabbing}.rafex-placement-art{position:absolute;left:50%;top:50%;height:92%;width:auto;max-width:none;max-height:none;transform:translate(-50%,-50%);transform-origin:center center;pointer-events:none;user-select:none}.rafex-placement-empty{position:absolute;inset:0;display:grid;place-items:center;color:#849087;font-size:11px;pointer-events:none}.rafex-placement-controls{display:grid;grid-template-columns:auto 32px 58px 32px auto 1fr auto auto auto auto;gap:6px;align-items:center;padding:8px;background:#f5f7f5}.rafex-placement-controls span{color:#68736c;font-size:9px}.rafex-placement-controls button{padding:7px 8px;background:#e8eeea;color:#173c2d;border-radius:7px}.rafex-placement-controls strong{font-size:10px;text-align:center;color:#173c2d}
       .rafex-option-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 11px;background:#fff;border-top:1px solid #e2e8e4}.rafex-option-row>strong{font-size:10px;color:#173c2d;margin-right:3px}.rafex-option-row button{padding:8px 9px;background:#f5f7f5;color:#173c2d;border:1px solid #cfd9d2;border-radius:7px}.rafex-option-row button.active{background:#173c2d;color:#fff;border-color:#173c2d}.rafex-dimension-options label{display:flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid #dfe5e0;border-radius:7px;background:#f8faf8;font-size:9px;font-weight:800;color:#173c2d}.rafex-dimension-options input{accent-color:#173c2d}.rafex-module-selector{display:grid;grid-template-columns:auto repeat(4,54px);gap:8px;align-items:center;padding:11px;background:#fff;border-top:1px solid #e2e8e4}.rafex-module-selector>span{font-size:10px;font-weight:900;color:#173c2d}.rafex-module-count{position:relative;padding:9px 7px!important;border:1px solid #cfd9d2!important;background:#f5f7f5!important;color:#173c2d!important}.rafex-module-count.active{background:#173c2d!important;color:#fff!important;border-color:#173c2d!important}.rafex-module-count.existing:after{content:"";position:absolute;right:5px;top:5px;width:6px;height:6px;border-radius:99px;background:#f2c500}.rafex-section-placement-actions{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;padding-top:12px}.rafex-section-placement-actions button{padding:9px 12px;background:#edf2ee;color:#173c2d}.rafex-section-placement-actions .rafex-placement-save{background:#173c2d;color:#fff}
-      .m2-corporate-type-card.rafex-perspective-output .m2-corporate-view[data-rafex-perspective-hidden="1"]{display:none!important}.m2-corporate-type-card.rafex-perspective-output .m2-corporate-view[data-rafex-perspective-primary="1"]{grid-column:1/-1!important;width:100%!important;max-width:none!important}.m2-corporate-type-card.rafex-perspective-output .rafex-report-3d-frame{width:100%!important;height:100%!important;overflow:hidden!important}.m2-corporate-type-card.rafex-perspective-output .rafex-report-3d-frame img{width:100%!important;height:100%!important;object-fit:contain!important}
+      .m2-corporate-type-card.rafex-perspective-output .m2-corporate-view[data-rafex-perspective-hidden="1"]{display:none!important}.m2-corporate-type-card.rafex-perspective-output .m2-corporate-view[data-rafex-perspective-primary="1"]{grid-column:1/-1!important;width:100%!important;max-width:none!important}.rafex-perspective-output .rafex-report-3d-frame{width:100%!important;height:100%!important;overflow:hidden!important}.rafex-perspective-output .rafex-report-3d-frame img{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important}.rafex-v19-type-card.rafex-perspective-output>.rafex-v19-view{width:100%!important;height:100%!important}.rafex-v19-type-card.rafex-perspective-output .rafex-v19-visual{min-height:0!important;overflow:hidden!important}
       @media(max-width:820px){.rafex-section-editor-shell{grid-template-columns:1fr}.rafex-section-list{max-height:180px}.rafex-placement-stage{height:360px;min-height:290px}.rafex-placement-controls{grid-template-columns:auto 32px 50px 32px auto}.rafex-module-selector{grid-template-columns:repeat(4,1fr)}.rafex-module-selector>span{grid-column:1/-1}}
     `;
     document.head.appendChild(style);
@@ -419,18 +419,19 @@
   async function applyPerspectiveToCard(card, key, src, source = saved) {
     if (!card || !src) return;
     const settings = settingFor(key, source);
-    const views = [...card.querySelectorAll(":scope > .m2-corporate-view")];
+    const views = [...card.querySelectorAll(":scope > .m2-corporate-view,:scope > .rafex-v19-view")];
     const primary = views[0];
     if (!primary) return;
     card.classList.add("rafex-perspective-output");
     primary.dataset.rafexPerspectivePrimary = "1";
     views.slice(1).forEach((view) => { view.dataset.rafexPerspectiveHidden = "1"; view.style.display = "none"; });
-    let frame = primary.querySelector(".rafex-report-3d-frame");
+    const visualHost = primary.querySelector(":scope > .rafex-v19-visual") || primary;
+    let frame = visualHost.querySelector(":scope > .rafex-report-3d-frame");
     if (!frame) {
-      primary.innerHTML = "";
+      visualHost.innerHTML = "";
       frame = document.createElement("div");
       frame.className = "rafex-report-3d-frame";
-      primary.appendChild(frame);
+      visualHost.appendChild(frame);
     }
     let image = frame.querySelector("img");
     if (!image) {

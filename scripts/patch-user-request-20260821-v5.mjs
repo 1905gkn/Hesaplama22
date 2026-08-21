@@ -104,14 +104,6 @@ const runtime = String.raw`<style data-rafex-user-request-v5="1">
     if(typeof prev==='function'&&!prev.__rafexV5){const wrap=function(){let rows=prev.apply(this,arguments)||[];rows=rows.filter(r=>{const n=low(r?.name);return !(/ayak profili|upright profile|profil de montant/.test(n)||n==='palet dayama'||n==='h travers'||n.startsWith('tava'));});mergeRows(rows,allLayoutAccessories().map(r=>({name:r.name,qty:r.qty})));return stableSort(rows);};wrap.__rafexV5=true;try{m2LayoutProductRows=wrap}catch{}window.m2LayoutProductRows=wrap;}
   }catch(e){console.warn('v5 layout BOM',e)}
 
-  // Urun listesi acikken de summary'ye tiklayinca kesin olarak kapanir; tercih aninda kaydedilir.
-  document.addEventListener('click',(event)=>{
-    if(!freePage())return;const summary=event.target instanceof Element?event.target.closest('details.rafex-system-product-disclosure>summary'):null;if(!summary)return;
-    const details=summary.parentElement,key=details?.dataset?.rafexProductSystem;if(!details||!key)return;
-    event.preventDefault();event.stopPropagation();details.open=!details.open;
-    try{const state=JSON.parse(localStorage.getItem('rafex_free_product_disclosures_v1')||'{}')||{};state[key]=details.open;localStorage.setItem('rafex_free_product_disclosures_v1',JSON.stringify(state));}catch{}
-  },true);
-
   // B2B ust seciciler degisirken mevcut Serbest Cizim yerlesimini asla sifirlama.
   let pendingSnapshot=null;
   const clone=(v)=>{try{return structuredClone(v)}catch{try{return JSON.parse(JSON.stringify(v))}catch{return null}}};

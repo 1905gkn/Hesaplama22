@@ -38,10 +38,6 @@ const runtime = String.raw`<style data-rafex-final-user-repairs="v20">
   function restoreProductOpenState(){
     if(!freePage())return;var state=productState();document.querySelectorAll('#m2LayoutProductList details[data-rafex-product-system]').forEach(function(details){var key=details.dataset.rafexProductSystem;details.open=state[key]===true;});
   }
-  document.addEventListener('click',function(event){
-    var summary=event.target&&event.target.closest&&event.target.closest('#m2LayoutProductList details[data-rafex-product-system] > summary');if(!summary)return;
-    event.preventDefault();event.stopImmediatePropagation();var details=summary.parentElement,key=details.dataset.rafexProductSystem;details.open=!details.open;var state=productState();state[key]=details.open;saveProductState(state);
-  },true);
   var products=document.getElementById('m2LayoutProductList');if(products)new MutationObserver(function(){stabilizeExtension();restoreProductOpenState()}).observe(products,{childList:true,subtree:false});
   var mutationQueued=false;
   new MutationObserver(function(){

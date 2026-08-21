@@ -105,7 +105,7 @@ const runtime = String.raw`<style data-rafex-pdf-direct-types="v19">
        fallback. */
     try{
       if(typeof m2LayoutState!=='undefined'&&Array.isArray(m2LayoutState.racks)&&m2LayoutState.racks.length){
-        return m2LayoutState.racks.filter(function(rack){return rack&&!rack.staged}).map(function(rack,index){
+        return m2LayoutState.racks.filter(function(rack){return !!rack}).map(function(rack,index){
           return {name:String(rack.typeName||rack.name||('Raf Tipi '+(index+1))).trim(),drawing:rack,rackCount:1,rafexSystem:rack.rafexSystem||(rack.b2bLayout||rack.b2b?'b2b':'mekik2')};
         });
       }
@@ -137,22 +137,20 @@ const runtime = String.raw`<style data-rafex-pdf-direct-types="v19">
   }
   function mekikSvg(d,mode){
     try{
-      /* The shared report renderer is the approved technical section: it keeps
-         KOT ARALIKLARI, ZEMIN/K levels, the overall upright dimension and the
-         real yellow rail/traverse details.  Do not replace it with the compact
-         thumbnail projection on the final PDF page. */
-      if(typeof m2SharedScaleReportSvg==='function'){
-        var technical=m2SharedScaleReportSvg(d,mode,mode==='front');
+      /* The approved technical renderer belongs to the FRONT cut only.  The
+         SIDE cut intentionally keeps the earlier native compact projection. */
+      if(mode==='front'&&typeof m2SharedScaleReportSvg==='function'){
+        var technical=m2SharedScaleReportSvg(d,'front',true);
         if(technical)return technical;
       }
-      if(typeof m2ReportElevationSvg==='function'){
+      if(mode==='front'&&typeof m2ReportElevationSvg==='function'){
         var report=m2ReportElevationSvg(d,mode);
         if(report)return report;
       }
       if(typeof m2MekikSetProjection!=='function')return '';
       var projection=m2MekikSetProjection(mode,d,0,0,200,112);
       var aria=mode==='front'?'Detaylı Mekik ön görünüş':'Mekik yan görünüş';
-      return '<svg class="rafex-v19-mekik-'+mode+'" viewBox="0 0 200 112" preserveAspectRatio="xMidYMid meet" role="img" aria-label="'+aria+'"><rect width="200" height="112" fill="#fff"/><g transform="translate(8 7) scale(.84)">'+projection+'</g></svg>';
+      return '<svg class="rafex-v19-mekik-'+mode+(mode==='side'?' rafex-mekik-native-side-v13':'')+'" viewBox="0 0 200 112" preserveAspectRatio="xMidYMid meet" role="img" aria-label="'+aria+'"><rect width="200" height="112" fill="#fff"/><g transform="translate(8 7) scale(.84)">'+projection+'</g></svg>';
     }catch(e){console.warn('v19 mekik svg',mode,e);return ''}
   }
   function mekikCallouts(d){

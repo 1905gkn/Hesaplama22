@@ -125,7 +125,7 @@ node scripts/patch-final-user-repairs-v20.mjs
 # Fail the deployment if any generated inline browser runtime has invalid syntax.
 node scripts/verify-inline-runtime-syntax-v21.mjs
 
-grep -q "m2SharedScaleReportSvg(d,mode,mode==='front')" scripts/patch-pdf-direct-type-pages-v19.mjs
+grep -q "mode==='front'&&typeof m2SharedScaleReportSvg" scripts/patch-pdf-direct-type-pages-v19.mjs
 grep -q "m2LayoutState.racks.filter" scripts/patch-pdf-direct-type-pages-v19.mjs
 ! grep -q "rafex-v19-detail-chip" scripts/patch-pdf-direct-type-pages-v19.mjs
 grep -q "rafexRenderSelectedB2BSections" client/b2b-section-positioner-v5.js

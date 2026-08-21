@@ -103,16 +103,12 @@ const runtime = String.raw`<script data-rafex-user-request-v8="1">(function(){
   function saveOpen(){try{localStorage.setItem('rafex_free_product_disclosures_v1',JSON.stringify(openState))}catch{}}
   function decorateProducts(){
     if(!freePage())return;const host=document.getElementById('m2LayoutProductList');if(!host)return;
+    try{openState={...openState,...JSON.parse(localStorage.getItem('rafex_free_product_disclosures_v1')||'{}')}}catch{}
     host.querySelectorAll('details.rafex-system-product-disclosure').forEach(details=>{const key=details.dataset.rafexProductSystem||'';if(key in openState)details.open=!!openState[key];});
     host.querySelectorAll('.rafex-system-product-row').forEach(row=>{const item=row.querySelector('span>b'),small=row.querySelector('span>small'),qty=row.querySelector(':scope>strong');if(!item||!qty)return;let code=codeOf(item.textContent,small?.textContent||'');if(!small){small=document.createElement('small');item.parentElement?.appendChild(small);}small.textContent=code;});
   }
   function scheduleProducts(){[0,20,80,180].forEach(ms=>setTimeout(()=>{try{if(typeof window.m2RenderLayoutProductList==='function')window.m2RenderLayoutProductList();}catch{}decorateProducts();refreshNativeParts();},ms));}
   window.rafexRefreshProductListsV8=scheduleProducts;
-
-  document.addEventListener('click',(event)=>{
-    if(!freePage())return;const summary=event.target instanceof Element?event.target.closest('details.rafex-system-product-disclosure>summary'):null;if(!summary)return;const details=summary.parentElement,key=details?.dataset?.rafexProductSystem;if(!details||!(key in openState))return;
-    event.preventDefault();event.stopImmediatePropagation();openState[key]=!details.open;details.open=openState[key];saveOpen();setTimeout(decorateProducts,0);
-  },true);
 
   let hostObserver=null;function bindProductObserver(){const host=document.getElementById('m2LayoutProductList');if(!host||host.dataset.rafexV8Observed)return;host.dataset.rafexV8Observed='1';hostObserver=new MutationObserver(()=>decorateProducts());hostObserver.observe(host,{childList:true,subtree:true});decorateProducts();}
 

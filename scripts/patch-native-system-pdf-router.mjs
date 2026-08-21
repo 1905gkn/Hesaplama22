@@ -22,8 +22,11 @@ html = html.replace(b2bDrawingNeedle, b2bDrawingReplacement);
 
 const b2bCardNeedle = '      [...host.querySelectorAll(".m2-corporate-type-card")].forEach((card, index) => {\n        const rawTitle =';
 const b2bCardReplacement = '      [...host.querySelectorAll(".m2-corporate-type-card")].forEach((card, index) => {\n        if (card.dataset.rafexSystem && card.dataset.rafexSystem !== "b2b") return;\n        const rawTitle =';
-if (!html.includes(b2bCardNeedle)) throw new Error("Native system PDF router: B2B card filtre noktasi bulunamadi.");
-html = html.replace(b2bCardNeedle, b2bCardReplacement);
+const b2bV19CardNeedle = '      [...host.querySelectorAll(\'.m2-corporate-type-card,.rafex-v19-type-card[data-rafex-system="b2b"]\')].forEach((card, index) => {\n        const rawTitle =';
+const b2bV19CardReplacement = '      [...host.querySelectorAll(\'.m2-corporate-type-card,.rafex-v19-type-card[data-rafex-system="b2b"]\')].forEach((card, index) => {\n        if (card.dataset.rafexSystem && card.dataset.rafexSystem !== "b2b") return;\n        const rawTitle =';
+if (html.includes(b2bCardNeedle)) html = html.replace(b2bCardNeedle, b2bCardReplacement);
+else if (html.includes(b2bV19CardNeedle)) html = html.replace(b2bV19CardNeedle, b2bV19CardReplacement);
+else throw new Error("Native system PDF router: B2B card filtre noktasi bulunamadi.");
 
 // 2) Aynı raf tipi adı farklı sistemlerde kullanılabilsin. Kurumsal raporun tip anahtarı
 // sistem adını da içerir; B2B A ile Mekik A artık tek tip gibi birleşmez.

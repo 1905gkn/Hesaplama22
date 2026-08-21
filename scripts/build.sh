@@ -25,6 +25,23 @@ test -s "$tray_glb"
 viewer_source="$project_root/client/b2b-viewer.entry.js"
 patched_viewer="$dist_root/b2b-viewer.patched.entry.js"
 viewer_bundle="$dist_root/b2b-viewer.js"
+mr_viewer_source="$project_root/client/mr-viewer.entry.js"
+mr_viewer_bundle="$dist_root/mr-viewer.js"
+mr_asset_source="$project_root/assets/mr-src"
+mr_asset_root="$dist_root/mr"
+mkdir -p "$mr_asset_root"
+mr_module_glb="$mr_asset_root/mr-modul.glb"
+mr_upright_glb="$mr_asset_root/mr-ayak-top.glb"
+mr_traverse_glb="$mr_asset_root/zs-travers.glb"
+mr_tray_glb="$mr_asset_root/tava.glb"
+cat "$mr_asset_source"/mr-modul.* | base64 -d | gzip -dc > "$mr_module_glb"
+cat "$mr_asset_source"/mr-ayak-top.* | base64 -d | gzip -dc > "$mr_upright_glb"
+cat "$mr_asset_source"/zs-travers.* | base64 -d | gzip -dc > "$mr_traverse_glb"
+cat "$mr_asset_source"/tava.* | base64 -d | gzip -dc > "$mr_tray_glb"
+test -s "$mr_module_glb"
+test -s "$mr_upright_glb"
+test -s "$mr_traverse_glb"
+test -s "$mr_tray_glb"
 
 node - "$viewer_source" "$patched_viewer" <<'NODE'
 const fs = require('node:fs');
@@ -220,6 +237,8 @@ NODE
   --target=es2022 \
   --outfile="$viewer_bundle"
 
+"$project_root/node_modules/.bin/esbuild" "$mr_viewer_source" --bundle --format=iife --minify --target=es2022 --outfile="$mr_viewer_bundle"
+
 node - "$project_root/portal.html" "$project_root/assets/mekik-corridor-front.png" "$project_root/assets/ray-side.png" "$project_root/assets/travers-side.png" "$project_root/assets/ayak-side.png" "$project_root/assets/paletli-side.png" "$project_root/assets/ayak2-front.png" "$project_root/assets/pallet-definition.png" "$project_root/assets/b2b-takim.glb" "$project_root/assets/b2b-palet.glb" "$project_root/assets/b2b-travers.glb" "$project_root/assets/b2b-ayak.glb" "$project_root/assets/b2b-sac-arabag.glb" "$pallet_stop_glb" "$h_traverse_glb" "$tray_glb" "$viewer_bundle" "$project_root/client/b2b-visual-fixes.js" "$project_root/client/b2b-report-3d.js" "$project_root/client/b2b-report-sections.js" "$project_root/client/b2b-accessories.js" "$project_root/node_modules/three/examples/jsm/libs/draco/gltf/draco_decoder.js" "$project_root/node_modules/three/examples/jsm/libs/draco/gltf/draco_wasm_wrapper.js" "$project_root/node_modules/three/examples/jsm/libs/draco/gltf/draco_decoder.wasm" "$dist_root/server/index.js" <<'NODE'
 const fs = require('node:fs');
 const portalPath = process.argv[2];
@@ -291,6 +310,15 @@ const nextSource = workerSource
   .replaceAll('__DRACO_DECODER_WASM_BASE64__', fs.readFileSync(dracoDecoderWasmPath).toString('base64'))
   .replaceAll('__M2_AYAK2_FRONT_BASE64__', ayak2FrontBase64);
 fs.writeFileSync(workerPath, nextSource);
+NODE
+
+node - "$dist_root/server/index.js" "$mr_module_glb" "$mr_upright_glb" "$mr_traverse_glb" "$mr_tray_glb" "$mr_viewer_bundle" <<'NODE'
+const fs=require('node:fs');const [workerPath,modulePath,uprightPath,traversePath,trayPath,viewerPath]=process.argv.slice(2);let source=fs.readFileSync(workerPath,'utf8');const anchor='const DRACO_DECODER_BASE64 = ',index=source.indexOf(anchor);if(index<0)throw new Error('MR sabit ekleme noktası bulunamadı.');const constants=[`const MR_MODULE_BASE64 = "${fs.readFileSync(modulePath).toString('base64')}";`,`const MR_UPRIGHT_BASE64 = "${fs.readFileSync(uprightPath).toString('base64')}";`,`const MR_TRAVERSE_BASE64 = "${fs.readFileSync(traversePath).toString('base64')}";`,`const MR_TRAY_BASE64 = "${fs.readFileSync(trayPath).toString('base64')}";`,`const MR_VIEWER_BASE64 = "${fs.readFileSync(viewerPath).toString('base64')}";`].join('\n')+'\n';source=source.slice(0,index)+constants+source.slice(index);const route='    if (path === "/b2b-viewer.js")';if(!source.includes(route))throw new Error('MR route ekleme noktası bulunamadı.');const routes=`    if (path === "/mr-modul.glb") return binary(MR_MODULE_BASE64, "model/gltf-binary");
+    if (path === "/mr-ayak-top.glb") return binary(MR_UPRIGHT_BASE64, "model/gltf-binary");
+    if (path === "/mr-zs-travers.glb") return binary(MR_TRAVERSE_BASE64, "model/gltf-binary");
+    if (path === "/mr-tava.glb") return binary(MR_TRAY_BASE64, "model/gltf-binary");
+    if (path === "/mr-viewer.js") return new Response(Uint8Array.from(atob(MR_VIEWER_BASE64),(c)=>c.charCodeAt(0)),{headers:{"content-type":"text/javascript; charset=utf-8","cache-control":"no-store","x-content-type-options":"nosniff"}});
+`;source=source.replace(route,routes+route);fs.writeFileSync(workerPath,source);
 NODE
 
 echo "Built $dist_root"
