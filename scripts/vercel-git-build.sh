@@ -178,6 +178,11 @@ node scripts/patch-pdf-direct-type-pages-v19.mjs
 # reliable and keep Uzatma Mesafesi fixed above the disclosures.
 node scripts/patch-final-user-repairs-v20.mjs
 
+# Serbest Cizim stays lightweight while racks are placed. Heavy A4/corporate
+# report work and offscreen B2B section captures run only from the explicit
+# "Ciktiyi Olustur" control next to "Kesit Yer Belirleme".
+node scripts/patch-manual-free-output-v32.mjs
+
 # Fail the deployment if any generated inline browser runtime has invalid syntax.
 node scripts/verify-inline-runtime-syntax-v21.mjs
 
@@ -186,4 +191,5 @@ grep -q "m2LayoutState.racks.filter" scripts/patch-pdf-direct-type-pages-v19.mjs
 ! grep -q "rafex-v19-detail-chip" scripts/patch-pdf-direct-type-pages-v19.mjs
 grep -q "rafexRenderSelectedB2BSections" client/b2b-section-positioner-v5.js
 grep -q 'data-rafex-final-user-repairs="v20"' scripts/patch-final-user-repairs-v20.mjs
+grep -q 'data-rafex-manual-free-output="v32"' scripts/patch-manual-free-output-v32.mjs
 echo "Production chain verified: live Serbest Cizim collision preserved + pointer events coalesced to one live calculation per frame + guide SVG throttled to 64 ms + geometry/cache/DOM/runtime tables v27-v29 + mobile desktop viewport v30 + 3D lifecycle cleanup v30 + technical Mekik front section + direct used-rack PDF type pages + two 50% slots + B2B front-only + saved-rack click performance fix + MR saved-types v18 + MR tray clearance v19 + MR save API v20 + B2B physical upright width 60 mm."
