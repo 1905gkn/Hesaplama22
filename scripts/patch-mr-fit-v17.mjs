@@ -16,7 +16,7 @@ let viewer = fs.readFileSync(viewerPath, "utf8");
 viewer = replaceRequired(
   viewer,
   'const task = loader.loadAsync(`${PARTS[key]}?v=mr-assembly-4`).finally(() => draco.dispose());',
-  'const task = loader.loadAsync(`${PARTS[key]}?v=mr-assembly-5`).finally(() => draco.dispose());',
+  'const task = loader.loadAsync(`${PARTS[key]}?v=mr-assembly-6`).finally(() => draco.dispose());',
   "MR GLB cache"
 );
 
@@ -58,8 +58,8 @@ viewer = replaceRequired(
   `              shelf.scale.set(pieceWidth / tray.size.x, 1, depth / tray.size.z);
               shelf.rotation.x = Math.PI;
               shelf.position.set(moduleX + cursor, levelY + traverseHeight + tray.size.y - 50, depth);`,
-  `              // Tava: onden 10 mm, arkadan 10 mm kisalt ve 10 mm yukari kaldir.
-              const trayDepth = Math.max(1, depth - 20);
+  `              // Tava: onden 15 mm, arkadan 10 mm kisalt ve 10 mm yukari kaldir.
+              const trayDepth = Math.max(1, depth - 25);
               shelf.scale.set(pieceWidth / tray.size.x, 1, trayDepth / tray.size.z);
               shelf.rotation.x = Math.PI;
               shelf.position.set(moduleX + cursor, levelY + traverseHeight + tray.size.y - 40, depth - 10);`,
@@ -69,7 +69,7 @@ viewer = replaceRequired(
 fs.writeFileSync(viewerPath, viewer);
 
 let portal = fs.readFileSync(portalPath, "utf8");
-portal = portal.replace(/\/mr-viewer\.js\?v=mr-system-16/g, "/mr-viewer.js?v=mr-system-17");
+portal = portal.replace(/\/mr-viewer\.js\?v=mr-system-16/g, "/mr-viewer.js?v=mr-system-18");
 fs.writeFileSync(portalPath, portal);
 
-console.log("MR v17: traversler ayaga tam oturtuldu; tavalar 10+10 mm kisaltildi ve 10 mm yukari alindi.");
+console.log("MR v17: traversler ayaga tam oturtuldu; tavalar onden 15 mm, arkadan 10 mm kisaltildi ve 10 mm yukari alindi.");
