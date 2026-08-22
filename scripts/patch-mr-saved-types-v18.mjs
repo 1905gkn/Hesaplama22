@@ -90,19 +90,6 @@ portal = portal.replace(
   "m2RenderSelectedRackInfo();return;"
 );
 
-// Final MR sayfasi kurulurken aktif modulu Mekik2 taban rendererindan ONCE MR
-// olarak sabitle. Boylece ilk liste istegi de dogrudan B2B deposundan MR filtresiyle gelir.
-{
-  const renderStart = portal.lastIndexOf("      renderMR=function(){");
-  if (renderStart < 0) throw new Error("MR v19: final renderMR bulunamadi");
-  const call = portal.indexOf("        renderMekik2();", renderStart);
-  if (call < 0) throw new Error("MR v19: final renderMekik2 bulunamadi");
-  const before = portal.slice(Math.max(renderStart, call - 80), call);
-  if (!before.includes('m2ActiveModule="mr";')) {
-    portal = portal.slice(0, call) + '        m2ActiveModule="mr";\n' + portal.slice(call);
-  }
-}
-
 // Render sirasinda eski kaynaklardan panel tekrar eklenirse DOM'dan da temizle.
 portal = portal.replace(/<style data-rafex-mr-v18="1">[\s\S]*?<\/style>\s*/g, "");
 portal = portal.replace(/<style data-rafex-mr-saved-types-v19="1">[\s\S]*?<\/style>\s*/g, "");
