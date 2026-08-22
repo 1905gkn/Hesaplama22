@@ -488,7 +488,7 @@
       saved = JSON.parse(JSON.stringify(draft));
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch {}
       modal.hidden = true;
-      queueReportRender(saved, true, 40);
+      window.__rafexFreeOutputDirty = true;
     } else {
       draft = JSON.parse(JSON.stringify(saved));
       modal.hidden = true;
@@ -616,9 +616,7 @@
       const original = m2RenderCorporateReport;
       if (typeof original === "function") {
         m2RenderCorporateReport = function (...args) {
-          const result = original.apply(this, args);
-          queueReportRender(saved, false, 360);
-          return result;
+          return original.apply(this, args);
         };
       }
     } catch (error) { console.warn("Perspektif kurumsal çıktı kancası kurulamadı", error); }
