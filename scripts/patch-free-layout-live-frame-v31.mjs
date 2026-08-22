@@ -136,8 +136,9 @@ replaceRequired(
   "surukleme topoloji tablosu"
 );
 
-// Raf her karede akici hareket eder. Metin/SVG olcu katmani 64 ms'de bir canli
-// guncellenir; pointerup'taki normal render son degeri eksiksiz kurar.
+// Raf ve ona bagli olcu/SVG katmani ayni animasyon karesinde guncellenir.
+// Boylece blok olculerin onune gecmez; pointerup'taki normal render da son
+// degeri eksiksiz kurar.
 replaceRequired(
   `        if(!m2PerfTranslateEntry(entry,dx,dy))return false;
         m2PerfTranslateAttachedSymbols(rack.id,dx,dy);m2PerfTranslateRackAux(rack.id,dx,dy);
@@ -146,11 +147,10 @@ replaceRequired(
   `        if(!m2PerfTranslateEntry(entry,dx,dy))return false;
         m2PerfTranslateAttachedSymbols(rack.id,dx,dy);m2PerfTranslateRackAux(rack.id,dx,dy);
         if(!m2PerfPreparedDrags.has(drag)){m2PerfRemoveStaticMovingGuides(layer,rack.id);m2PerfPreparedDrags.add(drag);}
-        const now=performance.now();if(drag.perfLastGuideAt&&now-drag.perfLastGuideAt<64)return true;drag.perfLastGuideAt=now;
         const overlay=m2PerfEnsureDragOverlay(layer),guideHtml=m2WallDistanceGuides(rack,{left:true,right:true,top:true,bottom:true,gap:true})+m2RackDistanceGuide(rack)+m2ColumnDistanceGuide(rack)+m2PerfMovingSeismicSvg(rack.id);`,
-  "canli olcu SVG frekansi"
+  "canli olcu SVG kare senkronu"
 );
 
-if(!html.includes(marker)||!html.includes("if(m2LayoutState.drag)m2FlushLiveRackDrag(svg,event)")||!html.includes("drag?.perfBlockingReady")||!html.includes("drag?.perfAttachedEntries")||!html.includes("now-drag.perfLastGuideAt<64"))throw new Error("v31: son dogrulama basarisiz.");
+if(!html.includes(marker)||!html.includes("if(m2LayoutState.drag)m2FlushLiveRackDrag(svg,event)")||!html.includes("drag?.perfBlockingReady")||!html.includes("drag?.perfAttachedEntries")||html.includes("now-drag.perfLastGuideAt<64"))throw new Error("v31: son dogrulama basarisiz.");
 fs.writeFileSync(portalPath,html);
-console.log("v31: pointermove olaylari tek rAF'te birlestirildi; canli cakisma korunarak raf 60 FPS, olcu SVG katmani ~15 FPS guncelleniyor.");
+console.log("v31: pointermove tek rAF; raf, canli cakisma ve olcu SVG katmani ayni karede senkron guncelleniyor.");
