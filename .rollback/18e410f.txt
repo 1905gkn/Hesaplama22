@@ -1,0 +1,1 @@
+Rollback marker: production code restored to 18e410fb4465482fc6b1e08204ef4917a0a2c480 on 2026-08-22.
