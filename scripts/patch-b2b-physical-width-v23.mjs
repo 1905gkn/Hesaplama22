@@ -34,8 +34,8 @@ replaceRequired(
   "tek modul toplam genislik"
 );
 replaceRequired(
-  'if ($("b2bWidthRule")) $("b2bWidthRule").textContent = `Travers ${fmt(geometry.sectionWidth)} + sol ayak ${fmt(footWidth)} + sag ayak ${fmt(footWidth)} = ${fmt(totalWidth)} mm`;',
-  'if ($("b2bWidthRule")) $("b2bWidthRule").textContent = `Travers ${fmt(geometry.sectionWidth)} + sol ayak ${fmt(B2B_PHYSICAL_FOOT_WIDTH)} + sag ayak ${fmt(B2B_PHYSICAL_FOOT_WIDTH)} = ${fmt(totalWidth)} mm`;',
+  'if ($("b2bWidthRule")) $("b2bWidthRule").textContent = `Travers ${fmt(geometry.sectionWidth)} + sol ayak ${fmt(footWidth)} + sağ ayak ${fmt(footWidth)} = ${fmt(totalWidth)} mm`;',
+  'if ($("b2bWidthRule")) $("b2bWidthRule").textContent = `Travers ${fmt(geometry.sectionWidth)} + sol ayak ${fmt(B2B_PHYSICAL_FOOT_WIDTH)} + sağ ayak ${fmt(B2B_PHYSICAL_FOOT_WIDTH)} = ${fmt(totalWidth)} mm`;',
   "tek modul genislik aciklamasi"
 );
 
