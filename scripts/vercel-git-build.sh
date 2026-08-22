@@ -43,6 +43,11 @@ node scripts/patch-free-layout-geometry-cache-v27.mjs
 # and move only the active rack plus its live guide layer instead of rebuilding all SVG.
 node scripts/patch-free-layout-dom-table-v28.mjs
 
+# Central runtime tables: walls, columns, blocking accessories, distance dependencies,
+# DOM registry, dirty queue and frame cache. These remove repeated topology scans while
+# preserving the exact live distance/collision formulas.
+node scripts/patch-free-layout-runtime-tables-v29.mjs
+
 node scripts/patch-mobile-responsive.mjs
 node scripts/patch-foot-priority-fixed-sidebar.mjs
 node scripts/patch-ui-runtime-stability.mjs
@@ -74,6 +79,9 @@ grep -q 'const m2PerfGeometryTable = new Map();' portal.html
 grep -q 'm2PerfCollisionCandidates(a).some' portal.html
 grep -q 'const m2PerfRackDomTable = new Map();' portal.html
 grep -q 'm2PerfRenderSingleRackDragFrame()' portal.html
+grep -q 'const m2LayoutRuntimeCache = {' portal.html
+grep -q 'm2PerfWallGeometryTable()' portal.html
+grep -q 'm2PerfBlockingSymbols().some' portal.html
 
 bash scripts/build.sh
 
@@ -162,4 +170,4 @@ grep -q "m2LayoutState.racks.filter" scripts/patch-pdf-direct-type-pages-v19.mjs
 ! grep -q "rafex-v19-detail-chip" scripts/patch-pdf-direct-type-pages-v19.mjs
 grep -q "rafexRenderSelectedB2BSections" client/b2b-section-positioner-v5.js
 grep -q 'data-rafex-final-user-repairs="v20"' scripts/patch-final-user-repairs-v20.mjs
-echo "Production chain verified: original Serbest Cizim live distance and collision behavior preserved + geometry cache/spatial table v27 + incremental single-rack DOM table v28 + technical Mekik front section + direct used-rack PDF type pages + two 50% slots + B2B front-only + saved-rack click performance fix + MR saved-types v18 + MR tray clearance v19 + MR save API v20 + B2B physical upright width 60 mm."
+echo "Production chain verified: original Serbest Cizim live distance and collision behavior preserved + geometry cache/spatial table v27 + incremental single-rack DOM table v28 + central runtime tables v29 + technical Mekik front section + direct used-rack PDF type pages + two 50% slots + B2B front-only + saved-rack click performance fix + MR saved-types v18 + MR tray clearance v19 + MR save API v20 + B2B physical upright width 60 mm."
