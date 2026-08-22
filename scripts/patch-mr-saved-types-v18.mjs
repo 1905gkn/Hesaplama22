@@ -24,7 +24,6 @@ replaceRequired(
   "MR tip API"
 );
 
-// Kaydet alanindaki kucuk MR BLOKLARI panelini kaynak seviyesinde kaldir.
 portal = portal.replace(
   /<div class="mr-block-panel"><div class="mr-block-head"><b>MR BLOKLARI<\/b><small id="mrBlockCount">0\/26<\/small><\/div><div class="mr-block-list" id="mrBlockList"><\/div><\/div>/g,
   ""
@@ -34,23 +33,18 @@ portal = portal.replace(
   "Mevcut MR ölçülerini kayıtlı MR raf tiplerine ekler."
 );
 
-// Tek yetkili liste alttaki genis KAYITLI MR RAF TIPLERI listesi olsun.
 {
   const start = indexRequired("      function mrRenderBlocksV7(){", 0, "mrRenderBlocksV7");
   const end = indexRequired("      window.mrSelectBlockV7=", start, "mrSelectBlockV7");
   portal = portal.slice(0, start) + "      function mrRenderBlocksV7(){mrNormalizeBlocksV7();}\n" + portal.slice(end);
 }
 
-// B2B ve MR ayni calisan backend tablosunu kullaniyor. Ekranda iki sistemin
-// kayitlarini kesin olarak birbirinden ayir; MR harfleri A'dan bagimsiz baslasin.
 {
   const oldLine = '          m2SavedRackTypes = Array.isArray(result.types) ? result.types.filter((entry) => entry?.id && entry?.name && entry?.drawing?.plan && (m2ActiveModule!=="mr" || entry?.drawing?.b2b?.mr)).map((entry, index) => ({ ...entry, name:["b2b","mr"].includes(m2ActiveModule) ? b2bTypeLetter(entry.name, entry.typeNo || index + 1) : entry.name, source:"server" })) : [];';
   const newLines = '          const rawTypes=Array.isArray(result.types)?result.types:[];\n          m2SavedRackTypes=rawTypes.filter((entry)=>entry?.id&&entry?.name&&entry?.drawing?.plan&&(m2ActiveModule==="mr"?Boolean(entry?.drawing?.b2b?.mr):m2ActiveModule==="b2b"?!entry?.drawing?.b2b?.mr:true)).map((entry,index)=>({...entry,name:m2ActiveModule==="mr"?b2bTypeLetter("",index+1):m2ActiveModule==="b2b"?b2bTypeLetter(entry.name,entry.typeNo||index+1):entry.name,source:"server"}));';
   replaceRequired(oldLine, newLines, "kayitli tip filtreleme");
 }
 
-// MR kaydi her zaman canli MR formundan uretilsin ve calisan /api/b2b-types
-// endpointine yazilsin. Sonra ana liste sunucudan tekrar cekilsin.
 {
   const start = indexRequired("      window.mrSaveRackV6=async()=>{", 0, "mrSaveRackV6");
   const end = indexRequired("      mrConfigurationV2=function(){", start, "mrConfigurationV2");
@@ -84,17 +78,15 @@ portal = portal.replace(
   portal = portal.slice(0, start) + save + portal.slice(end);
 }
 
-// Ana MR listesi render edilirken artik kucuk panel rendereri cagrilmasin.
 portal = portal.replace(
   /m2RenderSelectedRackInfo\(\);if\(typeof mrRenderBlocksV7==="function"\)mrRenderBlocksV7\(\);return;/g,
   "m2RenderSelectedRackInfo();return;"
 );
 
-// Render sirasinda eski kaynaklardan panel tekrar eklenirse DOM'dan da temizle.
-portal = portal.replace(/<style data-rafex-mr-v18="1">[\s\S]*?<\/style>\s*/g, "");
-portal = portal.replace(/<style data-rafex-mr-saved-types-v19="1">[\s\S]*?<\/style>\s*/g, "");
+portal = portal.replace(/<style data-rafex-mr-v18="1"[^>]*>[\s\S]*?<\/style>\s*/g, "");
+portal = portal.replace(/<style data-rafex-mr-saved-types-v19="1"[^>]*>[\s\S]*?<\/style>\s*/g, "");
 portal = portal.replace(/<script data-rafex-mr-saved-types-v19="1">[\s\S]*?<\/script>\s*/g, "");
-const runtime = `<style data-rafex-mr-saved-types-v19="1">
+const runtime = `<style data-rafex-mr-v18="1" data-rafex-mr-saved-types-v19="1">
 .mr-mode .mr-block-panel{display:none!important}
 .mr-mode .mr-rack-save{display:grid!important;grid-template-columns:minmax(140px,220px) 1fr!important;align-items:center!important;gap:10px!important}
 </style>
