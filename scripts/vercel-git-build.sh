@@ -49,10 +49,16 @@ node scripts/patch-mr-tray-clearance-v19.mjs
 node scripts/patch-mr-saved-types-v18.mjs
 node scripts/patch-mr-save-api-v20.mjs
 
+# B2B front-direction physical width is independent from HR90/100/120/127/140
+# profile family: every upright occupies 60 mm. Joined modules share one upright.
+node scripts/patch-b2b-physical-width-v23.mjs
+
 grep -q 'const trayDepth = Math.max(1, depth - 25);' client/mr-viewer.entry.js
 grep -q 'data-rafex-mr-v18="1"' portal.html
 grep -q 'm2ActiveModule="mr"' portal.html
 grep -q 'm2ActiveModule === "mr" ? "/api/b2b-types"' portal.html
+grep -q 'const B2B_PHYSICAL_FOOT_WIDTH = 60;' portal.html
+grep -q 'footWidth: B2B_PHYSICAL_FOOT_WIDTH' portal.html
 
 bash scripts/build.sh
 
@@ -141,4 +147,4 @@ grep -q "m2LayoutState.racks.filter" scripts/patch-pdf-direct-type-pages-v19.mjs
 ! grep -q "rafex-v19-detail-chip" scripts/patch-pdf-direct-type-pages-v19.mjs
 grep -q "rafexRenderSelectedB2BSections" client/b2b-section-positioner-v5.js
 grep -q 'data-rafex-final-user-repairs="v20"' scripts/patch-final-user-repairs-v20.mjs
-echo "Production chain verified: technical Mekik front section + direct used-rack PDF type pages + two 50% slots + B2B front-only + saved-rack click performance fix + MR saved-types v18 + MR tray clearance v19 + MR save API v20."
+echo "Production chain verified: technical Mekik front section + direct used-rack PDF type pages + two 50% slots + B2B front-only + saved-rack click performance fix + MR saved-types v18 + MR tray clearance v19 + MR save API v20 + B2B physical upright width 60 mm."
