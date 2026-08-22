@@ -63,22 +63,24 @@ if (viewer.includes(wrongAxis)) {
 if (fs.existsSync(portalPath)) {
   let portal = fs.readFileSync(portalPath, "utf8");
   const requiredPortalMarkers = [
-    'data-rafex-mr-b2b-v17="1"',
-    'id="mrMeasureSettingsDialogV17"',
-    'id="mrDimensionVisibilityDialogV17"',
-    'id="mrTopTraverseEditV17"',
-    'value="MR60|1.5"',
-    'value="MR60|2"',
-    'value="ZS35|1.5"',
-    'value="ZS35|2"',
-    'value="ZS55|1.5"',
-    'value="ZS55|2"',
-    'value="ZS65|1.5"',
-    'value="ZS65|2"',
-    'traverseHeight={ZS35:55,ZS55:75,ZS65:85}',
-    'uprightWidth:60',
+    ['B2B olcu dialog stili', /data-rafex-mr-b2b-v17=["']1["']/],
+    ['olcu ayarlari dialogu', /id=["']mrMeasureSettingsDialogV17["']/],
+    ['olcu gorunurluk dialogu', /id=["']mrDimensionVisibilityDialogV17["']/],
+    ['son travers kotu alani', /id=["']mrTopTraverseEditV17["']/],
+    ['MR60 1.5 mm', /value=["']MR60\|1\.5["']/],
+    ['MR60 2 mm', /value=["']MR60\|2["']/],
+    ['ZS35 1.5 mm', /value=["']ZS35\|1\.5["']/],
+    ['ZS35 2 mm', /value=["']ZS35\|2["']/],
+    ['ZS55 1.5 mm', /value=["']ZS55\|1\.5["']/],
+    ['ZS55 2 mm', /value=["']ZS55\|2["']/],
+    ['ZS65 1.5 mm', /value=["']ZS65\|1\.5["']/],
+    ['ZS65 2 mm', /value=["']ZS65\|2["']/],
+    ['ZS35 H55', /ZS35\s*:\s*55/],
+    ['ZS55 H75', /ZS55\s*:\s*75/],
+    ['ZS65 H85', /ZS65\s*:\s*85/],
+    ['MR60 genislik 60', /uprightWidth\s*:\s*60/],
   ];
-  const missing = requiredPortalMarkers.filter((marker) => !portal.includes(marker));
+  const missing = requiredPortalMarkers.filter(([, pattern]) => !pattern.test(portal)).map(([label]) => label);
   if (missing.length) {
     throw new Error(`MR v19 regression kilidi: onceki MR guncellemeleri eksik: ${missing.join(", ")}`);
   }
