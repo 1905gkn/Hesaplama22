@@ -32,9 +32,6 @@ node scripts/patch-between-measure-source.mjs
 node scripts/patch-free-layout-drag-start-performance.mjs
 node scripts/patch-free-layout-staged-report-performance.mjs
 node scripts/patch-free-layout-staged-fast-v2.mjs
-node scripts/patch-free-layout-interaction-performance-v24.mjs
-node scripts/patch-free-layout-fast-drag-v25.mjs
-node scripts/patch-free-layout-zero-cost-drag-v26.mjs
 node scripts/patch-mobile-responsive.mjs
 node scripts/patch-foot-priority-fixed-sidebar.mjs
 node scripts/patch-ui-runtime-stability.mjs
@@ -62,9 +59,6 @@ grep -q 'm2ActiveModule="mr"' portal.html
 grep -q 'm2ActiveModule === "mr" ? "/api/b2b-types"' portal.html
 grep -q 'const B2B_PHYSICAL_FOOT_WIDTH = 60;' portal.html
 grep -q 'footWidth: B2B_PHYSICAL_FOOT_WIDTH' portal.html
-grep -q 'function m2ScheduleFastDrag(event)' portal.html
-grep -q 'm2PushFastDragUndo' portal.html
-grep -q 'm2FinalizeFastDrag' portal.html
 
 bash scripts/build.sh
 
@@ -153,4 +147,4 @@ grep -q "m2LayoutState.racks.filter" scripts/patch-pdf-direct-type-pages-v19.mjs
 ! grep -q "rafex-v19-detail-chip" scripts/patch-pdf-direct-type-pages-v19.mjs
 grep -q "rafexRenderSelectedB2BSections" client/b2b-section-positioner-v5.js
 grep -q 'data-rafex-final-user-repairs="v20"' scripts/patch-final-user-repairs-v20.mjs
-echo "Production chain verified: free-layout zero-cost drag v26 + collision only on drop + lightweight drag undo + technical Mekik front section + direct used-rack PDF type pages + two 50% slots + B2B front-only + saved-rack click performance fix + MR saved-types v18 + MR tray clearance v19 + MR save API v20 + B2B physical upright width 60 mm."
+echo "Production chain verified: original Serbest Cizim live distance and collision behavior preserved + technical Mekik front section + direct used-rack PDF type pages + two 50% slots + B2B front-only + saved-rack click performance fix + MR saved-types v18 + MR tray clearance v19 + MR save API v20 + B2B physical upright width 60 mm."
