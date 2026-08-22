@@ -47,10 +47,12 @@ node scripts/patch-runtime-insertion-order-v22.mjs
 node scripts/patch-mr-773a-followup-v1.mjs
 node scripts/patch-mr-tray-clearance-v19.mjs
 node scripts/patch-mr-saved-types-v18.mjs
+node scripts/patch-mr-save-api-v20.mjs
 
 grep -q 'const trayDepth = Math.max(1, depth - 25);' client/mr-viewer.entry.js
 grep -q 'data-rafex-mr-v18="1"' portal.html
 grep -q 'm2ActiveModule="mr"' portal.html
+grep -q 'm2ActiveModule === "mr" ? "/api/b2b-types"' portal.html
 
 bash scripts/build.sh
 
@@ -139,4 +141,4 @@ grep -q "m2LayoutState.racks.filter" scripts/patch-pdf-direct-type-pages-v19.mjs
 ! grep -q "rafex-v19-detail-chip" scripts/patch-pdf-direct-type-pages-v19.mjs
 grep -q "rafexRenderSelectedB2BSections" client/b2b-section-positioner-v5.js
 grep -q 'data-rafex-final-user-repairs="v20"' scripts/patch-final-user-repairs-v20.mjs
-echo "Production chain verified: technical Mekik front section + direct used-rack PDF type pages + two 50% slots + B2B front-only + saved-rack click performance fix + MR saved-types v18 + MR tray clearance v19."
+echo "Production chain verified: technical Mekik front section + direct used-rack PDF type pages + two 50% slots + B2B front-only + saved-rack click performance fix + MR saved-types v18 + MR tray clearance v19 + MR save API v20."
