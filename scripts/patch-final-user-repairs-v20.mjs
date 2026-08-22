@@ -39,18 +39,12 @@ const runtime = String.raw`<style data-rafex-final-user-repairs="v20">
     if(!freePage())return;var state=productState();document.querySelectorAll('#m2LayoutProductList details[data-rafex-product-system]').forEach(function(details){var key=details.dataset.rafexProductSystem;details.open=state[key]===true;});
   }
   var products=document.getElementById('m2LayoutProductList');if(products)new MutationObserver(function(){stabilizeExtension();restoreProductOpenState()}).observe(products,{childList:true,subtree:false});
-  var mutationQueued=false;
-  new MutationObserver(function(){
-    if(mutationQueued)return;mutationQueued=true;
-    setTimeout(function(){mutationQueued=false;stabilizeExtension();restoreProductOpenState()},0);
-  }).observe(document.documentElement,{childList:true,subtree:true});
   async function restoreSelectedB2B(){try{if(typeof window.rafexRenderSelectedB2BSections==='function')await window.rafexRenderSelectedB2BSections(true)}catch(error){console.warn('Kesit Yer Belirleme PDF goruntusu restore edilemedi',error)}}
   function finish(){stabilizeExtension();restoreProductOpenState();return restoreSelectedB2B()}
-  function schedule(){[0,60,180,420,900,1600,2600,3400].forEach(function(ms){setTimeout(finish,ms)})}
-  try{var render=window.m2RenderCorporateReport;if(typeof render==='function'&&!render.__rafexV20){var wrapped=function(){var out=render.apply(this,arguments);Promise.resolve(out).finally(schedule);return out};wrapped.__rafexV20=true;try{m2RenderCorporateReport=wrapped}catch{}window.m2RenderCorporateReport=wrapped}}catch{}
+  try{var render=window.m2RenderCorporateReport;if(typeof render==='function'&&!render.__rafexV20){var wrapped=function(){return render.apply(this,arguments)};wrapped.__rafexV20=true;try{m2RenderCorporateReport=wrapped}catch{}window.m2RenderCorporateReport=wrapped}}catch{}
   try{var prepare=window.__rafexPrepareCorporatePrint;if(typeof prepare==='function'&&!prepare.__rafexV20){var wrappedPrepare=async function(){var out=await prepare.apply(this,arguments);await finish();await new Promise(function(resolve){requestAnimationFrame(async function(){await finish();resolve()})});return out};wrappedPrepare.__rafexV20=true;window.__rafexPrepareCorporatePrint=wrappedPrepare}}catch{}
   document.addEventListener('click',function(){setTimeout(stabilizeExtension,0)},true);
-  stabilizeExtension();restoreProductOpenState();schedule();
+  stabilizeExtension();restoreProductOpenState();
 })();</script>`;
 
 const bodyEnd = html.lastIndexOf("</body>");
