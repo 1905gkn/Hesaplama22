@@ -39,27 +39,31 @@ const fittedConfigHead = `    const levelGap = bounded(config.levelGap, 1000, 10
 const originalLevelYs = `      const levelYs = Array.from({ length: levels }, (_, index) => firstTraverse + index * levelGap);`;
 const fittedLevelYs = `      const levelYs = Array.from({ length: levels }, (_, index) => firstTraverse + index * (levelGap + traverseHeight));`;
 
-const originalDimensions = `    if (this.config.dimensions.levels) levelYs.forEach((height, index) => {
-      const from = index === 0 ? 0 : levelYs[index - 1], label = index === 0 ? \`ZEMİN → K1 · ${this.dimensionValue(height)}\` : \`K${index} → K${index+1} · ${this.dimensionValue(height-from)}\`;
-      this.addVerticalDimension(layer, x, z, from, height, label, 0, index === 0 ? "firstTraverse" : "levelGap");
-    });
-    if (this.config.dimensions.markers) {
-      const topTraverse = levelYs.at(-1) || 0; this.addVerticalDimension(layer, totalWidth+280, z, topTraverse, uprightHeight, \`SON KAT ÜSTÜ · ${this.dimensionValue(uprightHeight-topTraverse)}\`, totalWidth, "topTraverse");
-      this.addDimensionLabel(layer, totalWidth+510, uprightHeight, z, \`AYAK BOYU · ${this.dimensionValue(uprightHeight)}\`, 760, "topTraverse");
-    }`;
+const originalDimensions = [
+  '    if (this.config.dimensions.levels) levelYs.forEach((height, index) => {',
+  '      const from = index === 0 ? 0 : levelYs[index - 1], label = index === 0 ? `ZEMİN → K1 · ${this.dimensionValue(height)}` : `K${index} → K${index+1} · ${this.dimensionValue(height-from)}`;',
+  '      this.addVerticalDimension(layer, x, z, from, height, label, 0, index === 0 ? "firstTraverse" : "levelGap");',
+  '    });',
+  '    if (this.config.dimensions.markers) {',
+  '      const topTraverse = levelYs.at(-1) || 0; this.addVerticalDimension(layer, totalWidth+280, z, topTraverse, uprightHeight, `SON KAT ÜSTÜ · ${this.dimensionValue(uprightHeight-topTraverse)}`, totalWidth, "topTraverse");',
+  '      this.addDimensionLabel(layer, totalWidth+510, uprightHeight, z, `AYAK BOYU · ${this.dimensionValue(uprightHeight)}`, 760, "topTraverse");',
+  '    }'
+].join("\n");
 
-const fittedDimensions = `    if (this.config.dimensions.levels) levelYs.forEach((height, index) => {
-      const from = index === 0 ? 0 : levelYs[index - 1] + this.config.traverseHeight;
-      const value = height - from;
-      const label = index === 0 ? \`ZEMİN → K1 · ${this.dimensionValue(height)}\` : \`K${index} → K${index+1} NET · ${this.dimensionValue(value)}\`;
-      this.addVerticalDimension(layer, x, z, from, height, label, 0, index === 0 ? "firstTraverse" : "levelGap");
-    });
-    if (this.config.dimensions.markers) {
-      const topTraverse = levelYs.at(-1) || 0;
-      const topTraverseTop = topTraverse + this.config.traverseHeight;
-      this.addVerticalDimension(layer, totalWidth+280, z, topTraverseTop, uprightHeight, \`ÜST YARIM KAT · ${this.dimensionValue(uprightHeight-topTraverseTop)}\`, totalWidth, "uprightHeight");
-      this.addDimensionLabel(layer, totalWidth+510, uprightHeight, z, \`AYAK BOYU · ${this.dimensionValue(uprightHeight)}\`, 760, "uprightHeight");
-    }`;
+const fittedDimensions = [
+  '    if (this.config.dimensions.levels) levelYs.forEach((height, index) => {',
+  '      const from = index === 0 ? 0 : levelYs[index - 1] + this.config.traverseHeight;',
+  '      const value = height - from;',
+  '      const label = index === 0 ? `ZEMİN → K1 · ${this.dimensionValue(height)}` : `K${index} → K${index+1} NET · ${this.dimensionValue(value)}`;',
+  '      this.addVerticalDimension(layer, x, z, from, height, label, 0, index === 0 ? "firstTraverse" : "levelGap");',
+  '    });',
+  '    if (this.config.dimensions.markers) {',
+  '      const topTraverse = levelYs.at(-1) || 0;',
+  '      const topTraverseTop = topTraverse + this.config.traverseHeight;',
+  '      this.addVerticalDimension(layer, totalWidth+280, z, topTraverseTop, uprightHeight, `ÜST YARIM KAT · ${this.dimensionValue(uprightHeight-topTraverseTop)}`, totalWidth, "uprightHeight");',
+  '      this.addDimensionLabel(layer, totalWidth+510, uprightHeight, z, `AYAK BOYU · ${this.dimensionValue(uprightHeight)}`, 760, "uprightHeight");',
+  '    }'
+].join("\n");
 
 const originalTraverseScale = `            beam.scale.set(width / traverse.size.x, traverseHeight / traverse.size.y, 1);`;
 const fittedTraverseScale = `            // Extend the ZS traverse to the upright centre lines so the GLB end
@@ -192,4 +196,4 @@ if (!portal.includes(runtimeMarker)) {
 
 portal = portal.replace(/\/mr-viewer\.js\?v=[^\"'`<\s]+/g, "/mr-viewer.js?v=mr-773a-followup-3");
 fs.writeFileSync(portalPath, portal);
-console.log("MR 773a v3: ayak otomatik/manueI hesap kurali ve rapor kat konumlari uygulandi.");
+console.log("MR 773a v3: ayak otomatik/manual hesap kurali ve rapor kat konumlari uygulandi.");
