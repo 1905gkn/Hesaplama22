@@ -49,6 +49,9 @@ node scripts/patch-free-layout-dom-table-v28.mjs
 node scripts/patch-free-layout-runtime-tables-v29.mjs
 
 node scripts/patch-mobile-responsive.mjs
+# Mobile phones should open the exact desktop/web layout instead of the stacked mobile UI.
+# Use a 1366px layout viewport scaled to fit, with pinch zoom preserved.
+node scripts/patch-mobile-desktop-view-v30.mjs
 node scripts/patch-foot-priority-fixed-sidebar.mjs
 node scripts/patch-ui-runtime-stability.mjs
 node scripts/patch-login-home-sidebar.mjs
@@ -82,6 +85,7 @@ grep -q 'm2PerfRenderSingleRackDragFrame()' portal.html
 grep -q 'const m2LayoutRuntimeCache = {' portal.html
 grep -q 'm2PerfWallGeometryTable()' portal.html
 grep -q 'm2PerfBlockingSymbols().some' portal.html
+grep -q 'data-rafex-mobile-desktop-view="v30"' portal.html
 
 bash scripts/build.sh
 
@@ -170,4 +174,4 @@ grep -q "m2LayoutState.racks.filter" scripts/patch-pdf-direct-type-pages-v19.mjs
 ! grep -q "rafex-v19-detail-chip" scripts/patch-pdf-direct-type-pages-v19.mjs
 grep -q "rafexRenderSelectedB2BSections" client/b2b-section-positioner-v5.js
 grep -q 'data-rafex-final-user-repairs="v20"' scripts/patch-final-user-repairs-v20.mjs
-echo "Production chain verified: original Serbest Cizim live distance and collision behavior preserved + geometry cache/spatial table v27 + incremental single-rack DOM table v28 + central runtime tables v29 + technical Mekik front section + direct used-rack PDF type pages + two 50% slots + B2B front-only + saved-rack click performance fix + MR saved-types v18 + MR tray clearance v19 + MR save API v20 + B2B physical upright width 60 mm."
+echo "Production chain verified: original Serbest Cizim live distance and collision behavior preserved + geometry cache/spatial table v27 + incremental single-rack DOM table v28 + central runtime tables v29 + mobile desktop viewport v30 + technical Mekik front section + direct used-rack PDF type pages + two 50% slots + B2B front-only + saved-rack click performance fix + MR saved-types v18 + MR tray clearance v19 + MR save API v20 + B2B physical upright width 60 mm."
