@@ -75,10 +75,10 @@ if (fs.existsSync(portalPath)) {
     ['ZS55 2 mm', /value=["']ZS55\|2["']/],
     ['ZS65 1.5 mm', /value=["']ZS65\|1\.5["']/],
     ['ZS65 2 mm', /value=["']ZS65\|2["']/],
-    ['ZS35 H55', /ZS35\s*:\s*55/],
-    ['ZS55 H75', /ZS55\s*:\s*75/],
-    ['ZS65 H85', /ZS65\s*:\s*85/],
-    ['MR60 genislik 60', /uprightWidth\s*:\s*60/],
+    ['ZS35 H55', /ZS35[^<]{0,100}H\s*55\s*mm/],
+    ['ZS55 H75', /ZS55[^<]{0,100}H\s*75\s*mm/],
+    ['ZS65 H85', /ZS65[^<]{0,100}H\s*85\s*mm/],
+    ['MR60 genislik 60', /Ayak genisligi\s*:\s*60\s*mm/i],
   ];
   const missing = requiredPortalMarkers.filter(([, pattern]) => !pattern.test(portal)).map(([label]) => label);
   if (missing.length) {
