@@ -47,6 +47,8 @@ node scripts/patch-runtime-insertion-order-v22.mjs
 # placement, B2B-style ground, profile catalogue and the 3D in-canvas measurement dialogs.
 node scripts/patch-mr-safe-v13.mjs
 node scripts/patch-mr-b2b-controls-v17.mjs
+# ZS traverslerin raf icine bakan dogru montaj yonunu uygula ve cache surumunu yenile.
+node scripts/patch-mr-traverse-orientation-v18.mjs
 
 bash scripts/build.sh
 
@@ -135,4 +137,4 @@ grep -q "m2LayoutState.racks.filter" scripts/patch-pdf-direct-type-pages-v19.mjs
 ! grep -q "rafex-v19-detail-chip" scripts/patch-pdf-direct-type-pages-v19.mjs
 grep -q "rafexRenderSelectedB2BSections" client/b2b-section-positioner-v5.js
 grep -q 'data-rafex-final-user-repairs="v20"' scripts/patch-final-user-repairs-v20.mjs
-echo "Production chain verified: technical Mekik front section + direct used-rack PDF type pages + two 50% slots + B2B front-only + saved-rack click performance fix + MR B2B-style controls."
+echo "Production chain verified: technical Mekik front section + direct used-rack PDF type pages + two 50% slots + B2B front-only + saved-rack click performance fix + MR B2B-style controls + corrected ZS traverse orientation."
