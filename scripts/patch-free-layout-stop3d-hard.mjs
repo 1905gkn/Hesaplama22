@@ -61,7 +61,9 @@ if(!html.includes(marker)){
       window.__rafexFreeLayout3DStopped=true;
       guardViewer();
       try{window.RafexB2BViewer?.setAutoRotate?.(false);}catch{}
+      try{window.RafexMRViewer?.setAutoRotate?.(false);}catch{}
       try{window.RafexB2BViewer?.destroy?.();}catch{}
+      try{window.RafexMRViewer?.destroy?.();}catch{}
       const {canvas,panel}=find3DPanel();
       if(canvas)canvas.style.visibility='hidden';
       if(panel){hiddenPanel=panel;panel.style.display='none';panel.dataset.rafex3dStopped='1';}
@@ -115,4 +117,4 @@ if(!html.includes(marker)||!html.includes('rafexMain3DResumeLauncher'))throw new
 const encoded=Buffer.from(html,'utf8').toString('base64');
 worker=worker.slice(0,match.index)+match[1]+match[2]+encoded+match[2]+worker.slice(match.index+match[0].length);
 fs.writeFileSync(p,worker);
-console.log('FINAL: 3D page refreshte acik; yalniz gercek serbest-yerlesim etkilesiminde gizlenir (v5).');
+console.log('FINAL: Serbest etkilesimde B2B ve MR 3D render donguleri tamamen durdurulur (v5+).');
