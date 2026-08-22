@@ -16,18 +16,22 @@ const runtime = String.raw`<style data-rafex-manual-free-output="v32">
 #m2CreateOutputButton:hover{background:#65111b!important}
 #m2CreateOutputButton:disabled{cursor:wait!important;opacity:.68!important}
 #m2CreateOutputButton[hidden]{display:none!important}
+.m2-report-panel[data-rafex-manual-output="1"][data-rafex-output-visible="0"]>#m2A4Sheet,
+.m2-report-panel[data-rafex-manual-output="1"][data-rafex-output-visible="0"]>#m2CorporatePreview{display:none!important}
 </style><script data-rafex-manual-free-output="v32">(function(){
   if(window.__rafexManualFreeOutputV32)return;window.__rafexManualFreeOutputV32=true;
-  var manualDepth=0,creating=false,buttonObserver=null,pageObserver=null;
+  var manualDepth=0,creating=false,buttonObserver=null;
   var originalSchedule=typeof window.m2ScheduleReportRefresh==='function'?window.m2ScheduleReportRefresh:null;
   var originalRefresh=typeof window.m2RefreshActiveReport==='function'?window.m2RefreshActiveReport:null;
   var originalA4=typeof window.m2RenderA4Report==='function'?window.m2RenderA4Report:null;
   var originalCorporate=typeof window.m2RenderCorporateReport==='function'?window.m2RenderCorporateReport:null;
   var originalSections=typeof window.rafexRenderSelectedB2BSections==='function'?window.rafexRenderSelectedB2BSections:null;
 
-  function freePage(){var page=document.getElementById('page');return !!(page&&page.classList.contains('rafex-free-drawing-page'))}
-  function allowed(){return manualDepth>0||!freePage()}
-  function guard(original){return function(){if(!allowed()){window.__rafexFreeOutputDirty=true;return}return original&&original.apply(this,arguments)}}
+  function outputPanel(){return document.querySelector('.m2-report-panel[data-rafex-manual-output="1"]')}
+  function manualMode(){return !!outputPanel()}
+  function hideOutput(){var panel=outputPanel();if(panel)panel.dataset.rafexOutputVisible='0'}
+  function allowed(){return manualDepth>0||!manualMode()}
+  function guard(original){return function(){if(!allowed()){window.__rafexFreeOutputDirty=true;hideOutput();return}return original&&original.apply(this,arguments)}}
 
   if(originalSchedule){var guardedSchedule=guard(originalSchedule);window.m2ScheduleReportRefresh=guardedSchedule;try{m2ScheduleReportRefresh=guardedSchedule}catch(e){}}
   if(originalRefresh){var guardedRefresh=guard(originalRefresh);window.m2RefreshActiveReport=guardedRefresh;try{m2RefreshActiveReport=guardedRefresh}catch(e){}}
@@ -45,6 +49,7 @@ const runtime = String.raw`<style data-rafex-manual-free-output="v32">
     if(button){button.disabled=true;button.textContent='Çıktı Oluşturuluyor…'}
     setStatus('Çizim tamamlandı; teknik çıktı hazırlanıyor.');
     try{
+      var panel=outputPanel();if(panel)panel.dataset.rafexOutputVisible='1';
       var reportType=document.getElementById('m2ReportType');if(reportType)reportType.value='corporate';
       var a4=document.getElementById('m2A4Sheet'),corporate=document.getElementById('m2CorporatePreview');if(a4)a4.hidden=true;if(corporate)corporate.hidden=false;
       if(originalCorporate)await Promise.resolve(originalCorporate());
@@ -68,18 +73,20 @@ const runtime = String.raw`<style data-rafex-manual-free-output="v32">
   function ensureButton(){
     var sectionButton=document.getElementById('m2SectionPlacementButton');
     var host=sectionButton?.parentElement||document.querySelector('.m2-report-head-actions');if(!host)return false;
+    var panel=host.closest('.m2-report-panel');if(panel){panel.dataset.rafexManualOutput='1';if(panel.dataset.rafexOutputVisible!=='1')panel.dataset.rafexOutputVisible='0'}
     var button=document.getElementById('m2CreateOutputButton');if(!button){button=document.createElement('button');button.type='button';button.id='m2CreateOutputButton';button.textContent='Çıktıyı Oluştur';button.addEventListener('click',createOutput)}
     if(sectionButton){if(sectionButton.nextElementSibling!==button)sectionButton.insertAdjacentElement('afterend',button)}else if(!button.isConnected)host.prepend(button);
-    button.hidden=!freePage();
+    button.hidden=false;
     if(!buttonObserver){buttonObserver=new MutationObserver(function(){if(!document.getElementById('m2CreateOutputButton'))ensureButton()});buttonObserver.observe(host,{childList:true})}
     return true;
   }
 
   window.rafexCreateFreeDrawingOutput=createOutput;
   function start(){
+    if(ensureButton())return;
     var attempts=0,timer=setInterval(function(){attempts++;if(ensureButton()||attempts>=40)clearInterval(timer)},250);
-    var page=document.getElementById('page');if(page&&!pageObserver){pageObserver=new MutationObserver(ensureButton);pageObserver.observe(page,{attributes:true,attributeFilter:['class']})}
   }
+  document.addEventListener('click',function(){if(!document.getElementById('m2CreateOutputButton'))setTimeout(ensureButton,0)},true);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();</script>`;
 
