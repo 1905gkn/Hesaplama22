@@ -100,3 +100,4 @@ html = html.replace(oldLayerWrite, newLayerWrite);
 if(!html.includes(marker)||!html.includes("m2PerfRenderSingleRackDragFrame()")||!html.includes("data-rafex-drag-overlay"))throw new Error("v28: DOM tablo dogrulamasi basarisiz.");
 fs.writeFileSync(portalPath, html);
 console.log("v28: Serbest yerlesim tek-raf surukleme DOM tablosu aktif: tam SVG yeniden kurma yerine sadece hareket eden raf + canli mesafe/cakisma katmani guncelleniyor.");
+await import("./patch-free-layout-runtime-tables-v29.mjs");
