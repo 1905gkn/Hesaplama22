@@ -59,12 +59,41 @@ if (viewer.includes(wrongAxis)) {
   throw new Error("MR v18: travers yerlesim blogu bulunamadi.");
 }
 
-// Yeni geometri eski tarayici onbellegiyle karismasin.
+// v19 regression kilidi: travers duzeltmesi eski MR/B2B kontrollerini bir daha sessizce ezemesin.
 if (fs.existsSync(portalPath)) {
   let portal = fs.readFileSync(portalPath, "utf8");
-  const next = portal.replace(/\/mr-viewer\.js\?v=mr-system-\d+/g, "/mr-viewer.js?v=mr-system-18");
-  if (next !== portal) {
-    fs.writeFileSync(portalPath, next);
-    console.log("MR v18: viewer cache surumu yukseltilidi.");
+  const requiredPortalMarkers = [
+    'data-rafex-mr-b2b-v17="1"',
+    'id="mrMeasureSettingsDialogV17"',
+    'id="mrDimensionVisibilityDialogV17"',
+    'id="mrTopTraverseEditV17"',
+    'value="MR60|1.5"',
+    'value="MR60|2"',
+    'value="ZS35|1.5"',
+    'value="ZS35|2"',
+    'value="ZS55|1.5"',
+    'value="ZS55|2"',
+    'value="ZS65|1.5"',
+    'value="ZS65|2"',
+    'traverseHeight={ZS35:55,ZS55:75,ZS65:85}',
+    'uprightWidth:60',
+  ];
+  const missing = requiredPortalMarkers.filter((marker) => !portal.includes(marker));
+  if (missing.length) {
+    throw new Error(`MR v19 regression kilidi: onceki MR guncellemeleri eksik: ${missing.join(", ")}`);
   }
+
+  // Yeni geometri + korunan kontroller eski tarayici onbellegiyle karismasin.
+  portal = portal.replace(/\/mr-viewer\.js\?v=mr-system-\d+/g, "/mr-viewer.js?v=mr-system-19");
+
+  // Canli build'in dogru MR zincirinden ciktigini HTML icinden de denetlenebilir yap.
+  if (!portal.includes('name="rafex-mr-regression-lock"')) {
+    portal = portal.replace(
+      "<head>",
+      '<head>\n    <meta name="rafex-mr-regression-lock" content="v19" />',
+    );
+  }
+
+  fs.writeFileSync(portalPath, portal);
+  console.log("MR v19: B2B tipi olculer, MR60/ZS profilleri, travers yukseklikleri ve travers yonu birlikte kilitlendi.");
 }
