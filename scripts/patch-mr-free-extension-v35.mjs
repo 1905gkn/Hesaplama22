@@ -785,10 +785,10 @@ async function captureMRPerspective(config = {}, settings = {}) {
   // devam eder.
   if (!mrViewer.includes("__rafexMrSingleSectionWidthV52")) {
     const widthDimensionV52 = `      const y = -90, left = new THREE.Vector3(0,y,z+220), right = new THREE.Vector3(totalWidth,y,z+220);
-      this.addDimensionLine(layer,[left,right]);this.addDimensionLine(layer,[left,new THREE.Vector3(0,0,z)]);this.addDimensionLine(layer,[right,new THREE.Vector3(totalWidth,0,z)]);this.addDimensionPoint(layer,left);this.addDimensionPoint(layer,right);this.addDimensionLabel(layer,totalWidth/2,y,z+220,\`TOPLAM GENİŞLİK · ${this.dimensionValue(totalWidth)}\`,900,"width");`;
+      this.addDimensionLine(layer,[left,right]);this.addDimensionLine(layer,[left,new THREE.Vector3(0,0,z)]);this.addDimensionLine(layer,[right,new THREE.Vector3(totalWidth,0,z)]);this.addDimensionPoint(layer,left);this.addDimensionPoint(layer,right);this.addDimensionLabel(layer,totalWidth/2,y,z+220,\`TOPLAM GENİŞLİK · \${this.dimensionValue(totalWidth)}\`,900,"width");`;
     const singleWidthDimensionV52 = `      // __rafexMrSingleSectionWidthV52
       const y = -90, sectionWidth = this.config.width, sectionLeft = this.config.uprightWidth, sectionRight = sectionLeft + sectionWidth, left = new THREE.Vector3(sectionLeft,y,z+220), right = new THREE.Vector3(sectionRight,y,z+220);
-      this.addDimensionLine(layer,[left,right]);this.addDimensionLine(layer,[left,new THREE.Vector3(sectionLeft,0,z)]);this.addDimensionLine(layer,[right,new THREE.Vector3(sectionRight,0,z)]);this.addDimensionPoint(layer,left);this.addDimensionPoint(layer,right);this.addDimensionLabel(layer,(sectionLeft+sectionRight)/2,y,z+220,\`GENİŞLİK · ${this.dimensionValue(sectionWidth)}\`,760,"width");`;
+      this.addDimensionLine(layer,[left,right]);this.addDimensionLine(layer,[left,new THREE.Vector3(sectionLeft,0,z)]);this.addDimensionLine(layer,[right,new THREE.Vector3(sectionRight,0,z)]);this.addDimensionPoint(layer,left);this.addDimensionPoint(layer,right);this.addDimensionLabel(layer,(sectionLeft+sectionRight)/2,y,z+220,\`GENİŞLİK · \${this.dimensionValue(sectionWidth)}\`,760,"width");`;
     if (!mrViewer.includes(widthDimensionV52)) throw new Error("MR v52: toplam genislik olcu blogu bulunamadi.");
     mrViewer = mrViewer.replace(widthDimensionV52, singleWidthDimensionV52);
   }
