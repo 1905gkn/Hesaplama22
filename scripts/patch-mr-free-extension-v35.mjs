@@ -242,8 +242,11 @@ async function captureMRPerspective(config = {}, settings = {}) {
   function startMr(rack){
     if(m2AutoFillDraft?.rafexSystem==='mr'&&Number(m2AutoFillDraft.rackId)===Number(rack.id)){controls(true);return;}
     var origin={x:rack.x+rack.w/2,y:rack.y+rack.h/2};m2AutoFillDraft={rackId:rack.id,origin:origin,start:origin,hover:origin,direction:1,rafexSystem:'mr'};m2LayoutState.selected=rack.id;controls(true);
-    var input=document.getElementById('m2AutoFillLength');if(input){input.value='';input.focus({preventScroll:true});}
-    setStatus('MR uzatma yönü açıldı. Fareyle duvara kadar göster veya uzatma mesafesini mm olarak yaz.');m2RenderLayout();
+    // Pointermove, odaktaki ve dolu inputu "manuel yazim" kabul edip duruyor.
+    // Baslangicta inputu odaklamayarak cizgiyi kesintisiz birak; kullanici
+    // isterse inputa tiklayip ayni mesafeyi elle girmeye devam edebilir.
+    var input=document.getElementById('m2AutoFillLength');if(input){input.value='';if(document.activeElement===input)input.blur();}
+    setStatus('MR uzatma yönü açıldı. Fareyle mesafeyi gösterip bitiş noktasına tıkla veya uzatma mesafesini mm olarak yaz.');m2RenderLayout();
   }
   function mountMrCustomize(rack){
     var canvas=document.getElementById('m2CustomizeCanvas');if(!canvas||!window.RafexMRViewer?.mount)return;
@@ -357,13 +360,13 @@ async function captureMRPerspective(config = {}, settings = {}) {
   const bodyEnd = html.lastIndexOf("</body>");
   if (bodyEnd < 0) throw new Error("MR v35: body kapanisi bulunamadi.");
   html = html.slice(0, bodyEnd) + runtime + "\n" + html.slice(bodyEnd);
-  for (const required of [marker, "__rafexMrPointerDoubleTapV36", "rafexMrConfigFromRackV37", "__rafexMrSectionCaptureV38", "function buildMRCard(group,index)", "rafex-v38-mr-type-card", "data-rafex-system=\"mr\"", "x==='b2b'||x==='mekik2'||x==='mr'", "rafex-mr-customize-v37", "MR 3D RAF ÖNİZLEMESİ", "addEventListener('pointerdown'", "rafexMrExtensionPlan", "Kalan MR Bölümü", "Özel Rafı Oluştur", "netRemaining>500", "step=\"50\""]) {
+  for (const required of [marker, "__rafexMrPointerDoubleTapV36", "rafexMrConfigFromRackV37", "__rafexMrSectionCaptureV38", "function buildMRCard(group,index)", "rafex-v38-mr-type-card", "data-rafex-system=\"mr\"", "x==='b2b'||x==='mekik2'||x==='mr'", "if(document.activeElement===input)input.blur()", "bitiş noktasına tıkla", "rafex-mr-customize-v37", "MR 3D RAF ÖNİZLEMESİ", "addEventListener('pointerdown'", "rafexMrExtensionPlan", "Kalan MR Bölümü", "Özel Rafı Oluştur", "netRemaining>500", "step=\"50\""]) {
     if (!html.includes(required)) throw new Error(`MR v35 runtime dogrulama hatasi: ${required}`);
   }
   const encoded = Buffer.from(html, "utf8").toString("base64");
   worker = worker.slice(0, match.index) + match[1] + match[2] + encoded + match[2] + worker.slice(match.index + match[0].length);
   fs.writeFileSync(workerPath, worker);
-  console.log("MR v38 runtime: MR uzatma + B2B'den izole ozellestirme ve ayni kayittan MR kesit ciktisi eklendi.");
+  console.log("MR v39 runtime: MR fare cizgisi + manuel mesafe, B2B'den izole ozellestirme ve ayni kayittan MR kesit ciktisi eklendi.");
 } else {
   throw new Error("Kullanim: node scripts/patch-mr-free-extension-v35.mjs source|runtime");
 }
