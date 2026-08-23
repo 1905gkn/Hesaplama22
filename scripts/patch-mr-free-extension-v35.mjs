@@ -152,10 +152,8 @@ if (mode === "source") {
       }`;
   const newRackDistanceGuide = `function m2RackDistanceGuide(rack) {
         const owner=m2LayoutState.racks.find((item)=>Number(item.id)===Number(rack?.id));if(!owner)return"";
-        const nearest = m2NearestRackGap(owner);
-        if (!nearest) return "";
-        const mm = Math.max(0, Math.round(nearest.distance / m2LayoutState.scale) - nearest.clearanceMm), mx = (nearest.ax + nearest.bx) / 2, my = (nearest.ay + nearest.by) / 2, axis = Math.abs(nearest.ax - nearest.bx) < Math.abs(nearest.ay - nearest.by) ? "vertical" : "horizontal", label = m2DimensionPosition(\`gap:\${owner.id}\`, mx, my - 8);
-        return \`<g class="m2-distance-guide" data-rack-gap="\${mm}" data-rack-gap-owner="\${owner.id}" data-rack-gap-other="\${nearest.other?.id??''}"><line x1="\${nearest.ax}" y1="\${nearest.ay}" x2="\${nearest.bx}" y2="\${nearest.by}" class="m2-rack-distance"/><circle cx="\${nearest.ax}" cy="\${nearest.ay}" r="4" fill="#e09b00"/><circle cx="\${nearest.bx}" cy="\${nearest.by}" r="4" fill="#e09b00"/><rect x="\${label.x-48}" y="\${label.y-13}" width="96" height="20" rx="5" class="m2-measure-hit" data-dimension-key="gap:\${owner.id}" data-dimension-axis="\${axis}" onpointerdown="event.stopPropagation();if(m2LayoutTool!=='dimension'){event.preventDefault();m2PromptRackDistance(\${owner.id},\${mm})}"/><text x="\${label.x}" y="\${label.y}" text-anchor="middle" class="m2-rack-distance-label m2-dimension-movable" data-dimension-key="gap:\${owner.id}" data-dimension-axis="\${axis}" onpointerdown="event.stopPropagation();if(m2LayoutTool!=='dimension'){event.preventDefault();m2PromptRackDistance(\${owner.id},\${mm})}">RAF ARASI \${fmt(mm)} mm</text></g>\`;
+        const relations=(window.rafexRackGapRelationsV46?.(owner)||[m2NearestRackGap(owner)]).filter(Boolean).slice(0,2);
+        return relations.map((nearest,index)=>{const mm=Math.max(0,Math.round(nearest.distance/m2LayoutState.scale)-nearest.clearanceMm),mx=(nearest.ax+nearest.bx)/2,my=(nearest.ay+nearest.by)/2,axis=Math.abs(nearest.ax-nearest.bx)<Math.abs(nearest.ay-nearest.by)?"vertical":"horizontal",key=\`gap:\${owner.id}:\${nearest.other?.id??index}\`,label=m2DimensionPosition(key,mx,my-8),edit=index===0?\`event.stopPropagation();if(m2LayoutTool!=='dimension'&&m2LayoutTool!=='measure'){event.preventDefault();m2PromptRackDistance(\${owner.id},\${mm})}\`:"event.stopPropagation()";return \`<g class="m2-distance-guide" data-rack-gap="\${mm}" data-rack-gap-owner="\${owner.id}" data-rack-gap-other="\${nearest.other?.id??''}"><line x1="\${nearest.ax}" y1="\${nearest.ay}" x2="\${nearest.bx}" y2="\${nearest.by}" class="m2-rack-distance"/><circle cx="\${nearest.ax}" cy="\${nearest.ay}" r="4" fill="#e09b00"/><circle cx="\${nearest.bx}" cy="\${nearest.by}" r="4" fill="#e09b00"/><rect x="\${label.x-48}" y="\${label.y-13}" width="96" height="20" rx="5" class="m2-measure-hit" data-dimension-key="\${key}" data-dimension-axis="\${axis}" onpointerdown="\${edit}"/><text x="\${label.x}" y="\${label.y}" text-anchor="middle" class="m2-rack-distance-label m2-dimension-movable" data-dimension-key="\${key}" data-dimension-axis="\${axis}" onpointerdown="\${edit}">RAF ARASI \${fmt(mm)} mm</text></g>\`;}).join("");
       }`;
   if (portal.includes(oldRackDistanceGuide)) portal = portal.replace(oldRackDistanceGuide, newRackDistanceGuide);
   else if (!portal.includes('data-rack-gap-owner="${owner.id}"')) throw new Error("MR v43: raf arasi sahipligi bulunamadi.");
@@ -226,17 +224,17 @@ if (mode === "source") {
   else if (!portal.includes('rack?.independentBlock?blockName.replace(" · "," ")')) throw new Error("MR v44: bagimsiz raf tek basligi bulunamadi.");
 
   // Kayitli MR raflarinda B2B'ye bagli olmayan, dogrudan MR veri ve 3D
-  // motorunu kullanan Incele/Kopyala aksiyonlari gosterilir. Baslikta sira
-  // duzeni de kayitli cizimden okunur.
+  // motorunu kullanan Incele/Kopyala aksiyonlari gosterilir. Sira bilgisi
+  // kart basliginda degil, secilen rafin proje bilgi satirinda gosterilir.
   const oldMrSavedMap = 'm2SavedRackTypes.map((entry,index)=>{const drawing=entry.drawing||{},settings=drawing.b2b||{},color=m2TypeColor(entry.name),tray=';
-  const newMrSavedMap = 'm2SavedRackTypes.map((entry,index)=>{const drawing=entry.drawing||{},settings=drawing.b2b||{},rowCount=Math.max(1,Math.min(2,Number(settings.rowCount)||Number(drawing.b2bLayout?.rowCount)||1)),rowLabel=rowCount>1?`${fmt(rowCount)} SIRA BİRLEŞİK`:`${fmt(rowCount)} SIRA`,color=m2TypeColor(entry.name),tray=';
+  const newMrSavedMap = 'm2SavedRackTypes.map((entry,index)=>{const drawing=entry.drawing||{},settings=drawing.b2b||{},color=m2TypeColor(entry.name),tray=';
   if (portal.includes(oldMrSavedMap)) portal = portal.replace(oldMrSavedMap, newMrSavedMap);
-  else if (!portal.includes('rowLabel=rowCount>1?`${fmt(rowCount)} SIRA BİRLEŞİK`')) throw new Error("MR v45: kayitli raf sira basligi bulunamadi.");
+  else if (!portal.includes(newMrSavedMap)) throw new Error("MR v46: kayitli raf listesi bulunamadi.");
 
   const oldMrSavedTitle = '${esc(entry.name)} · MR</b><small>';
-  const newMrSavedTitle = '${esc(entry.name)} · MR · ${esc(rowLabel)}</b><small>';
+  const newMrSavedTitle = '${esc(entry.name)} · MR</b><small>';
   if (portal.includes(oldMrSavedTitle)) portal = portal.replace(oldMrSavedTitle, newMrSavedTitle);
-  else if (!portal.includes('${esc(entry.name)} · MR · ${esc(rowLabel)}')) throw new Error("MR v45: kayitli raf sira etiketi bulunamadi.");
+  else if (!portal.includes(newMrSavedTitle)) throw new Error("MR v46: kayitli raf basligi bulunamadi.");
 
   const oldMrSavedActions = '</button><button type="button" class="m2-saved-type-copy" aria-label="${esc(entry.name)} tipini MR düzenleyiciye kopyala" title="Üstte düzenlemek için kopyala" onclick="event.stopPropagation();mrSelectBlockV7(${index})">KOPYALA</button><button type="button" class="m2-type-delete"';
   const newMrSavedActions = '</button><button type="button" class="m2-saved-type-preview" aria-label="${esc(entry.name)} MR rafını incele" title="MR 3D önizlemesini aç" onclick="event.stopPropagation();rafexInspectMrSavedV45(${index})">İNCELE</button><button type="button" class="m2-saved-type-copy" aria-label="${esc(entry.name)} tipini MR düzenleyiciye kopyala" title="MR düzenleyiciye kopyala" onclick="event.stopPropagation();rafexCopyMrSavedV45(${index})">KOPYALA</button><button type="button" class="m2-type-delete"';
@@ -315,7 +313,7 @@ if (mode === "source") {
   else if (!portal.includes('$("mrRowType").value=(Number(settings.rowCount)')) throw new Error("MR v45: kayitli sira form aktarimi bulunamadi.");
 
   const oldMrHeightAndGapV45 = 'heightLabel.innerHTML=`Ayak boyu (mm)<div class="mr-height-mode"><select id="mrTopTraverseMode" aria-label="Ayak boyu modu"><option value="auto">Otomatik</option><option value="manual">Manuel</option></select><input id="mrHeight" type="number" min="200" max="12000" step="10" value="3300" placeholder="Otomatik hesaplanır" disabled></div>`;heightLabel.insertAdjacentHTML("beforebegin",`<label class="mr-level-gap-field">Kat arası mesafe (mm)<input id="mrLevelGap" type="number" min="100" max="5000" step="10" value="1000"></label>`)';
-  const newMrHeightAndGapV45 = 'heightLabel.innerHTML=`Ayak boyu (mm)<div class="mr-height-mode"><select id="mrTopTraverseMode" aria-label="Ayak boyu modu"><option value="auto">Otomatik</option><option value="manual">Manuel</option></select><input id="mrHeight" type="number" min="200" max="12000" step="50" value="3300" placeholder="Otomatik hesaplanır" disabled></div>`;heightLabel.insertAdjacentHTML("beforebegin",`<label class="mr-row-field">Sıra düzeni<div class="mr-row-mode"><select id="mrRowType" aria-label="MR sıra düzeni"><option value="single">Tek sıra</option><option value="double">Çift sıra birleşik</option></select><input id="mrRowGap" type="number" min="0" max="2000" step="10" value="200" aria-label="Sıra arası mesafe" title="Sıra arası mesafe (mm)" disabled></div><small>Çift sırada iki raf sırt sırta birleşir.</small></label><label class="mr-level-gap-field">Kat arası mesafe (mm)<input id="mrLevelGap" type="number" min="100" max="5000" step="10" value="1000"></label>`)';
+  const newMrHeightAndGapV45 = 'heightLabel.innerHTML=`Ayak boyu (mm)<div class="mr-height-mode"><select id="mrTopTraverseMode" aria-label="Ayak boyu modu"><option value="auto">Otomatik</option><option value="manual">Manuel</option></select><input id="mrHeight" type="number" min="200" max="12000" step="50" value="3300" placeholder="Otomatik hesaplanır" disabled></div>`;heightLabel.insertAdjacentHTML("beforebegin",`<div class="mr-row-field"><span>Sıra düzeni</span><div class="mr-row-mode"><select id="mrRowType" aria-label="MR sıra düzeni"><option value="single">Tek sıra</option><option value="double">Çift sıra birleşik</option></select><label class="mr-row-gap-field">Çift sıra arası mesafe (mm)<input id="mrRowGap" type="number" min="0" max="2000" step="10" value="200" aria-label="Çift sıra arası mesafe" disabled></label></div><small>Çift sırada iki raf sırt sırta birleşir.</small></div><label class="mr-level-gap-field">Kat arası mesafe (mm)<input id="mrLevelGap" type="number" min="100" max="5000" step="10" value="1000"></label>`)';
   if (portal.includes(oldMrHeightAndGapV45)) portal = portal.replace(oldMrHeightAndGapV45, newMrHeightAndGapV45);
   else if (!portal.includes('id="mrRowType" aria-label="MR sıra düzeni"')) throw new Error("MR v45: tek cift sira kontrolu bulunamadi.");
 
@@ -359,7 +357,9 @@ if (mode === "source") {
       .mr-mode .mr-form input,.mr-mode .mr-form select{min-height:44px;padding:10px 11px;font-size:10px}
       .mr-mode .mr-profile-field small,.mr-mode .mr-row-field small{line-height:1.35}
       .mr-mode .mr-row-field{grid-column:1/-1}
-      .mr-mode .mr-row-mode{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(90px,.85fr);gap:7px}
+      .mr-mode .mr-row-field{display:grid;gap:6px;font-size:9px;font-weight:850;color:#26352d}
+      .mr-mode .mr-row-mode{display:grid;grid-template-columns:1fr;gap:7px}
+      .mr-mode .mr-row-gap-field{display:grid;gap:5px;padding-top:3px;font-size:8px;font-weight:850;color:#526158}
       .mr-mode .mr-row-mode input:disabled{opacity:.55;background:#edf1ee}
       .mr-mode .mr-accessory-area{margin:11px 0 0;padding:11px 0 0;border-top:1px solid #dce4df}
       .mr-mode .mr-accessory-launch{min-height:46px;font-size:11px;border-radius:9px}
@@ -372,6 +372,12 @@ if (mode === "source") {
       .mr-mode .m2-saved-type-preview{width:auto;min-width:64px;min-height:42px;padding:0 10px;font-size:9px}
       .mr-mode .m2-saved-type-copy{min-width:72px;min-height:42px;padding:0 11px}
       .mr-mode .mr-measure-overlay .mr-distance-panel input:not([type=checkbox]){min-height:34px}
+      .mr-mode .mr-accessory-note{font-size:10px;line-height:1.5}
+      .mr-mode .m2-selected-pallet-total{display:none!important}
+      .m2-wall-editor,.m2-edge-editor{grid-template-columns:repeat(auto-fit,minmax(68px,96px))!important;gap:5px!important}
+      .m2-wall-editor-title{grid-column:1/-1}
+      .m2-edge-field{min-height:30px!important;padding:4px 5px!important;gap:4px!important;font-size:7px!important}
+      .m2-edge-field input[type="number"]{width:100%!important;min-width:0!important;min-height:27px!important;height:27px!important;padding:4px 5px!important;font-size:8px!important}
       @media(max-width:1050px){.mr-mode .mr-workspace{grid-template-columns:1fr}.mr-mode .mr-block-list{grid-template-columns:repeat(4,minmax(0,1fr))}}
     </style>`;
     portal = portal.slice(0, headEnd) + mrEditorStyles + '\n' + portal.slice(headEnd);
@@ -381,6 +387,17 @@ if (mode === "source") {
   const newControlSelector = 'controls.querySelectorAll("input,button:not(.rafex-extension-toggle)").forEach((element)=>element.disabled=!active);';
   if (portal.includes(oldControlSelector)) portal = portal.replace(oldControlSelector, newControlSelector);
   else if (!portal.includes(newControlSelector)) throw new Error("MR v42: uzatma kontrol secicisi bulunamadi.");
+
+  // Serbest mesafe cizimi aktifken raf, duvar, raf-arasi ve kenar olcu
+  // etiketleri olayi ele geciremez. Ilk ve ikinci nokta SVG'nin her yerinde,
+  // bir rafin veya olcu yazisinin ustunde olsa bile cizime gider.
+  const oldMeasurePriorityV46 = 'if(m2MultiSelect.active){m2MultiSelect.start=point;m2MultiSelect.hover=point;svg.setPointerCapture?.(event.pointerId);m2RenderLayout();return;}\n          if(m2CopyMode&&(rackNode||symbolNode))';
+  const newMeasurePriorityV46 = 'if(m2MultiSelect.active){m2MultiSelect.start=point;m2MultiSelect.hover=point;svg.setPointerCapture?.(event.pointerId);m2RenderLayout();return;}\n          if(m2LayoutTool==="measure"){event.preventDefault();event.stopPropagation();m2FreeMeasure.points.push(point);m2FreeMeasure.hover=null;if(m2FreeMeasure.points.length>=2){m2LayoutTool=null;$("m2MeasureToolButton")?.classList.remove("active");const[a,b]=m2FreeMeasure.points;$("m2FloorStatus").textContent=`Ölçülen mesafe: ${fmt(Math.round(Math.hypot(b.x-a.x,b.y-a.y)/m2LayoutState.scale))} mm`;}else $("m2FloorStatus").textContent="Başlangıç seçildi; şimdi bitiş noktasına tıkla.";m2RenderLayout();return;}\n          if(m2CopyMode&&(rackNode||symbolNode))';
+  if (portal.includes(oldMeasurePriorityV46)) portal = portal.replace(oldMeasurePriorityV46, newMeasurePriorityV46);
+  else if (!portal.includes('if(m2LayoutTool==="measure"){event.preventDefault();event.stopPropagation();m2FreeMeasure.points.push(point)')) throw new Error("MR v46: mesafe cizim onceligi bulunamadi.");
+  portal = portal.replaceAll("if(m2LayoutTool!=='dimension'){", "if(m2LayoutTool!=='dimension'&&m2LayoutTool!=='measure'){");
+  portal = portal.replaceAll("if(m2LayoutTool!=='dimension')event.stopPropagation()", "if(m2LayoutTool!=='dimension'&&m2LayoutTool!=='measure')event.stopPropagation()");
+  portal = portal.replaceAll("if(m2LayoutTool!=='dimension')m2PromptEdgeLength", "if(m2LayoutTool!=='dimension'&&m2LayoutTool!=='measure')m2PromptEdgeLength");
 
   // MR uzatmada fare hem yonu hem istenen mesafeyi belirler. Ancak isaretlenen
   // noktadan once duvar/raf/kolon/bariyer varsa cizgi ve yerlestirme engelde durur.
@@ -435,6 +452,26 @@ if (mode === "source") {
   const newViewerScaleV45 = `      dimensionScale: bounded(config.dimensionScale, 2, .7, 3),`;
   if (mrViewer.includes(oldViewerScaleV45)) mrViewer = mrViewer.replace(oldViewerScaleV45, newViewerScaleV45);
   else if (!mrViewer.includes('dimensionScale: bounded(config.dimensionScale, 2, .7, 3)')) throw new Error("MR v45: viewer olcu yazi olcegi bulunamadi.");
+
+  // MR ayak GLB'sinde KP kodlu yatay ve capraz profiller ile baglanti
+  // elemanlari galvanizdir; yalniz MRD kodlu dikmeler secilen ayak rengini alir.
+  const oldViewerFinishV46 = `    if (finishKey !== "default") applyFinish(object, finishKey);
+    return { object, size: template.size.clone() };`;
+  const newViewerFinishV46 = `    if (finishKey !== "default") applyFinish(object, finishKey);
+    if (kind === "upright") object.traverse((part) => {
+      if (!part.isMesh || !part.material || !/\\bKP\\d|hex (?:nut|screw)/i.test(String(part.name || ""))) return;
+      const galvanized = FINISHES.pgv, materials = Array.isArray(part.material) ? part.material : [part.material];
+      materials.forEach((material) => { if (material.color) material.color.setHex(galvanized.color); if ("metalness" in material) material.metalness = galvanized.metalness; if ("roughness" in material) material.roughness = galvanized.roughness; material.needsUpdate = true; });
+    });
+    return { object, size: template.size.clone() };`;
+  if (mrViewer.includes(oldViewerFinishV46)) mrViewer = mrViewer.replace(oldViewerFinishV46, newViewerFinishV46);
+  else if (!mrViewer.includes('if (kind === "upright") object.traverse')) throw new Error("MR v46: galvaniz diagonal renklendirmesi bulunamadi.");
+
+  const oldMrGroundV46 = `new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.92, metalness: 0 })`;
+  const newMrGroundV46 = `new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, metalness: 0 })`;
+  if (mrViewer.includes(oldMrGroundV46)) mrViewer = mrViewer.replace(oldMrGroundV46, newMrGroundV46);
+  else if (!mrViewer.includes(newMrGroundV46)) throw new Error("MR v46: PDF zemin malzemesi bulunamadi.");
+  mrViewer = mrViewer.replace('this.ground.position.y = -3;', 'this.ground.position.y = -12;');
 
   const oldViewerBuildHeadV45 = `      const { modules, levels, width, depth, firstTraverse, levelGap, uprightHeight, uprightWidth, traverseHeight } = this.config;
       const levelYs = Array.from({ length: levels }, (_, index) => firstTraverse + index * (levelGap + traverseHeight));
@@ -537,6 +574,53 @@ if (mode === "source") {
   if (mrViewer.includes(oldViewerModulesV45)) mrViewer = mrViewer.replace(oldViewerModulesV45, newViewerModulesV45);
   else if (!mrViewer.includes('for (let row = 0; row < rowCount; row += 1)')) throw new Error("MR v45: viewer cift sira govde kurulumu bulunamadi.");
 
+  // 773a ve tava-bosluk yamalarindan sonra govde blogunun metni degisebilir.
+  // Ayak dongusunun varligi, travers/tava dongusunun de cift sirali oldugunu
+  // kanitlamaz; tum govde bolgesini sira ofsetiyle kesin olarak yeniden kur.
+  const bodyStartV46 = mrViewer.indexOf('      const beamDepth = Math.max(1, traverse.size.z);');
+  const bodyEndV46 = mrViewer.indexOf('      this.root.updateMatrixWorld(true);', bodyStartV46);
+  if (bodyStartV46 < 0 || bodyEndV46 < 0) throw new Error("MR v46: viewer govde montaj bolgesi bulunamadi.");
+  const bodyRegionV46 = mrViewer.slice(bodyStartV46, bodyEndV46);
+  if (!bodyRegionV46.includes('rowZ + depth - 10')) {
+    const doubleRowBodyV46 = `      const beamDepth = Math.max(1, traverse.size.z);
+      const trayAccessories = this.config.accessories.filter((item) => item.type === "tray");
+      for (let row = 0; row < rowCount; row += 1) {
+        const rowZ = row * (depth + rowGap);
+        for (let module = 0; module < modules; module += 1) {
+          const moduleX = module * framePitch + uprightWidth;
+          for (let level = 1; level <= levels; level += 1) {
+            const levelY = levelYs[level - 1];
+            for (const side of ["front", "back"]) {
+              const beam = traverse.object.clone(true);
+              const beamOverlap = uprightWidth / 2;
+              beam.scale.set((width + beamOverlap * 2) / traverse.size.x, traverseHeight / traverse.size.y, 1);
+              if (side === "front") {
+                beam.position.set(moduleX - beamOverlap, levelY, rowZ);
+              } else {
+                beam.rotation.y = Math.PI;
+                beam.position.set(moduleX + width + beamOverlap, levelY, rowZ + depth);
+              }
+              this.root.add(beam);
+            }
+            trayAccessories.filter((item) => item.levels.includes(level)).forEach((accessory) => {
+              let cursor = 0;
+              this.trayPiecePlan(width, accessory.width).forEach((pieceWidth) => {
+                const shelf = tray.object.clone(true);
+                const trayDepth = Math.max(1, depth - 25);
+                shelf.scale.set(pieceWidth / tray.size.x, 1, trayDepth / tray.size.z);
+                shelf.rotation.x = Math.PI;
+                shelf.position.set(moduleX + cursor, levelY + traverseHeight + tray.size.y - 40, rowZ + depth - 10);
+                this.root.add(shelf);
+                cursor += pieceWidth;
+              });
+            });
+          }
+        }
+      }
+`;
+    mrViewer = mrViewer.slice(0, bodyStartV46) + doubleRowBodyV46 + mrViewer.slice(bodyEndV46);
+  }
+
   const oldViewerDimensionsV45 = `      this.addDimensions(levelYs, totalWidth, depth, uprightHeight);`;
   const newViewerDimensionsV45 = `      this.addDimensions(levelYs, totalWidth, footprintDepth, uprightHeight);`;
   if (mrViewer.includes(oldViewerDimensionsV45)) mrViewer = mrViewer.replace(oldViewerDimensionsV45, newViewerDimensionsV45);
@@ -588,7 +672,7 @@ async function captureMRPerspective(config = {}, settings = {}) {
     mrViewer = mrViewer.replace(apiAnchor, `${apiAnchor}
   capturePerspective(config, settings) { return captureMRPerspective(config, settings); },`);
   }
-  for (const required of ['rowCount: Math.round(bounded(config.rowCount, 1, 1, 2))', 'dimensionScale: bounded(config.dimensionScale, 2, .7, 3)', 'const uprightHeight = Math.ceil(rawUprightHeight / 50) * 50', 'const footprintDepth = rowCount * depth', 'firstTraverse + index * (levelGap + traverseHeight)', 'K${index} → K${index+1} NET', 'this.addDimensions(levelYs, totalWidth, footprintDepth, uprightHeight)', '__rafexMrDetachedPerspectiveCaptureV38']) {
+  for (const required of ['rowCount: Math.round(bounded(config.rowCount, 1, 1, 2))', 'dimensionScale: bounded(config.dimensionScale, 2, .7, 3)', 'const uprightHeight = Math.ceil(rawUprightHeight / 50) * 50', 'const footprintDepth = rowCount * depth', 'firstTraverse + index * (levelGap + traverseHeight)', 'rowZ + depth - 10', 'K${index} → K${index+1} NET', 'this.addDimensions(levelYs, totalWidth, footprintDepth, uprightHeight)', '__rafexMrDetachedPerspectiveCaptureV38']) {
     if (!mrViewer.includes(required)) throw new Error(`MR v45 viewer kaynak dogrulama hatasi: ${required}`);
   }
   fs.writeFileSync(mrViewerPath, mrViewer);
@@ -644,6 +728,24 @@ async function captureMRPerspective(config = {}, settings = {}) {
     for (const required of ["__rafexMrSectionOutputV38", "__rafexMrSectionCaptureV38", "RafexMRViewer?.capturePerspective"]) {
       if (!positioner.includes(required)) throw new Error(`MR v38 kesit kaynak dogrulama hatasi: ${required}`);
     }
+    fs.writeFileSync(sectionPositionerPath, positioner);
+  }
+
+  // Kesit Yer Belirleme'de MR kendi modul/kat verisini kayittan kullanir.
+  // Bu nedenle B2B'ye ait 4-3-2-1 ve palet secenekleri MR seciliyken gizlenir.
+  if (!positioner.includes("__rafexMrSectionControlsV46")) {
+    const controlsAnchorV46 = `    const value = ensureSetting(activeKey);
+    document.querySelectorAll("[data-rafex-count]")`;
+    const controlsReplacementV46 = `    const value = ensureSetting(activeKey);
+    // __rafexMrSectionControlsV46
+    const modal = document.getElementById("m2SectionPlacementModal"), mr = type?.system === "mr" || isMrDrawing(type?.entries?.values?.().next?.().value?.drawing);
+    modal?.classList.toggle("is-mr", Boolean(mr));
+    if (mr) value.showPallets = false;
+    document.querySelectorAll("[data-rafex-count]")`;
+    if (!positioner.includes(controlsAnchorV46)) throw new Error("MR v46: kesit kontrol baglanti noktasi bulunamadi.");
+    positioner = positioner.replace(controlsAnchorV46, controlsReplacementV46);
+    positioner = positioner.replace('perspektif, ölçüler, palet görünümü ve modül dağılımını ayrı ayrı kaydet.', 'perspektif ve ölçü görünümünü raf tipine göre ayrı ayrı kaydet.');
+    positioner = positioner.replace('      @media(max-width:820px){.rafex-section-editor-shell{grid-template-columns:1fr}', '      .rafex-section-placement-modal.is-mr .rafex-module-selector,.rafex-section-placement-modal.is-mr .rafex-option-row:has([data-rafex-pallets]){display:none!important}\n      @media(max-width:820px){.rafex-section-editor-shell{grid-template-columns:1fr}');
     fs.writeFileSync(sectionPositionerPath, positioner);
   }
 
@@ -730,6 +832,21 @@ async function captureMRPerspective(config = {}, settings = {}) {
   function isMr(rack){return !!(rack?.b2b?.mr||rack?.rafexSystem==='mr'||rack?.systemType==='mr'||rack?.b2bLayout?.palletType==='mr'||rack?.plan?.mr);}
   function rackById(id){try{return m2LayoutState.racks.find(function(r){return Number(r.id)===Number(id);})||null;}catch{return null;}}
   function formatMm(value){try{return Math.round(Number(value)||0).toLocaleString('tr-TR')+' mm';}catch{return String(Math.round(Number(value)||0))+' mm';}}
+  window.rafexRackGapRelationsV46=function(owner){
+    try{
+      var a=m2CombinedRackBounds(owner),relations=[];
+      m2LayoutState.racks.forEach(function(other){
+        if(Number(other.id)===Number(owner.id)||(owner.joinGroup&&other.joinGroup===owner.joinGroup))return;
+        var b=m2RackBounds(other),candidates=[],horizontalStart=Math.max(a.top,b.top),horizontalEnd=Math.min(a.bottom,b.bottom),verticalStart=Math.max(a.left,b.left),verticalEnd=Math.min(a.right,b.right),candidate;
+        if(a.right<=b.left&&horizontalStart<=horizontalEnd){candidate=m2ClearRackGapLine(owner,other,'right',a.right,b.left,horizontalStart,horizontalEnd);if(candidate)candidates.push(candidate);}
+        if(b.right<=a.left&&horizontalStart<=horizontalEnd){candidate=m2ClearRackGapLine(owner,other,'left',a.left,b.right,horizontalStart,horizontalEnd);if(candidate)candidates.push(candidate);}
+        if(a.bottom<=b.top&&verticalStart<=verticalEnd){candidate=m2ClearRackGapLine(owner,other,'bottom',a.bottom,b.top,verticalStart,verticalEnd);if(candidate)candidates.push(candidate);}
+        if(b.bottom<=a.top&&verticalStart<=verticalEnd){candidate=m2ClearRackGapLine(owner,other,'top',a.top,b.bottom,verticalStart,verticalEnd);if(candidate)candidates.push(candidate);}
+        candidate=candidates.sort(function(first,second){return first.distance-second.distance;})[0];if(candidate){candidate.clearanceMm=m2RackClearanceMm(owner,other,candidate.direction);relations.push({...candidate,other:other,a:a,b:b});}
+      });
+      var perDirection=new Map();relations.sort(function(first,second){return first.distance-second.distance;}).forEach(function(item){if(!perDirection.has(item.direction))perDirection.set(item.direction,item);});return Array.from(perDirection.values()).sort(function(first,second){return first.distance-second.distance;}).slice(0,2);
+    }catch(e){try{var nearest=m2NearestRackGap(owner);return nearest?[nearest]:[];}catch(_){return[];}}
+  };
   function configFromRack(rack){
     var state=rack?.b2b||{},layout=rack?.b2bLayout||{},levels=Math.max(1,Math.round(Number(state.levels)||Number(rack?.levels)||1)),width=Math.max(300,Number(state.width)||Number(layout.palletWidth)||Number(rack?.palW)||2400),depth=Math.max(300,Number(state.depth)||Number(layout.palletDepth)||Number(rack?.palD)||800),rowCount=Math.max(1,Math.min(2,Math.round(Number(state.rowCount)||Number(layout.rowCount)||1))),rowGap=rowCount>1?Math.max(0,Number(state.rowGap??layout.rowGap??200)):0,firstTraverse=Math.max(0,Number(state.firstTraverse??rack?.firstRailHeight??200)),levelGap=Math.max(100,Number(state.requestedLevelGap)||Number(state.levelGap)||Number(rack?.levelH)||1000),traverseType=String(state.traverseType||'ZS65'),traverseHeight=Math.max(1,Number(state.traverseHeight)||Number(rack?.traverseHeight)||({ZS35:55,ZS55:75,ZS65:85}[traverseType]||85)),topTraverse=firstTraverse+Math.max(0,levels-1)*(levelGap+traverseHeight),automaticUprightHeight=topTraverse+traverseHeight+levelGap/2,uprightHeight=Math.ceil(Math.max(automaticUprightHeight,Number(state.uprightHeight)||Number(rack?.sideUprightHeight)||0)/50)*50;
     var dimensions=state.dimensions||{};
@@ -774,8 +891,9 @@ async function captureMRPerspective(config = {}, settings = {}) {
   window.rafexMrQuantitySummaryV42=mrQuantitySummary;
   var originalLayoutProductsV42=window.m2LayoutProductRows,originalCorporateBomV42=window.m2CorporateBomRows;
   var exactLayoutProductsV42=function(){
-    if(typeof m2ActiveModule==='undefined'||m2ActiveModule!=='mr')return originalLayoutProductsV42?.apply(this,arguments)||[];
-    var exact=mrQuantitySummary(m2LayoutState.racks).map(function(row){return{name:row.item+' · '+row.spec,qty:row.qty};}),other=(originalLayoutProductsV42?.apply(this,arguments)||[]).filter(function(row){var name=String(row?.name||'');return !name.startsWith('MR Ayak Toplama')&&!name.startsWith('ZS Travers')&&!name.startsWith('Tava');});return exact.concat(other);
+    var withoutColumns=function(rows){return(rows||[]).filter(function(row){return !/^Kolon(?:\b|\s*·)/i.test(String(row?.name||''));});};
+    if(typeof m2ActiveModule==='undefined'||m2ActiveModule!=='mr')return withoutColumns(originalLayoutProductsV42?.apply(this,arguments)||[]);
+    var exact=mrQuantitySummary(m2LayoutState.racks).map(function(row){return{name:row.item+' · '+row.spec,qty:row.qty};}),other=withoutColumns(originalLayoutProductsV42?.apply(this,arguments)||[]).filter(function(row){var name=String(row?.name||'');return !name.startsWith('MR Ayak Toplama')&&!name.startsWith('ZS Travers')&&!name.startsWith('Tava');});return exact.concat(other);
   };
   var exactCorporateBomV42=function(entry,labels){
     var drawing=entry?.drawing||entry;if(!isMr(drawing))return originalCorporateBomV42?.apply(this,arguments)||[];
@@ -917,15 +1035,27 @@ async function captureMRPerspective(config = {}, settings = {}) {
   try{m2OpenCustomizeModal=wrappedCustomizeOpen;m2CloseCustomizeModal=wrappedCustomizeClose;m2PreviewRackCustomization=wrappedCustomizePreview;m2ApplyRackCustomization=wrappedCustomizeApply;m2SelectSavedRackType=wrappedSelectSaved;m2CloseSavedRackPreview=wrappedSavedPreviewClose;}catch(e){}
   window.m2StartAutoFillGuide=wrappedStart;window.m2PreviewAutoFillLength=wrappedPreview;window.m2ApplyAutoFillLength=wrappedApply;window.m2CancelAutoFill=wrappedCancel;window.m2CommitAutoFillGuide=wrappedCommit;
   window.m2OpenCustomizeModal=wrappedCustomizeOpen;window.m2CloseCustomizeModal=wrappedCustomizeClose;window.m2PreviewRackCustomization=wrappedCustomizePreview;window.m2ApplyRackCustomization=wrappedCustomizeApply;window.m2SelectSavedRackType=wrappedSelectSaved;window.m2CloseSavedRackPreview=wrappedSavedPreviewClose;
+  var originalSelectedRackInfoV46=window.m2RenderSelectedRackInfo;
+  var selectedRackInfoV46=function(){
+    originalSelectedRackInfoV46?.apply(this,arguments);var box=document.getElementById('m2SelectedRackInfo');if(!box)return;var rack=null,entry=null,drawing=null;try{rack=m2SelectedRack();entry=!rack&&m2SelectedSavedType!=null?m2SavedRackTypes[m2SelectedSavedType]:null;drawing=entry?.drawing;}catch(e){}
+    var source=rack||drawing;if(!isMr(source)){return;}var settings=source.b2b||{},layout=source.b2bLayout||{},name=String(rack?.typeName||entry?.name||'MR'),block=String(rack?.blockName||'').trim(),project=String(document.getElementById('m2ProjectName')?.value||'').trim()||'MR RAF PROJESİ',rowCount=Math.max(1,Math.min(2,Math.round(Number(settings.rowCount)||Number(layout.rowCount)||1))),rowText=rowCount>1?rowCount+' SIRA BİRLEŞİK':rowCount+' SIRA',width=Math.round(Number(rack?.widthMm)||Number(drawing?.totalWidth)||0),depth=Math.round(Number(settings.depth)||Number(layout.palletDepth)||Number(drawing?.railLength)||0),modules=Math.max(1,Math.round(Number(settings.modules)||Number(source.bays)||1)),levels=Math.max(1,Math.round(Number(settings.levels)||Number(source.levels)||1)),upright=Math.ceil(Math.max(0,Number(settings.uprightHeight)||Number(source.sideUprightHeight)||0)/50)*50,tray=(settings.accessories||[]).find(function(item){return item?.type==='tray';}),trayText=tray?'Tava '+Math.round(Number(tray.width)||300)+' mm · '+(tray.levels||[]).length+' kat':'Tava yok',color=typeof m2TypeColor==='function'?m2TypeColor(name):'#1d5f8a';
+    var next='<div class="m2-selected-rack-main"><small>'+esc(project)+' · '+esc(rowText)+'</small><br>'+(block?'<b>'+esc(block.replace(' · ',' '))+'</b><br>':'')+'<b><i class="m2-info-swatch" style="background:'+color+'"></i>'+esc(name)+'</b><br>MR · '+fmt(width)+' × '+fmt(depth)+' mm · '+fmt(modules)+' modül · '+fmt(levels)+' kat<br>Ayak '+esc(settings.uprightType||'MR60')+' · '+fmt(upright)+' mm · Travers '+esc(settings.traverseType||'ZS65')+' · '+esc(trayText)+'</div>';if(box.innerHTML!==next)box.innerHTML=next;
+  };
+  try{m2RenderSelectedRackInfo=selectedRackInfoV46;}catch(e){}window.m2RenderSelectedRackInfo=selectedRackInfoV46;
+  function installSavedActionsV46(){
+    if(typeof m2ActiveModule==='undefined'||m2ActiveModule!=='mr')return;var list=document.getElementById('m2SavedTypeList');if(!list)return;list.querySelectorAll('.m2-saved-type-row').forEach(function(row,index){if(row.dataset.rafexActionsV46==='1')return;var entry=Array.isArray(m2SavedRackTypes)?m2SavedRackTypes[index]:null;if(!entry||!isMr(entry.drawing))return;var main=row.querySelector('.m2-saved-type'),copy=row.querySelector('.m2-saved-type-copy'),preview=row.querySelector('.m2-saved-type-preview');if(main){var title=main.querySelector('b');if(title)title.innerHTML=title.innerHTML.replace(/\s*·\s*MR\s*·\s*[12]\s*SIRA(?:\s*BİRLEŞİK)?/iu,' · MR');}if(!preview){preview=document.createElement('button');preview.type='button';preview.className='m2-saved-type-preview';preview.textContent='İNCELE';(copy||row.querySelector('.m2-type-delete'))?.before(preview);}if(preview){preview.textContent='İNCELE';preview.onclick=function(event){event.preventDefault();event.stopPropagation();window.rafexInspectMrSavedV45(index);};}if(copy){copy.textContent='KOPYALA';copy.onclick=function(event){event.preventDefault();event.stopPropagation();window.rafexCopyMrSavedV45(index);};}row.dataset.rafexActionsV46='1';});
+  }
+  var savedActionScanV46=false;new MutationObserver(function(){if(savedActionScanV46)return;savedActionScanV46=true;requestAnimationFrame(function(){savedActionScanV46=false;installSavedActionsV46();selectedRackInfoV46();});}).observe(document.body,{childList:true,subtree:true});installSavedActionsV46();
   installExtensionDisclosure();var disclosureScanPending=false;new MutationObserver(function(){if(disclosureScanPending)return;disclosureScanPending=true;requestAnimationFrame(function(){disclosureScanPending=false;installExtensionDisclosure();});}).observe(document.body,{childList:true,subtree:true});
   document.addEventListener('pointerdown',function(event){
     if(event.button!=null&&event.button!==0||event.isPrimary===false)return;
+    if(typeof m2LayoutTool!=='undefined'&&m2LayoutTool==='measure'){lastMrPointerTap={id:null,at:0};return;}
     var node=event.target?.closest?.('#m2LayoutSvg [data-rack]'),rack=node&&rackById(node.dataset.rack);if(!isMr(rack)){lastMrPointerTap={id:null,at:0};return;}if(typeof m2CustomizeMode!=='undefined'&&m2CustomizeMode){lastMrPointerTap={id:null,at:0};event.preventDefault();event.stopImmediatePropagation();openMrCustomize(rack);return;}
     var now=Date.now(),same=Number(lastMrPointerTap.id)===Number(rack.id)&&now-lastMrPointerTap.at<520;
     if(!same){lastMrPointerTap={id:rack.id,at:now};return;}
     lastMrPointerTap={id:null,at:0};suppressMrDblClickUntil=now+700;event.preventDefault();event.stopImmediatePropagation();try{m2LayoutState.drag=null;}catch(e){}wrappedStart(rack.id);
   },true);
-  document.addEventListener('dblclick',function(event){var node=event.target?.closest?.('#m2LayoutSvg [data-rack]'),rack=node&&rackById(node.dataset.rack);if(!isMr(rack))return;event.preventDefault();event.stopImmediatePropagation();if(Date.now()<suppressMrDblClickUntil)return;wrappedStart(rack.id);},true);
+  document.addEventListener('dblclick',function(event){if(typeof m2LayoutTool!=='undefined'&&m2LayoutTool==='measure')return;var node=event.target?.closest?.('#m2LayoutSvg [data-rack]'),rack=node&&rackById(node.dataset.rack);if(!isMr(rack))return;event.preventDefault();event.stopImmediatePropagation();if(Date.now()<suppressMrDblClickUntil)return;wrappedStart(rack.id);},true);
 })();</script>`;
 
   const bodyEnd = html.lastIndexOf("</body>");
