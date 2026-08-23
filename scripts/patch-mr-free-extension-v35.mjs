@@ -779,7 +779,20 @@ async function captureMRPerspective(config = {}, settings = {}) {
     mrViewer = mrViewer.replace(apiAnchor, `${apiAnchor}
   capturePerspective(config, settings) { return captureMRPerspective(config, settings); },`);
   }
-  for (const required of ['rowCount: Math.round(bounded(config.rowCount, 1, 1, 2))', 'dimensionScale: bounded(config.dimensionScale, 2, .7, 3)', 'const uprightHeight = Math.ceil(rawUprightHeight / 50) * 50', 'const footprintDepth = rowCount * depth', 'firstTraverse + index * (levelGap + traverseHeight)', 'rowZ + depth - 10', 'K${index} → K${index+1} NET', 'this.addDimensions(levelYs, totalWidth, footprintDepth, uprightHeight)', '__rafexMrDetachedPerspectiveCaptureV38']) {
+
+  // MR genislik olcusu toplam diziyi degil yalniz ilk modulun net bolumunu
+  // gosterir. Duzenleme anahtari ayni kalir ve mrSectionWidth alanini acmaya
+  // devam eder.
+  if (!mrViewer.includes("__rafexMrSingleSectionWidthV52")) {
+    const widthDimensionV52 = `      const y = -90, left = new THREE.Vector3(0,y,z+220), right = new THREE.Vector3(totalWidth,y,z+220);
+      this.addDimensionLine(layer,[left,right]);this.addDimensionLine(layer,[left,new THREE.Vector3(0,0,z)]);this.addDimensionLine(layer,[right,new THREE.Vector3(totalWidth,0,z)]);this.addDimensionPoint(layer,left);this.addDimensionPoint(layer,right);this.addDimensionLabel(layer,totalWidth/2,y,z+220,\`TOPLAM GENİŞLİK · ${this.dimensionValue(totalWidth)}\`,900,"width");`;
+    const singleWidthDimensionV52 = `      // __rafexMrSingleSectionWidthV52
+      const y = -90, sectionWidth = this.config.width, sectionLeft = this.config.uprightWidth, sectionRight = sectionLeft + sectionWidth, left = new THREE.Vector3(sectionLeft,y,z+220), right = new THREE.Vector3(sectionRight,y,z+220);
+      this.addDimensionLine(layer,[left,right]);this.addDimensionLine(layer,[left,new THREE.Vector3(sectionLeft,0,z)]);this.addDimensionLine(layer,[right,new THREE.Vector3(sectionRight,0,z)]);this.addDimensionPoint(layer,left);this.addDimensionPoint(layer,right);this.addDimensionLabel(layer,(sectionLeft+sectionRight)/2,y,z+220,\`GENİŞLİK · ${this.dimensionValue(sectionWidth)}\`,760,"width");`;
+    if (!mrViewer.includes(widthDimensionV52)) throw new Error("MR v52: toplam genislik olcu blogu bulunamadi.");
+    mrViewer = mrViewer.replace(widthDimensionV52, singleWidthDimensionV52);
+  }
+  for (const required of ['rowCount: Math.round(bounded(config.rowCount, 1, 1, 2))', 'dimensionScale: bounded(config.dimensionScale, 2, .7, 3)', 'const uprightHeight = Math.ceil(rawUprightHeight / 50) * 50', 'const footprintDepth = rowCount * depth', 'firstTraverse + index * (levelGap + traverseHeight)', 'rowZ + depth - 10', 'K${index} → K${index+1} NET', 'this.addDimensions(levelYs, totalWidth, footprintDepth, uprightHeight)', '__rafexMrDetachedPerspectiveCaptureV38', '__rafexMrSingleSectionWidthV52', '`GENİŞLİK · ${this.dimensionValue(sectionWidth)}`']) {
     if (!mrViewer.includes(required)) throw new Error(`MR v45 viewer kaynak dogrulama hatasi: ${required}`);
   }
   fs.writeFileSync(mrViewerPath, mrViewer);
@@ -1019,6 +1032,24 @@ ${fitFunctionV49}`;
     portal = portal.slice(0, headEndV51) + measureStylesV51 + "\n" + portal.slice(headEndV51);
   }
 
+  // MR tek bir bolum/modul olcusu uzerinden tanimlanir. Ozet ve 3D'de
+  // toplam raf dizisi yerine kullanicinin girdigi net bolum genisligi yazilir.
+  if (!portal.includes("__rafexMrSingleWidthAndSaveBarV52")) {
+    portal = portal
+      .replaceAll('<span>Toplam genişlik</span><b id="mrTotalWidth"', '<span>Genişlik</span><b id="mrTotalWidth"')
+      .replaceAll('if($("mrTotalWidth"))$("mrTotalWidth").textContent=`${fmt(totalWidth)} mm`', 'if($("mrTotalWidth"))$("mrTotalWidth").textContent=`${fmt(width)} mm`');
+    const headEndV52 = portal.indexOf("</head>");
+    if (headEndV52 < 0) throw new Error("MR v52: kaydet cubugu stili icin head bulunamadi.");
+    const saveBarStylesV52 = `<style data-rafex-mr-single-width-save-bar="v52">
+      /* __rafexMrSingleWidthAndSaveBarV52 */
+      #page.mr-mode .mr-view-card>.mr-rack-save{width:100%!important;margin:0!important;padding:0!important;gap:0!important;justify-self:stretch!important;border-top:1px solid #d8b100;background:#fff}
+      #page.mr-mode .mr-view-card>.mr-rack-save>#mrSaveRackButton{display:block;width:100%!important;min-height:64px!important;margin:0!important;padding:15px 18px!important;border-left:0!important;border-right:0!important;border-radius:0!important;font-size:16px!important;letter-spacing:.03em}
+      #page.mr-mode .mr-view-card>.mr-rack-save>#mrSaveRackStatus{display:block;padding:9px 14px 5px;text-align:center;font-size:9px}
+      #page.mr-mode .mr-view-card>.mr-rack-save>.mr-block-panel{margin:8px 13px 13px}
+    </style>`;
+    portal = portal.slice(0, headEndV52) + saveBarStylesV52 + "\n" + portal.slice(headEndV52);
+  }
+
   // MR olcu panelinde ilk iki raf araligi en basta ve tek satirda görünür.
   // B2B panelinin mevcut sirasi ve davranisi aynen korunur.
   if (!portal.includes("__rafexMrTwoNearestGapsV49")) {
@@ -1042,6 +1073,9 @@ ${fitFunctionV49}`;
     .replaceAll(' · ÜST UZATMA ${fmt(extension)} mm', '')
     .replaceAll(' · üst yarım kat ${fmt(topExtension)} mm', '');
   if (/ÜST YARIM KAT|AYAK UZATMASI/u.test(portal)) throw new Error("MR v47: PDF ust yarim kat etiketi kaldirilamadi.");
+  for (const required of ['__rafexMrSingleWidthAndSaveBarV52', '<span>Genişlik</span><b id="mrTotalWidth"', 'textContent=`${fmt(width)} mm`', 'min-height:64px!important']) {
+    if (!portal.includes(required)) throw new Error(`MR v52 portal kaynak dogrulama hatasi: ${required}`);
+  }
 
   fs.writeFileSync(portalPath, portal);
   console.log("MR v43 source: secili rafin fiziksel zincirine bagli, sahipligi dogrulanan mesafeler hazir.");
@@ -1219,13 +1253,13 @@ ${fitFunctionV49}`;
   function mountMrCustomize(rack){
     var canvas=document.getElementById('m2CustomizeCanvas');if(!canvas||!window.RafexMRViewer?.mount)return;
     try{window.RafexB2BViewer?.destroy?.();}catch(e){}
-    try{var instance=window.RafexMRViewer.mount(canvas,{config:configFromRack(rack)});try{mrViewerInstance=instance;}catch(e){}}catch(error){setStatus(error?.message||'MR 3D önizlemesi açılamadı.');}
+    try{var previewConfig=configFromRack(rack);previewConfig.dimensionScale=Math.max(2,Number(previewConfig.dimensionScale)||2);var instance=window.RafexMRViewer.mount(canvas,{config:previewConfig});try{mrViewerInstance=instance;}catch(e){}}catch(error){setStatus(error?.message||'MR 3D önizlemesi açılamadı.');}
   }
   function openMrCustomize(rack){
     var modal=document.getElementById('m2CustomizeModal');if(!modal)return;
     try{m2CustomizeRackId=rack.id;m2CustomizeMode=false;}catch(e){}m2LayoutState.selected=rack.id;document.getElementById('m2CustomizeRackButton')?.classList.remove('active');modal.classList.add('rafex-mr-customize-v37');modal.hidden=false;
     var head=modal.querySelector('.m2-customize-head'),title=head?.querySelector('b'),copy=head?.querySelector('small'),close=head?.querySelector('button'),badge=modal.querySelector('.m2-customize-preview>span');if(title)title.textContent='MR Modül Önizlemesi';if(copy)copy.textContent='Ölçüler oluşturduğun MR raf tipinden birebir alınır; B2B değerleri uygulanmaz.';if(close)close.setAttribute('onclick','window.rafexCloseMrCustomizeV37()');if(badge)badge.textContent='MR 3D RAF ÖNİZLEMESİ';
-    var config=configFromRack(rack),summary=modal.querySelector('.rafex-mr-customize-summary');if(!summary){summary=document.createElement('div');summary.className='rafex-mr-customize-summary';head?.after(summary);}summary.innerHTML='<div><small>TOPLAM GENİŞLİK</small><b>'+formatMm(config.modules*config.width+(config.modules+1)*60)+'</b></div><div><small>DERİNLİK</small><b>'+formatMm(config.depth)+'</b></div><div><small>ZEMİN → K1</small><b>'+formatMm(config.firstTraverse)+'</b></div><div><small>KAT ARASI NET</small><b>'+formatMm(config.levelGap)+'</b></div><div><small>AYAK BOYU</small><b>'+formatMm(config.uprightHeight)+'</b></div><div><small>SİSTEM</small><b>MR60 · '+config.traverseType+'</b></div>';
+    var config=configFromRack(rack),summary=modal.querySelector('.rafex-mr-customize-summary');if(!summary){summary=document.createElement('div');summary.className='rafex-mr-customize-summary';head?.after(summary);}summary.innerHTML='<div><small>GENİŞLİK</small><b>'+formatMm(config.width)+'</b></div><div><small>DERİNLİK</small><b>'+formatMm(config.depth)+'</b></div><div><small>ZEMİN → K1</small><b>'+formatMm(config.firstTraverse)+'</b></div><div><small>KAT ARASI NET</small><b>'+formatMm(config.levelGap)+'</b></div><div><small>AYAK BOYU</small><b>'+formatMm(config.uprightHeight)+'</b></div><div><small>SİSTEM</small><b>MR60 · '+config.traverseType+'</b></div>';
     var actions=modal.querySelector('.m2-customize-actions'),buttons=actions?.querySelectorAll('button');if(buttons?.[0]){buttons[0].textContent='Kapat';buttons[0].setAttribute('onclick','window.rafexCloseMrCustomizeV37()');}if(buttons?.[1]){buttons[1].textContent='MR Ölçülerine Git';buttons[1].setAttribute('onclick','window.rafexLoadMrRackV37()');}
     requestAnimationFrame(function(){mountMrCustomize(rack);});
   }
@@ -1332,7 +1366,7 @@ ${fitFunctionV49}`;
   var wrappedCustomizeApply=function(){var rack=rackById(typeof m2CustomizeRackId==='undefined'?null:m2CustomizeRackId);if(isMr(rack))return window.rafexLoadMrRackV37();return originalCustomizeApply?.apply(this,arguments);};
   window.rafexCopyMrSavedV45=function(index){var entry=Array.isArray(m2SavedRackTypes)?m2SavedRackTypes[index]:null,drawing=entry?.drawing;if(!entry||!isMr(drawing)){setStatus('Kopyalanacak MR kaydı bulunamadı.');return;}try{if(typeof window.mrSelectBlockV7==='function')window.mrSelectBlockV7(Number(index));else{m2SelectedSavedType=Number(index);m2LastDrawing=JSON.parse(JSON.stringify(drawing));mrApplyDrawingToFormV4(drawing);mrUpdateSummary(true);mrSyncLayoutDrawingV4(false);}setStatus(String(entry.name||'MR')+' bilgileri üst MR düzenleyiciye getirildi.');setTimeout(function(){ensureMrRowControlsV49();document.querySelector('.mr-form')?.scrollIntoView?.({behavior:'smooth',block:'start'});},50);}catch(error){setStatus(error?.message||'MR kaydı kopyalanamadı.');}};
   window.rafexCloseMrSavedV48=function(){var modal=document.getElementById('rafexMrSavedPreviewModal');if(modal)modal.hidden=true;try{window.RafexMRViewer?.destroy?.();}catch(e){}requestAnimationFrame(function(){try{if(m2ActiveModule==='mr'&&document.getElementById('mrCanvas'))mrMountViewer();}catch(e){}});};
-  window.rafexInspectMrSavedV45=function(index){var entry=Array.isArray(m2SavedRackTypes)?m2SavedRackTypes[index]:null;if(!entry||!isMr(entry.drawing)){setStatus('İncelenecek MR kaydı bulunamadı.');return;}var modal=document.getElementById('rafexMrSavedPreviewModal');if(!modal){document.body.insertAdjacentHTML('beforeend','<div class="m2-layout-modal rafex-mr-saved-preview-v48" id="rafexMrSavedPreviewModal" hidden onclick="if(event.target===this)rafexCloseMrSavedV48()"><div class="m2-readonly-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="rafexMrSavedPreviewTitle"><div class="m2-readonly-preview-head"><div><b id="rafexMrSavedPreviewTitle">MR 3D RAF ÖNİZLEMESİ</b><small>Salt okunur · kayıtlı MR verileri birebir gösterilir</small></div><button type="button" aria-label="Önizlemeyi kapat" onclick="rafexCloseMrSavedV48()">×</button></div><div class="m2-readonly-preview-canvas"><canvas id="rafexMrSavedPreviewCanvas"></canvas></div></div></div>');modal=document.getElementById('rafexMrSavedPreviewModal');}document.getElementById('rafexMrSavedPreviewTitle').textContent=String(entry.name||'MR')+' · MR 3D RAF ÖNİZLEMESİ';modal.hidden=false;requestAnimationFrame(function(){var canvas=document.getElementById('rafexMrSavedPreviewCanvas');if(!canvas||!window.RafexMRViewer)return;try{window.RafexMRViewer.destroy?.();window.RafexMRViewer.mount(canvas,{config:configFromRack(entry.drawing)});window.RafexMRViewer.setView?.('perspective');}catch(error){setStatus(error?.message||'MR 3D önizlemesi açılamadı.');}});};
+  window.rafexInspectMrSavedV45=function(index){var entry=Array.isArray(m2SavedRackTypes)?m2SavedRackTypes[index]:null;if(!entry||!isMr(entry.drawing)){setStatus('İncelenecek MR kaydı bulunamadı.');return;}var modal=document.getElementById('rafexMrSavedPreviewModal');if(!modal){document.body.insertAdjacentHTML('beforeend','<div class="m2-layout-modal rafex-mr-saved-preview-v48" id="rafexMrSavedPreviewModal" hidden onclick="if(event.target===this)rafexCloseMrSavedV48()"><div class="m2-readonly-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="rafexMrSavedPreviewTitle"><div class="m2-readonly-preview-head"><div><b id="rafexMrSavedPreviewTitle">MR 3D RAF ÖNİZLEMESİ</b><small>Salt okunur · kayıtlı MR verileri birebir gösterilir</small></div><button type="button" aria-label="Önizlemeyi kapat" onclick="rafexCloseMrSavedV48()">×</button></div><div class="m2-readonly-preview-canvas"><canvas id="rafexMrSavedPreviewCanvas"></canvas></div></div></div>');modal=document.getElementById('rafexMrSavedPreviewModal');}document.getElementById('rafexMrSavedPreviewTitle').textContent=String(entry.name||'MR')+' · MR 3D RAF ÖNİZLEMESİ';modal.hidden=false;requestAnimationFrame(function(){var canvas=document.getElementById('rafexMrSavedPreviewCanvas');if(!canvas||!window.RafexMRViewer)return;try{window.RafexMRViewer.destroy?.();var inspectConfig=configFromRack(entry.drawing);inspectConfig.dimensionScale=Math.max(2,Number(inspectConfig.dimensionScale)||2);window.RafexMRViewer.mount(canvas,{config:inspectConfig});window.RafexMRViewer.setView?.('perspective');}catch(error){setStatus(error?.message||'MR 3D önizlemesi açılamadı.');}});};
   try{m2StartAutoFillGuide=wrappedStart;m2PreviewAutoFillLength=wrappedPreview;m2ApplyAutoFillLength=wrappedApply;m2CancelAutoFill=wrappedCancel;m2CommitAutoFillGuide=wrappedCommit;}catch(e){}
   try{m2OpenCustomizeModal=wrappedCustomizeOpen;m2CloseCustomizeModal=wrappedCustomizeClose;m2PreviewRackCustomization=wrappedCustomizePreview;m2ApplyRackCustomization=wrappedCustomizeApply;}catch(e){}
   window.m2StartAutoFillGuide=wrappedStart;window.m2PreviewAutoFillLength=wrappedPreview;window.m2ApplyAutoFillLength=wrappedApply;window.m2CancelAutoFill=wrappedCancel;window.m2CommitAutoFillGuide=wrappedCommit;
@@ -1366,7 +1400,7 @@ ${fitFunctionV49}`;
   const bodyEnd = html.lastIndexOf("</body>");
   if (bodyEnd < 0) throw new Error("MR v35: body kapanisi bulunamadi.");
   html = html.slice(0, bodyEnd) + runtime + "\n" + html.slice(bodyEnd);
-  for (const required of [marker, "__rafexMrPointerDoubleTapV36", "rafexMrConfigFromRackV37", "__rafexMrSectionCaptureV38", "function buildMRCard(group,index)", "rafex-v38-mr-type-card", "data-rafex-system=\"mr\"", "x==='b2b'||x==='mekik2'||x==='mr'", "if(document.activeElement===input)input.blur()", "rafexProjectMrObstacleV40", "rafexCommitMrObstacleV40", "DUVARA KALAN", "KOLONA KALAN", "RAFA KALAN", "rafex-mr-customize-v37", "MR 3D RAF ÖNİZLEMESİ", "addEventListener('pointerdown'", "rafexMrExtensionPlan", "Kalan MR Bölümü", "Özel Rafı Oluştur", "netRemaining>500", "step=\"50\"", "rafex-extension-disclosure-v42", "rafexMrQuantitySummaryV42", "__rafexMrExactQuantitiesV42", "rafexInspectMrSavedV45", "rafexCopyMrSavedV45", "rowCount:rowCount", "Math.min(3,Number(state.dimensionScale)||2)"]) {
+  for (const required of [marker, "__rafexMrPointerDoubleTapV36", "rafexMrConfigFromRackV37", "__rafexMrSectionCaptureV38", "function buildMRCard(group,index)", "rafex-v38-mr-type-card", "data-rafex-system=\"mr\"", "x==='b2b'||x==='mekik2'||x==='mr'", "if(document.activeElement===input)input.blur()", "rafexProjectMrObstacleV40", "rafexCommitMrObstacleV40", "DUVARA KALAN", "KOLONA KALAN", "RAFA KALAN", "rafex-mr-customize-v37", "MR 3D RAF ÖNİZLEMESİ", "addEventListener('pointerdown'", "rafexMrExtensionPlan", "Kalan MR Bölümü", "Özel Rafı Oluştur", "netRemaining>500", "step=\"50\"", "rafex-extension-disclosure-v42", "rafexMrQuantitySummaryV42", "__rafexMrExactQuantitiesV42", "rafexInspectMrSavedV45", "rafexCopyMrSavedV45", "rowCount:rowCount", "Math.min(3,Number(state.dimensionScale)||2)", "inspectConfig.dimensionScale=Math.max(2", "<small>GENİŞLİK</small>"]) {
     if (!html.includes(required)) throw new Error(`MR v35 runtime dogrulama hatasi: ${required}`);
   }
   const encoded = Buffer.from(html, "utf8").toString("base64");
