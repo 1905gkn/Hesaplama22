@@ -31,6 +31,8 @@ assert.equal(planExtension(670, 2500, 60).customMax, 550);
 
 if (mode === "source") {
   const portalPath = path.join(root, "portal.html");
+  const mrViewerPath = path.join(root, "client/mr-viewer.entry.js");
+  const sectionPositionerPath = path.join(root, "client/b2b-section-positioner-v5.js");
   let portal = fs.readFileSync(portalPath, "utf8");
 
   const oldSection = "const config=mrConfigurationV2(),footWidth=config.uprightWidth,totalWidth=config.modules*config.width+(config.modules+1)*footWidth,sectionWidth=totalWidth;";
@@ -43,8 +45,112 @@ if (mode === "source") {
   if (portal.includes(oldNormalize)) portal = portal.replace(oldNormalize, newNormalize);
   else if (!portal.includes(newNormalize)) throw new Error("MR v35: B2B fiziksel genislik normalizasyonu bulunamadi.");
 
+  // MR rapor kesitleri aktif 3D sahneyi bozmadan, kendi GLB motorundan
+  // arka planda yakalanir. B2B'nin varsayilan olculeri MR'ye uygulanmaz.
+  let mrViewer = fs.readFileSync(mrViewerPath, "utf8");
+  if (!mrViewer.includes("__rafexMrDetachedPerspectiveCaptureV38")) {
+    const activeAnchor = "\nlet active = null;\n";
+    if (!mrViewer.includes(activeAnchor)) throw new Error("MR v38: viewer active baglanti noktasi bulunamadi.");
+    const detachedCapture = `
+// __rafexMrDetachedPerspectiveCaptureV38
+async function captureMRPerspective(config = {}, settings = {}) {
+  const width = Math.max(640, Math.round(Number(settings.width) || 1120));
+  const height = Math.max(480, Math.round(Number(settings.height) || 900));
+  const host = document.createElement("div");
+  host.setAttribute("aria-hidden", "true");
+  host.style.cssText = \`position:fixed;left:-100000px;top:0;width:\${width}px;height:\${height}px;overflow:hidden;pointer-events:none;background:#fff\`;
+  const canvas = document.createElement("canvas");
+  canvas.style.cssText = "display:block;width:100%;height:100%";
+  host.appendChild(canvas);
+  document.body.appendChild(host);
+  let viewer;
+  try {
+    const ready = new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error("MR perspektif kesiti zaman asimina ugradi.")), 20000);
+      canvas.addEventListener("mr-viewer-ready", () => { clearTimeout(timeout); resolve(); }, { once:true });
+      canvas.addEventListener("mr-viewer-error", (event) => { clearTimeout(timeout); reject(new Error(event.detail?.message || "MR perspektif kesiti olusturulamadi.")); }, { once:true });
+    });
+    viewer = new MRViewer(canvas, { config });
+    await ready;
+    viewer.renderer.setPixelRatio(Math.max(1, Math.min(2.5, Number(settings.pixelRatio) || 1.5)));
+    viewer.onResize();
+    viewer.setAutoRotate(false);
+    viewer.setView("perspective");
+    viewer.controls.update();
+    viewer.renderer.render(viewer.scene, viewer.camera);
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    viewer.renderer.render(viewer.scene, viewer.camera);
+    return canvas.toDataURL("image/webp", Math.max(.5, Math.min(1, Number(settings.quality) || .9)));
+  } finally {
+    viewer?.destroy();
+    host.remove();
+  }
+}
+`;
+    mrViewer = mrViewer.replace(activeAnchor, `${detachedCapture}${activeAnchor}`);
+    const apiAnchor = `  mount(canvas, options) { if (!(canvas instanceof HTMLCanvasElement)) throw new Error("MR 3D alanı bulunamadı."); active?.destroy(); active = new MRViewer(canvas, options); return active; },`;
+    if (!mrViewer.includes(apiAnchor)) throw new Error("MR v38: viewer API baglanti noktasi bulunamadi.");
+    mrViewer = mrViewer.replace(apiAnchor, `${apiAnchor}
+  capturePerspective(config, settings) { return captureMRPerspective(config, settings); },`);
+    fs.writeFileSync(mrViewerPath, mrViewer);
+  }
+
+  // Kesit Yer Belirleme MR tipini ayri tutar ve secilen rafin kendi kaydini
+  // MR viewer'a yollar. Eski/hatali 3'lu B2B varsayimi burada devre disidir.
+  let positioner = fs.readFileSync(sectionPositionerPath, "utf8");
+  if (!positioner.includes("__rafexMrSectionOutputV38")) {
+    const palletAnchor = `  function palletCountOf(drawing) {
+    return clamp(Math.round(number(drawing?.b2bLayout?.palletCount ?? drawing?.b2b?.palletCount ?? drawing?.bays, 3)), 1, 4);
+  }
+`;
+    if (!positioner.includes(palletAnchor)) throw new Error("MR v38: kesit pallet sayisi baglanti noktasi bulunamadi.");
+    positioner = positioner.replace(palletAnchor, `${palletAnchor}
+  // __rafexMrSectionOutputV38
+  function isMrDrawing(drawing) {
+    return Boolean(drawing?.b2b?.mr || drawing?.rafexSystem === "mr" || drawing?.systemType === "mr" || drawing?.b2bLayout?.palletType === "mr" || drawing?.plan?.mr);
+  }
+`);
+    positioner = positioner.replace(
+      "        const label = safeKey(entry?.name || entry?.typeName || entry?.label || `Raf Tipi ${index + 1}`);\n        if (!groups.has(label)) groups.set(label, { key: label, label, entries: new Map(), cards: [] });",
+      "        const label = safeKey(entry?.name || entry?.typeName || entry?.label || `Raf Tipi ${index + 1}`);\n        const system = isMrDrawing(drawing) ? \"mr\" : \"b2b\";\n        if (!groups.has(label)) groups.set(label, { key: label, label, system, entries: new Map(), cards: [] });"
+    );
+    const captureStart = positioner.indexOf("  async function capturePerspective(key, source = draft, force = false) {");
+    const captureEnd = positioner.indexOf("\n  function installStyles", captureStart);
+    if (captureStart < 0 || captureEnd < 0) throw new Error("MR v38: kesit yakalama fonksiyonu bulunamadi.");
+    const mrCapture = `  async function capturePerspective(key, source = draft, force = false) {
+    // __rafexDetachedSectionCaptureV1 + __rafexMrSectionCaptureV38
+    const type = rackTypeCache.find((item) => item.key === safeKey(key)) || collectRackTypes().find((item) => item.key === safeKey(key));
+    const settings = settingFor(key, source);
+    const seed = type?.entries?.values?.().next?.().value;
+    const mr = type?.system === "mr" || isMrDrawing(seed?.drawing);
+    const options = mr ? window.rafexMrConfigFromRackV37?.(seed?.drawing) : optionsForType(type, settings);
+    const capture = mr ? window.RafexMRViewer?.capturePerspective : window.RafexB2BViewer?.capturePerspective;
+    if (!options || typeof capture !== "function") return null;
+    const signature = JSON.stringify({ system:mr?"mr":"b2b", key:safeKey(key), azimuth:settings.azimuth, elevation:settings.elevation, showPallets:settings.showPallets, dimensions:settings.dimensions, options });
+    if (!force && previewCache.get(key)?.signature === signature) return previewCache.get(key).src;
+    if (previewPending.has(key)) return previewPending.get(key);
+    const task = (async () => {
+      // MR'de modules/kat/olculer seed kaydindan birebir gelir; B2B sayaclari uygulanmaz.
+      const src = await capture.call(mr ? window.RafexMRViewer : window.RafexB2BViewer, options, { width:1120, height:900, azimuth:settings.azimuth, elevation:settings.elevation, pixelRatio:1.5, quality:.9 });
+      if (src) { previewCache.set(key, { signature, src }); trimPreviewCache(); }
+      return src || null;
+    })().catch((error) => {
+      console.error(mr ? "MR kesit perspektifi hazirlanamadi" : "Kesit Yer Belirleme perspektif goruntusu hazirlanamadi", error);
+      return null;
+    }).finally(() => previewPending.delete(key));
+    previewPending.set(key, task);
+    return task;
+  }
+`;
+    positioner = positioner.slice(0, captureStart) + mrCapture + positioner.slice(captureEnd);
+    for (const required of ["__rafexMrSectionOutputV38", "__rafexMrSectionCaptureV38", "RafexMRViewer?.capturePerspective"]) {
+      if (!positioner.includes(required)) throw new Error(`MR v38 kesit kaynak dogrulama hatasi: ${required}`);
+    }
+    fs.writeFileSync(sectionPositionerPath, positioner);
+  }
+
   fs.writeFileSync(portalPath, portal);
-  console.log("MR v35 source: MR net bolum genisligi korundu; B2B fiziksel genislik normalizasyonu MR raflarini degistirmez.");
+  console.log("MR v38 source: MR net genisligi ve kesit ciktisi kendi viewer/veri hattinda; B2B varsayimlari uygulanmaz.");
 } else if (mode === "runtime") {
   const workerPath = path.join(root, "dist/server/index.js");
   let worker = fs.readFileSync(workerPath, "utf8");
@@ -52,6 +158,35 @@ if (mode === "source") {
   if (!match) throw new Error("MR v35: HTML_BASE64 build ciktisinda bulunamadi.");
   let html = Buffer.from(match[3], "base64").toString("utf8");
   html = html.replace(/<style\s+data-rafex-mr-free-extension="v35">[\s\S]*?<\/style>\s*<script\s+data-rafex-mr-free-extension="v35">[\s\S]*?<\/script>/g, "");
+
+  // PDF/kesit sayfasi MR'yi ucuncu bagimsiz sistem olarak siniflandirir.
+  // Boylece MR kartina once B2B SVG'si, sonra B2B 3D yakalamasi basilmaz.
+  const oldSystemClassifier = "if(x==='b2b'||x==='mekik2')return x;";
+  const newSystemClassifier = "if(x==='b2b'||x==='mekik2'||x==='mr')return x;";
+  if (html.includes(oldSystemClassifier)) html = html.replace(oldSystemClassifier, newSystemClassifier);
+  else if (!html.includes(newSystemClassifier)) throw new Error("MR v38: PDF sistem siniflandiricisi bulunamadi.");
+
+  const oldCardRouter = "  function buildCard(group,index){return group.system==='b2b'?buildB2BCard(group,index):buildMekikCard(group,index)}";
+  const newCardRouter = `  function buildMRCard(group,index){
+    var count=Math.max(1,Number(group&&group.rackCount)||1),title=String(group&&group.name||('MR Tip '+(index+1)));
+    return '<article class="rafex-v19-type-card rafex-v38-mr-type-card" data-rafex-system="mr" data-rafex-type-name="'+htmlEsc(title)+'" style="--m2-type-color:#1d5f8a"><div class="rafex-v19-card-head"><span>'+htmlEsc(title)+'</span><small>MR SİSTEM</small><small>'+fmtN(count)+' ADET</small></div><div class="rafex-v19-view"><div class="rafex-v19-view-title">MR 3D GÖRÜNÜŞ · KAYITLI ÖLÇÜLER</div><div class="rafex-v19-visual"><div class="rafex-mr-output-wait">MR görünüşü hazırlanıyor…</div></div></div></article>';
+  }
+  function buildCard(group,index){return group.system==='mr'?buildMRCard(group,index):group.system==='b2b'?buildB2BCard(group,index):buildMekikCard(group,index)}`;
+  if (html.includes(oldCardRouter)) html = html.replace(oldCardRouter, newCardRouter);
+  else if (!html.includes("function buildMRCard(group,index)")) throw new Error("MR v38: PDF kart yonlendiricisi bulunamadi.");
+
+  const oldSectionCardQuery = "'.m2-corporate-type-card,.rafex-v19-type-card[data-rafex-system=\"b2b\"]'";
+  const newSectionCardQuery = "'.m2-corporate-type-card,.rafex-v19-type-card[data-rafex-system=\"b2b\"],.rafex-v19-type-card[data-rafex-system=\"mr\"]'";
+  if (html.includes(oldSectionCardQuery)) html = html.replace(oldSectionCardQuery, newSectionCardQuery);
+  else if (!html.includes(newSectionCardQuery)) throw new Error("MR v38: kesit kart sorgusu bulunamadi.");
+  const oldSectionCardFilter = '        if ((card.dataset.rafexSystem && card.dataset.rafexSystem !== "b2b") || card.querySelector(".m2-set-projection")) return;';
+  const newSectionCardFilter = '        if ((card.dataset.rafexSystem && card.dataset.rafexSystem !== "b2b" && card.dataset.rafexSystem !== "mr") || card.querySelector(".m2-set-projection")) return;';
+  if (html.includes(oldSectionCardFilter)) html = html.replace(oldSectionCardFilter, newSectionCardFilter);
+  else if (!html.includes(newSectionCardFilter)) throw new Error("MR v38: kesit kart sistem filtresi bulunamadi.");
+  const oldSectionCardGroup = "        if (!groups.has(label)) groups.set(label, { key: label, label, entries: new Map(), cards: [] });\n        if (!groups.get(label).cards.includes(card)) groups.get(label).cards.push(card);";
+  const newSectionCardGroup = "        const system = card.dataset.rafexSystem === \"mr\" ? \"mr\" : \"b2b\";\n        if (!groups.has(label)) groups.set(label, { key: label, label, system, entries: new Map(), cards: [] });\n        if (!groups.get(label).system) groups.get(label).system = system;\n        if (!groups.get(label).cards.includes(card)) groups.get(label).cards.push(card);";
+  if (html.includes(oldSectionCardGroup)) html = html.replace(oldSectionCardGroup, newSectionCardGroup);
+  else if (!html.includes(newSectionCardGroup)) throw new Error("MR v38: kesit kart grup baglantisi bulunamadi.");
 
   const runtime = String.raw`<style ${marker}>
 .mr-mode #m2AutoFillControls{display:flex!important}
@@ -68,6 +203,7 @@ if (mode === "source") {
 #m2CustomizeModal.rafex-mr-customize-v37 aside>:not(.m2-customize-head):not(.rafex-mr-customize-summary):not(.m2-customize-actions){display:none!important}
 .rafex-mr-customize-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;border:1px solid #d9e5df;border-radius:10px;background:#f7faf8}
 .rafex-mr-customize-summary div{padding:9px;border-radius:8px;background:#fff}.rafex-mr-customize-summary small{display:block;color:#6d7a73;font-size:8px;font-weight:850}.rafex-mr-customize-summary b{display:block;margin-top:4px;color:#173c2d;font-size:12px}
+.rafex-v38-mr-type-card.rafex-perspective-output .rafex-v19-view{width:100%!important;height:100%!important}.rafex-v38-mr-type-card .rafex-report-3d-frame{width:100%;height:100%;overflow:hidden}.rafex-v38-mr-type-card .rafex-report-3d-frame img{display:block;width:100%;height:100%;object-fit:contain}.rafex-mr-output-wait{display:grid;place-items:center;width:100%;height:100%;color:#65736b;font-size:10px;font-weight:850}
 @media(max-width:560px){.rafex-mr-extension-summary{grid-template-columns:1fr}.rafex-mr-extension-card{padding:15px}}
 </style>
 <script ${marker}>(function(){
@@ -91,7 +227,8 @@ if (mode === "source") {
   function formatMm(value){try{return Math.round(Number(value)||0).toLocaleString('tr-TR')+' mm';}catch{return String(Math.round(Number(value)||0))+' mm';}}
   function configFromRack(rack){
     var state=rack?.b2b||{},layout=rack?.b2bLayout||{},levels=Math.max(1,Math.round(Number(state.levels)||Number(rack?.levels)||1)),width=Math.max(300,Number(state.width)||Number(layout.palletWidth)||Number(rack?.palW)||2400),depth=Math.max(300,Number(state.depth)||Number(layout.palletDepth)||Number(rack?.depthMm)||800),firstTraverse=Math.max(0,Number(state.firstTraverse??rack?.firstRailHeight??200)),levelGap=Math.max(100,Number(state.requestedLevelGap)||Number(state.levelGap)||Number(rack?.levelH)||1000),traverseType=String(state.traverseType||'ZS65'),traverseHeight=Math.max(1,Number(state.traverseHeight)||Number(rack?.traverseHeight)||({ZS35:55,ZS55:75,ZS65:85}[traverseType]||85)),topTraverse=firstTraverse+Math.max(0,levels-1)*(levelGap+traverseHeight),automaticUprightHeight=topTraverse+traverseHeight+levelGap/2,uprightHeight=Math.max(topTraverse+traverseHeight,Number(state.uprightHeight)||Number(rack?.sideUprightHeight)||automaticUprightHeight);
-    return{modules:Math.max(1,Math.round(Number(state.modules)||Number(rack?.bays)||1)),levels:levels,width:width,depth:depth,firstTraverse:firstTraverse,levelGap:levelGap,requestedLevelGap:levelGap,height:topTraverse,uprightHeight:uprightHeight,uprightType:state.uprightType||'MR60',uprightThickness:Number(state.uprightThickness)||1.5,uprightWidth:60,traverseType:traverseType,traverseThickness:Number(state.traverseThickness)||1.5,traverseHeight:traverseHeight,uprightFinish:state.uprightFinish||'ral5010',traverseFinish:state.traverseFinish||'ral1007',accessories:Array.isArray(state.accessories)?JSON.parse(JSON.stringify(state.accessories)):[],dimensions:{levels:true,markers:true,width:true,depth:true},dimensionScale:Math.max(.7,Math.min(1.5,Number(state.dimensionScale)||1))};
+    var dimensions=state.dimensions||{};
+    return{modules:Math.max(1,Math.round(Number(state.modules)||Number(rack?.bays)||1)),levels:levels,width:width,depth:depth,firstTraverse:firstTraverse,levelGap:levelGap,requestedLevelGap:levelGap,height:topTraverse,uprightHeight:uprightHeight,uprightType:state.uprightType||'MR60',uprightThickness:Number(state.uprightThickness)||1.5,uprightWidth:60,traverseType:traverseType,traverseThickness:Number(state.traverseThickness)||1.5,traverseHeight:traverseHeight,uprightFinish:state.uprightFinish||'ral5010',traverseFinish:state.traverseFinish||'ral1007',accessories:Array.isArray(state.accessories)?JSON.parse(JSON.stringify(state.accessories)):[],dimensions:{levels:dimensions.levels!==false,markers:dimensions.markers!==false,width:dimensions.width!==false,depth:dimensions.depth!==false},dimensionScale:Math.max(.7,Math.min(1.5,Number(state.dimensionScale)||1))};
   }
   window.rafexMrConfigFromRackV37=configFromRack;
   function footOf(rack){return Math.max(1,Math.round(Number(rack?.b2b?.uprightWidth)||60));}
@@ -220,13 +357,13 @@ if (mode === "source") {
   const bodyEnd = html.lastIndexOf("</body>");
   if (bodyEnd < 0) throw new Error("MR v35: body kapanisi bulunamadi.");
   html = html.slice(0, bodyEnd) + runtime + "\n" + html.slice(bodyEnd);
-  for (const required of [marker, "__rafexMrPointerDoubleTapV36", "rafexMrConfigFromRackV37", "rafex-mr-customize-v37", "MR 3D RAF ÖNİZLEMESİ", "addEventListener('pointerdown'", "rafexMrExtensionPlan", "Kalan MR Bölümü", "Özel Rafı Oluştur", "netRemaining>500", "step=\"50\""]) {
+  for (const required of [marker, "__rafexMrPointerDoubleTapV36", "rafexMrConfigFromRackV37", "__rafexMrSectionCaptureV38", "function buildMRCard(group,index)", "rafex-v38-mr-type-card", "data-rafex-system=\"mr\"", "x==='b2b'||x==='mekik2'||x==='mr'", "rafex-mr-customize-v37", "MR 3D RAF ÖNİZLEMESİ", "addEventListener('pointerdown'", "rafexMrExtensionPlan", "Kalan MR Bölümü", "Özel Rafı Oluştur", "netRemaining>500", "step=\"50\""]) {
     if (!html.includes(required)) throw new Error(`MR v35 runtime dogrulama hatasi: ${required}`);
   }
   const encoded = Buffer.from(html, "utf8").toString("base64");
   worker = worker.slice(0, match.index) + match[1] + match[2] + encoded + match[2] + worker.slice(match.index + match[0].length);
   fs.writeFileSync(workerPath, worker);
-  console.log("MR v37 runtime: MR uzatma + B2B'den izole MR 3D onizleme ve olcu butunlugu eklendi.");
+  console.log("MR v38 runtime: MR uzatma + B2B'den izole ozellestirme ve ayni kayittan MR kesit ciktisi eklendi.");
 } else {
   throw new Error("Kullanim: node scripts/patch-mr-free-extension-v35.mjs source|runtime");
 }
