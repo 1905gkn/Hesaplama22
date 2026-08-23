@@ -63,6 +63,11 @@ if (mode === "source") {
 .rafex-mr-extension-field{display:grid;gap:7px;padding:12px;border:1px solid #e5d171;border-radius:10px;background:#fffbea;font-size:10px;font-weight:900}.rafex-mr-extension-input{display:grid;grid-template-columns:42px minmax(0,1fr) 42px;gap:7px}.rafex-mr-extension-input button,.rafex-mr-extension-input input{min-height:42px;border:1px solid #d5ddd8;border-radius:8px;background:#fff;color:#173c2d;font-weight:900}.rafex-mr-extension-input input{text-align:center;font-size:16px}.rafex-mr-extension-field small{color:#66726b;font-size:8px;line-height:1.45}
 .rafex-mr-extension-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}.rafex-mr-extension-actions button{padding:10px 14px;border:1px solid #ccd7d0;border-radius:8px;background:#fff;color:#173c2d;font-weight:900}.rafex-mr-extension-actions .primary{border-color:#d8b100;background:#f2c500}
 .rafex-mr-extension-error{min-height:16px;margin-top:8px;color:#a23c32;font-size:9px;font-weight:850}
+#m2CustomizeModal.rafex-mr-customize-v37 .m2-customize-preview{background:#fff}
+#m2CustomizeModal.rafex-mr-customize-v37 .m2-customize-preview>span{background:#052848}
+#m2CustomizeModal.rafex-mr-customize-v37 aside>:not(.m2-customize-head):not(.rafex-mr-customize-summary):not(.m2-customize-actions){display:none!important}
+.rafex-mr-customize-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;border:1px solid #d9e5df;border-radius:10px;background:#f7faf8}
+.rafex-mr-customize-summary div{padding:9px;border-radius:8px;background:#fff}.rafex-mr-customize-summary small{display:block;color:#6d7a73;font-size:8px;font-weight:850}.rafex-mr-customize-summary b{display:block;margin-top:4px;color:#173c2d;font-size:12px}
 @media(max-width:560px){.rafex-mr-extension-summary{grid-template-columns:1fr}.rafex-mr-extension-card{padding:15px}}
 </style>
 <script ${marker}>(function(){
@@ -72,12 +77,23 @@ if (mode === "source") {
   var originalApply=window.m2ApplyAutoFillLength;
   var originalCancel=window.m2CancelAutoFill;
   var originalCommit=window.m2CommitAutoFillGuide;
+  var originalCustomizeOpen=window.m2OpenCustomizeModal;
+  var originalCustomizeClose=window.m2CloseCustomizeModal;
+  var originalCustomizePreview=window.m2PreviewRackCustomization;
+  var originalCustomizeApply=window.m2ApplyRackCustomization;
+  var originalSelectSaved=window.m2SelectSavedRackType;
   var pendingCustom=null;
   var lastMrPointerTap={id:null,at:0};
   var suppressMrDblClickUntil=0;
 
   function isMr(rack){return !!(rack?.b2b?.mr||rack?.rafexSystem==='mr'||rack?.systemType==='mr'||rack?.b2bLayout?.palletType==='mr'||rack?.plan?.mr);}
   function rackById(id){try{return m2LayoutState.racks.find(function(r){return Number(r.id)===Number(id);})||null;}catch{return null;}}
+  function formatMm(value){try{return Math.round(Number(value)||0).toLocaleString('tr-TR')+' mm';}catch{return String(Math.round(Number(value)||0))+' mm';}}
+  function configFromRack(rack){
+    var state=rack?.b2b||{},layout=rack?.b2bLayout||{},levels=Math.max(1,Math.round(Number(state.levels)||Number(rack?.levels)||1)),width=Math.max(300,Number(state.width)||Number(layout.palletWidth)||Number(rack?.palW)||2400),depth=Math.max(300,Number(state.depth)||Number(layout.palletDepth)||Number(rack?.depthMm)||800),firstTraverse=Math.max(0,Number(state.firstTraverse??rack?.firstRailHeight??200)),levelGap=Math.max(100,Number(state.requestedLevelGap)||Number(state.levelGap)||Number(rack?.levelH)||1000),traverseType=String(state.traverseType||'ZS65'),traverseHeight=Math.max(1,Number(state.traverseHeight)||Number(rack?.traverseHeight)||({ZS35:55,ZS55:75,ZS65:85}[traverseType]||85)),topTraverse=firstTraverse+Math.max(0,levels-1)*(levelGap+traverseHeight),automaticUprightHeight=topTraverse+traverseHeight+levelGap/2,uprightHeight=Math.max(topTraverse+traverseHeight,Number(state.uprightHeight)||Number(rack?.sideUprightHeight)||automaticUprightHeight);
+    return{modules:Math.max(1,Math.round(Number(state.modules)||Number(rack?.bays)||1)),levels:levels,width:width,depth:depth,firstTraverse:firstTraverse,levelGap:levelGap,requestedLevelGap:levelGap,height:topTraverse,uprightHeight:uprightHeight,uprightType:state.uprightType||'MR60',uprightThickness:Number(state.uprightThickness)||1.5,uprightWidth:60,traverseType:traverseType,traverseThickness:Number(state.traverseThickness)||1.5,traverseHeight:traverseHeight,uprightFinish:state.uprightFinish||'ral5010',traverseFinish:state.traverseFinish||'ral1007',accessories:Array.isArray(state.accessories)?JSON.parse(JSON.stringify(state.accessories)):[],dimensions:{levels:true,markers:true,width:true,depth:true},dimensionScale:Math.max(.7,Math.min(1.5,Number(state.dimensionScale)||1))};
+  }
+  window.rafexMrConfigFromRackV37=configFromRack;
   function footOf(rack){return Math.max(1,Math.round(Number(rack?.b2b?.uprightWidth)||60));}
   function sectionOf(rack){return Math.max(500,Math.round(Number(rack?.b2b?.width)||Number(rack?.palW)||500));}
   function setStatus(text){var node=document.getElementById('m2FloorStatus');if(node)node.textContent=text;}
@@ -92,6 +108,26 @@ if (mode === "source") {
     var input=document.getElementById('m2AutoFillLength');if(input){input.value='';input.focus({preventScroll:true});}
     setStatus('MR uzatma yönü açıldı. Fareyle duvara kadar göster veya uzatma mesafesini mm olarak yaz.');m2RenderLayout();
   }
+  function mountMrCustomize(rack){
+    var canvas=document.getElementById('m2CustomizeCanvas');if(!canvas||!window.RafexMRViewer?.mount)return;
+    try{window.RafexB2BViewer?.destroy?.();}catch(e){}
+    try{var instance=window.RafexMRViewer.mount(canvas,{config:configFromRack(rack)});try{mrViewerInstance=instance;}catch(e){}}catch(error){setStatus(error?.message||'MR 3D önizlemesi açılamadı.');}
+  }
+  function openMrCustomize(rack){
+    var modal=document.getElementById('m2CustomizeModal');if(!modal)return;
+    try{m2CustomizeRackId=rack.id;m2CustomizeMode=false;}catch(e){}m2LayoutState.selected=rack.id;document.getElementById('m2CustomizeRackButton')?.classList.remove('active');modal.classList.add('rafex-mr-customize-v37');modal.hidden=false;
+    var head=modal.querySelector('.m2-customize-head'),title=head?.querySelector('b'),copy=head?.querySelector('small'),close=head?.querySelector('button'),badge=modal.querySelector('.m2-customize-preview>span');if(title)title.textContent='MR Modül Önizlemesi';if(copy)copy.textContent='Ölçüler oluşturduğun MR raf tipinden birebir alınır; B2B değerleri uygulanmaz.';if(close)close.setAttribute('onclick','window.rafexCloseMrCustomizeV37()');if(badge)badge.textContent='MR 3D RAF ÖNİZLEMESİ';
+    var config=configFromRack(rack),summary=modal.querySelector('.rafex-mr-customize-summary');if(!summary){summary=document.createElement('div');summary.className='rafex-mr-customize-summary';head?.after(summary);}summary.innerHTML='<div><small>TOPLAM GENİŞLİK</small><b>'+formatMm(config.modules*config.width+(config.modules+1)*60)+'</b></div><div><small>DERİNLİK</small><b>'+formatMm(config.depth)+'</b></div><div><small>ZEMİN → K1</small><b>'+formatMm(config.firstTraverse)+'</b></div><div><small>KAT ARASI NET</small><b>'+formatMm(config.levelGap)+'</b></div><div><small>AYAK BOYU</small><b>'+formatMm(config.uprightHeight)+'</b></div><div><small>SİSTEM</small><b>MR60 · '+config.traverseType+'</b></div>';
+    var actions=modal.querySelector('.m2-customize-actions'),buttons=actions?.querySelectorAll('button');if(buttons?.[0]){buttons[0].textContent='Kapat';buttons[0].setAttribute('onclick','window.rafexCloseMrCustomizeV37()');}if(buttons?.[1]){buttons[1].textContent='MR Ölçülerine Git';buttons[1].setAttribute('onclick','window.rafexLoadMrRackV37()');}
+    requestAnimationFrame(function(){mountMrCustomize(rack);});
+  }
+  function closeMrCustomize(){
+    var modal=document.getElementById('m2CustomizeModal');if(modal){modal.hidden=true;modal.classList.remove('rafex-mr-customize-v37');}
+    try{window.RafexMRViewer?.destroy?.();mrViewerInstance=null;m2CustomizeRackId=null;}catch(e){}
+    requestAnimationFrame(function(){try{if(m2ActiveModule==='mr'&&document.getElementById('mrCanvas'))mrMountViewer();}catch(e){}});
+  }
+  window.rafexCloseMrCustomizeV37=closeMrCustomize;
+  window.rafexLoadMrRackV37=function(){var rack=rackById(typeof m2CustomizeRackId==='undefined'?null:m2CustomizeRackId);if(!isMr(rack))return closeMrCustomize();try{var drawing=JSON.parse(JSON.stringify(rack));m2LastDrawing=drawing;mrApplyDrawingToFormV4(drawing);mrUpdateSummary(false);mrSyncLayoutDrawingV4(false);}catch(e){}closeMrCustomize();setTimeout(function(){document.querySelector('.mr-form')?.scrollIntoView?.({behavior:'smooth',block:'start'});},60);};
   function previewMr(raw){
     var draft=m2AutoFillDraft,source=draft&&rackById(draft.rackId),distance=Math.max(0,Number(raw)||0);if(!draft||draft.rafexSystem!=='mr'||!source)return false;
     var radians=source.angle*Math.PI/180,ux=Math.cos(radians),uy=Math.sin(radians),direction=draft.direction||1,foot=footOf(source),startOffset=source.w/2-foot*m2LayoutState.scale,start={x:draft.origin.x+direction*ux*startOffset,y:draft.origin.y+direction*uy*startOffset};
@@ -162,11 +198,18 @@ if (mode === "source") {
   var wrappedApply=function(){if(m2AutoFillDraft?.rafexSystem==='mr'){var distance=Math.max(1,Math.round(Number(document.getElementById('m2AutoFillLength')?.value)||0));if(!distance){setStatus('MR uzatma mesafesini mm olarak yaz.');return;}commitMr(null,distance);return;}return originalApply?.apply(this,arguments);};
   var wrappedCancel=function(){if(m2AutoFillDraft?.rafexSystem==='mr'){m2AutoFillDraft=null;controls(false);setStatus('MR raf uzatma işlemi iptal edildi.');m2RenderLayout();return;}return originalCancel?.apply(this,arguments);};
   var wrappedCommit=function(point,manualDistance){if(m2AutoFillDraft?.rafexSystem==='mr')return commitMr(point,manualDistance);return originalCommit?.apply(this,arguments);};
+  var wrappedCustomizeOpen=function(rackId){var rack=rackById(rackId);if(isMr(rack))return openMrCustomize(rack);return originalCustomizeOpen?.apply(this,arguments);};
+  var wrappedCustomizeClose=function(){var modal=document.getElementById('m2CustomizeModal');if(modal?.classList?.contains('rafex-mr-customize-v37'))return closeMrCustomize();return originalCustomizeClose?.apply(this,arguments);};
+  var wrappedCustomizePreview=function(){var rack=rackById(typeof m2CustomizeRackId==='undefined'?null:m2CustomizeRackId);if(isMr(rack)){mountMrCustomize(rack);return;}return originalCustomizePreview?.apply(this,arguments);};
+  var wrappedCustomizeApply=function(){var rack=rackById(typeof m2CustomizeRackId==='undefined'?null:m2CustomizeRackId);if(isMr(rack))return window.rafexLoadMrRackV37();return originalCustomizeApply?.apply(this,arguments);};
+  var wrappedSelectSaved=function(index){var entry=Array.isArray(m2SavedRackTypes)?m2SavedRackTypes[index]:null,drawing=entry?.drawing;if(m2ActiveModule==='mr'&&isMr(drawing)){m2SelectedSavedType=index;m2LayoutState.selected=null;m2LastDrawing=JSON.parse(JSON.stringify(drawing));mrApplyDrawingToFormV4(drawing);mrUpdateSummary(true);mrSyncLayoutDrawingV4(false);m2RenderSavedRackTypes();m2RenderLayout();setStatus(String(entry.name||'MR')+' MR ölçüleriyle yüklendi.');return;}return originalSelectSaved?.apply(this,arguments);};
   try{m2StartAutoFillGuide=wrappedStart;m2PreviewAutoFillLength=wrappedPreview;m2ApplyAutoFillLength=wrappedApply;m2CancelAutoFill=wrappedCancel;m2CommitAutoFillGuide=wrappedCommit;}catch(e){}
+  try{m2OpenCustomizeModal=wrappedCustomizeOpen;m2CloseCustomizeModal=wrappedCustomizeClose;m2PreviewRackCustomization=wrappedCustomizePreview;m2ApplyRackCustomization=wrappedCustomizeApply;m2SelectSavedRackType=wrappedSelectSaved;}catch(e){}
   window.m2StartAutoFillGuide=wrappedStart;window.m2PreviewAutoFillLength=wrappedPreview;window.m2ApplyAutoFillLength=wrappedApply;window.m2CancelAutoFill=wrappedCancel;window.m2CommitAutoFillGuide=wrappedCommit;
+  window.m2OpenCustomizeModal=wrappedCustomizeOpen;window.m2CloseCustomizeModal=wrappedCustomizeClose;window.m2PreviewRackCustomization=wrappedCustomizePreview;window.m2ApplyRackCustomization=wrappedCustomizeApply;window.m2SelectSavedRackType=wrappedSelectSaved;
   document.addEventListener('pointerdown',function(event){
     if(event.button!=null&&event.button!==0||event.isPrimary===false)return;
-    var node=event.target?.closest?.('#m2LayoutSvg [data-rack]'),rack=node&&rackById(node.dataset.rack);if(!isMr(rack)){lastMrPointerTap={id:null,at:0};return;}
+    var node=event.target?.closest?.('#m2LayoutSvg [data-rack]'),rack=node&&rackById(node.dataset.rack);if(!isMr(rack)){lastMrPointerTap={id:null,at:0};return;}if(typeof m2CustomizeMode!=='undefined'&&m2CustomizeMode){lastMrPointerTap={id:null,at:0};event.preventDefault();event.stopImmediatePropagation();openMrCustomize(rack);return;}
     var now=Date.now(),same=Number(lastMrPointerTap.id)===Number(rack.id)&&now-lastMrPointerTap.at<520;
     if(!same){lastMrPointerTap={id:rack.id,at:now};return;}
     lastMrPointerTap={id:null,at:0};suppressMrDblClickUntil=now+700;event.preventDefault();event.stopImmediatePropagation();try{m2LayoutState.drag=null;}catch(e){}wrappedStart(rack.id);
@@ -177,13 +220,13 @@ if (mode === "source") {
   const bodyEnd = html.lastIndexOf("</body>");
   if (bodyEnd < 0) throw new Error("MR v35: body kapanisi bulunamadi.");
   html = html.slice(0, bodyEnd) + runtime + "\n" + html.slice(bodyEnd);
-  for (const required of [marker, "__rafexMrPointerDoubleTapV36", "addEventListener('pointerdown'", "rafexMrExtensionPlan", "Kalan MR Bölümü", "Özel Rafı Oluştur", "netRemaining>500", "step=\"50\""]) {
+  for (const required of [marker, "__rafexMrPointerDoubleTapV36", "rafexMrConfigFromRackV37", "rafex-mr-customize-v37", "MR 3D RAF ÖNİZLEMESİ", "addEventListener('pointerdown'", "rafexMrExtensionPlan", "Kalan MR Bölümü", "Özel Rafı Oluştur", "netRemaining>500", "step=\"50\""]) {
     if (!html.includes(required)) throw new Error(`MR v35 runtime dogrulama hatasi: ${required}`);
   }
   const encoded = Buffer.from(html, "utf8").toString("base64");
   worker = worker.slice(0, match.index) + match[1] + match[2] + encoded + match[2] + worker.slice(match.index + match[0].length);
   fs.writeFileSync(workerPath, worker);
-  console.log("MR v36 runtime: B2B ile ayni pointer cift tik tetigi, standart moduller ve 50 mm adimli ozel son MR tipi eklendi.");
+  console.log("MR v37 runtime: MR uzatma + B2B'den izole MR 3D onizleme ve olcu butunlugu eklendi.");
 } else {
   throw new Error("Kullanim: node scripts/patch-mr-free-extension-v35.mjs source|runtime");
 }
