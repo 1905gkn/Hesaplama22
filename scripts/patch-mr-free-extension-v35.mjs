@@ -37,6 +37,28 @@ function summarizeMrCounts(racks) {
   }, { uprights:0, traverses:0, trays:0 });
 }
 
+function connectedJoinedIds(racks, selectedId) {
+  const owner = (racks || []).find((rack) => Number(rack?.id) === Number(selectedId));
+  if (!owner?.joinGroup) return owner ? [owner.id] : [];
+  const members = racks.filter((rack) => rack?.joinGroup === owner.joinGroup);
+  const byId = new Map(members.map((rack) => [Number(rack.id), rack]));
+  const links = new Map(members.map((rack) => [Number(rack.id), []]));
+  members.forEach((rack) => {
+    const parent = Number(rack.sharedFootWith);
+    if (!Number.isFinite(parent) || !byId.has(parent)) return;
+    links.get(Number(rack.id)).push(parent);
+    links.get(parent).push(Number(rack.id));
+  });
+  const found = [], pending = [Number(owner.id)], visited = new Set();
+  while (pending.length) {
+    const id = pending.pop();
+    if (visited.has(id) || !byId.has(id)) continue;
+    visited.add(id); found.push(byId.get(id).id);
+    links.get(id).forEach((next) => pending.push(next));
+  }
+  return found;
+}
+
 assert.deepEqual(planExtension(8000, 2500, 60), { count: 3, occupied: 7680, wallRemaining: 320, netRemaining: 260, customMax: 250, needsCustom: false });
 assert.deepEqual(planExtension(7000, 2500, 60), { count: 2, occupied: 5120, wallRemaining: 1880, netRemaining: 1820, customMax: 1800, needsCustom: true });
 assert.equal(planExtension(620, 2500, 60).customMax, 550);
@@ -52,6 +74,12 @@ assert.deepEqual(summarizeMrCounts([
   { modules:1, levels:4, trayPieces:8, trayLevels:4 },
 ]), { uprights:5, traverses:24, trays:96 });
 assert.deepEqual(summarizeMrCounts([{ modules:3, levels:4, trayPieces:8, trayLevels:2 }]), { uprights:4, traverses:24, trays:48 });
+assert.deepEqual(connectedJoinedIds([
+  { id:1, joinGroup:"same" },
+  { id:2, joinGroup:"same", sharedFootWith:1 },
+  { id:3, joinGroup:"same" },
+  { id:4, joinGroup:"same", sharedFootWith:3 },
+], 1), [1, 2]);
 
 if (mode === "source") {
   const portalPath = path.join(root, "portal.html");
@@ -90,6 +118,73 @@ if (mode === "source") {
   const newDimensionPosition = "function m2DimensionPosition(key, x, y) { const offset = m2DimensionOffsets[key] || { x: 0, y: 0 }, nextX=x+(Number(offset.x)||0), nextY=y+(Number(offset.y)||0); return { x:Math.max(22,Math.min(978,nextX)), y:Math.max(20,Math.min(630,nextY)) }; }";
   if (portal.includes(oldDimensionPosition)) portal = portal.replace(oldDimensionPosition, newDimensionPosition);
   else if (!portal.includes(newDimensionPosition)) throw new Error("MR v42: olcu etiketi konumlandiricisi bulunamadi.");
+
+  // Aynı joinGroup adının yanlışlıkla başka bir raf sırasında da kalması,
+  // birleşik sınırı iki ayrı sıra boyunca büyütüp RAF ARASI çizgisini ilgisiz
+  // rafların arasına taşıyabiliyordu. Yalnız ortak-ayak bağlantısıyla erişilen
+  // fiziksel zincir birleşik kabul edilir.
+  const oldJoinedMembers = `function m2JoinedRackMembers(rack) {
+        return rack?.joinGroup ? m2LayoutState.racks.filter((item) => item.joinGroup === rack.joinGroup) : rack ? [rack] : [];
+      }`;
+  const newJoinedMembers = `function m2JoinedRackMembers(rack) {
+        if(!rack)return[];if(!rack.joinGroup)return[rack];
+        const members=m2LayoutState.racks.filter((item)=>item.joinGroup===rack.joinGroup),byId=new Map(members.map((item)=>[Number(item.id),item])),links=new Map(members.map((item)=>[Number(item.id),[]]));
+        members.forEach((item)=>{const parent=Number(item.sharedFootWith);if(!Number.isFinite(parent)||!byId.has(parent))return;links.get(Number(item.id)).push(parent);links.get(parent).push(Number(item.id));});
+        const connected=[],pending=[Number(rack.id)],visited=new Set();while(pending.length){const id=pending.pop();if(visited.has(id)||!byId.has(id))continue;visited.add(id);connected.push(byId.get(id));(links.get(id)||[]).forEach((next)=>pending.push(next));}
+        return connected.length?connected:[rack];
+      }`;
+  if (portal.includes(oldJoinedMembers)) portal = portal.replace(oldJoinedMembers, newJoinedMembers);
+  else if (!portal.includes("const connected=[],pending=[Number(rack.id)]")) throw new Error("MR v43: fiziksel raf zinciri bulunamadi.");
+
+  const oldRackDistanceGuide = `function m2RackDistanceGuide(rack) {
+        const nearest = m2NearestRackGap(rack);
+        if (!nearest) return "";
+        const mm = Math.max(0, Math.round(nearest.distance / m2LayoutState.scale) - nearest.clearanceMm), mx = (nearest.ax + nearest.bx) / 2, my = (nearest.ay + nearest.by) / 2, axis = Math.abs(nearest.ax - nearest.bx) < Math.abs(nearest.ay - nearest.by) ? "vertical" : "horizontal", label = m2DimensionPosition(\`gap:\${rack.id}\`, mx, my - 8);
+        return \`<g class="m2-distance-guide" data-rack-gap="\${mm}"><line x1="\${nearest.ax}" y1="\${nearest.ay}" x2="\${nearest.bx}" y2="\${nearest.by}" class="m2-rack-distance"/><circle cx="\${nearest.ax}" cy="\${nearest.ay}" r="4" fill="#e09b00"/><circle cx="\${nearest.bx}" cy="\${nearest.by}" r="4" fill="#e09b00"/><rect x="\${label.x-48}" y="\${label.y-13}" width="96" height="20" rx="5" class="m2-measure-hit" data-dimension-key="gap:\${rack.id}" data-dimension-axis="\${axis}" onpointerdown="event.stopPropagation();if(m2LayoutTool!=='dimension'){event.preventDefault();m2PromptRackDistance(\${rack.id},\${mm})}"/><text x="\${label.x}" y="\${label.y}" text-anchor="middle" class="m2-rack-distance-label m2-dimension-movable" data-dimension-key="gap:\${rack.id}" data-dimension-axis="\${axis}" onpointerdown="event.stopPropagation();if(m2LayoutTool!=='dimension'){event.preventDefault();m2PromptRackDistance(\${rack.id},\${mm})}">RAF ARASI \${fmt(mm)} mm</text></g>\`;
+      }`;
+  const newRackDistanceGuide = `function m2RackDistanceGuide(rack) {
+        const owner=m2LayoutState.racks.find((item)=>Number(item.id)===Number(rack?.id));if(!owner)return"";
+        const nearest = m2NearestRackGap(owner);
+        if (!nearest) return "";
+        const mm = Math.max(0, Math.round(nearest.distance / m2LayoutState.scale) - nearest.clearanceMm), mx = (nearest.ax + nearest.bx) / 2, my = (nearest.ay + nearest.by) / 2, axis = Math.abs(nearest.ax - nearest.bx) < Math.abs(nearest.ay - nearest.by) ? "vertical" : "horizontal", label = m2DimensionPosition(\`gap:\${owner.id}\`, mx, my - 8);
+        return \`<g class="m2-distance-guide" data-rack-gap="\${mm}" data-rack-gap-owner="\${owner.id}" data-rack-gap-other="\${nearest.other?.id??''}"><line x1="\${nearest.ax}" y1="\${nearest.ay}" x2="\${nearest.bx}" y2="\${nearest.by}" class="m2-rack-distance"/><circle cx="\${nearest.ax}" cy="\${nearest.ay}" r="4" fill="#e09b00"/><circle cx="\${nearest.bx}" cy="\${nearest.by}" r="4" fill="#e09b00"/><rect x="\${label.x-48}" y="\${label.y-13}" width="96" height="20" rx="5" class="m2-measure-hit" data-dimension-key="gap:\${owner.id}" data-dimension-axis="\${axis}" onpointerdown="event.stopPropagation();if(m2LayoutTool!=='dimension'){event.preventDefault();m2PromptRackDistance(\${owner.id},\${mm})}"/><text x="\${label.x}" y="\${label.y}" text-anchor="middle" class="m2-rack-distance-label m2-dimension-movable" data-dimension-key="gap:\${owner.id}" data-dimension-axis="\${axis}" onpointerdown="event.stopPropagation();if(m2LayoutTool!=='dimension'){event.preventDefault();m2PromptRackDistance(\${owner.id},\${mm})}">RAF ARASI \${fmt(mm)} mm</text></g>\`;
+      }`;
+  if (portal.includes(oldRackDistanceGuide)) portal = portal.replace(oldRackDistanceGuide, newRackDistanceGuide);
+  else if (!portal.includes('data-rack-gap-owner="${owner.id}"')) throw new Error("MR v43: raf arasi sahipligi bulunamadi.");
+
+  // Bir raf seciliyken daha once sabitlenmis baska raf olculeri ayni katmanda
+  // gosterilmez. Secim kalkinca kullanicinin sabitledigi olculer yeniden gorunur.
+  const oldPinnedGuideRender = `m2LayoutState.racks.forEach((rack)=>{if(rack.id===selectedRack?.id)return;const pinned=m2PinnedForRack(rack.id);if(!Object.values(pinned).some(Boolean))return;html+=m2WallDistanceGuides(rack,pinned)+(pinned.gap?m2RackDistanceGuide(rack)+m2ColumnDistanceGuide(rack):"");});`;
+  const newPinnedGuideRender = `m2LayoutState.racks.forEach((rack)=>{if(selectedRack||rack.id===selectedRack?.id)return;const pinned=m2PinnedForRack(rack.id);if(!Object.values(pinned).some(Boolean))return;html+=m2WallDistanceGuides(rack,pinned)+(pinned.gap?m2RackDistanceGuide(rack)+m2ColumnDistanceGuide(rack):"");});`;
+  if (portal.includes(oldPinnedGuideRender)) portal = portal.replace(oldPinnedGuideRender, newPinnedGuideRender);
+  else if (!portal.includes("if(selectedRack||rack.id===selectedRack?.id)return")) throw new Error("MR v43: secili raf olcu onceligi bulunamadi.");
+
+  // Hizli surukleme katmani eski rafin RAF ARASI SVG'sini yeniden kullanmasin.
+  const oldEnsureOverlay = `function m2PerfEnsureDragOverlay(layer){
+        if(m2PerfDragOverlay?.isConnected&&m2PerfDragOverlay.parentNode===layer)return m2PerfDragOverlay;
+        const overlay=document.createElementNS("http://www.w3.org/2000/svg","g");overlay.setAttribute("data-rafex-drag-overlay","v28");layer.appendChild(overlay);m2PerfDragOverlay=overlay;return overlay;
+      }`;
+  const newEnsureOverlay = `function m2PerfEnsureDragOverlay(layer,rackId){
+        if(m2PerfDragOverlay?.isConnected&&m2PerfDragOverlay.parentNode===layer){if(Number(m2PerfDragOverlay.dataset.rackOwner)!==Number(rackId))m2PerfDragOverlay.innerHTML="";m2PerfDragOverlay.dataset.rackOwner=String(rackId);return m2PerfDragOverlay;}
+        const overlay=document.createElementNS("http://www.w3.org/2000/svg","g");overlay.setAttribute("data-rafex-drag-overlay","v43");overlay.dataset.rackOwner=String(rackId);layer.appendChild(overlay);m2PerfDragOverlay=overlay;return overlay;
+      }`;
+  if (portal.includes(oldEnsureOverlay)) portal = portal.replace(oldEnsureOverlay, newEnsureOverlay);
+  else if (!portal.includes('data-rafex-drag-overlay","v43"')) throw new Error("MR v43: surukleme olcu sahipligi bulunamadi.");
+
+  const oldFastDragGuard = `const drag=m2LayoutState.drag;if(!drag||drag.selectionGroup||Number(drag.groupMembers?.length||1)>1)return false;`;
+  const newFastDragGuard = `const drag=m2LayoutState.drag;if(!drag||Number(m2LayoutState.selected)!==Number(drag.id)||drag.selectionGroup||Number(drag.groupMembers?.length||1)>1)return false;`;
+  if (portal.includes(oldFastDragGuard)) portal = portal.replace(oldFastDragGuard, newFastDragGuard);
+  else if (!portal.includes("Number(m2LayoutState.selected)!==Number(drag.id)")) throw new Error("MR v43: secili surukleme korumasi bulunamadi.");
+
+  const oldOverlayCall = `const overlay=m2PerfEnsureDragOverlay(layer),guideHtml=m2WallDistanceGuides(rack,{left:true,right:true,top:true,bottom:true,gap:true})+m2RackDistanceGuide(rack)+m2ColumnDistanceGuide(rack)+m2PerfMovingSeismicSvg(rack.id);`;
+  const newOverlayCall = `const overlay=m2PerfEnsureDragOverlay(layer,rack.id),guideHtml=m2WallDistanceGuides(rack,{left:true,right:true,top:true,bottom:true,gap:true})+m2RackDistanceGuide(rack)+m2ColumnDistanceGuide(rack)+m2PerfMovingSeismicSvg(rack.id);`;
+  if (portal.includes(oldOverlayCall)) portal = portal.replace(oldOverlayCall, newOverlayCall);
+  else if (!portal.includes("m2PerfEnsureDragOverlay(layer,rack.id)")) throw new Error("MR v43: surukleme katmani raf baglantisi bulunamadi.");
+
+  const oldFullLayerWrite = `layer.innerHTML = html; m2PerfRefreshLayoutDomTable(layer);`;
+  const newFullLayerWrite = `if(m2PerfDragOverlay?.isConnected)m2PerfDragOverlay.remove();m2PerfDragOverlay=null;layer.innerHTML = html; m2PerfRefreshLayoutDomTable(layer);`;
+  if (portal.includes(oldFullLayerWrite)) portal = portal.replace(oldFullLayerWrite, newFullLayerWrite);
+  else if (!portal.includes("m2PerfDragOverlay=null;layer.innerHTML = html")) throw new Error("MR v43: eski surukleme katmani temizligi bulunamadi.");
 
   const oldSeparate = `function m2SeparateSelectedRack() {
         const rack=m2SelectedRack();
@@ -246,7 +341,7 @@ async function captureMRPerspective(config = {}, settings = {}) {
   }
 
   fs.writeFileSync(portalPath, portal);
-  console.log("MR v42 source: MR uzatma, bagimsiz ayirma, ortak ayak gorunurlugu ve sabit olcu konumlari hazir.");
+  console.log("MR v43 source: secili rafin fiziksel zincirine bagli, sahipligi dogrulanan mesafeler hazir.");
 } else if (mode === "runtime") {
   const workerPath = path.join(root, "dist/server/index.js");
   let worker = fs.readFileSync(workerPath, "utf8");
