@@ -956,6 +956,29 @@ ${fitFunctionV49}`;
     fs.writeFileSync(sectionPositionerPath, positioner);
   }
 
+  // MR Kesit Yer Belirleme her acildiginda temel 41/24 perspektifiyle baslar.
+  // Yalnizca acik editor taslagi degisir; kayitli B2B gorunumleri etkilenmez.
+  if (!positioner.includes("__rafexMrInitialPerspectiveV50")) {
+    const prepareEditorAnchorV50 = `    if (activeKey) ensureSetting(activeKey);
+    renderSectionList();`;
+    const prepareEditorReplacementV50 = `    if (activeKey) {
+      const openingView = ensureSetting(activeKey);
+      const activeType = sections.find((item) => item.key === activeKey);
+      if (activeType?.system === "mr") {
+        openingView.azimuth = 41;
+        openingView.elevation = 24;
+        previewCache.delete(activeKey);
+      } // __rafexMrInitialPerspectiveV50
+    }
+    renderSectionList();`;
+    if (!positioner.includes(prepareEditorAnchorV50)) throw new Error("MR v50: kesit acilis perspektifi baglanti noktasi bulunamadi.");
+    positioner = positioner.replace(prepareEditorAnchorV50, prepareEditorReplacementV50);
+    for (const required of ["__rafexMrInitialPerspectiveV50", "openingView.azimuth = 41", "openingView.elevation = 24", 'activeType?.system === "mr"']) {
+      if (!positioner.includes(required)) throw new Error(`MR v50 kesit acilis perspektifi dogrulama hatasi: ${required}`);
+    }
+    fs.writeFileSync(sectionPositionerPath, positioner);
+  }
+
   // MR olcu panelinde ilk iki raf araligi en basta ve tek satirda görünür.
   // B2B panelinin mevcut sirasi ve davranisi aynen korunur.
   if (!portal.includes("__rafexMrTwoNearestGapsV49")) {
