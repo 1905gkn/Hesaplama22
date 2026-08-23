@@ -1035,6 +1035,8 @@ ${fitFunctionV49}`;
     const seed = activeType?.entries?.values?.().next?.().value;
     const isMr = activeType?.system === "mr" || isMrDrawing(seed?.drawing);
     if (isMr) {
+      value.azimuth = 41;
+      value.elevation = 24;
       previewCache.delete(activeKey);
       updateArtwork();
       void fillArtwork(true);
