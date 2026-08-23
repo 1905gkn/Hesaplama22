@@ -30,11 +30,16 @@ html = html.replaceAll(
   'if(typeof m2SetCustomizePalletsVisible==="function")m2SetCustomizePalletsVisible(true,false);',
 );
 
-// Kesit: Sigdir aciyi bozmasin.
+// Kesit: B2B mevcut acisini korur. MR Sigdir ise kendi temel 41/24
+// perspektifine doner; MR acisi sonraki canli katmanda tekrar silinmez.
 html = html.replaceAll(
   'value.x = 0; value.y = 0; value.scale = 1; value.azimuth = 41; value.elevation = 24;',
   'value.x = 0; value.y = 0; value.scale = 1;',
 );
+
+// Eski MR olcu etiketi hangi onceki sablondan gelirse gelsin canli ciktiya
+// ulasamaz. Yeni ve tek adlandirma Yazı büyüklüğü olur.
+html = html.replaceAll("Ölçü yazısı boyutu", "Yazı büyüklüğü");
 
 // Kesit: elle aci girisi ve onden gorunus.
 if (!html.includes("function frontCurrent()")) {
@@ -413,6 +418,26 @@ const runtime = `<script data-rafex-user-20260819="v3">(function(){
   keepSectionAlive();
   setInterval(keepSectionAlive,1500);
 
+  // __rafexFreeSystemChooserV54
+  // Serbest Cizim ortak girisidir. Devam secilen sistemin kendi sayfasini
+  // acar; boylece ortak yerlesim araclari korunurken urun girdileri ve
+  // sisteme ozel kontroller yalniz ilgili modulde calisir.
+  var rafexFreeSystemV54="mr";
+  function rafexRenderFreeChooserV54(){
+    try{if(typeof window.RafexMRViewer?.destroy==="function")window.RafexMRViewer.destroy();}catch(error){}
+    var page=document.getElementById("page"),title=document.getElementById("pageTitle");if(!page)return;
+    page.classList.remove("b2b-mode","mr-mode");delete page.dataset.m2Module;if(title)title.textContent="Serbest Çizim";
+    document.querySelectorAll("#nav button[data-page]").forEach(function(button){button.classList.toggle("active",button.dataset.page==="serbest");});
+    page.innerHTML='<section class="rafex-free-system-v54"><div class="rafex-free-system-head"><p>SERBEST ÇİZİM</p><h2>Raf sistemini seç</h2><small>Devam dediğinde seçilen sistemin ürün girdileri ve kendi Serbest Yerleşim araçları açılır.</small></div><div class="rafex-free-system-options"><button type="button" data-rafex-free-system="b2b"><b>B2B</b><small>B2B ürün girdileri ve yerleşim araçları</small></button><button type="button" data-rafex-free-system="mekik2"><b>Mekik</b><small>Mekik ürün girdileri ve yerleşim araçları</small></button><button type="button" class="active" data-rafex-free-system="mr"><b>MR</b><small>MR ürün girdileri ve yerleşim araçları</small></button></div><button type="button" class="rafex-free-continue-v54" id="rafexFreeContinueV54">Devam</button></section>';
+    page.querySelectorAll("[data-rafex-free-system]").forEach(function(button){button.classList.toggle("active",button.dataset.rafexFreeSystem===rafexFreeSystemV54);button.addEventListener("click",function(){rafexFreeSystemV54=button.dataset.rafexFreeSystem;page.querySelectorAll("[data-rafex-free-system]").forEach(function(item){item.classList.toggle("active",item===button);});});});
+    document.getElementById("rafexFreeContinueV54")?.addEventListener("click",function(){showPage(rafexFreeSystemV54);});
+  }
+  var rafexBaseShowPageV54=showPage;
+  showPage=function(name){if(name==="serbest"){try{if(typeof closeMobileMenu==="function")closeMobileMenu();}catch(error){}rafexRenderFreeChooserV54();return;}return rafexBaseShowPageV54.apply(this,arguments);};
+  window.showPage=showPage;
+  var rafexNavV54=document.getElementById("nav");
+  if(rafexNavV54&&!rafexNavV54.querySelector('[data-page="serbest"]')){var rafexMrNavV54=rafexNavV54.querySelector('[data-page="mr"]'),rafexFreeNavV54=document.createElement("button");rafexFreeNavV54.type="button";rafexFreeNavV54.dataset.page="serbest";rafexFreeNavV54.innerHTML="<i>05</i>Serbest Çizim";rafexMrNavV54?.after(rafexFreeNavV54);}
+
   paintSeismicMode();
 })();</script>`;
 
@@ -425,7 +450,9 @@ const style = `<style data-rafex-user-20260819-style="v3">
 .rafex-angle-inputs input{width:82px;padding:7px 8px;border:1px solid #cfd9d2;border-radius:7px;background:#fff;color:#173c2d;font-weight:900}
 .rafex-angle-inputs [data-rafex-angle-apply]{background:#173c2d!important;color:#fff!important}
 .rafex-placement-controls{grid-template-columns:auto 32px 58px 32px auto auto minmax(4px,1fr) 36px 36px 36px 36px!important}
+.rafex-free-system-v54{display:grid;gap:18px;max-width:1040px;margin:0 auto;padding:24px;border:1px solid #dce4df;border-radius:16px;background:#fff;box-shadow:0 18px 48px #173c2d12}.rafex-free-system-head p{margin:0 0 5px;color:#a88700;font-size:10px;font-weight:950;letter-spacing:.12em}.rafex-free-system-head h2{margin:0;color:#173c2d;font-size:25px}.rafex-free-system-head small{display:block;margin-top:7px;color:#66736c;font-size:10px}.rafex-free-system-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.rafex-free-system-options button{display:grid;gap:6px;min-height:112px;padding:18px;text-align:left;border:2px solid #dce4df;border-radius:12px;background:#f8faf8;color:#173c2d}.rafex-free-system-options button b{font-size:20px}.rafex-free-system-options button small{font-size:9px;line-height:1.45;color:#637068}.rafex-free-system-options button.active{border-color:#d8b100;background:#fff6bd;box-shadow:0 0 0 3px #f2c5002c}.rafex-free-continue-v54{width:100%;min-height:58px;border:1px solid #d8b100!important;border-radius:10px!important;background:#f2c500!important;color:#17201b!important;font-size:15px!important;font-weight:950!important}
 @media(max-width:820px){.rafex-placement-controls{grid-template-columns:auto 32px 52px 32px auto auto!important}.rafex-angle-inputs{align-items:stretch}.rafex-angle-inputs label{flex:1 1 140px}.rafex-angle-inputs input{width:100%}}
+@media(max-width:720px){.rafex-free-system-v54{padding:15px}.rafex-free-system-options{grid-template-columns:1fr}.rafex-free-system-options button{min-height:82px}}
 @media print{.m2-corporate-bom-card h3{font-size:14px!important}.m2-corporate-bom-head span{font-size:10px!important}.m2-corporate-bom-row span{font-size:11px!important}}
 </style>`;
 
@@ -439,6 +466,9 @@ if (!html.includes("data-rafex-angle-input-row") || !html.includes("data-rafex-f
 if (!html.includes("__rafexOpenSectionPlacementV3") || !html.includes("__rafexEnsureSectionPlacementV3")) throw new Error("Kesit açılış güvencesi eklenemedi.");
 if (!html.includes("rack.bays=state.count") || !html.includes("__rafexForceCustomizePreviewV3")) throw new Error("Özelleştir kat/palet düzeltmesi eklenemedi.");
 if (html.includes("rafex-seismic-info")) throw new Error("Serbest yerleşimde eski deprem bilgi etiketi kaldı.");
+if (html.includes("Ölçü yazısı boyutu")) throw new Error("Eski MR olcu yazisi etiketi canli ciktida kaldi.");
+if (!html.includes("__rafexMrFit4124V53") || !html.includes("value.azimuth = 41;\n      value.elevation = 24;")) throw new Error("MR Sigdir 41/24 canli davranisi korunamadi.");
+if (!html.includes("__rafexFreeSystemChooserV54") || !html.includes('data-page="serbest"')) throw new Error("Serbest Cizim sistem secimi eklenemedi.");
 
 const encoded = Buffer.from(html, "utf8").toString("base64");
 worker = worker.slice(0, match.index) + match[1] + match[2] + encoded + match[2] + worker.slice(match.index + match[0].length);
