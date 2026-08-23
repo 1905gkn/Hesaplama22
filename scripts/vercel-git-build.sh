@@ -79,6 +79,10 @@ node scripts/patch-mr-save-api-v20.mjs
 # profile family: every upright occupies 60 mm. Joined modules share one upright.
 node scripts/patch-b2b-physical-width-v23.mjs
 
+# MR uses its entered clear bay width (for example 2500 mm), not the B2B pallet
+# section normalizer. This also unit-tests the standard/remainder extension plan.
+node scripts/patch-mr-free-extension-v35.mjs source
+
 # Destroy every active 3D render loop cleanly before Serbest interaction: cancel RAF,
 # disconnect observers/listeners and release viewer-owned GPU resources.
 node scripts/patch-viewer-lifecycle-performance-v30.mjs
@@ -187,6 +191,11 @@ node scripts/patch-final-user-repairs-v20.mjs
 # "Ciktiyi Olustur" control next to "Kesit Yer Belirleme".
 node scripts/patch-manual-free-output-v32.mjs
 
+# Final runtime authority for MR: double-click extension repeats the entered bay
+# width, then offers a persistent custom last type in 50 mm steps when the net
+# remaining wall distance is greater than 500 mm.
+node scripts/patch-mr-free-extension-v35.mjs runtime
+
 # Fail the deployment if any generated inline browser runtime has invalid syntax.
 node scripts/verify-inline-runtime-syntax-v21.mjs
 
@@ -196,4 +205,6 @@ grep -q "m2LayoutState.racks.filter" scripts/patch-pdf-direct-type-pages-v19.mjs
 grep -q "rafexRenderSelectedB2BSections" client/b2b-section-positioner-v5.js
 grep -q 'data-rafex-final-user-repairs="v20"' scripts/patch-final-user-repairs-v20.mjs
 grep -q 'data-rafex-manual-free-output="v32"' scripts/patch-manual-free-output-v32.mjs
-echo "Production chain verified: live Serbest Cizim collision preserved + pointer events coalesced to one live calculation per frame + guide SVG synchronized on the same frame + geometry/cache/DOM/runtime tables v27-v29 + mobile desktop viewport v30 + 3D lifecycle cleanup v30 + technical Mekik front section + direct used-rack PDF type pages + two 50% slots + B2B front-only + saved-rack click performance fix + MR saved-types v18 + MR tray clearance v19 + MR save API v20 + B2B physical upright width 60 mm."
+grep -q 'sectionWidth=config.modules\*config.width' portal.html
+grep -q 'data-rafex-mr-free-extension="v35"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\"\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-mr-free-extension=\"v35\"'))process.exit(1)"
+echo "Production chain verified: live Serbest Cizim collision preserved + pointer events coalesced to one live calculation per frame + guide SVG synchronized on the same frame + geometry/cache/DOM/runtime tables v27-v29 + mobile desktop viewport v30 + 3D lifecycle cleanup v30 + technical Mekik front section + direct used-rack PDF type pages + two 50% slots + B2B front-only + saved-rack click performance fix + MR saved-types v18 + MR tray clearance v19 + MR save API v20 + B2B physical upright width 60 mm + MR double-click extension with 50 mm custom remainder type v35."
