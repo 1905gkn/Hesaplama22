@@ -199,8 +199,8 @@ if (mode === "source") {
         const rack=m2SelectedRack();
         if(!rack?.joinGroup){$("m2FloorStatus").textContent="Ayırmak için birleşik bir modül seç.";return;}
         m2PushUndo("Raf ayırma");
-        const oldGroup=rack.joinGroup,baseBlock=String(rack.blockName||rack.typeName||"MR Raf").replace(/ · Bağımsız(?: \\d+)?$/u,"");
-        rack.joinGroup=null;rack.sharedFootWith=null;rack.sharedFootSide=null;rack.freePlacement=false;rack.staged=false;rack.locked=true;rack.specLocked=true;rack.independentBlock=true;rack.independentBlockId="independent-"+rack.id;rack.blockName=baseBlock+" · Bağımsız";
+        const oldGroup=rack.joinGroup,baseBlock=String(rack.blockName||rack.typeName||"MR Raf").replace(/\\s*·?\\s*Bağımsız(?: \\d+)?$/u,"");
+        rack.joinGroup=null;rack.sharedFootWith=null;rack.sharedFootSide=null;rack.freePlacement=false;rack.staged=false;rack.locked=true;rack.specLocked=true;rack.independentBlock=true;rack.independentBlockId="independent-"+rack.id;rack.blockName=baseBlock+" Bağımsız";
         m2LayoutState.racks.forEach((item)=>{if(item.id!==rack.id&&item.sharedFootWith===rack.id){item.sharedFootWith=null;item.sharedFootSide=null;}});
         Object.keys(m2DimensionOffsets).filter((key)=>key.includes(":"+rack.id)).forEach((key)=>delete m2DimensionOffsets[key]);
         delete m2PinnedDimensionsByRack[String(rack.id)];m2PinnedDimensions=m2EmptyPinnedDimensions();m2LayoutState.pinnedRackId=null;
@@ -209,6 +209,13 @@ if (mode === "source") {
       }`;
   if (portal.includes(oldSeparate)) portal = portal.replace(oldSeparate, newSeparate);
   else if (!portal.includes('rack.independentBlockId="independent-"+rack.id')) throw new Error("MR v42: raf ayirma fonksiyonu bulunamadi.");
+
+  // Bagimsiz raf bilgi kartinda "A Bagimsiz" tek basliktir. Tip harfi alt
+  // satirda ikinci kez yazilmaz; eski "A · Bagimsiz" kayitlari da duzeltilir.
+  const oldSelectedRackHeading = '${blockName?`<b>${esc(blockName)}</b><br>`:""}<b><i class="m2-info-swatch" style="background:${color}"></i>${esc(name)}</b><br>';
+  const newSelectedRackHeading = '${blockName?`<b>${esc(rack?.independentBlock?blockName.replace(" · "," "):blockName)}</b><br>`:""}${rack?.independentBlock?"":`<b><i class="m2-info-swatch" style="background:${color}"></i>${esc(name)}</b><br>`}';
+  if (portal.includes(oldSelectedRackHeading)) portal = portal.replace(oldSelectedRackHeading, newSelectedRackHeading);
+  else if (!portal.includes('rack?.independentBlock?blockName.replace(" · "," ")')) throw new Error("MR v44: bagimsiz raf tek basligi bulunamadi.");
 
   const oldControlSelector = 'controls.querySelectorAll("input,button").forEach((element)=>element.disabled=!active);';
   const newControlSelector = 'controls.querySelectorAll("input,button:not(.rafex-extension-toggle)").forEach((element)=>element.disabled=!active);';
