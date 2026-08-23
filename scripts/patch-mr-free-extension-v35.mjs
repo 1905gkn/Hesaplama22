@@ -28,13 +28,18 @@ function summarizeMrCounts(racks) {
   return (racks || []).reduce((totals, rack) => {
     const modules = Math.max(1, Math.round(Number(rack?.modules) || 1));
     const levels = Math.max(1, Math.round(Number(rack?.levels) || 1));
+    const rowCount = Math.max(1, Math.min(2, Math.round(Number(rack?.rowCount) || 1)));
     const trayPieces = Math.max(0, Math.round(Number(rack?.trayPieces) || 0));
     const trayLevels = Math.max(0, Math.round(Number(rack?.trayLevels) || 0));
-    totals.uprights += modules + (rack?.sharedFootWith ? 0 : 1);
-    totals.traverses += modules * levels * 2;
-    totals.trays += modules * trayPieces * trayLevels;
+    totals.uprights += (modules + (rack?.sharedFootWith ? 0 : 1)) * rowCount;
+    totals.traverses += modules * levels * 2 * rowCount;
+    totals.trays += modules * trayPieces * trayLevels * rowCount;
     return totals;
   }, { uprights:0, traverses:0, trays:0 });
+}
+
+function roundUpright50(value) {
+  return Math.ceil(Math.max(0, Number(value) || 0) / 50) * 50;
 }
 
 function connectedJoinedIds(racks, selectedId) {
@@ -74,6 +79,9 @@ assert.deepEqual(summarizeMrCounts([
   { modules:1, levels:4, trayPieces:8, trayLevels:4 },
 ]), { uprights:5, traverses:24, trays:96 });
 assert.deepEqual(summarizeMrCounts([{ modules:3, levels:4, trayPieces:8, trayLevels:2 }]), { uprights:4, traverses:24, trays:48 });
+assert.deepEqual(summarizeMrCounts([{ modules:2, levels:3, rowCount:2, trayPieces:8, trayLevels:2 }]), { uprights:6, traverses:24, trays:64 });
+assert.equal(roundUpright50(4040), 4050);
+assert.equal(roundUpright50(4050), 4050);
 assert.deepEqual(connectedJoinedIds([
   { id:1, joinGroup:"same" },
   { id:2, joinGroup:"same", sharedFootWith:1 },
@@ -217,6 +225,157 @@ if (mode === "source") {
   if (portal.includes(oldSelectedRackHeading)) portal = portal.replace(oldSelectedRackHeading, newSelectedRackHeading);
   else if (!portal.includes('rack?.independentBlock?blockName.replace(" · "," ")')) throw new Error("MR v44: bagimsiz raf tek basligi bulunamadi.");
 
+  // Kayitli MR raflarinda B2B'ye bagli olmayan, dogrudan MR veri ve 3D
+  // motorunu kullanan Incele/Kopyala aksiyonlari gosterilir. Baslikta sira
+  // duzeni de kayitli cizimden okunur.
+  const oldMrSavedMap = 'm2SavedRackTypes.map((entry,index)=>{const drawing=entry.drawing||{},settings=drawing.b2b||{},color=m2TypeColor(entry.name),tray=';
+  const newMrSavedMap = 'm2SavedRackTypes.map((entry,index)=>{const drawing=entry.drawing||{},settings=drawing.b2b||{},rowCount=Math.max(1,Math.min(2,Number(settings.rowCount)||Number(drawing.b2bLayout?.rowCount)||1)),rowLabel=rowCount>1?`${fmt(rowCount)} SIRA BİRLEŞİK`:`${fmt(rowCount)} SIRA`,color=m2TypeColor(entry.name),tray=';
+  if (portal.includes(oldMrSavedMap)) portal = portal.replace(oldMrSavedMap, newMrSavedMap);
+  else if (!portal.includes('rowLabel=rowCount>1?`${fmt(rowCount)} SIRA BİRLEŞİK`')) throw new Error("MR v45: kayitli raf sira basligi bulunamadi.");
+
+  const oldMrSavedTitle = '${esc(entry.name)} · MR</b><small>';
+  const newMrSavedTitle = '${esc(entry.name)} · MR · ${esc(rowLabel)}</b><small>';
+  if (portal.includes(oldMrSavedTitle)) portal = portal.replace(oldMrSavedTitle, newMrSavedTitle);
+  else if (!portal.includes('${esc(entry.name)} · MR · ${esc(rowLabel)}')) throw new Error("MR v45: kayitli raf sira etiketi bulunamadi.");
+
+  const oldMrSavedActions = '</button><button type="button" class="m2-saved-type-copy" aria-label="${esc(entry.name)} tipini MR düzenleyiciye kopyala" title="Üstte düzenlemek için kopyala" onclick="event.stopPropagation();mrSelectBlockV7(${index})">KOPYALA</button><button type="button" class="m2-type-delete"';
+  const newMrSavedActions = '</button><button type="button" class="m2-saved-type-preview" aria-label="${esc(entry.name)} MR rafını incele" title="MR 3D önizlemesini aç" onclick="event.stopPropagation();rafexInspectMrSavedV45(${index})">İNCELE</button><button type="button" class="m2-saved-type-copy" aria-label="${esc(entry.name)} tipini MR düzenleyiciye kopyala" title="MR düzenleyiciye kopyala" onclick="event.stopPropagation();rafexCopyMrSavedV45(${index})">KOPYALA</button><button type="button" class="m2-type-delete"';
+  if (portal.includes(oldMrSavedActions)) portal = portal.replace(oldMrSavedActions, newMrSavedActions);
+  else if (!portal.includes('rafexInspectMrSavedV45(${index})')) throw new Error("MR v45: kayitli MR aksiyonlari bulunamadi.");
+
+  const oldMrBlockTitle = '<b>${esc(entry.name)}</b><small>${fmt(settings.modules||drawing.bays)} modül · ${fmt(settings.levels||drawing.levels)} kat</small>';
+  const newMrBlockTitle = '<b>${esc(entry.name)} · ${fmt(Math.max(1,Math.min(2,Number(settings.rowCount)||Number(drawing.b2bLayout?.rowCount)||1)))} sıra</b><small>${fmt(settings.modules||drawing.bays)} modül · ${fmt(settings.levels||drawing.levels)} kat</small>';
+  if (portal.includes(oldMrBlockTitle)) portal = portal.replace(oldMrBlockTitle, newMrBlockTitle);
+  else if (!portal.includes('${esc(entry.name)} · ${fmt(Math.max(1,Math.min(2,Number(settings.rowCount)')) throw new Error("MR v45: blok sira etiketi bulunamadi.");
+
+  const oldMrConfigurationV45 = `mrConfigurationV2=function(){
+        const levels=Math.max(1,Math.min(15,Math.round(Number($("mrLevels")?.value)||4)));
+        const firstTraverse=Math.max(0,Number($("mrFirstTraverse")?.value)||200);
+        const requestedLevelGap=Math.max(100,Number($("mrLevelGap")?.value)||1000);
+        const [uprightType="MR60",uprightThicknessText="1.5"]=String($("mrUprightType")?.value||"MR60|1.5").split("|");
+        const [traverseType="ZS65",traverseThicknessText="1.5"]=String($("mrTraverseType")?.value||"ZS65|1.5").split("|");
+        const traverseHeight={ZS35:55,ZS55:75,ZS65:85}[traverseType]||85;
+        const levelGap=requestedLevelGap,levelPitch=levelGap+traverseHeight;
+        const height=firstTraverse+Math.max(0,levels-1)*levelPitch;
+        const automaticUprightHeight=height+traverseHeight+levelGap/2;
+        const topTraverseMode=$("mrTopTraverseMode")?.value==="manual"?"manual":"auto";
+        const enteredUprightHeight=Number($("mrHeight")?.value);
+        const manualUprightHeight=Math.max(height+traverseHeight,Number.isFinite(enteredUprightHeight)?enteredUprightHeight:automaticUprightHeight);
+        const uprightHeight=topTraverseMode==="manual"?manualUprightHeight:automaticUprightHeight;
+        const topExtension=Math.max(0,uprightHeight-(height+traverseHeight));
+        return{modules:Math.max(1,Number($("mrModuleCount")?.value)||1),levels,width:Math.max(300,Number($("mrSectionWidth")?.value)||2400),depth:Math.max(300,Number($("mrDepth")?.value)||800),firstTraverse,levelGap,requestedLevelGap,height,automaticUprightHeight,topExtension,topTraverseMode,uprightHeight,uprightType,uprightThickness:Number(uprightThicknessText)||1.5,uprightWidth:60,traverseType,traverseThickness:Number(traverseThicknessText)||1.5,traverseHeight,uprightFinish:$("mrUprightFinish")?.value||"ral5010",traverseFinish:$("mrTraverseFinish")?.value||"ral1007",accessories:mrAccessoryStateV5(),dimensions:{levels:$("mrShowLevelDims")?.checked!==false,markers:$("mrShowMarkers")?.checked!==false,width:$("mrShowWidth")?.checked!==false,depth:$("mrShowDepth")?.checked!==false},dimensionScale:Math.max(.7,Math.min(1.5,Number($("mrDimensionScale")?.value)||1))}
+      };`;
+  const newMrConfigurationV45 = `mrConfigurationV2=function(){
+        const levels=Math.max(1,Math.min(15,Math.round(Number($("mrLevels")?.value)||4))),firstTraverse=Math.max(0,Number($("mrFirstTraverse")?.value)||200),requestedLevelGap=Math.max(100,Number($("mrLevelGap")?.value)||1000),[uprightType="MR60",uprightThicknessText="1.5"]=String($("mrUprightType")?.value||"MR60|1.5").split("|"),[traverseType="ZS65",traverseThicknessText="1.5"]=String($("mrTraverseType")?.value||"ZS65|1.5").split("|"),traverseHeight={ZS35:55,ZS55:75,ZS65:85}[traverseType]||85,levelGap=requestedLevelGap,levelPitch=levelGap+traverseHeight,height=firstTraverse+Math.max(0,levels-1)*levelPitch,automaticUprightHeight=height+traverseHeight+levelGap/2,topTraverseMode=$("mrTopTraverseMode")?.value==="manual"?"manual":"auto",enteredUprightHeight=Number($("mrHeight")?.value),manualUprightHeight=Math.max(height+traverseHeight,Number.isFinite(enteredUprightHeight)?enteredUprightHeight:automaticUprightHeight),rawUprightHeight=topTraverseMode==="manual"?manualUprightHeight:automaticUprightHeight,uprightHeight=Math.ceil(rawUprightHeight/50)*50,topExtension=Math.max(0,uprightHeight-(height+traverseHeight)),rowCount=$("mrRowType")?.value==="double"?2:1,rowGap=rowCount===2?Math.max(0,Number($("mrRowGap")?.value)||200):0;
+        return{modules:Math.max(1,Number($("mrModuleCount")?.value)||1),levels,width:Math.max(300,Number($("mrSectionWidth")?.value)||2400),depth:Math.max(300,Number($("mrDepth")?.value)||800),rowCount,rowGap,firstTraverse,levelGap,requestedLevelGap,height,automaticUprightHeight,topExtension,topTraverseMode,uprightHeight,uprightType,uprightThickness:Number(uprightThicknessText)||1.5,uprightWidth:60,traverseType,traverseThickness:Number(traverseThicknessText)||1.5,traverseHeight,uprightFinish:$("mrUprightFinish")?.value||"ral5010",traverseFinish:$("mrTraverseFinish")?.value||"ral1007",accessories:mrAccessoryStateV5(),dimensions:{levels:$("mrShowLevelDims")?.checked!==false,markers:$("mrShowMarkers")?.checked!==false,width:$("mrShowWidth")?.checked!==false,depth:$("mrShowDepth")?.checked!==false},dimensionScale:Math.max(.7,Math.min(3,Number($("mrDimensionScale")?.value)||2))}
+      };`;
+  if (portal.includes(oldMrConfigurationV45)) portal = portal.replace(oldMrConfigurationV45, newMrConfigurationV45);
+  else if (!portal.includes('rowCount=$("mrRowType")?.value==="double"?2:1')) throw new Error("MR v45: sira ve 50 mm ayak konfigurasyonu bulunamadi.");
+
+  const oldMrSummaryHead = 'const{modules,width,depth,levels,height,uprightHeight,firstTraverse,levelGap,topExtension,topTraverseMode,uprightWidth,uprightType,uprightThickness,traverseType,traverseThickness,traverseHeight}=mrConfigurationV2(),totalWidth=modules*width+(modules+1)*uprightWidth;';
+  const newMrSummaryHead = 'const{modules,width,depth,rowCount,rowGap,levels,height,uprightHeight,firstTraverse,levelGap,topExtension,topTraverseMode,uprightWidth,uprightType,uprightThickness,traverseType,traverseThickness,traverseHeight}=mrConfigurationV2(),totalWidth=modules*width+(modules+1)*uprightWidth,footprintDepth=rowCount*depth+Math.max(0,rowCount-1)*rowGap;';
+  if (portal.includes(oldMrSummaryHead)) portal = portal.replace(oldMrSummaryHead, newMrSummaryHead);
+  else if (!portal.includes('footprintDepth=rowCount*depth')) throw new Error("MR v45: sira ozet hesabi bulunamadi.");
+
+  const oldMrHeightInput = 'if(heightInput){heightInput.disabled=topTraverseMode!=="manual";if(topTraverseMode!=="manual"||document.activeElement!==heightInput)heightInput.value=String(Math.round(uprightHeight))}';
+  const newMrHeightInput = 'if(heightInput){heightInput.disabled=topTraverseMode!=="manual";if(topTraverseMode!=="manual"||document.activeElement!==heightInput)heightInput.value=String(Math.round(uprightHeight))}const rowGapInput=$("mrRowGap");if(rowGapInput)rowGapInput.disabled=rowCount!==2;';
+  if (portal.includes(oldMrHeightInput)) portal = portal.replace(oldMrHeightInput, newMrHeightInput);
+  else if (!portal.includes('rowGapInput.disabled=rowCount!==2')) throw new Error("MR v45: sira araligi kontrolu bulunamadi.");
+
+  const oldMrFootprintSummary = '$("mrFootprint").textContent=`${fmt(totalWidth)} × ${fmt(depth)} mm`';
+  const newMrFootprintSummary = '$("mrFootprint").textContent=`${fmt(totalWidth)} × ${fmt(footprintDepth)} mm`';
+  if (portal.includes(oldMrFootprintSummary)) portal = portal.replace(oldMrFootprintSummary, newMrFootprintSummary);
+  else if (!portal.includes('${fmt(totalWidth)} × ${fmt(footprintDepth)} mm')) throw new Error("MR v45: cift sira yerlesim ozeti bulunamadi.");
+
+  const oldMrLevelSummary = '`${levels} kat · ${modules} modül · ${uprightType} ${String(uprightThickness).replace(".",",")} mm · ${traverseType} ${String(traverseThickness).replace(".",",")} mm / H ${fmt(traverseHeight)}`';
+  const newMrLevelSummary = '`${levels} kat · ${modules} modül · ${rowCount===2?"Çift sıra birleşik":"Tek sıra"} · ${uprightType} ${String(uprightThickness).replace(".",",")} mm · ${traverseType} ${String(traverseThickness).replace(".",",")} mm / H ${fmt(traverseHeight)}`';
+  if (portal.includes(oldMrLevelSummary)) portal = portal.replace(oldMrLevelSummary, newMrLevelSummary);
+  else if (!portal.includes('rowCount===2?"Çift sıra birleşik":"Tek sıra"')) throw new Error("MR v45: sira konfigurasyon ozeti bulunamadi.");
+
+  const oldMrDistanceSummary = '${fmt(height)} mm · üst uzatma ${fmt(levelGap/2)} mm';
+  const newMrDistanceSummary = '${fmt(height)} mm · üst uzatma ${fmt(uprightHeight-height)} mm · ayak ${fmt(uprightHeight)} mm';
+  if (portal.includes(oldMrDistanceSummary)) portal = portal.replace(oldMrDistanceSummary, newMrDistanceSummary);
+  else if (!portal.includes('ayak ${fmt(uprightHeight)} mm')) throw new Error("MR v45: yuvarlanmis ayak ozeti bulunamadi.");
+
+  const oldMrLayoutDrawingV45 = `mrLayoutDrawingV4=function(){
+        const config=mrConfigurationV2(),footWidth=config.uprightWidth,totalWidth=config.modules*config.width+(config.modules+1)*footWidth,sectionWidth=config.modules*config.width;
+        return{plan:{feet:[config.depth],braces:[],mr:true},totalWidth,railLength:config.depth,widthMm:totalWidth,depthMm:config.depth,bays:config.modules,levels:config.levels,depth:1,palW:config.width,palD:config.depth,palletWeight:0,palletHeight:0,levelH:config.levelGap,firstRailHeight:config.firstTraverse,traverseHeight:config.traverseHeight,totalRackHeight:config.height,sideUprightHeight:config.uprightHeight,footType:footWidth,systemType:"mr",palletPositions:[0],palletGaps:[],layoutView:"b2b-top",b2bLayout:{palletCount:config.modules,palletWidth:config.width,palletDepth:config.depth,palletOverhang:0,palletType:"mr",sectionWidth,frameDepth:config.depth,rowCount:1,rowGap:0},b2b:{mr:true,modules:config.modules,levels:config.levels,width:config.width,depth:config.depth,height:config.height,uprightHeight:config.uprightHeight,firstTraverse:config.firstTraverse,levelGap:config.levelGap,requestedLevelGap:config.requestedLevelGap,topTraverseMode:config.topTraverseMode,uprightType:config.uprightType,uprightThickness:config.uprightThickness,uprightWidth:config.uprightWidth,traverseType:config.traverseType,traverseThickness:config.traverseThickness,traverseHeight:config.traverseHeight,uprightFinish:config.uprightFinish,traverseFinish:config.traverseFinish,accessories:config.accessories,dimensions:config.dimensions,dimensionScale:config.dimensionScale,firstPalletPosition:"traverse"}}
+      };`;
+  const newMrLayoutDrawingV45 = `mrLayoutDrawingV4=function(){
+        const config=mrConfigurationV2(),footWidth=config.uprightWidth,totalWidth=config.modules*config.width+(config.modules+1)*footWidth,sectionWidth=config.modules*config.width,footprintDepth=config.rowCount*config.depth+Math.max(0,config.rowCount-1)*config.rowGap;
+        return{plan:{feet:[config.depth],braces:[],mr:true},totalWidth,railLength:footprintDepth,widthMm:totalWidth,depthMm:footprintDepth,bays:config.modules,levels:config.levels,depth:config.rowCount,palW:config.width,palD:config.depth,palletWeight:0,palletHeight:0,levelH:config.levelGap,firstRailHeight:config.firstTraverse,traverseHeight:config.traverseHeight,totalRackHeight:config.height,sideUprightHeight:config.uprightHeight,footType:footWidth,systemType:"mr",palletPositions:Array.from({length:config.rowCount},(_,index)=>index*(config.depth+config.rowGap)),palletGaps:config.rowCount===2?[config.rowGap]:[],layoutView:"b2b-top",b2bLayout:{palletCount:config.modules,palletWidth:config.width,palletDepth:config.depth,palletOverhang:0,palletType:"mr",sectionWidth,frameDepth:config.depth,rowCount:config.rowCount,rowGap:config.rowGap},b2b:{mr:true,modules:config.modules,levels:config.levels,width:config.width,depth:config.depth,rowCount:config.rowCount,rowGap:config.rowGap,height:config.height,uprightHeight:config.uprightHeight,firstTraverse:config.firstTraverse,levelGap:config.levelGap,requestedLevelGap:config.requestedLevelGap,topTraverseMode:config.topTraverseMode,uprightType:config.uprightType,uprightThickness:config.uprightThickness,uprightWidth:config.uprightWidth,traverseType:config.traverseType,traverseThickness:config.traverseThickness,traverseHeight:config.traverseHeight,uprightFinish:config.uprightFinish,traverseFinish:config.traverseFinish,accessories:config.accessories,dimensions:config.dimensions,dimensionScale:config.dimensionScale,firstPalletPosition:"traverse"}}
+      };`;
+  if (portal.includes(oldMrLayoutDrawingV45)) portal = portal.replace(oldMrLayoutDrawingV45, newMrLayoutDrawingV45);
+  else if (!portal.includes('footprintDepth=config.rowCount*config.depth')) throw new Error("MR v45: cift sira cizim verisi bulunamadi.");
+
+  const oldMrApplyDrawingV45 = 'if($("mrTraverseType"))$("mrTraverseType").value=`${settings.traverseType||"ZS65"}|${Number(settings.traverseThickness)||1.5}`;mrTrayAccessoryV5=';
+  const newMrApplyDrawingV45 = 'if($("mrTraverseType"))$("mrTraverseType").value=`${settings.traverseType||"ZS65"}|${Number(settings.traverseThickness)||1.5}`;if($("mrRowType"))$("mrRowType").value=(Number(settings.rowCount)||Number(drawing.b2bLayout?.rowCount)||1)>1?"double":"single";if($("mrRowGap"))$("mrRowGap").value=String(Number(settings.rowGap??drawing.b2bLayout?.rowGap)||200);if($("mrDimensionScale"))$("mrDimensionScale").value=String(Math.max(.7,Math.min(3,Number(settings.dimensionScale)||2)));if($("mrShowLevelDims"))$("mrShowLevelDims").checked=settings.dimensions?.levels!==false;if($("mrShowMarkers"))$("mrShowMarkers").checked=settings.dimensions?.markers!==false;if($("mrShowWidth"))$("mrShowWidth").checked=settings.dimensions?.width!==false;if($("mrShowDepth"))$("mrShowDepth").checked=settings.dimensions?.depth!==false;mrTrayAccessoryV5=';
+  if (portal.includes(oldMrApplyDrawingV45)) portal = portal.replace(oldMrApplyDrawingV45, newMrApplyDrawingV45);
+  else if (!portal.includes('$("mrRowType").value=(Number(settings.rowCount)')) throw new Error("MR v45: kayitli sira form aktarimi bulunamadi.");
+
+  const oldMrHeightAndGapV45 = 'heightLabel.innerHTML=`Ayak boyu (mm)<div class="mr-height-mode"><select id="mrTopTraverseMode" aria-label="Ayak boyu modu"><option value="auto">Otomatik</option><option value="manual">Manuel</option></select><input id="mrHeight" type="number" min="200" max="12000" step="10" value="3300" placeholder="Otomatik hesaplanır" disabled></div>`;heightLabel.insertAdjacentHTML("beforebegin",`<label class="mr-level-gap-field">Kat arası mesafe (mm)<input id="mrLevelGap" type="number" min="100" max="5000" step="10" value="1000"></label>`)';
+  const newMrHeightAndGapV45 = 'heightLabel.innerHTML=`Ayak boyu (mm)<div class="mr-height-mode"><select id="mrTopTraverseMode" aria-label="Ayak boyu modu"><option value="auto">Otomatik</option><option value="manual">Manuel</option></select><input id="mrHeight" type="number" min="200" max="12000" step="50" value="3300" placeholder="Otomatik hesaplanır" disabled></div>`;heightLabel.insertAdjacentHTML("beforebegin",`<label class="mr-row-field">Sıra düzeni<div class="mr-row-mode"><select id="mrRowType" aria-label="MR sıra düzeni"><option value="single">Tek sıra</option><option value="double">Çift sıra birleşik</option></select><input id="mrRowGap" type="number" min="0" max="2000" step="10" value="200" aria-label="Sıra arası mesafe" title="Sıra arası mesafe (mm)" disabled></div><small>Çift sırada iki raf sırt sırta birleşir.</small></label><label class="mr-level-gap-field">Kat arası mesafe (mm)<input id="mrLevelGap" type="number" min="100" max="5000" step="10" value="1000"></label>`)';
+  if (portal.includes(oldMrHeightAndGapV45)) portal = portal.replace(oldMrHeightAndGapV45, newMrHeightAndGapV45);
+  else if (!portal.includes('id="mrRowType" aria-label="MR sıra düzeni"')) throw new Error("MR v45: tek cift sira kontrolu bulunamadi.");
+
+  const oldMrMeasureOverlayV45 = '<details class="mr-measure-overlay" id="mrMeasureOverlay"><summary>ÖLÇÜLER VE MESAFELER</summary>';
+  const newMrMeasureOverlayV45 = '<details class="mr-measure-overlay" id="mrMeasureOverlay" open><summary>ÖLÇÜLER VE MESAFELER</summary>';
+  if (portal.includes(oldMrMeasureOverlayV45)) portal = portal.replace(oldMrMeasureOverlayV45, newMrMeasureOverlayV45);
+  else if (!portal.includes('id="mrMeasureOverlay" open')) throw new Error("MR v45: alttaki olcu duzenleyici bulunamadi.");
+
+  const oldMrDimensionSliderV45 = '<input id="mrDimensionScale" type="range" min="0.7" max="1.5" step="0.1" value="1">';
+  const newMrDimensionSliderV45 = '<input id="mrDimensionScale" type="range" min="0.7" max="3" step="0.1" value="2">';
+  if (portal.includes(oldMrDimensionSliderV45)) portal = portal.replace(oldMrDimensionSliderV45, newMrDimensionSliderV45);
+  else if (!portal.includes('id="mrDimensionScale" type="range" min="0.7" max="3"')) throw new Error("MR v45: 3D yazi olcegi bulunamadi.");
+
+  const oldMrSavePlacementV45 = 'form.insertAdjacentHTML("afterend",`<div class="mr-rack-save">';
+  const newMrSavePlacementV45 = 'const viewCard=page.querySelector(".mr-view-card");viewCard?.insertAdjacentHTML("beforeend",`<div class="mr-rack-save">';
+  if (portal.includes(oldMrSavePlacementV45)) portal = portal.replace(oldMrSavePlacementV45, newMrSavePlacementV45);
+  else if (!portal.includes('viewCard?.insertAdjacentHTML("beforeend",`<div class="mr-rack-save">')) throw new Error("MR v45: 3D alti raf kaydet bulunamadi.");
+
+  const oldMrAccessoryPlacementV45 = 'const parts=page.querySelector(".mr-parts-panel");parts?.insertAdjacentHTML("beforeend",`<div class="mr-accessory-area"';
+  const newMrAccessoryPlacementV45 = 'form.insertAdjacentHTML("afterend",`<div class="mr-accessory-area"';
+  if (portal.includes(oldMrAccessoryPlacementV45)) portal = portal.replace(oldMrAccessoryPlacementV45, newMrAccessoryPlacementV45);
+  else if (!portal.includes('form.insertAdjacentHTML("afterend",`<div class="mr-accessory-area"')) throw new Error("MR v45: aksesuar sol panel konumu bulunamadi.");
+
+  const oldMrInputSelectorV45 = '#mrModuleCount,#mrLevels,#mrSectionWidth,#mrDepth,#mrFirstTraverse,#mrLevelGap,#mrHeight,#mrDimensionScale,#mrShowLevelDims,#mrShowMarkers,#mrShowWidth,#mrShowDepth';
+  const newMrInputSelectorV45 = '#mrModuleCount,#mrLevels,#mrSectionWidth,#mrDepth,#mrRowGap,#mrFirstTraverse,#mrLevelGap,#mrHeight,#mrDimensionScale,#mrShowLevelDims,#mrShowMarkers,#mrShowWidth,#mrShowDepth';
+  if (portal.includes(oldMrInputSelectorV45)) portal = portal.replace(oldMrInputSelectorV45, newMrInputSelectorV45);
+  else if (!portal.includes('#mrDepth,#mrRowGap,#mrFirstTraverse')) throw new Error("MR v45: sira araligi canli guncellemesi bulunamadi.");
+
+  const oldMrChangeSelectorV45 = '#mrUprightFinish,#mrTraverseFinish,#mrTopTraverseMode,#mrUprightType,#mrTraverseType';
+  const newMrChangeSelectorV45 = '#mrUprightFinish,#mrTraverseFinish,#mrTopTraverseMode,#mrUprightType,#mrTraverseType,#mrRowType';
+  if (portal.includes(oldMrChangeSelectorV45)) portal = portal.replace(oldMrChangeSelectorV45, newMrChangeSelectorV45);
+  else if (!portal.includes('#mrTraverseType,#mrRowType')) throw new Error("MR v45: sira secimi canli guncellemesi bulunamadi.");
+
+  if (!portal.includes('data-rafex-mr-editor-v45')) {
+    const headEnd = portal.lastIndexOf('</head>');
+    if (headEnd < 0) throw new Error("MR v45: stil baglanti noktasi bulunamadi.");
+    const mrEditorStyles = `<style data-rafex-mr-editor-v45>
+      .mr-mode .mr-workspace{grid-template-columns:minmax(280px,330px) minmax(520px,1fr)}
+      .mr-mode .mr-parts-panel{display:none!important}
+      .mr-mode .mr-form{gap:11px}
+      .mr-mode .mr-form input,.mr-mode .mr-form select{min-height:44px;padding:10px 11px;font-size:10px}
+      .mr-mode .mr-profile-field small,.mr-mode .mr-row-field small{line-height:1.35}
+      .mr-mode .mr-row-field{grid-column:1/-1}
+      .mr-mode .mr-row-mode{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(90px,.85fr);gap:7px}
+      .mr-mode .mr-row-mode input:disabled{opacity:.55;background:#edf1ee}
+      .mr-mode .mr-accessory-area{margin:11px 0 0;padding:11px 0 0;border-top:1px solid #dce4df}
+      .mr-mode .mr-accessory-launch{min-height:46px;font-size:11px;border-radius:9px}
+      .mr-mode .mr-view-toolbar button{min-height:36px;padding:8px 12px;font-size:10px}
+      .mr-mode .mr-view-card>.mr-rack-save{margin:0;padding:13px;border-top:1px solid #dce4df;background:#fff}
+      .mr-mode .mr-rack-save>button{min-height:54px;border-radius:10px;font-size:15px;letter-spacing:.02em}
+      .mr-mode .mr-rack-save>small{text-align:center;font-size:9px}
+      .mr-mode .mr-block-list{grid-template-columns:repeat(6,minmax(0,1fr))}
+      .mr-mode .mr-block-button{min-height:50px;padding:7px}
+      .mr-mode .m2-saved-type-preview{width:auto;min-width:64px;min-height:42px;padding:0 10px;font-size:9px}
+      .mr-mode .m2-saved-type-copy{min-width:72px;min-height:42px;padding:0 11px}
+      .mr-mode .mr-measure-overlay .mr-distance-panel input:not([type=checkbox]){min-height:34px}
+      @media(max-width:1050px){.mr-mode .mr-workspace{grid-template-columns:1fr}.mr-mode .mr-block-list{grid-template-columns:repeat(4,minmax(0,1fr))}}
+    </style>`;
+    portal = portal.slice(0, headEnd) + mrEditorStyles + '\n' + portal.slice(headEnd);
+  }
+
   const oldControlSelector = 'controls.querySelectorAll("input,button").forEach((element)=>element.disabled=!active);';
   const newControlSelector = 'controls.querySelectorAll("input,button:not(.rafex-extension-toggle)").forEach((element)=>element.disabled=!active);';
   if (portal.includes(oldControlSelector)) portal = portal.replace(oldControlSelector, newControlSelector);
@@ -246,6 +405,143 @@ if (mode === "source") {
   // MR rapor kesitleri aktif 3D sahneyi bozmadan, kendi GLB motorundan
   // arka planda yakalanir. B2B'nin varsayilan olculeri MR'ye uygulanmaz.
   let mrViewer = fs.readFileSync(mrViewerPath, "utf8");
+
+  // MR 3D motoru kayitli tek/cift sira verisini birebir kurar. Ayak boyu
+  // da form, kayit, onizleme ve kesit ekranlarinda ayni 50 mm kuralini kullanir.
+  const oldViewerPitchV45 = `    const topTraverse = firstTraverse + Math.max(0, levels - 1) * levelGap;`;
+  const newViewerPitchV45 = `    const topTraverse = firstTraverse + Math.max(0, levels - 1) * (levelGap + traverseHeight);`;
+  if (mrViewer.includes(oldViewerPitchV45)) mrViewer = mrViewer.replace(oldViewerPitchV45, newViewerPitchV45);
+  else if (!mrViewer.includes('const topTraverse = firstTraverse + Math.max(0, levels - 1) * levelPitch')&&!mrViewer.includes('const topTraverse = firstTraverse + Math.max(0, levels - 1) * (levelGap + traverseHeight)')) throw new Error("MR v45: viewer net kat araligi bulunamadi.");
+
+  const oldViewerDepthV45 = `      depth: bounded(config.depth, 800, 300, 2500),`;
+  const newViewerDepthV45 = `      depth: bounded(config.depth, 800, 300, 2500),
+      rowCount: Math.round(bounded(config.rowCount, 1, 1, 2)),
+      rowGap: bounded(config.rowGap, 200, 0, 2000),`;
+  if (mrViewer.includes(oldViewerDepthV45)) mrViewer = mrViewer.replace(oldViewerDepthV45, newViewerDepthV45);
+  else if (!mrViewer.includes('rowCount: Math.round(bounded(config.rowCount, 1, 1, 2))')) throw new Error("MR v45: viewer sira konfigurasyonu bulunamadi.");
+
+  const oldViewerUprightV45 = `    const uprightHeight = Number.isFinite(requestedUprightHeight)
+      ? Math.max(topTraverse + traverseHeight, requestedUprightHeight)
+      : automaticUprightHeight;`;
+  const newViewerUprightV45 = `    const rawUprightHeight = Number.isFinite(requestedUprightHeight)
+      ? Math.max(topTraverse + traverseHeight, requestedUprightHeight)
+      : automaticUprightHeight;
+    const uprightHeight = Math.ceil(rawUprightHeight / 50) * 50;`;
+  if (mrViewer.includes(oldViewerUprightV45)) mrViewer = mrViewer.replace(oldViewerUprightV45, newViewerUprightV45);
+  else if (!mrViewer.includes('const uprightHeight = Math.ceil(rawUprightHeight / 50) * 50')) throw new Error("MR v45: viewer 50 mm ayak kurali bulunamadi.");
+
+  const oldViewerScaleV45 = `      dimensionScale: bounded(config.dimensionScale, 1, .7, 1.5),`;
+  const newViewerScaleV45 = `      dimensionScale: bounded(config.dimensionScale, 2, .7, 3),`;
+  if (mrViewer.includes(oldViewerScaleV45)) mrViewer = mrViewer.replace(oldViewerScaleV45, newViewerScaleV45);
+  else if (!mrViewer.includes('dimensionScale: bounded(config.dimensionScale, 2, .7, 3)')) throw new Error("MR v45: viewer olcu yazi olcegi bulunamadi.");
+
+  const oldViewerBuildHeadV45 = `      const { modules, levels, width, depth, firstTraverse, levelGap, uprightHeight, uprightWidth, traverseHeight } = this.config;
+      const levelYs = Array.from({ length: levels }, (_, index) => firstTraverse + index * (levelGap + traverseHeight));
+      const framePitch = width + uprightWidth;
+      const totalWidth = modules * width + (modules + 1) * uprightWidth;
+      const uprightScale = new THREE.Vector3(uprightWidth / upright.size.x, uprightHeight / upright.size.y, depth / upright.size.z);
+      for (let frame = 0; frame <= modules; frame += 1) {
+        const instance = upright.object.clone(true);
+        instance.scale.copy(uprightScale);
+        instance.position.x = frame * framePitch;
+        this.root.add(instance);
+      }`;
+  const newViewerBuildHeadV45 = `      const { modules, levels, width, depth, rowCount, rowGap, firstTraverse, levelGap, uprightHeight, uprightWidth, traverseHeight } = this.config;
+      const levelYs = Array.from({ length: levels }, (_, index) => firstTraverse + index * (levelGap + traverseHeight));
+      const framePitch = width + uprightWidth;
+      const totalWidth = modules * width + (modules + 1) * uprightWidth;
+      const footprintDepth = rowCount * depth + Math.max(0, rowCount - 1) * rowGap;
+      const uprightScale = new THREE.Vector3(uprightWidth / upright.size.x, uprightHeight / upright.size.y, depth / upright.size.z);
+      for (let row = 0; row < rowCount; row += 1) {
+        const rowZ = row * (depth + rowGap);
+        for (let frame = 0; frame <= modules; frame += 1) {
+          const instance = upright.object.clone(true);
+          instance.scale.copy(uprightScale);
+          instance.position.set(frame * framePitch, 0, rowZ);
+          this.root.add(instance);
+        }
+      }`;
+  if (mrViewer.includes(oldViewerBuildHeadV45)) mrViewer = mrViewer.replace(oldViewerBuildHeadV45, newViewerBuildHeadV45);
+  else if (!mrViewer.includes('const footprintDepth = rowCount * depth')) throw new Error("MR v45: viewer cift sira ayak kurulumu bulunamadi.");
+
+  const oldViewerModulesV45 = `      for (let module = 0; module < modules; module += 1) {
+        const moduleX = module * framePitch + uprightWidth;
+        for (let level = 1; level <= levels; level += 1) {
+          const levelY = levelYs[level - 1];
+          for (const side of ["front", "back"]) {
+            const beam = traverse.object.clone(true);
+            // Extend the ZS traverse to the upright centre lines so the GLB end
+            // brackets engage the MR60 posts instead of stopping in the clear bay.
+            const beamOverlap = uprightWidth / 2;
+            beam.scale.set((width + beamOverlap * 2) / traverse.size.x, traverseHeight / traverse.size.y, 1);
+            // 773a baseline follow-up: ZS travers end brackets must mount to the
+            // MR Ayak Toplama GLB in the same handed orientation on both sides.
+            // The beam reaches the centre of each 60 mm upright (30 mm engagement per side).
+            if (side === "front") {
+              beam.position.set(moduleX - beamOverlap, levelY, 0);
+            } else {
+              beam.rotation.y = Math.PI;
+              beam.position.set(moduleX + width + beamOverlap, levelY, depth);
+            }
+            this.root.add(beam);
+          }
+          trayAccessories.filter((item) => item.levels.includes(level)).forEach((accessory) => {
+            let cursor = 0;
+            this.trayPiecePlan(width, accessory.width).forEach((pieceWidth) => {
+              const shelf = tray.object.clone(true);
+              // Leave 10 mm clearance at the front and back and lift the tray 10 mm.
+              const trayDepth = Math.max(1, depth - 20);
+              shelf.scale.set(pieceWidth / tray.size.x, 1, trayDepth / tray.size.z);
+              shelf.rotation.x = Math.PI;
+              shelf.position.set(moduleX + cursor, levelY + traverseHeight + tray.size.y - 40, depth - 10);
+              this.root.add(shelf);
+              cursor += pieceWidth;
+            });
+          });
+        }
+      }`;
+  const newViewerModulesV45 = `      for (let row = 0; row < rowCount; row += 1) {
+        const rowZ = row * (depth + rowGap);
+        for (let module = 0; module < modules; module += 1) {
+          const moduleX = module * framePitch + uprightWidth;
+          for (let level = 1; level <= levels; level += 1) {
+            const levelY = levelYs[level - 1];
+            for (const side of ["front", "back"]) {
+              const beam = traverse.object.clone(true);
+              const beamOverlap = uprightWidth / 2;
+              beam.scale.set((width + beamOverlap * 2) / traverse.size.x, traverseHeight / traverse.size.y, 1);
+              if (side === "front") {
+                beam.position.set(moduleX - beamOverlap, levelY, rowZ);
+              } else {
+                beam.rotation.y = Math.PI;
+                beam.position.set(moduleX + width + beamOverlap, levelY, rowZ + depth);
+              }
+              this.root.add(beam);
+            }
+            trayAccessories.filter((item) => item.levels.includes(level)).forEach((accessory) => {
+              let cursor = 0;
+              this.trayPiecePlan(width, accessory.width).forEach((pieceWidth) => {
+                const shelf = tray.object.clone(true);
+                const trayDepth = Math.max(1, depth - 20);
+                shelf.scale.set(pieceWidth / tray.size.x, 1, trayDepth / tray.size.z);
+                shelf.rotation.x = Math.PI;
+                shelf.position.set(moduleX + cursor, levelY + traverseHeight + tray.size.y - 40, rowZ + depth - 10);
+                this.root.add(shelf);
+                cursor += pieceWidth;
+              });
+            });
+          }
+        }
+      }`;
+  if (mrViewer.includes(oldViewerModulesV45)) mrViewer = mrViewer.replace(oldViewerModulesV45, newViewerModulesV45);
+  else if (!mrViewer.includes('for (let row = 0; row < rowCount; row += 1)')) throw new Error("MR v45: viewer cift sira govde kurulumu bulunamadi.");
+
+  const oldViewerDimensionsV45 = `      this.addDimensions(levelYs, totalWidth, depth, uprightHeight);`;
+  const newViewerDimensionsV45 = `      this.addDimensions(levelYs, totalWidth, footprintDepth, uprightHeight);`;
+  if (mrViewer.includes(oldViewerDimensionsV45)) mrViewer = mrViewer.replace(oldViewerDimensionsV45, newViewerDimensionsV45);
+  else if (!mrViewer.includes('this.addDimensions(levelYs, totalWidth, footprintDepth, uprightHeight)')) throw new Error("MR v45: viewer cift sira derinlik olcusu bulunamadi.");
+
+  if (!mrViewer.includes('K${index} → K${index+1} NET')) throw new Error("MR v45: viewer net kat olcusu bulunamadi.");
   if (!mrViewer.includes("__rafexMrDetachedPerspectiveCaptureV38")) {
     const activeAnchor = "\nlet active = null;\n";
     if (!mrViewer.includes(activeAnchor)) throw new Error("MR v38: viewer active baglanti noktasi bulunamadi.");
@@ -290,8 +586,11 @@ async function captureMRPerspective(config = {}, settings = {}) {
     if (!mrViewer.includes(apiAnchor)) throw new Error("MR v38: viewer API baglanti noktasi bulunamadi.");
     mrViewer = mrViewer.replace(apiAnchor, `${apiAnchor}
   capturePerspective(config, settings) { return captureMRPerspective(config, settings); },`);
-    fs.writeFileSync(mrViewerPath, mrViewer);
   }
+  for (const required of ['rowCount: Math.round(bounded(config.rowCount, 1, 1, 2))', 'dimensionScale: bounded(config.dimensionScale, 2, .7, 3)', 'const uprightHeight = Math.ceil(rawUprightHeight / 50) * 50', 'const footprintDepth = rowCount * depth', 'firstTraverse + index * (levelGap + traverseHeight)', 'K${index} → K${index+1} NET', 'this.addDimensions(levelYs, totalWidth, footprintDepth, uprightHeight)', '__rafexMrDetachedPerspectiveCaptureV38']) {
+    if (!mrViewer.includes(required)) throw new Error(`MR v45 viewer kaynak dogrulama hatasi: ${required}`);
+  }
+  fs.writeFileSync(mrViewerPath, mrViewer);
 
   // Kesit Yer Belirleme MR tipini ayri tutar ve secilen rafin kendi kaydini
   // MR viewer'a yollar. Eski/hatali 3'lu B2B varsayimi burada devre disidir.
@@ -422,6 +721,7 @@ async function captureMRPerspective(config = {}, settings = {}) {
   var originalCustomizePreview=window.m2PreviewRackCustomization;
   var originalCustomizeApply=window.m2ApplyRackCustomization;
   var originalSelectSaved=window.m2SelectSavedRackType;
+  var originalSavedPreviewClose=window.m2CloseSavedRackPreview;
   var pendingCustom=null;
   var lastMrPointerTap={id:null,at:0};
   var suppressMrDblClickUntil=0;
@@ -430,9 +730,9 @@ async function captureMRPerspective(config = {}, settings = {}) {
   function rackById(id){try{return m2LayoutState.racks.find(function(r){return Number(r.id)===Number(id);})||null;}catch{return null;}}
   function formatMm(value){try{return Math.round(Number(value)||0).toLocaleString('tr-TR')+' mm';}catch{return String(Math.round(Number(value)||0))+' mm';}}
   function configFromRack(rack){
-    var state=rack?.b2b||{},layout=rack?.b2bLayout||{},levels=Math.max(1,Math.round(Number(state.levels)||Number(rack?.levels)||1)),width=Math.max(300,Number(state.width)||Number(layout.palletWidth)||Number(rack?.palW)||2400),depth=Math.max(300,Number(state.depth)||Number(layout.palletDepth)||Number(rack?.depthMm)||800),firstTraverse=Math.max(0,Number(state.firstTraverse??rack?.firstRailHeight??200)),levelGap=Math.max(100,Number(state.requestedLevelGap)||Number(state.levelGap)||Number(rack?.levelH)||1000),traverseType=String(state.traverseType||'ZS65'),traverseHeight=Math.max(1,Number(state.traverseHeight)||Number(rack?.traverseHeight)||({ZS35:55,ZS55:75,ZS65:85}[traverseType]||85)),topTraverse=firstTraverse+Math.max(0,levels-1)*(levelGap+traverseHeight),automaticUprightHeight=topTraverse+traverseHeight+levelGap/2,uprightHeight=Math.max(topTraverse+traverseHeight,Number(state.uprightHeight)||Number(rack?.sideUprightHeight)||automaticUprightHeight);
+    var state=rack?.b2b||{},layout=rack?.b2bLayout||{},levels=Math.max(1,Math.round(Number(state.levels)||Number(rack?.levels)||1)),width=Math.max(300,Number(state.width)||Number(layout.palletWidth)||Number(rack?.palW)||2400),depth=Math.max(300,Number(state.depth)||Number(layout.palletDepth)||Number(rack?.palD)||800),rowCount=Math.max(1,Math.min(2,Math.round(Number(state.rowCount)||Number(layout.rowCount)||1))),rowGap=rowCount>1?Math.max(0,Number(state.rowGap??layout.rowGap??200)):0,firstTraverse=Math.max(0,Number(state.firstTraverse??rack?.firstRailHeight??200)),levelGap=Math.max(100,Number(state.requestedLevelGap)||Number(state.levelGap)||Number(rack?.levelH)||1000),traverseType=String(state.traverseType||'ZS65'),traverseHeight=Math.max(1,Number(state.traverseHeight)||Number(rack?.traverseHeight)||({ZS35:55,ZS55:75,ZS65:85}[traverseType]||85)),topTraverse=firstTraverse+Math.max(0,levels-1)*(levelGap+traverseHeight),automaticUprightHeight=topTraverse+traverseHeight+levelGap/2,uprightHeight=Math.ceil(Math.max(automaticUprightHeight,Number(state.uprightHeight)||Number(rack?.sideUprightHeight)||0)/50)*50;
     var dimensions=state.dimensions||{};
-    return{modules:Math.max(1,Math.round(Number(state.modules)||Number(rack?.bays)||1)),levels:levels,width:width,depth:depth,firstTraverse:firstTraverse,levelGap:levelGap,requestedLevelGap:levelGap,height:topTraverse,uprightHeight:uprightHeight,uprightType:state.uprightType||'MR60',uprightThickness:Number(state.uprightThickness)||1.5,uprightWidth:60,traverseType:traverseType,traverseThickness:Number(state.traverseThickness)||1.5,traverseHeight:traverseHeight,uprightFinish:state.uprightFinish||'ral5010',traverseFinish:state.traverseFinish||'ral1007',accessories:Array.isArray(state.accessories)?JSON.parse(JSON.stringify(state.accessories)):[],dimensions:{levels:dimensions.levels!==false,markers:dimensions.markers!==false,width:dimensions.width!==false,depth:dimensions.depth!==false},dimensionScale:Math.max(.7,Math.min(1.5,Number(state.dimensionScale)||1))};
+    return{modules:Math.max(1,Math.round(Number(state.modules)||Number(rack?.bays)||1)),levels:levels,width:width,depth:depth,rowCount:rowCount,rowGap:rowGap,firstTraverse:firstTraverse,levelGap:levelGap,requestedLevelGap:levelGap,height:topTraverse,uprightHeight:uprightHeight,uprightType:state.uprightType||'MR60',uprightThickness:Number(state.uprightThickness)||1.5,uprightWidth:60,traverseType:traverseType,traverseThickness:Number(state.traverseThickness)||1.5,traverseHeight:traverseHeight,uprightFinish:state.uprightFinish||'ral5010',traverseFinish:state.traverseFinish||'ral1007',accessories:Array.isArray(state.accessories)?JSON.parse(JSON.stringify(state.accessories)):[],dimensions:{levels:dimensions.levels!==false,markers:dimensions.markers!==false,width:dimensions.width!==false,depth:dimensions.depth!==false},dimensionScale:Math.max(.7,Math.min(3,Number(state.dimensionScale)||2))};
   }
   window.rafexMrConfigFromRackV37=configFromRack;
   function footOf(rack){return Math.max(1,Math.round(Number(rack?.b2b?.uprightWidth)||60));}
@@ -462,11 +762,11 @@ async function captureMRPerspective(config = {}, settings = {}) {
   function mrQuantitySummary(racks){
     var uprights=new Map(),traverses=new Map(),trays=new Map();
     (racks||[]).filter(isMr).forEach(function(rack){
-      var settings=rack.b2b||{},modules=Math.max(1,Math.round(Number(settings.modules)||Number(rack.bays)||1)),levels=Math.max(1,Math.round(Number(settings.levels)||Number(rack.levels)||1)),width=Math.max(300,Math.round(Number(settings.width)||Number(rack.palW)||2400)),depth=Math.max(300,Math.round(Number(settings.depth)||Number(rack.depthMm)||Number(rack.railLength)||800)),uprightKey=(settings.uprightType||'MR60')+' · '+String(Number(settings.uprightThickness)||1.5).replace('.',',')+' mm · 60 mm · '+mrFinish(settings.uprightFinish||'ral5010')+' · H '+mrNumber(Number(rack.sideUprightHeight)||Number(settings.uprightHeight)||0)+' × D '+mrNumber(depth)+' mm',traverseKey=(settings.traverseType||'ZS65')+' · '+String(Number(settings.traverseThickness)||1.5).replace('.',',')+' mm · H '+mrNumber(Number(settings.traverseHeight)||85)+' mm · '+mrFinish(settings.traverseFinish||'ral1007')+' · L '+mrNumber(width)+' mm';
+      var settings=rack.b2b||{},modules=Math.max(1,Math.round(Number(settings.modules)||Number(rack.bays)||1)),levels=Math.max(1,Math.round(Number(settings.levels)||Number(rack.levels)||1)),rowCount=Math.max(1,Math.min(2,Math.round(Number(settings.rowCount)||Number(rack.b2bLayout?.rowCount)||1))),width=Math.max(300,Math.round(Number(settings.width)||Number(rack.palW)||2400)),depth=Math.max(300,Math.round(Number(settings.depth)||Number(rack.b2bLayout?.palletDepth)||Number(rack.palD)||800)),uprightHeight=Math.ceil(Math.max(0,Number(rack.sideUprightHeight)||Number(settings.uprightHeight)||0)/50)*50,uprightKey=(settings.uprightType||'MR60')+' · '+String(Number(settings.uprightThickness)||1.5).replace('.',',')+' mm · 60 mm · '+mrFinish(settings.uprightFinish||'ral5010')+' · H '+mrNumber(uprightHeight)+' × D '+mrNumber(depth)+' mm',traverseKey=(settings.traverseType||'ZS65')+' · '+String(Number(settings.traverseThickness)||1.5).replace('.',',')+' mm · H '+mrNumber(Number(settings.traverseHeight)||85)+' mm · '+mrFinish(settings.traverseFinish||'ral1007')+' · L '+mrNumber(width)+' mm';
       // Her bagimsiz blokta N modul = N+1 ayak. Bagli moduller ise yalniz
       // ekledikleri N yeni ayagi getirir; ortak ayak ikinci kez sayilmaz.
-      var uprightQty=modules+(rack.sharedFootWith?0:1);uprights.set(uprightKey,(uprights.get(uprightKey)||0)+uprightQty);traverses.set(traverseKey,(traverses.get(traverseKey)||0)+modules*levels*2);
-      (settings.accessories||[]).filter(function(item){return item&&item.type==='tray';}).forEach(function(item){var selectedLevels=new Set((item.levels||[]).map(Number).filter(function(level){return level>=1&&level<=levels;}));if(!selectedLevels.size)return;mrTrayPieces(width,item.width).forEach(function(piece){var key=mrNumber(piece)+' × '+mrNumber(depth)+' mm';trays.set(key,(trays.get(key)||0)+modules*selectedLevels.size);});});
+      var uprightQty=(modules+(rack.sharedFootWith?0:1))*rowCount;uprights.set(uprightKey,(uprights.get(uprightKey)||0)+uprightQty);traverses.set(traverseKey,(traverses.get(traverseKey)||0)+modules*levels*2*rowCount);
+      (settings.accessories||[]).filter(function(item){return item&&item.type==='tray';}).forEach(function(item){var selectedLevels=new Set((item.levels||[]).map(Number).filter(function(level){return level>=1&&level<=levels;}));if(!selectedLevels.size)return;mrTrayPieces(width,item.width).forEach(function(piece){var key=mrNumber(piece)+' × '+mrNumber(depth)+' mm';trays.set(key,(trays.get(key)||0)+modules*selectedLevels.size*rowCount);});});
     });
     var rows=[];uprights.forEach(function(qty,spec){rows.push({item:'MR Ayak Toplama',spec:spec,qty:qty});});traverses.forEach(function(qty,spec){rows.push({item:'ZS Travers',spec:spec,qty:qty});});trays.forEach(function(qty,spec){rows.push({item:'Tava',spec:spec,qty:qty});});return rows;
   }
@@ -608,10 +908,14 @@ async function captureMRPerspective(config = {}, settings = {}) {
   var wrappedCustomizePreview=function(){var rack=rackById(typeof m2CustomizeRackId==='undefined'?null:m2CustomizeRackId);if(isMr(rack)){mountMrCustomize(rack);return;}return originalCustomizePreview?.apply(this,arguments);};
   var wrappedCustomizeApply=function(){var rack=rackById(typeof m2CustomizeRackId==='undefined'?null:m2CustomizeRackId);if(isMr(rack))return window.rafexLoadMrRackV37();return originalCustomizeApply?.apply(this,arguments);};
   var wrappedSelectSaved=function(index){var entry=Array.isArray(m2SavedRackTypes)?m2SavedRackTypes[index]:null,drawing=entry?.drawing;if(m2ActiveModule==='mr'&&isMr(drawing)){m2SelectedSavedType=index;m2LayoutState.selected=null;m2LastDrawing=JSON.parse(JSON.stringify(drawing));mrApplyDrawingToFormV4(drawing);mrUpdateSummary(true);mrSyncLayoutDrawingV4(false);m2RenderSavedRackTypes();m2RenderLayout();setStatus(String(entry.name||'MR')+' MR ölçüleriyle yüklendi.');return;}return originalSelectSaved?.apply(this,arguments);};
+  var mrSavedPreviewActiveV45=false;
+  window.rafexCopyMrSavedV45=function(index){var entry=Array.isArray(m2SavedRackTypes)?m2SavedRackTypes[index]:null;if(!entry||!isMr(entry.drawing)){setStatus('Kopyalanacak MR kaydı bulunamadı.');return;}wrappedSelectSaved(index);setStatus(String(entry.name||'MR')+' kopyalandı; üst MR düzenleyicide değişiklik yapabilirsin.');setTimeout(function(){document.querySelector('.mr-form')?.scrollIntoView?.({behavior:'smooth',block:'start'});},40);};
+  window.rafexInspectMrSavedV45=function(index){var entry=Array.isArray(m2SavedRackTypes)?m2SavedRackTypes[index]:null;if(!entry||!isMr(entry.drawing)){setStatus('İncelenecek MR kaydı bulunamadı.');return;}var modal=document.getElementById('m2SavedRackPreviewModal');if(!modal){document.body.insertAdjacentHTML('beforeend','<div class="m2-layout-modal" id="m2SavedRackPreviewModal" hidden onclick="if(event.target===this)m2CloseSavedRackPreview()"><div class="m2-readonly-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="m2SavedRackPreviewTitle"><div class="m2-readonly-preview-head"><div><b id="m2SavedRackPreviewTitle">MR 3D RAF ÖNİZLEMESİ</b><small>Salt okunur · kayıtlı MR verileri birebir gösterilir</small></div><button type="button" aria-label="Önizlemeyi kapat" onclick="m2CloseSavedRackPreview()">×</button></div><div class="m2-readonly-preview-canvas"><canvas id="m2SavedRackPreviewCanvas"></canvas></div></div></div>');modal=document.getElementById('m2SavedRackPreviewModal');}mrSavedPreviewActiveV45=true;modal.classList.add('rafex-mr-saved-preview-v45');document.getElementById('m2SavedRackPreviewTitle').textContent=String(entry.name||'MR')+' · MR 3D RAF ÖNİZLEMESİ';modal.hidden=false;requestAnimationFrame(function(){var canvas=document.getElementById('m2SavedRackPreviewCanvas');if(!canvas||!window.RafexMRViewer)return;try{window.RafexB2BViewer?.destroy?.();window.RafexMRViewer.destroy?.();window.RafexMRViewer.mount(canvas,{config:configFromRack(entry.drawing)});window.RafexMRViewer.setView?.('perspective');}catch(error){setStatus(error?.message||'MR 3D önizlemesi açılamadı.');}});};
+  var wrappedSavedPreviewClose=function(){if(mrSavedPreviewActiveV45){var modal=document.getElementById('m2SavedRackPreviewModal');if(modal){modal.hidden=true;modal.classList.remove('rafex-mr-saved-preview-v45');}mrSavedPreviewActiveV45=false;try{window.RafexMRViewer?.destroy?.();}catch(e){}requestAnimationFrame(function(){try{if(m2ActiveModule==='mr'&&document.getElementById('mrCanvas'))mrMountViewer();}catch(e){}});return;}return originalSavedPreviewClose?.apply(this,arguments);};
   try{m2StartAutoFillGuide=wrappedStart;m2PreviewAutoFillLength=wrappedPreview;m2ApplyAutoFillLength=wrappedApply;m2CancelAutoFill=wrappedCancel;m2CommitAutoFillGuide=wrappedCommit;}catch(e){}
-  try{m2OpenCustomizeModal=wrappedCustomizeOpen;m2CloseCustomizeModal=wrappedCustomizeClose;m2PreviewRackCustomization=wrappedCustomizePreview;m2ApplyRackCustomization=wrappedCustomizeApply;m2SelectSavedRackType=wrappedSelectSaved;}catch(e){}
+  try{m2OpenCustomizeModal=wrappedCustomizeOpen;m2CloseCustomizeModal=wrappedCustomizeClose;m2PreviewRackCustomization=wrappedCustomizePreview;m2ApplyRackCustomization=wrappedCustomizeApply;m2SelectSavedRackType=wrappedSelectSaved;m2CloseSavedRackPreview=wrappedSavedPreviewClose;}catch(e){}
   window.m2StartAutoFillGuide=wrappedStart;window.m2PreviewAutoFillLength=wrappedPreview;window.m2ApplyAutoFillLength=wrappedApply;window.m2CancelAutoFill=wrappedCancel;window.m2CommitAutoFillGuide=wrappedCommit;
-  window.m2OpenCustomizeModal=wrappedCustomizeOpen;window.m2CloseCustomizeModal=wrappedCustomizeClose;window.m2PreviewRackCustomization=wrappedCustomizePreview;window.m2ApplyRackCustomization=wrappedCustomizeApply;window.m2SelectSavedRackType=wrappedSelectSaved;
+  window.m2OpenCustomizeModal=wrappedCustomizeOpen;window.m2CloseCustomizeModal=wrappedCustomizeClose;window.m2PreviewRackCustomization=wrappedCustomizePreview;window.m2ApplyRackCustomization=wrappedCustomizeApply;window.m2SelectSavedRackType=wrappedSelectSaved;window.m2CloseSavedRackPreview=wrappedSavedPreviewClose;
   installExtensionDisclosure();var disclosureScanPending=false;new MutationObserver(function(){if(disclosureScanPending)return;disclosureScanPending=true;requestAnimationFrame(function(){disclosureScanPending=false;installExtensionDisclosure();});}).observe(document.body,{childList:true,subtree:true});
   document.addEventListener('pointerdown',function(event){
     if(event.button!=null&&event.button!==0||event.isPrimary===false)return;
@@ -626,7 +930,7 @@ async function captureMRPerspective(config = {}, settings = {}) {
   const bodyEnd = html.lastIndexOf("</body>");
   if (bodyEnd < 0) throw new Error("MR v35: body kapanisi bulunamadi.");
   html = html.slice(0, bodyEnd) + runtime + "\n" + html.slice(bodyEnd);
-  for (const required of [marker, "__rafexMrPointerDoubleTapV36", "rafexMrConfigFromRackV37", "__rafexMrSectionCaptureV38", "function buildMRCard(group,index)", "rafex-v38-mr-type-card", "data-rafex-system=\"mr\"", "x==='b2b'||x==='mekik2'||x==='mr'", "if(document.activeElement===input)input.blur()", "rafexProjectMrObstacleV40", "rafexCommitMrObstacleV40", "DUVARA KALAN", "KOLONA KALAN", "RAFA KALAN", "rafex-mr-customize-v37", "MR 3D RAF ÖNİZLEMESİ", "addEventListener('pointerdown'", "rafexMrExtensionPlan", "Kalan MR Bölümü", "Özel Rafı Oluştur", "netRemaining>500", "step=\"50\"", "rafex-extension-disclosure-v42", "rafexMrQuantitySummaryV42", "__rafexMrExactQuantitiesV42"]) {
+  for (const required of [marker, "__rafexMrPointerDoubleTapV36", "rafexMrConfigFromRackV37", "__rafexMrSectionCaptureV38", "function buildMRCard(group,index)", "rafex-v38-mr-type-card", "data-rafex-system=\"mr\"", "x==='b2b'||x==='mekik2'||x==='mr'", "if(document.activeElement===input)input.blur()", "rafexProjectMrObstacleV40", "rafexCommitMrObstacleV40", "DUVARA KALAN", "KOLONA KALAN", "RAFA KALAN", "rafex-mr-customize-v37", "MR 3D RAF ÖNİZLEMESİ", "addEventListener('pointerdown'", "rafexMrExtensionPlan", "Kalan MR Bölümü", "Özel Rafı Oluştur", "netRemaining>500", "step=\"50\"", "rafex-extension-disclosure-v42", "rafexMrQuantitySummaryV42", "__rafexMrExactQuantitiesV42", "rafexInspectMrSavedV45", "rafexCopyMrSavedV45", "rowCount:rowCount", "Math.min(3,Number(state.dimensionScale)||2)"]) {
     if (!html.includes(required)) throw new Error(`MR v35 runtime dogrulama hatasi: ${required}`);
   }
   const encoded = Buffer.from(html, "utf8").toString("base64");
