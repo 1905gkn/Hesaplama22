@@ -24,10 +24,34 @@ function planExtension(targetMm, sectionMm, footMm) {
   return { count, occupied, wallRemaining, netRemaining, customMax, needsCustom: netRemaining > 500 && customMax >= 500 };
 }
 
+function summarizeMrCounts(racks) {
+  return (racks || []).reduce((totals, rack) => {
+    const modules = Math.max(1, Math.round(Number(rack?.modules) || 1));
+    const levels = Math.max(1, Math.round(Number(rack?.levels) || 1));
+    const trayPieces = Math.max(0, Math.round(Number(rack?.trayPieces) || 0));
+    const trayLevels = Math.max(0, Math.round(Number(rack?.trayLevels) || 0));
+    totals.uprights += modules + (rack?.sharedFootWith ? 0 : 1);
+    totals.traverses += modules * levels * 2;
+    totals.trays += modules * trayPieces * trayLevels;
+    return totals;
+  }, { uprights:0, traverses:0, trays:0 });
+}
+
 assert.deepEqual(planExtension(8000, 2500, 60), { count: 3, occupied: 7680, wallRemaining: 320, netRemaining: 260, customMax: 250, needsCustom: false });
 assert.deepEqual(planExtension(7000, 2500, 60), { count: 2, occupied: 5120, wallRemaining: 1880, netRemaining: 1820, customMax: 1800, needsCustom: true });
 assert.equal(planExtension(620, 2500, 60).customMax, 550);
 assert.equal(planExtension(670, 2500, 60).customMax, 600);
+assert.deepEqual(summarizeMrCounts([
+  { modules:1, levels:4, trayPieces:8, trayLevels:4 },
+  { modules:1, levels:4, trayPieces:8, trayLevels:4, sharedFootWith:1 },
+  { modules:1, levels:4, trayPieces:8, trayLevels:4, sharedFootWith:2 },
+]), { uprights:4, traverses:24, trays:96 });
+assert.deepEqual(summarizeMrCounts([
+  { modules:1, levels:4, trayPieces:8, trayLevels:4 },
+  { modules:1, levels:4, trayPieces:8, trayLevels:4, sharedFootWith:1 },
+  { modules:1, levels:4, trayPieces:8, trayLevels:4 },
+]), { uprights:5, traverses:24, trays:96 });
+assert.deepEqual(summarizeMrCounts([{ modules:3, levels:4, trayPieces:8, trayLevels:2 }]), { uprights:4, traverses:24, trays:48 });
 
 if (mode === "source") {
   const portalPath = path.join(root, "portal.html");
@@ -44,6 +68,57 @@ if (mode === "source") {
   const newNormalize = "m2LayoutState.racks.forEach((rack)=>{\n          if(!rack?.b2bLayout||rack?.b2b?.mr)return;";
   if (portal.includes(oldNormalize)) portal = portal.replace(oldNormalize, newNormalize);
   else if (!portal.includes(newNormalize)) throw new Error("MR v35: B2B fiziksel genislik normalizasyonu bulunamadi.");
+
+  // Serbest yerlesim varsayimlari: ortak ayak etiketi kullanici istemeden
+  // gorunmez; olcu etiketleri de tasinmis eski koordinatlarla ekran disina cikmaz.
+  const oldSharedButton = '<button type="button" id="m2SharedFootLabelButton" onclick="m2ToggleSharedFootLabels()">Ortak Ayağı Gizle</button>';
+  const newSharedButton = '<button type="button" id="m2SharedFootLabelButton" aria-pressed="false" onclick="m2ToggleSharedFootLabels()">Ortak Ayağı Göster</button>';
+  if (portal.includes(oldSharedButton)) portal = portal.replace(oldSharedButton, newSharedButton);
+  else if (!portal.includes(newSharedButton)) throw new Error("MR v42: ortak ayak dugmesi bulunamadi.");
+
+  const oldFreshShared = "visibleRackDimensions:{ length:new Set(), depth:new Set() }, showSharedFootLabels:true, reportImages:Array(4).fill(null)";
+  const newFreshShared = "visibleRackDimensions:{ length:new Set(), depth:new Set() }, showSharedFootLabels:false, reportImages:Array(4).fill(null)";
+  if (portal.includes(oldFreshShared)) portal = portal.replace(oldFreshShared, newFreshShared);
+  else if (!portal.includes(newFreshShared)) throw new Error("MR v42: ortak ayak varsayilan durumu bulunamadi.");
+
+  const oldSharedState = 'sharedFootButton.classList.toggle("active",!m2ShowSharedFootLabels);sharedFootButton.setAttribute("aria-pressed",String(!m2ShowSharedFootLabels));';
+  const newSharedState = 'sharedFootButton.classList.toggle("active",m2ShowSharedFootLabels);sharedFootButton.setAttribute("aria-pressed",String(m2ShowSharedFootLabels));';
+  if (portal.includes(oldSharedState)) portal = portal.replace(oldSharedState, newSharedState);
+  else if (!portal.includes(newSharedState)) throw new Error("MR v42: ortak ayak dugme durumu bulunamadi.");
+
+  const oldDimensionPosition = "function m2DimensionPosition(key, x, y) { const offset = m2DimensionOffsets[key] || { x: 0, y: 0 }; return { x: x + offset.x, y: y + offset.y }; }";
+  const newDimensionPosition = "function m2DimensionPosition(key, x, y) { const offset = m2DimensionOffsets[key] || { x: 0, y: 0 }, nextX=x+(Number(offset.x)||0), nextY=y+(Number(offset.y)||0); return { x:Math.max(22,Math.min(978,nextX)), y:Math.max(20,Math.min(630,nextY)) }; }";
+  if (portal.includes(oldDimensionPosition)) portal = portal.replace(oldDimensionPosition, newDimensionPosition);
+  else if (!portal.includes(newDimensionPosition)) throw new Error("MR v42: olcu etiketi konumlandiricisi bulunamadi.");
+
+  const oldSeparate = `function m2SeparateSelectedRack() {
+        const rack=m2SelectedRack();
+        if(!rack?.joinGroup){$("m2FloorStatus").textContent="Ayırmak için birleşik bir modül seç.";return;}
+        m2PushUndo("Raf ayırma");
+        const oldGroup=rack.joinGroup;rack.joinGroup=null;rack.sharedFootWith=null;rack.sharedFootSide=null;rack.freePlacement=true;rack.staged=true;rack.locked=false;
+        m2LayoutState.racks.forEach((item)=>{if(item.sharedFootWith===rack.id){item.sharedFootWith=null;item.sharedFootSide=null;}});
+        m2NormalizeJoinComponents(oldGroup);
+        $("m2FloorStatus").textContent="Seçili modül birleşik gruptan ayrıldı. İlk bırakmaya kadar serbestçe taşıyabilirsin.";m2RenderLayout();
+      }`;
+  const newSeparate = `function m2SeparateSelectedRack() {
+        const rack=m2SelectedRack();
+        if(!rack?.joinGroup){$("m2FloorStatus").textContent="Ayırmak için birleşik bir modül seç.";return;}
+        m2PushUndo("Raf ayırma");
+        const oldGroup=rack.joinGroup,baseBlock=String(rack.blockName||rack.typeName||"MR Raf").replace(/ · Bağımsız(?: \\d+)?$/u,"");
+        rack.joinGroup=null;rack.sharedFootWith=null;rack.sharedFootSide=null;rack.freePlacement=false;rack.staged=false;rack.locked=true;rack.specLocked=true;rack.independentBlock=true;rack.independentBlockId="independent-"+rack.id;rack.blockName=baseBlock+" · Bağımsız";
+        m2LayoutState.racks.forEach((item)=>{if(item.id!==rack.id&&item.sharedFootWith===rack.id){item.sharedFootWith=null;item.sharedFootSide=null;}});
+        Object.keys(m2DimensionOffsets).filter((key)=>key.includes(":"+rack.id)).forEach((key)=>delete m2DimensionOffsets[key]);
+        delete m2PinnedDimensionsByRack[String(rack.id)];m2PinnedDimensions=m2EmptyPinnedDimensions();m2LayoutState.pinnedRackId=null;
+        m2NormalizeJoinComponents(oldGroup);
+        $("m2FloorStatus").textContent="Seçili modül ortak ayak ve grup ilişkilerinden ayrıldı; artık tamamen bağımsız bir raf bloğu.";m2RenderLayout();
+      }`;
+  if (portal.includes(oldSeparate)) portal = portal.replace(oldSeparate, newSeparate);
+  else if (!portal.includes('rack.independentBlockId="independent-"+rack.id')) throw new Error("MR v42: raf ayirma fonksiyonu bulunamadi.");
+
+  const oldControlSelector = 'controls.querySelectorAll("input,button").forEach((element)=>element.disabled=!active);';
+  const newControlSelector = 'controls.querySelectorAll("input,button:not(.rafex-extension-toggle)").forEach((element)=>element.disabled=!active);';
+  if (portal.includes(oldControlSelector)) portal = portal.replace(oldControlSelector, newControlSelector);
+  else if (!portal.includes(newControlSelector)) throw new Error("MR v42: uzatma kontrol secicisi bulunamadi.");
 
   // MR uzatmada fare hem yonu hem istenen mesafeyi belirler. Ancak isaretlenen
   // noktadan once duvar/raf/kolon/bariyer varsa cizgi ve yerlestirme engelde durur.
@@ -171,7 +246,7 @@ async function captureMRPerspective(config = {}, settings = {}) {
   }
 
   fs.writeFileSync(portalPath, portal);
-  console.log("MR v38 source: MR net genisligi ve kesit ciktisi kendi viewer/veri hattinda; B2B varsayimlari uygulanmaz.");
+  console.log("MR v42 source: MR uzatma, bagimsiz ayirma, ortak ayak gorunurlugu ve sabit olcu konumlari hazir.");
 } else if (mode === "runtime") {
   const workerPath = path.join(root, "dist/server/index.js");
   let worker = fs.readFileSync(workerPath, "utf8");
@@ -210,7 +285,13 @@ async function captureMRPerspective(config = {}, settings = {}) {
   else if (!html.includes(newSectionCardGroup)) throw new Error("MR v38: kesit kart grup baglantisi bulunamadi.");
 
   const runtime = String.raw`<style ${marker}>
-.mr-mode #m2AutoFillControls{display:flex!important}
+.mr-mode #m2AutoFillControls{display:block!important}
+#m2AutoFillControls.rafex-extension-disclosure-v42{display:block!important;visibility:visible!important;opacity:1!important;padding:0!important;overflow:hidden}
+.rafex-extension-toggle{display:flex!important;align-items:center;justify-content:space-between;width:100%;min-height:44px;padding:10px 12px!important;border:0!important;border-radius:9px!important;background:#edf8f3!important;color:#164d39!important;cursor:pointer!important;opacity:1!important;font-size:10px;font-weight:950;text-align:left}
+.rafex-extension-toggle:after{content:'+';font-size:18px;line-height:1}.rafex-extension-disclosure-v42.is-open>.rafex-extension-toggle:after{content:'−'}
+.rafex-extension-body{display:none;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid #cfe4da}.rafex-extension-disclosure-v42.is-open>.rafex-extension-body{display:flex}
+.rafex-extension-disclosure-v42.is-disabled>.rafex-extension-toggle{background:#f3f5f4!important;color:#526158!important;cursor:pointer!important}
+@media(max-width:700px){.rafex-extension-body{flex-wrap:wrap}.rafex-extension-body input{flex:1;min-width:120px}}
 #rafexMrExtensionModal[hidden]{display:none!important}
 #rafexMrExtensionModal{position:fixed;inset:0;z-index:10080;display:grid;place-items:center;padding:20px;background:#10251dcc;backdrop-filter:blur(3px)}
 .rafex-mr-extension-card{width:min(520px,calc(100vw - 32px));padding:20px;border:2px solid #e0b900;border-radius:16px;background:#fff;box-shadow:0 24px 70px #0005;color:#173c2d}
@@ -255,11 +336,52 @@ async function captureMRPerspective(config = {}, settings = {}) {
   function footOf(rack){return Math.max(1,Math.round(Number(rack?.b2b?.uprightWidth)||60));}
   function sectionOf(rack){return Math.max(500,Math.round(Number(rack?.b2b?.width)||Number(rack?.palW)||500));}
   function setStatus(text){var node=document.getElementById('m2FloorStatus');if(node)node.textContent=text;}
+  function installExtensionDisclosure(){
+    var host=document.getElementById('m2AutoFillControls');if(!host)return null;
+    if(!host.classList.contains('rafex-extension-disclosure-v42')){
+      var oldTitle=host.querySelector(':scope>b'),body=document.createElement('div'),toggle=document.createElement('button');
+      if(oldTitle)oldTitle.remove();body.className='rafex-extension-body';while(host.firstChild)body.appendChild(host.firstChild);
+      toggle.type='button';toggle.className='rafex-extension-toggle';toggle.textContent='UZATMA MESAFESİ';toggle.setAttribute('aria-expanded','false');
+      toggle.addEventListener('click',function(event){event.preventDefault();var open=host.classList.toggle('is-open');toggle.setAttribute('aria-expanded',String(open));});
+      host.appendChild(toggle);host.appendChild(body);host.classList.add('rafex-extension-disclosure-v42');host.hidden=false;
+      var restore=function(){host.hidden=false;if(host.style.getPropertyValue('display')!=='block')host.style.setProperty('display','block','important');toggle.disabled=false;toggle.removeAttribute('aria-disabled');};
+      restore();new MutationObserver(restore).observe(host,{attributes:true,subtree:true,attributeFilter:['style','hidden','disabled','aria-disabled']});
+    }
+    host.style.setProperty('display','block','important');var header=host.querySelector('.rafex-extension-toggle');if(header){header.disabled=false;header.removeAttribute('aria-disabled');}return host;
+  }
   function controls(active){
-    var host=document.getElementById('m2AutoFillControls'),input=document.getElementById('m2AutoFillLength');if(!host)return;
-    host.hidden=false;host.style.setProperty('display','flex','important');host.classList.toggle('is-disabled',!active);host.querySelectorAll('input,button').forEach(function(el){el.disabled=!active;});
+    var host=installExtensionDisclosure(),input=document.getElementById('m2AutoFillLength');if(!host)return;
+    host.hidden=false;host.style.setProperty('display','block','important');host.classList.toggle('is-disabled',!active);host.querySelectorAll('input,button:not(.rafex-extension-toggle)').forEach(function(el){el.disabled=!active;});
     if(input){input.placeholder=active?'Örn. 7000':'Önce MR rafı çift tıkla';if(!active)input.value='';}
   }
+  function mrFinish(value){try{return mrFinishLabelV4(value);}catch(e){return String(value||'');}}
+  function mrNumber(value){try{return fmt(Math.round(Number(value)||0));}catch(e){return Math.round(Number(value)||0).toLocaleString('tr-TR');}}
+  function mrTrayPieces(width,trayWidth){try{return mrTrayPlanV5(width,trayWidth).pieces||[];}catch(e){var size=[200,250,300].includes(Number(trayWidth))?Number(trayWidth):300,full=Math.floor(width/size),remainder=width-full*size,pieces=Array(full).fill(size);if(remainder>=50)pieces.push(remainder);return pieces;}}
+  function mrQuantitySummary(racks){
+    var uprights=new Map(),traverses=new Map(),trays=new Map();
+    (racks||[]).filter(isMr).forEach(function(rack){
+      var settings=rack.b2b||{},modules=Math.max(1,Math.round(Number(settings.modules)||Number(rack.bays)||1)),levels=Math.max(1,Math.round(Number(settings.levels)||Number(rack.levels)||1)),width=Math.max(300,Math.round(Number(settings.width)||Number(rack.palW)||2400)),depth=Math.max(300,Math.round(Number(settings.depth)||Number(rack.depthMm)||Number(rack.railLength)||800)),uprightKey=(settings.uprightType||'MR60')+' · '+String(Number(settings.uprightThickness)||1.5).replace('.',',')+' mm · 60 mm · '+mrFinish(settings.uprightFinish||'ral5010')+' · H '+mrNumber(Number(rack.sideUprightHeight)||Number(settings.uprightHeight)||0)+' × D '+mrNumber(depth)+' mm',traverseKey=(settings.traverseType||'ZS65')+' · '+String(Number(settings.traverseThickness)||1.5).replace('.',',')+' mm · H '+mrNumber(Number(settings.traverseHeight)||85)+' mm · '+mrFinish(settings.traverseFinish||'ral1007')+' · L '+mrNumber(width)+' mm';
+      // Her bagimsiz blokta N modul = N+1 ayak. Bagli moduller ise yalniz
+      // ekledikleri N yeni ayagi getirir; ortak ayak ikinci kez sayilmaz.
+      var uprightQty=modules+(rack.sharedFootWith?0:1);uprights.set(uprightKey,(uprights.get(uprightKey)||0)+uprightQty);traverses.set(traverseKey,(traverses.get(traverseKey)||0)+modules*levels*2);
+      (settings.accessories||[]).filter(function(item){return item&&item.type==='tray';}).forEach(function(item){var selectedLevels=new Set((item.levels||[]).map(Number).filter(function(level){return level>=1&&level<=levels;}));if(!selectedLevels.size)return;mrTrayPieces(width,item.width).forEach(function(piece){var key=mrNumber(piece)+' × '+mrNumber(depth)+' mm';trays.set(key,(trays.get(key)||0)+modules*selectedLevels.size);});});
+    });
+    var rows=[];uprights.forEach(function(qty,spec){rows.push({item:'MR Ayak Toplama',spec:spec,qty:qty});});traverses.forEach(function(qty,spec){rows.push({item:'ZS Travers',spec:spec,qty:qty});});trays.forEach(function(qty,spec){rows.push({item:'Tava',spec:spec,qty:qty});});return rows;
+  }
+  window.rafexMrQuantitySummaryV42=mrQuantitySummary;
+  var originalLayoutProductsV42=window.m2LayoutProductRows,originalCorporateBomV42=window.m2CorporateBomRows;
+  var exactLayoutProductsV42=function(){
+    if(typeof m2ActiveModule==='undefined'||m2ActiveModule!=='mr')return originalLayoutProductsV42?.apply(this,arguments)||[];
+    var exact=mrQuantitySummary(m2LayoutState.racks).map(function(row){return{name:row.item+' · '+row.spec,qty:row.qty};}),other=(originalLayoutProductsV42?.apply(this,arguments)||[]).filter(function(row){var name=String(row?.name||'');return !name.startsWith('MR Ayak Toplama')&&!name.startsWith('ZS Travers')&&!name.startsWith('Tava');});return exact.concat(other);
+  };
+  var exactCorporateBomV42=function(entry,labels){
+    var drawing=entry?.drawing||entry;if(!isMr(drawing))return originalCorporateBomV42?.apply(this,arguments)||[];
+    var ids=new Set((entry?.rackIds||[]).map(Number)),live=[];try{live=m2LayoutState.racks.filter(function(rack){return ids.has(Number(rack.id))&&isMr(rack);});}catch(e){}
+    if(!live.length){var count=Math.max(1,Math.round(Number(entry?.rackCount)||1));for(var i=0;i<count;i++)live.push(drawing);}
+    var unit=labels?.unitEach||'adet';return mrQuantitySummary(live).map(function(row){return{item:row.item,spec:row.spec,qty:row.qty,unit:unit};});
+  };
+  exactLayoutProductsV42.__rafexMrExactQuantitiesV42=true;exactCorporateBomV42.__rafexMrExactQuantitiesV42=true;
+  try{m2LayoutProductRows=exactLayoutProductsV42;m2CorporateBomRows=exactCorporateBomV42;}catch(e){}window.m2LayoutProductRows=exactLayoutProductsV42;window.m2CorporateBomRows=exactCorporateBomV42;
   function startMr(rack){
     if(m2AutoFillDraft?.rafexSystem==='mr'&&Number(m2AutoFillDraft.rackId)===Number(rack.id)){controls(true);return;}
     var origin={x:rack.x+rack.w/2,y:rack.y+rack.h/2};m2AutoFillDraft={rackId:rack.id,origin:origin,start:origin,hover:origin,direction:1,rafexSystem:'mr'};m2LayoutState.selected=rack.id;controls(true);
@@ -388,6 +510,7 @@ async function captureMRPerspective(config = {}, settings = {}) {
   try{m2OpenCustomizeModal=wrappedCustomizeOpen;m2CloseCustomizeModal=wrappedCustomizeClose;m2PreviewRackCustomization=wrappedCustomizePreview;m2ApplyRackCustomization=wrappedCustomizeApply;m2SelectSavedRackType=wrappedSelectSaved;}catch(e){}
   window.m2StartAutoFillGuide=wrappedStart;window.m2PreviewAutoFillLength=wrappedPreview;window.m2ApplyAutoFillLength=wrappedApply;window.m2CancelAutoFill=wrappedCancel;window.m2CommitAutoFillGuide=wrappedCommit;
   window.m2OpenCustomizeModal=wrappedCustomizeOpen;window.m2CloseCustomizeModal=wrappedCustomizeClose;window.m2PreviewRackCustomization=wrappedCustomizePreview;window.m2ApplyRackCustomization=wrappedCustomizeApply;window.m2SelectSavedRackType=wrappedSelectSaved;
+  installExtensionDisclosure();var disclosureScanPending=false;new MutationObserver(function(){if(disclosureScanPending)return;disclosureScanPending=true;requestAnimationFrame(function(){disclosureScanPending=false;installExtensionDisclosure();});}).observe(document.body,{childList:true,subtree:true});
   document.addEventListener('pointerdown',function(event){
     if(event.button!=null&&event.button!==0||event.isPrimary===false)return;
     var node=event.target?.closest?.('#m2LayoutSvg [data-rack]'),rack=node&&rackById(node.dataset.rack);if(!isMr(rack)){lastMrPointerTap={id:null,at:0};return;}if(typeof m2CustomizeMode!=='undefined'&&m2CustomizeMode){lastMrPointerTap={id:null,at:0};event.preventDefault();event.stopImmediatePropagation();openMrCustomize(rack);return;}
@@ -401,13 +524,13 @@ async function captureMRPerspective(config = {}, settings = {}) {
   const bodyEnd = html.lastIndexOf("</body>");
   if (bodyEnd < 0) throw new Error("MR v35: body kapanisi bulunamadi.");
   html = html.slice(0, bodyEnd) + runtime + "\n" + html.slice(bodyEnd);
-  for (const required of [marker, "__rafexMrPointerDoubleTapV36", "rafexMrConfigFromRackV37", "__rafexMrSectionCaptureV38", "function buildMRCard(group,index)", "rafex-v38-mr-type-card", "data-rafex-system=\"mr\"", "x==='b2b'||x==='mekik2'||x==='mr'", "if(document.activeElement===input)input.blur()", "rafexProjectMrObstacleV40", "rafexCommitMrObstacleV40", "DUVARA KALAN", "KOLONA KALAN", "RAFA KALAN", "rafex-mr-customize-v37", "MR 3D RAF ÖNİZLEMESİ", "addEventListener('pointerdown'", "rafexMrExtensionPlan", "Kalan MR Bölümü", "Özel Rafı Oluştur", "netRemaining>500", "step=\"50\""]) {
+  for (const required of [marker, "__rafexMrPointerDoubleTapV36", "rafexMrConfigFromRackV37", "__rafexMrSectionCaptureV38", "function buildMRCard(group,index)", "rafex-v38-mr-type-card", "data-rafex-system=\"mr\"", "x==='b2b'||x==='mekik2'||x==='mr'", "if(document.activeElement===input)input.blur()", "rafexProjectMrObstacleV40", "rafexCommitMrObstacleV40", "DUVARA KALAN", "KOLONA KALAN", "RAFA KALAN", "rafex-mr-customize-v37", "MR 3D RAF ÖNİZLEMESİ", "addEventListener('pointerdown'", "rafexMrExtensionPlan", "Kalan MR Bölümü", "Özel Rafı Oluştur", "netRemaining>500", "step=\"50\"", "rafex-extension-disclosure-v42", "rafexMrQuantitySummaryV42", "__rafexMrExactQuantitiesV42"]) {
     if (!html.includes(required)) throw new Error(`MR v35 runtime dogrulama hatasi: ${required}`);
   }
   const encoded = Buffer.from(html, "utf8").toString("base64");
   worker = worker.slice(0, match.index) + match[1] + match[2] + encoded + match[2] + worker.slice(match.index + match[0].length);
   fs.writeFileSync(workerPath, worker);
-  console.log("MR v40 runtime: uzatma yonunde en yakin duvar/raf/kolon/bariyer mesafesi, engel sinirli manuel olcu ve MR kesit ciktisi eklendi.");
+  console.log("MR v42 runtime: acilir uzatma blogu, tam bagimsiz ayirma ve ortak-ayak duyarlı kesin MR adetleri eklendi.");
 } else {
   throw new Error("Kullanim: node scripts/patch-mr-free-extension-v35.mjs source|runtime");
 }
