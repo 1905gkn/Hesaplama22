@@ -186,6 +186,6 @@ if (!portal.includes(runtimeMarker)) {
   portal = portal.replace("</head>", `${style}</head>`);
 }
 
-portal = portal.replace(/\/mr-viewer\.js\?v=[^\"'`<\s]+/g, "/mr-viewer.js?v=mr-layout-v47");
+portal = portal.replace(/\/mr-viewer\.js\?v=[^\"'`<\s]+/g, "/mr-viewer.js?v=mr-layout-v48");
 fs.writeFileSync(portalPath, portal);
 console.log("MR 773a v3: ayak otomatik/manual hesap kurali ve rapor kat konumlari uygulandi.");
