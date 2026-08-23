@@ -58,9 +58,6 @@ const fittedDimensions = [
   '      this.addVerticalDimension(layer, x, z, from, height, label, 0, index === 0 ? "firstTraverse" : "levelGap");',
   '    });',
   '    if (this.config.dimensions.markers) {',
-  '      const topTraverse = levelYs.at(-1) || 0;',
-  '      const topTraverseTop = topTraverse + this.config.traverseHeight;',
-  '      this.addVerticalDimension(layer, totalWidth+280, z, topTraverseTop, uprightHeight, `ÜST YARIM KAT · ${this.dimensionValue(uprightHeight-topTraverseTop)}`, totalWidth, "uprightHeight");',
   '      this.addDimensionLabel(layer, totalWidth+510, uprightHeight, z, `AYAK BOYU · ${this.dimensionValue(uprightHeight)}`, 760, "uprightHeight");',
   '    }'
 ].join("\n");
@@ -159,7 +156,7 @@ const summaryStart = portal.indexOf("      mrUpdateSummary=function", configStar
 const summaryEnd = portal.indexOf("      mrLayoutDrawingV4=function", summaryStart);
 if (summaryStart < 0 || summaryEnd < 0) throw new Error("MR 773a v3: ozet blogu bulunamadi.");
 const summaryBlock = [
-  '      mrUpdateSummary=function(refresh3d=false){const{modules,width,depth,levels,height,uprightHeight,firstTraverse,levelGap,topExtension,topTraverseMode,uprightWidth,uprightType,uprightThickness,traverseType,traverseThickness,traverseHeight}=mrConfigurationV2(),totalWidth=modules*width+(modules+1)*uprightWidth;const heightInput=$("mrHeight");if(heightInput){heightInput.disabled=topTraverseMode!=="manual";if(topTraverseMode!=="manual"||document.activeElement!==heightInput)heightInput.value=String(Math.round(uprightHeight))}if($("mrTotalWidth"))$("mrTotalWidth").textContent=`${fmt(totalWidth)} mm`;if($("mrFootprint"))$("mrFootprint").textContent=`${fmt(totalWidth)} × ${fmt(depth)} mm`;if($("mrLevelSummary"))$("mrLevelSummary").textContent=`${levels} kat · ${modules} modül · ${uprightType} ${String(uprightThickness).replace(".",",")} mm · ${traverseType} ${String(traverseThickness).replace(".",",")} mm / H ${fmt(traverseHeight)}`;if($("mrDistanceSummary"))$("mrDistanceSummary").textContent=`K1 ${fmt(firstTraverse)} mm · kat arası NET ${fmt(levelGap)} mm · travers ${fmt(traverseHeight)} mm · son travers alt kotu ${fmt(height)} mm · üst yarım kat ${fmt(topExtension)} mm · ayak ${fmt(uprightHeight)} mm`;if(refresh3d){clearTimeout(window.__rafexMrBuildTimer);window.__rafexMrBuildTimer=setTimeout(()=>mrViewerInstance?.setConfiguration?.(mrConfigurationV2()),320)}};',
+  '      mrUpdateSummary=function(refresh3d=false){const{modules,width,depth,levels,height,uprightHeight,firstTraverse,levelGap,topExtension,topTraverseMode,uprightWidth,uprightType,uprightThickness,traverseType,traverseThickness,traverseHeight}=mrConfigurationV2(),totalWidth=modules*width+(modules+1)*uprightWidth;const heightInput=$("mrHeight");if(heightInput){heightInput.disabled=topTraverseMode!=="manual";if(topTraverseMode!=="manual"||document.activeElement!==heightInput)heightInput.value=String(Math.round(uprightHeight))}if($("mrTotalWidth"))$("mrTotalWidth").textContent=`${fmt(totalWidth)} mm`;if($("mrFootprint"))$("mrFootprint").textContent=`${fmt(totalWidth)} × ${fmt(depth)} mm`;if($("mrLevelSummary"))$("mrLevelSummary").textContent=`${levels} kat · ${modules} modül · ${uprightType} ${String(uprightThickness).replace(".",",")} mm · ${traverseType} ${String(traverseThickness).replace(".",",")} mm / H ${fmt(traverseHeight)}`;if($("mrDistanceSummary"))$("mrDistanceSummary").textContent=`K1 ${fmt(firstTraverse)} mm · kat arası NET ${fmt(levelGap)} mm · travers ${fmt(traverseHeight)} mm · son travers alt kotu ${fmt(height)} mm · ayak ${fmt(uprightHeight)} mm`;if(refresh3d){clearTimeout(window.__rafexMrBuildTimer);window.__rafexMrBuildTimer=setTimeout(()=>mrViewerInstance?.setConfiguration?.(mrConfigurationV2()),320)}};',
   ''
 ].join("\n");
 portal = portal.slice(0, summaryStart) + summaryBlock + portal.slice(summaryEnd);
@@ -182,18 +179,13 @@ portal = replaceRequired(portal, oldSideFormula, newSideFormula, "yan rapor ayak
 portal = replaceRequired(portal, 'mapY(first+(level-1)*gap)', 'mapY(first+(level-1)*pitch)', "yan rapor kat konumlari");
 
 if (!portal.includes(runtimeMarker)) {
-  const saveInsertPattern = /form\.insertAdjacentHTML\("afterend",`<div class="mr-rack-save">[\s\S]*?<\/div>`\);/;
-  const saveMatch = portal.match(saveInsertPattern);
-  if (!saveMatch) throw new Error("MR 773a v3: Rafi Kaydet blogu bulunamadi.");
-
-  const relocateRuntime = `${saveMatch[0]}const mrSavePanel773a=page.querySelector(".mr-rack-save"),mrUprightTypeField773a=$("mrUprightType")?.closest(".mr-profile-field"),mrTraverseTypeField773a=$("mrTraverseType")?.closest(".mr-profile-field");if(mrSavePanel773a&&mrUprightTypeField773a&&mrTraverseTypeField773a){let mrProfileGrid773a=mrSavePanel773a.querySelector(".mr-save-profile-grid");if(!mrProfileGrid773a){mrProfileGrid773a=document.createElement("div");mrProfileGrid773a.className="mr-save-profile-grid";mrSavePanel773a.prepend(mrProfileGrid773a)}mrProfileGrid773a.append(mrUprightTypeField773a,mrTraverseTypeField773a)}`;
-  portal = portal.replace(saveInsertPattern, relocateRuntime);
-
-  const style = `\n    <style ${runtimeMarker}>.mr-save-profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:2px}.mr-save-profile-grid .mr-profile-field{display:grid;gap:5px;color:#425148;font-size:9px;font-weight:800}.mr-save-profile-grid select{width:100%;min-height:40px;padding:9px 30px 9px 10px;border:1px solid #d8e1db;border-radius:8px;background:#f9fbf9;color:#173c2d;font:inherit;font-weight:850}.mr-save-profile-grid .mr-profile-field small{display:block;margin-top:0;color:#6b756f;font-size:8px;line-height:1.35}@media(max-width:520px){.mr-save-profile-grid{grid-template-columns:1fr}}</style>\n`;
+  // Ayak ve travers tipi, formun sonunda ve Aksesuar Ekle'nin hemen üstünde
+  // kalır. Bu alanları 3D altındaki Kaydet paneline taşımıyoruz.
+  const style = `\n    <style ${runtimeMarker}>.mr-mode .mr-profile-field{display:grid;gap:5px;color:#425148;font-size:9px;font-weight:800}</style>\n`;
   if (!portal.includes("</head>")) throw new Error("MR 773a v3: head kapanisi bulunamadi.");
   portal = portal.replace("</head>", `${style}</head>`);
 }
 
-portal = portal.replace(/\/mr-viewer\.js\?v=[^\"'`<\s]+/g, "/mr-viewer.js?v=mr-773a-followup-3");
+portal = portal.replace(/\/mr-viewer\.js\?v=[^\"'`<\s]+/g, "/mr-viewer.js?v=mr-layout-v47");
 fs.writeFileSync(portalPath, portal);
 console.log("MR 773a v3: ayak otomatik/manual hesap kurali ve rapor kat konumlari uygulandi.");
