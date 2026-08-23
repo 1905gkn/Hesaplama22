@@ -66,15 +66,17 @@ if (mode === "source") {
 @media(max-width:560px){.rafex-mr-extension-summary{grid-template-columns:1fr}.rafex-mr-extension-card{padding:15px}}
 </style>
 <script ${marker}>(function(){
-  if(window.__rafexMrFreeExtensionV35)return;window.__rafexMrFreeExtensionV35=true;
+  if(window.__rafexMrFreeExtensionV35)return;window.__rafexMrFreeExtensionV35=true;window.__rafexMrPointerDoubleTapV36=true;
   var originalStart=window.m2StartAutoFillGuide;
   var originalPreview=window.m2PreviewAutoFillLength;
   var originalApply=window.m2ApplyAutoFillLength;
   var originalCancel=window.m2CancelAutoFill;
   var originalCommit=window.m2CommitAutoFillGuide;
   var pendingCustom=null;
+  var lastMrPointerTap={id:null,at:0};
+  var suppressMrDblClickUntil=0;
 
-  function isMr(rack){return !!rack?.b2b?.mr;}
+  function isMr(rack){return !!(rack?.b2b?.mr||rack?.rafexSystem==='mr'||rack?.systemType==='mr'||rack?.b2bLayout?.palletType==='mr'||rack?.plan?.mr);}
   function rackById(id){try{return m2LayoutState.racks.find(function(r){return Number(r.id)===Number(id);})||null;}catch{return null;}}
   function footOf(rack){return Math.max(1,Math.round(Number(rack?.b2b?.uprightWidth)||60));}
   function sectionOf(rack){return Math.max(500,Math.round(Number(rack?.b2b?.width)||Number(rack?.palW)||500));}
@@ -85,6 +87,7 @@ if (mode === "source") {
     if(input){input.placeholder=active?'Örn. 7000':'Önce MR rafı çift tıkla';if(!active)input.value='';}
   }
   function startMr(rack){
+    if(m2AutoFillDraft?.rafexSystem==='mr'&&Number(m2AutoFillDraft.rackId)===Number(rack.id)){controls(true);return;}
     var origin={x:rack.x+rack.w/2,y:rack.y+rack.h/2};m2AutoFillDraft={rackId:rack.id,origin:origin,start:origin,hover:origin,direction:1,rafexSystem:'mr'};m2LayoutState.selected=rack.id;controls(true);
     var input=document.getElementById('m2AutoFillLength');if(input){input.value='';input.focus({preventScroll:true});}
     setStatus('MR uzatma yönü açıldı. Fareyle duvara kadar göster veya uzatma mesafesini mm olarak yaz.');m2RenderLayout();
@@ -161,19 +164,26 @@ if (mode === "source") {
   var wrappedCommit=function(point,manualDistance){if(m2AutoFillDraft?.rafexSystem==='mr')return commitMr(point,manualDistance);return originalCommit?.apply(this,arguments);};
   try{m2StartAutoFillGuide=wrappedStart;m2PreviewAutoFillLength=wrappedPreview;m2ApplyAutoFillLength=wrappedApply;m2CancelAutoFill=wrappedCancel;m2CommitAutoFillGuide=wrappedCommit;}catch(e){}
   window.m2StartAutoFillGuide=wrappedStart;window.m2PreviewAutoFillLength=wrappedPreview;window.m2ApplyAutoFillLength=wrappedApply;window.m2CancelAutoFill=wrappedCancel;window.m2CommitAutoFillGuide=wrappedCommit;
-  document.addEventListener('dblclick',function(event){var node=event.target?.closest?.('#m2LayoutSvg [data-rack]'),rack=node&&rackById(node.dataset.rack);if(!isMr(rack))return;event.preventDefault();event.stopImmediatePropagation();wrappedStart(rack.id);},true);
+  document.addEventListener('pointerdown',function(event){
+    if(event.button!=null&&event.button!==0||event.isPrimary===false)return;
+    var node=event.target?.closest?.('#m2LayoutSvg [data-rack]'),rack=node&&rackById(node.dataset.rack);if(!isMr(rack)){lastMrPointerTap={id:null,at:0};return;}
+    var now=Date.now(),same=Number(lastMrPointerTap.id)===Number(rack.id)&&now-lastMrPointerTap.at<520;
+    if(!same){lastMrPointerTap={id:rack.id,at:now};return;}
+    lastMrPointerTap={id:null,at:0};suppressMrDblClickUntil=now+700;event.preventDefault();event.stopImmediatePropagation();try{m2LayoutState.drag=null;}catch(e){}wrappedStart(rack.id);
+  },true);
+  document.addEventListener('dblclick',function(event){var node=event.target?.closest?.('#m2LayoutSvg [data-rack]'),rack=node&&rackById(node.dataset.rack);if(!isMr(rack))return;event.preventDefault();event.stopImmediatePropagation();if(Date.now()<suppressMrDblClickUntil)return;wrappedStart(rack.id);},true);
 })();</script>`;
 
   const bodyEnd = html.lastIndexOf("</body>");
   if (bodyEnd < 0) throw new Error("MR v35: body kapanisi bulunamadi.");
   html = html.slice(0, bodyEnd) + runtime + "\n" + html.slice(bodyEnd);
-  for (const required of [marker, "rafexMrExtensionPlan", "Kalan MR Bölümü", "Özel Rafı Oluştur", "netRemaining>500", "step=\"50\""]) {
+  for (const required of [marker, "__rafexMrPointerDoubleTapV36", "addEventListener('pointerdown'", "rafexMrExtensionPlan", "Kalan MR Bölümü", "Özel Rafı Oluştur", "netRemaining>500", "step=\"50\""]) {
     if (!html.includes(required)) throw new Error(`MR v35 runtime dogrulama hatasi: ${required}`);
   }
   const encoded = Buffer.from(html, "utf8").toString("base64");
   worker = worker.slice(0, match.index) + match[1] + match[2] + encoded + match[2] + worker.slice(match.index + match[0].length);
   fs.writeFileSync(workerPath, worker);
-  console.log("MR v35 runtime: cift tik uzatma, standart moduller ve 50 mm adimli ozel son MR tipi eklendi.");
+  console.log("MR v36 runtime: B2B ile ayni pointer cift tik tetigi, standart moduller ve 50 mm adimli ozel son MR tipi eklendi.");
 } else {
   throw new Error("Kullanim: node scripts/patch-mr-free-extension-v35.mjs source|runtime");
 }
