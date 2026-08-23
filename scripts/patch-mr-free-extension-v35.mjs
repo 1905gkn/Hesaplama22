@@ -246,7 +246,8 @@ if (mode === "source") {
   const oldMrBlockTitle = '<b>${esc(entry.name)}</b><small>${fmt(settings.modules||drawing.bays)} modül · ${fmt(settings.levels||drawing.levels)} kat</small>';
   const newMrBlockTitle = '<b>${esc(entry.name)} · ${fmt(Math.max(1,Math.min(2,Number(settings.rowCount)||Number(drawing.b2bLayout?.rowCount)||1)))} sıra</b><small>${fmt(settings.modules||drawing.bays)} modül · ${fmt(settings.levels||drawing.levels)} kat</small>';
   if (portal.includes(oldMrBlockTitle)) portal = portal.replace(oldMrBlockTitle, newMrBlockTitle);
-  else if (!portal.includes('${esc(entry.name)} · ${fmt(Math.max(1,Math.min(2,Number(settings.rowCount)')) throw new Error("MR v45: blok sira etiketi bulunamadi.");
+  // Eski MR ekranlarinda bu ikinci mini blok paneli yoktur; kayitli sistem
+  // listesindeki sira etiketi yukarida her surumde zorunlu olarak uygulanir.
 
   const oldMrConfigurationV45 = `mrConfigurationV2=function(){
         const levels=Math.max(1,Math.min(15,Math.round(Number($("mrLevels")?.value)||4)));
