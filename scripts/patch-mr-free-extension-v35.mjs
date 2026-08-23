@@ -979,6 +979,46 @@ ${fitFunctionV49}`;
     fs.writeFileSync(sectionPositionerPath, positioner);
   }
 
+  // MR kesit metin olcegi, onceki goruntu halen uretiliyorsa son tiklamayi
+  // kaybetmez. Sigdir da MR icin her zaman taze 41/24 perspektifi uretir.
+  if (!positioner.includes("__rafexMrSectionLiveControlsV51")) {
+    const pendingAnchorV51 = `    if (previewPending.has(key)) return previewPending.get(key);`;
+    const pendingReplacementV51 = `    if (previewPending.has(key)) {
+      const pending = previewPending.get(key);
+      if (!force) return pending;
+      try { await pending; } catch {}
+    } // __rafexMrSectionLiveControlsV51`;
+    if (!positioner.includes(pendingAnchorV51)) throw new Error("MR v51: kesit render kuyrugu baglanti noktasi bulunamadi.");
+    positioner = positioner.replace(pendingAnchorV51, pendingReplacementV51);
+
+    const fitAnchorV51 = `    value.x = 0; value.y = 0; value.scale = 1; value.azimuth = 41; value.elevation = 24;
+    updateArtwork();`;
+    const fitReplacementV51 = `    value.x = 0; value.y = 0; value.scale = 1; value.azimuth = 41; value.elevation = 24;
+    const activeType = rackTypeCache.find((item) => item.key === safeKey(activeKey));
+    if (activeType?.system === "mr") previewCache.delete(activeKey);
+    updateArtwork();`;
+    if (!positioner.includes(fitAnchorV51)) throw new Error("MR v51: Sigdir 41/24 baglanti noktasi bulunamadi.");
+    positioner = positioner.replace(fitAnchorV51, fitReplacementV51);
+    fs.writeFileSync(sectionPositionerPath, positioner);
+  }
+
+  // MR duvar ve raf arasi mesafeleri masaustunde tek satirdadir. Alanlar
+  // Raf derinligi girdisi gibi okunakli kalir; dar ekranda kuculmek yerine
+  // yatay kaydirma kullanilir. Diger sistemlerin editor stilleri degismez.
+  if (!portal.includes("__rafexMrMeasureSingleRowV51")) {
+    const headEndV51 = portal.indexOf("</head>");
+    if (headEndV51 < 0) throw new Error("MR v51: tek satir olcu stili icin head bulunamadi.");
+    const measureStylesV51 = `<style data-rafex-mr-measure-single-row="v51">
+      /* __rafexMrMeasureSingleRowV51 */
+      #page.mr-mode .m2-wall-editor{display:flex!important;flex-wrap:nowrap!important;align-items:stretch!important;gap:8px!important;overflow-x:auto!important;padding-bottom:3px}
+      #page.mr-mode .m2-wall-editor>.rafex-mr-gap-row{display:contents!important}
+      #page.mr-mode .m2-wall-editor .m2-edge-field{flex:1 0 220px!important;min-width:220px!important;grid-template-columns:18px minmax(82px,max-content) minmax(110px,1fr)!important;align-items:center!important;min-height:58px!important;padding:7px 9px!important;gap:7px!important;font-size:9px!important;white-space:nowrap}
+      #page.mr-mode .m2-wall-editor .m2-edge-field>span{min-width:82px;white-space:nowrap}
+      #page.mr-mode .m2-wall-editor .m2-edge-field input[type="number"]{width:100%!important;min-width:110px!important;min-height:44px!important;height:44px!important;padding:10px 11px!important;font-size:10px!important}
+    </style>`;
+    portal = portal.slice(0, headEndV51) + measureStylesV51 + "\n" + portal.slice(headEndV51);
+  }
+
   // MR olcu panelinde ilk iki raf araligi en basta ve tek satirda görünür.
   // B2B panelinin mevcut sirasi ve davranisi aynen korunur.
   if (!portal.includes("__rafexMrTwoNearestGapsV49")) {
@@ -1305,9 +1345,12 @@ ${fitFunctionV49}`;
   };
   try{m2RenderSelectedRackInfo=selectedRackInfoV46;}catch(e){}window.m2RenderSelectedRackInfo=selectedRackInfoV46;
   function installSavedActionsV46(){
-    if(typeof m2ActiveModule==='undefined'||m2ActiveModule!=='mr')return;var list=document.getElementById('m2SavedTypeList');if(!list)return;list.querySelectorAll('.m2-saved-type-row').forEach(function(row,index){if(row.dataset.rafexActionsV48==='1')return;var entry=Array.isArray(m2SavedRackTypes)?m2SavedRackTypes[index]:null;if(!entry||!isMr(entry.drawing))return;var main=row.querySelector('.m2-saved-type'),copy=row.querySelector('.m2-saved-type-copy'),preview=row.querySelector('.m2-saved-type-preview');if(main){var title=main.querySelector('b');if(title)title.innerHTML=title.innerHTML.replace(/\s*·\s*MR\s*·\s*[12]\s*SIRA(?:\s*BİRLEŞİK)?/iu,' · MR');}if(!preview){preview=document.createElement('button');preview.type='button';preview.className='m2-saved-type-preview';preview.textContent='İNCELE';(copy||row.querySelector('.m2-type-delete'))?.before(preview);}if(preview){preview.textContent='İNCELE';preview.onclick=function(event){event.preventDefault();event.stopPropagation();window.rafexInspectMrSavedV45(index);};}if(copy){copy.textContent='KOPYALA';copy.onclick=function(event){event.preventDefault();event.stopPropagation();window.rafexCopyMrSavedV45(index);};}row.dataset.rafexActionsV48='1';});
+    if(typeof m2ActiveModule==='undefined'||m2ActiveModule!=='mr')return;var list=document.getElementById('m2SavedTypeList');if(!list)return;list.querySelectorAll('.m2-saved-type-row').forEach(function(row,index){var entry=Array.isArray(m2SavedRackTypes)?m2SavedRackTypes[index]:null;if(!entry||!isMr(entry.drawing))return;var main=row.querySelector('.m2-saved-type'),copy=row.querySelector('.m2-saved-type-copy'),preview=row.querySelector('.m2-saved-type-preview');if(main){var title=main.querySelector('b');if(title)title.innerHTML=title.innerHTML.replace(/\s*·\s*MR\s*·\s*[12]\s*SIRA(?:\s*BİRLEŞİK)?/iu,' · MR');}if(!preview){preview=document.createElement('button');preview.type='button';preview.className='m2-saved-type-preview';preview.textContent='İNCELE';(copy||row.querySelector('.m2-type-delete'))?.before(preview);}if(preview){preview.textContent='İNCELE';preview.onclick=function(event){event.preventDefault();event.stopPropagation();window.rafexInspectMrSavedV45(index);};}if(copy){copy.textContent='KOPYALA';copy.onclick=function(event){event.preventDefault();event.stopPropagation();window.rafexCopyMrSavedV45(index);};}row.dataset.rafexActionsV51='1';});
   }
   var savedActionScanV46=false;new MutationObserver(function(){if(savedActionScanV46)return;savedActionScanV46=true;requestAnimationFrame(function(){savedActionScanV46=false;ensureMrRowControlsV49();installSavedActionsV46();selectedRackInfoV46();});}).observe(document.body,{childList:true,subtree:true});ensureMrRowControlsV49();installSavedActionsV46();try{if(typeof m2RenderLayout==='function')m2RenderLayout();}catch(e){}
+  document.addEventListener('click',function(event){
+    if(typeof m2ActiveModule==='undefined'||m2ActiveModule!=='mr')return;var button=event.target?.closest?.('#m2SavedTypeList .m2-saved-type-preview,#m2SavedTypeList .m2-saved-type-copy');if(!button)return;var row=button.closest('.m2-saved-type-row'),rows=Array.from(document.querySelectorAll('#m2SavedTypeList .m2-saved-type-row')),index=rows.indexOf(row);if(index<0)return;event.preventDefault();event.stopImmediatePropagation();if(button.classList.contains('m2-saved-type-preview'))window.rafexInspectMrSavedV45(index);else window.rafexCopyMrSavedV45(index);
+  },true); // __rafexMrSavedActionsV51
   installExtensionDisclosure();var disclosureScanPending=false;new MutationObserver(function(){if(disclosureScanPending)return;disclosureScanPending=true;requestAnimationFrame(function(){disclosureScanPending=false;installExtensionDisclosure();});}).observe(document.body,{childList:true,subtree:true});
   document.addEventListener('pointerdown',function(event){
     if(event.button!=null&&event.button!==0||event.isPrimary===false)return;
