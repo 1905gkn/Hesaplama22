@@ -29,6 +29,9 @@ node scripts/patch-b2b-tunnel-accessory-source-v5.mjs
 node scripts/patch-user-request-20260821-v8-source.mjs
 
 node scripts/patch-between-measure-source.mjs
+# Entering a wall/rack/column distance moves the rack but must not force the
+# corresponding guide checkbox back on. Visibility remains an explicit choice.
+node scripts/patch-manual-distance-no-pin-v34.mjs
 node scripts/patch-free-layout-drag-start-performance.mjs
 node scripts/patch-free-layout-staged-report-performance.mjs
 node scripts/patch-free-layout-staged-fast-v2.mjs
@@ -86,6 +89,7 @@ grep -q 'm2ActiveModule="mr"' portal.html
 grep -q 'm2ActiveModule === "mr" ? "/api/b2b-types"' portal.html
 grep -q 'const B2B_PHYSICAL_FOOT_WIDTH = 60;' portal.html
 grep -q 'footWidth: B2B_PHYSICAL_FOOT_WIDTH' portal.html
+grep -q 'Manual distance changes must not pin guide visibility' portal.html
 grep -q 'const m2PerfGeometryTable = new Map();' portal.html
 grep -q 'm2PerfCollisionCandidates(a).some' portal.html
 grep -q 'const m2PerfRackDomTable = new Map();' portal.html
