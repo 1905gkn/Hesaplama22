@@ -204,8 +204,13 @@ node scripts/patch-cad-import-v56.mjs
 # reopen a list immediately after the user closed it.
 node scripts/patch-final-product-disclosure-toggle-v24.mjs
 
+# Keep system product groups separate while rendering each group's products as
+# one horizontal strip; place the native B2B/Mekik save action below the visual.
+node scripts/patch-horizontal-products-savebar-v25.mjs
+
 grep -q 'data-rafex-cad-import="v56"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-cad-import=\\\"v56\\\"'))process.exit(1)"
 grep -q 'data-rafex-product-toggle="v24"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-product-toggle=\\\"v24\\\"'))process.exit(1)"
+grep -q 'data-rafex-horizontal-products-savebar="v25"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-horizontal-products-savebar=\\\"v25\\\"'))process.exit(1)"
 
 # Fail the deployment if any generated inline browser runtime has invalid syntax.
 node scripts/verify-inline-runtime-syntax-v21.mjs
