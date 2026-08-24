@@ -75,6 +75,7 @@ for (const required of [marker, "AutoCAD’den Aktar", "rafex_alan:'area'", "tou
 }
 
 const encoded = Buffer.from(html, "utf8").toString("base64");
-worker = worker.slice(0, match.index) + match[1] + match[2] + encoded + match[2] + worker.slice(match.index + match[0].length);
+const payloadOffset = match.index + match[0].indexOf(match[2]);
+worker = worker.slice(0, payloadOffset) + encoded + worker.slice(payloadOffset + match[2].length);
 fs.writeFileSync(workerPath, worker);
 console.log("CAD v56: AutoCAD RAFEX alan aktarimi Serbest Cizim'e eklendi.");
