@@ -22,18 +22,13 @@ const workerPath = path.join(process.cwd(), "dist/server/index.js");
   console.log("Mekik Ayak takımı tekrar döngüsü koruması aktif.");
 }
 
-// Saved-type bilgi penceresinin en son yetkisi burada uygulanır. Böylece önceki
-// Serbest Çizim wrapper'ları B2B/MR görsellerini Mekik görünüşüyle ezemez.
 await import(`./patch-free-info-system-modules-v27.mjs?build=${Date.now()}`);
-
-// Drive In, Mekik'in çalışma akışını ayrı modül durumu olarak kullanır. Kullanıcının
-// yüklediği üç Drive-In GLB kaynağı yalnız ön görünüş viewer'ına bağlanır.
 await import(`./build-drive-in-assets-v1.mjs?build=${Date.now()}`);
 await import(`./patch-drive-in-mekik-v1.mjs?build=${Date.now()}`);
 
-// Konsol Kollu: ayrı 3D viewer, 2/3 ayaklı çapraz set dağılımı ve 0-359 derece
-// kesit yönü. Bu son aşamada eklenir ki diğer sistem yamaları Konsol ekranını ezmesin.
+// Konsol Kollu ana 3D ekranı ve kullanıcının son istediği serbest yerleşim/PDF katmanı.
 await import(`./patch-konsol-cantilever-v2.mjs?build=${Date.now()}`);
+await import(`./patch-konsol-request-v3.mjs?build=${Date.now()}`);
 
 const workerModule = await import(`${workerPath}?syntax-check=${Date.now()}`);
 const response = await workerModule.default.fetch(
@@ -64,4 +59,5 @@ if (!html.includes('data-rafex-drive-in-mekik="v1"')) throw new Error("Drive In 
 if (!html.includes('/drive-in-viewer.js?v=drive-in-front-v2')) throw new Error("Drive In viewer yükleyicisi canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-v2="1"')) throw new Error("Konsol Kollu ekranı canlı HTML içinde bulunamadı");
 if (!html.includes('/konsol-viewer.js?v=konsol-v2')) throw new Error("Konsol Kollu viewer yükleyicisi canlı HTML içinde bulunamadı");
+if (!html.includes('data-rafex-konsol-request="v3"')) throw new Error("Konsol son kullanıcı istekleri canlı HTML içinde bulunamadı");
 console.log(`Final response runtime syntax verified: ${scripts.length} script blocks.`);
