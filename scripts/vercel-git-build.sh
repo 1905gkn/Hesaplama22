@@ -23,68 +23,29 @@ node scripts/patch-customize-accessories-source.mjs
 node scripts/patch-tunnel-tray-level-fix.mjs
 node scripts/patch-tunnel-level-click-cleanup.mjs
 node scripts/patch-b2b-tunnel-accessory-source-v5.mjs
-
-# Root correction for the 2026-08-21 accessory issues: native B2B ground pallet-stop
-# state survives rerenders and tunnel filtering uses the entered tunnel height.
 node scripts/patch-user-request-20260821-v8-source.mjs
-
 node scripts/patch-between-measure-source.mjs
-# Entering a wall/rack/column distance moves the rack but must not force the
-# corresponding guide checkbox back on. Visibility remains an explicit choice.
 node scripts/patch-manual-distance-no-pin-v34.mjs
 node scripts/patch-free-layout-drag-start-performance.mjs
 node scripts/patch-free-layout-staged-report-performance.mjs
 node scripts/patch-free-layout-staged-fast-v2.mjs
-
-# Free-layout geometry table: cache unchanged rack/symbol bounds and, only during an
-# active drag, use an exact broad-phase spatial grid before the existing collision
-# formula. Live distance/collision rules and final AABB tests stay unchanged.
 node scripts/patch-free-layout-geometry-cache-v27.mjs
-
-# One-rack drag is the dominant remaining cost even with one rack on the floor.
-# Keep collision/distance calculations live, but keep DOM/SVG nodes in lookup tables
-# and move only the active rack plus its live guide layer instead of rebuilding all SVG.
 node scripts/patch-free-layout-dom-table-v28.mjs
-
-# Central runtime tables: walls, columns, blocking accessories, distance dependencies,
-# DOM registry, dirty queue and frame cache. These remove repeated topology scans while
-# preserving the exact live distance/collision formulas.
 node scripts/patch-free-layout-runtime-tables-v29.mjs
-
-# Preserve live wall/rack/column collision behavior, coalesce raw pointer events
-# into one calculation per animation frame and keep guide SVG on the same frame.
 node scripts/patch-free-layout-live-frame-v31.mjs
-
 node scripts/patch-mobile-responsive.mjs
-# Mobile phones should open the exact desktop/web layout instead of the stacked mobile UI.
-# Use a 1366px layout viewport scaled to fit, with pinch zoom preserved.
 node scripts/patch-mobile-desktop-view-v30.mjs
 node scripts/patch-foot-priority-fixed-sidebar.mjs
 node scripts/patch-ui-runtime-stability.mjs
 node scripts/patch-login-home-sidebar.mjs
-
-# Saved rack type selection must not trigger a full free-layout SVG rerender.
 node scripts/patch-saved-rack-type-click-performance-v20.mjs
-
-# Mekik code must stay in the main application script, before later repair runtimes.
 node scripts/patch-runtime-insertion-order-v22.mjs
-
-# MR baseline is 773a73f. Apply the approved follow-up, then the current MR fixes.
 node scripts/patch-mr-773a-followup-v1.mjs
 node scripts/patch-mr-tray-clearance-v19.mjs
 node scripts/patch-mr-saved-types-v18.mjs
 node scripts/patch-mr-save-api-v20.mjs
-
-# B2B front-direction physical width is independent from HR90/100/120/127/140
-# profile family: every upright occupies 60 mm. Joined modules share one upright.
 node scripts/patch-b2b-physical-width-v23.mjs
-
-# MR uses its entered clear bay width (for example 2500 mm), not the B2B pallet
-# section normalizer. This also unit-tests the standard/remainder extension plan.
 node scripts/patch-mr-free-extension-v35.mjs source
-
-# Destroy every active 3D render loop cleanly before Serbest interaction: cancel RAF,
-# disconnect observers/listeners and release viewer-owned GPU resources.
 node scripts/patch-viewer-lifecycle-performance-v30.mjs
 
 grep -q 'const trayDepth = Math.max(1, depth - 25);' client/mr-viewer.entry.js
@@ -108,11 +69,7 @@ grep -q '__rafexLifecycleV30' client/b2b-viewer.entry.js
 grep -q '__rafexLifecycleV30' client/mr-viewer.entry.js
 
 bash scripts/build.sh
-
-# Build Drive In front assets/viewer after the main worker exists.
-# The source GLBs are reconstructed from the existing drive-in asset chunks.
 node scripts/build-drive-in-assets-v1.mjs
-
 node scripts/inject-b2b-section-positioner.mjs
 node scripts/inject-user-20260819.mjs
 node scripts/patch-customize-recovery.mjs
@@ -137,92 +94,38 @@ node scripts/patch-free-copy-info-edge-v3.mjs
 node scripts/patch-final-products-mekik-layout-v4.mjs
 node scripts/patch-user-request-20260821-v5.mjs
 node scripts/patch-user-request-20260821-v6.mjs
-
-# Final authority for mixed corporate output: keep Mekik front/side drawings inside
-# the exact report card slot and prevent same-named B2B/Mekik types from merging.
 node scripts/patch-mekik-report-slot-v7.mjs
-
-# Final authority for accessory/product UX and Serbest state preservation. These run
-# after every legacy wrapper so stale behavior cannot win.
 node scripts/patch-user-request-20260821-v8-final.mjs
 node scripts/patch-user-request-20260821-v8-click-final.mjs
 node scripts/patch-serbest-block-freeze-v9.mjs
-
-# Base two-column PDF geometry.
 node scripts/patch-pdf-two-column-slots-v10.mjs
-
-# Absolute final authority: Uzatma Mesafesi remains visible at a fixed position,
-# active for B2B and disabled for Mekik. PDF keeps at most two half-page cards;
-# Mekik uses equal front/side views stacked vertically inside its half.
 node scripts/patch-final-pdf-halves-extension-v11.mjs
-
-# Some report paths omit the Mekik card entirely. This pass creates any missing used
-# Mekik type card before the native-detail restoration below.
 node scripts/patch-force-mekik-pdf-card-v12.mjs
-
-# Absolute final Mekik visual authority: use the detailed native Mekik front/side
-# projection, scale it down to fit the half-page slot, and restore the green detail labels.
 node scripts/patch-mekik-native-front-details-v13.mjs
-
-# Restore missing Serbest Cizim B2B cards and establish the generic two-half container.
 node scripts/patch-final-pdf-two-halves-v14.mjs
-
-# Previous Excel-layout pass; final v16 below removes fixed left/right assumptions.
 node scripts/patch-pdf-excel-sketch-layout-v15.mjs
-
-# Type-driven layout: side does not matter.
 node scripts/patch-pdf-type-layout-v16.mjs
-
-# Repair empty B2B shells by locating the richer rendered card.
 node scripts/patch-pdf-b2b-rich-card-v17.mjs
-
-# Legacy card-reparenting pass retained for compatibility with old reports.
 node scripts/patch-pdf-excel-layout-v18.mjs
-
-# Absolute final PDF authority: do not infer cards from already-mutated DOM. Rebuild
-# technical type pages directly from the racks actually used in Serbest Cizim.
-# Every page has exactly two 50% slots; order decides left/right, not system type.
-# Mekik = front over side. B2B = one full-height front/technical view.
 node scripts/patch-pdf-direct-type-pages-v19.mjs
-
-# User-facing final authority: restore the exact B2B Kesit Yer Belirleme capture
-# after v19 rebuilds pages; keep Mekik front/side separate; make product arrows
-# reliable and keep Uzatma Mesafesi fixed above the disclosures.
 node scripts/patch-final-user-repairs-v20.mjs
-
-# Serbest Cizim stays lightweight while racks are placed. Heavy A4/corporate
-# report work and offscreen B2B section captures run only from the explicit
-# "Ciktiyi Olustur" control next to "Kesit Yer Belirleme".
 node scripts/patch-manual-free-output-v32.mjs
-
-# Final runtime authority for MR: double-click extension repeats the entered bay
-# width, then offers a persistent custom last type in 50 mm steps when the net
-# remaining wall distance is greater than 500 mm.
 node scripts/patch-mr-free-extension-v35.mjs runtime
-
-# Import only RAFEX-tagged AutoCAD/GstarCAD geometry into Serbest Cizim.
-# This final pass preserves every system-specific runtime added above.
 node scripts/patch-cad-import-v56.mjs
-
-# Product disclosure clicks must win over the layout rerender that used to
-# reopen a list immediately after the user closed it.
 node scripts/patch-final-product-disclosure-toggle-v24.mjs
-
-# Keep system product groups separate while rendering each group's products as
-# one horizontal strip; place the native B2B/Mekik save action below the visual.
 node scripts/patch-horizontal-products-savebar-v25.mjs
-
-# Absolute final Drive In authority: same calculation/workflow as Mekik,
-# Drive In labels, first-level input directly below pallet height, same side view,
-# and only the front view is replaced by the Drive In GLB assembly.
 node scripts/patch-drive-in-mekik-v1.mjs
+
+# Konsol Kollu: ayak profili ayagin devami, secilebilir 1000-2000 mm ayak arasi,
+# B2B benzeri serbest yerlesim ve yatay A4 cikti.
+node scripts/patch-cantilever-v1.mjs
 
 grep -q 'data-rafex-cad-import="v56"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-cad-import=\\\"v56\\\"'))process.exit(1)"
 grep -q 'data-rafex-product-toggle="v24"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-product-toggle=\\\"v24\\\"'))process.exit(1)"
 grep -q 'data-rafex-horizontal-products-savebar="v25"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-horizontal-products-savebar=\\\"v25\\\"'))process.exit(1)"
 grep -q 'data-rafex-drive-in-mekik="v1"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-drive-in-mekik=\\\"v1\\\"'))process.exit(1)"
+grep -q 'data-rafex-cantilever="v1"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-cantilever=\\\"v1\\\"'))process.exit(1)"
 
-# Fail the deployment if any generated inline browser runtime has invalid syntax.
 node scripts/verify-inline-runtime-syntax-v21.mjs
 
 grep -q "mode==='front'&&typeof m2SharedScaleReportSvg" scripts/patch-pdf-direct-type-pages-v19.mjs
@@ -233,4 +136,4 @@ grep -q 'data-rafex-final-user-repairs="v20"' scripts/patch-final-user-repairs-v
 grep -q 'data-rafex-manual-free-output="v32"' scripts/patch-manual-free-output-v32.mjs
 grep -q 'sectionWidth=config.modules\*config.width' portal.html
 grep -q 'data-rafex-mr-free-extension="v35"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\"\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-mr-free-extension=\"v35\"'))process.exit(1)"
-echo "Production chain verified: live Serbest Cizim collision preserved + pointer events coalesced to one live calculation per frame + guide SVG synchronized on the same frame + geometry/cache/DOM/runtime tables v27-v29 + mobile desktop viewport v30 + 3D lifecycle cleanup v30 + technical Mekik front section + direct used-rack PDF type pages + two 50% slots + B2B front-only + saved-rack click performance fix + MR saved-types v18 + MR tray clearance v19 + MR save API v20 + B2B physical upright width 60 mm + MR double-click extension with 50 mm custom remainder type v35 + Drive In cloned from Mekik with GLB front assembly."
+echo "Production chain verified: mevcut sistemler + Drive In + Konsol Kollu v1 aktif."
