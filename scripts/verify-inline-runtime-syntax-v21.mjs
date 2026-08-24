@@ -22,6 +22,10 @@ const workerPath = path.join(process.cwd(), "dist/server/index.js");
   console.log("Mekik Ayak takımı tekrar döngüsü koruması aktif.");
 }
 
+// Saved-type bilgi penceresinin en son yetkisi burada uygulanır. Böylece önceki
+// Serbest Çizim wrapper'ları B2B/MR görsellerini Mekik görünüşüyle ezemez.
+await import(`./patch-free-info-system-modules-v27.mjs?build=${Date.now()}`);
+
 const workerModule = await import(`${workerPath}?syntax-check=${Date.now()}`);
 const response = await workerModule.default.fetch(
   new Request("https://runtime-verifier.invalid/"),
@@ -46,4 +50,5 @@ if (errors.length) {
   throw new Error(`Canli sayfaya gecersiz JavaScript yazilamaz:\n${errors.join("\n")}`);
 }
 
+if (!html.includes('data-rafex-free-info-modules="v27"')) throw new Error("Serbest bilgi modül v27 canlı HTML içinde bulunamadı");
 console.log(`Final response runtime syntax verified: ${scripts.length} script blocks.`);
