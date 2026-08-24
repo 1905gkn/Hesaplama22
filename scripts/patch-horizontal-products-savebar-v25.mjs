@@ -19,14 +19,18 @@ const runtime = String.raw`
 }
 #page.rafex-free-drawing-page .rafex-system-product-row{
   flex:0 0 164px!important;width:164px!important;min-width:164px!important;max-width:164px!important;
-  height:46px!important;min-height:46px!important;max-height:46px!important;margin:0!important;padding:7px 9px!important;
-  display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;gap:6px!important;
+  height:46px!important;min-height:46px!important;max-height:46px!important;margin:0!important;padding:0!important;
+  display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:stretch!important;gap:0!important;
   border:1px solid #dfe7e1!important;border-radius:9px!important;background:#fff!important;box-sizing:border-box
 }
-#page.rafex-free-drawing-page .rafex-system-product-row>span{min-width:0;display:flex;flex-direction:column;gap:2px;overflow:hidden}
+#page.rafex-free-drawing-page .rafex-system-product-row>span{min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:6px 8px;overflow:hidden}
 #page.rafex-free-drawing-page .rafex-system-product-row>span>b{font-size:9px;line-height:1.15;white-space:normal}
 #page.rafex-free-drawing-page .rafex-system-product-row>span>small{font-size:8px;line-height:1.1;white-space:normal}
-#page.rafex-free-drawing-page .rafex-system-product-row>strong{font-size:11px!important;white-space:nowrap;text-align:right}
+#page.rafex-free-drawing-page .rafex-system-product-row>strong{
+  display:flex!important;align-items:center!important;justify-content:center!important;align-self:stretch!important;
+  min-width:46px;padding:0 7px;border-left:1px solid #dfe7e1;box-sizing:border-box;
+  font-size:11px!important;white-space:nowrap;text-align:center
+}
 #page.rafex-free-drawing-page .rafex-system-product-empty{flex:1 0 100%;box-sizing:border-box}
 
 #page .rafex-b2b-mekik-savebar{width:100%;margin:12px 0 0;box-sizing:border-box}
