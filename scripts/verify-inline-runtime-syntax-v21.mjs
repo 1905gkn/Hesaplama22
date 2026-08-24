@@ -30,6 +30,8 @@ await import(`./patch-drive-in-mekik-v1.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-viewer-foot-v4.mjs?build=${Date.now()}`);
 // Son kullanıcı alanları viewer bundle oluşturulmadan önce kaynakta uygulanır.
 await import(`./patch-konsol-viewer-fields-v5.mjs?build=${Date.now()}`);
+// Kullanıcının gönderdiği gerçek GLB parçaları, PBR ışık ve metal detaylarıyla kullanılır.
+await import(`./patch-konsol-glb-professional-v7.mjs?build=${Date.now()}`);
 // Konsol Kollu ana 3D ekranı ve kullanıcının serbest yerleşim/PDF katmanı.
 await import(`./patch-konsol-cantilever-v2.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-request-v3.mjs?build=${Date.now()}`);
@@ -73,5 +75,10 @@ if (!html.includes('data-rafex-konsol-fields="v6"')) throw new Error("Konsol eks
 if (html.includes('<script>setTimeout(function(){window.print()},400)')) throw new Error("Konsol v3 eski nested print script canlı HTML içinde kaldı");
 for (const required of ["Kattaki ağırlık", "Kat derinliği (mm)", "Taban Kat derinliği (mm)", "RAL-5010", "RAL-1007", "RAL-2004", "konsolHeightMode"]) {
   if (!html.includes(required)) throw new Error(`Konsol v6 alanı canlı HTML içinde bulunamadı: ${required}`);
+}
+const konsolViewerPath = path.join(process.cwd(), "dist/konsol-viewer.js");
+const konsolViewer = fs.readFileSync(konsolViewerPath, "utf8");
+for (const required of ["konsol-glb-professional-v7", "b2b-ayak", "b2b-travers", "b2b-sac-arabag"]) {
+  if (!konsolViewer.includes(required)) throw new Error(`Konsol GLB v7 viewer bundle içinde bulunamadı: ${required}`);
 }
 console.log(`Final response runtime syntax verified: ${scripts.length} script blocks.`);
