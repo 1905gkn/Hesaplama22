@@ -109,6 +109,10 @@ grep -q '__rafexLifecycleV30' client/mr-viewer.entry.js
 
 bash scripts/build.sh
 
+# Build Drive In front assets/viewer after the main worker exists.
+# The source GLBs are reconstructed from the existing drive-in asset chunks.
+node scripts/build-drive-in-assets-v1.mjs
+
 node scripts/inject-b2b-section-positioner.mjs
 node scripts/inject-user-20260819.mjs
 node scripts/patch-customize-recovery.mjs
@@ -208,9 +212,15 @@ node scripts/patch-final-product-disclosure-toggle-v24.mjs
 # one horizontal strip; place the native B2B/Mekik save action below the visual.
 node scripts/patch-horizontal-products-savebar-v25.mjs
 
+# Absolute final Drive In authority: same calculation/workflow as Mekik,
+# Drive In labels, first-level input directly below pallet height, same side view,
+# and only the front view is replaced by the Drive In GLB assembly.
+node scripts/patch-drive-in-mekik-v1.mjs
+
 grep -q 'data-rafex-cad-import="v56"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-cad-import=\\\"v56\\\"'))process.exit(1)"
 grep -q 'data-rafex-product-toggle="v24"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-product-toggle=\\\"v24\\\"'))process.exit(1)"
 grep -q 'data-rafex-horizontal-products-savebar="v25"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-horizontal-products-savebar=\\\"v25\\\"'))process.exit(1)"
+grep -q 'data-rafex-drive-in-mekik="v1"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-drive-in-mekik=\\\"v1\\\"'))process.exit(1)"
 
 # Fail the deployment if any generated inline browser runtime has invalid syntax.
 node scripts/verify-inline-runtime-syntax-v21.mjs
@@ -223,4 +233,4 @@ grep -q 'data-rafex-final-user-repairs="v20"' scripts/patch-final-user-repairs-v
 grep -q 'data-rafex-manual-free-output="v32"' scripts/patch-manual-free-output-v32.mjs
 grep -q 'sectionWidth=config.modules\*config.width' portal.html
 grep -q 'data-rafex-mr-free-extension="v35"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\"\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-mr-free-extension=\"v35\"'))process.exit(1)"
-echo "Production chain verified: live Serbest Cizim collision preserved + pointer events coalesced to one live calculation per frame + guide SVG synchronized on the same frame + geometry/cache/DOM/runtime tables v27-v29 + mobile desktop viewport v30 + 3D lifecycle cleanup v30 + technical Mekik front section + direct used-rack PDF type pages + two 50% slots + B2B front-only + saved-rack click performance fix + MR saved-types v18 + MR tray clearance v19 + MR save API v20 + B2B physical upright width 60 mm + MR double-click extension with 50 mm custom remainder type v35."
+echo "Production chain verified: live Serbest Cizim collision preserved + pointer events coalesced to one live calculation per frame + guide SVG synchronized on the same frame + geometry/cache/DOM/runtime tables v27-v29 + mobile desktop viewport v30 + 3D lifecycle cleanup v30 + technical Mekik front section + direct used-rack PDF type pages + two 50% slots + B2B front-only + saved-rack click performance fix + MR saved-types v18 + MR tray clearance v19 + MR save API v20 + B2B physical upright width 60 mm + MR double-click extension with 50 mm custom remainder type v35 + Drive In cloned from Mekik with GLB front assembly."
