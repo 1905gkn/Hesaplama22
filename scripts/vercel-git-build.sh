@@ -200,12 +200,7 @@ node scripts/patch-mr-free-extension-v35.mjs runtime
 # This final pass preserves every system-specific runtime added above.
 node scripts/patch-cad-import-v56.mjs
 
-# Final shared layout authority: B2B, MR, Mekik and future systems use the
-# same fixed-width input column, live visual column and full-width save bar.
-node scripts/patch-unified-system-input-shell-v23.mjs
-
 grep -q 'data-rafex-cad-import="v56"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-cad-import=\\\"v56\\\"'))process.exit(1)"
-grep -q 'data-rafex-system-input-shell="v23"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-system-input-shell=\\\"v23\\\"'))process.exit(1)"
 
 # Fail the deployment if any generated inline browser runtime has invalid syntax.
 node scripts/verify-inline-runtime-syntax-v21.mjs
