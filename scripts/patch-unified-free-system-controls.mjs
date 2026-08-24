@@ -37,13 +37,6 @@ const runtime = String.raw`<style data-rafex-unified-free-system-controls="v1">
 #page.rafex-free-drawing-page .rafex-free-shortcut-chip kbd{padding:1px 5px;border:1px solid #cfdcd3;border-bottom-width:2px;border-radius:4px;background:#fff;color:#173c2d;font:900 9px Arial}
 #page.rafex-free-drawing-page .rafex-free-shortcuts [data-b2b-shortcut]{display:none}
 #page.rafex-free-drawing-page[data-rafex-free-context-system="b2b"] .rafex-free-shortcuts [data-b2b-shortcut]{display:inline-flex}
-#page.rafex-free-drawing-page[data-rafex-free-context-system="mekik2"] #m2AutoFillControls,
-#page.rafex-free-drawing-page[data-rafex-free-context-system="mekik2"] #m2CustomizeRackButton,
-#page.rafex-free-drawing-page[data-rafex-free-context-system="mekik2"] #m2JoinRackButton,
-#page.rafex-free-drawing-page[data-rafex-free-context-system="mekik2"] #m2SeparateRackButton,
-#page.rafex-free-drawing-page[data-rafex-free-context-system="mekik2"] #m2SharedFootLabelButton{display:none!important}
-#page.rafex-free-drawing-page[data-rafex-free-context-system="b2b"] #m2AutoFillControls,
-#page.rafex-free-drawing-page[data-rafex-free-context-system="mr"] #m2AutoFillControls{display:flex}
 </style>
 <script data-rafex-unified-free-system-controls="v1">(function(){
   if(window.__rafexUnifiedFreeSystemControlsV1)return;
@@ -121,29 +114,13 @@ const runtime = String.raw`<style data-rafex-unified-free-system-controls="v1">
     syncTimer=setTimeout(function(){
       if(!isFree())return;
       ensureShortcutBar();
-      var page=document.getElementById('page'),system=contextSystem(),rack=selectedRack();
+      var page=document.getElementById('page'),system=contextSystem();
       page.dataset.rafexFreeContextSystem=system==='b2b'?'b2b':system==='mr'?'mr':'mekik2';
-      var controls=document.getElementById('m2AutoFillControls');
-      if(controls){
-        var extendable=system==='b2b'||system==='mr';
-        controls.hidden=!extendable;
-        if(!extendable)controls.style.setProperty('display','none','important');else controls.style.removeProperty('display');
-        if(extendable&&!window.m2AutoFillDraft){
-          controls.classList.add('is-disabled');
-          controls.querySelectorAll('input,button').forEach(function(el){el.disabled=true;});
-          var input=document.getElementById('m2AutoFillLength');
-          if(input){input.placeholder=rack&&isEditableRack(rack)?'Rafa çift tıkla':'Önce B2B veya MR rafı çift tıkla';if(document.activeElement!==input)input.value='';}
-        }
-      }
     },0);
   }
 
   if(typeof originalStartAutoFill==='function'){
     var wrappedStart=function(rackId){
-      if(isFree()){
-        var rack=Array.isArray(m2LayoutState?.racks)?m2LayoutState.racks.find(function(item){return Number(item.id)===Number(rackId);}):null;
-        if(!isEditableRack(rack)){status('Uzatma Mesafesi yalnızca B2B ve MR raflarında kullanılabilir.');syncControls();return;}
-      }
       var result=originalStartAutoFill.apply(this,arguments);syncControls();return result;
     };
     try{m2StartAutoFillGuide=wrappedStart;}catch{}
@@ -152,10 +129,6 @@ const runtime = String.raw`<style data-rafex-unified-free-system-controls="v1">
 
   if(typeof originalOpenCustomize==='function'){
     var wrappedCustomize=function(rackId){
-      if(isFree()){
-        var rack=Array.isArray(m2LayoutState?.racks)?m2LayoutState.racks.find(function(item){return Number(item.id)===Number(rackId);}):null;
-        if(!isEditableRack(rack)){status('Özelleştir yalnızca seçilen raf sisteminin desteklediği raflarda kullanılabilir.');return;}
-      }
       return originalOpenCustomize.apply(this,arguments);
     };
     try{m2OpenCustomizeModal=wrappedCustomize;}catch{}
@@ -164,10 +137,6 @@ const runtime = String.raw`<style data-rafex-unified-free-system-controls="v1">
 
   if(typeof originalToggleJoin==='function'){
     var wrappedJoin=function(){
-      if(isFree()){
-        var rack=selectedRack();
-        if(rack&&!isEditableRack(rack)){status('Birleştir yalnızca B2B ve MR raflarında kullanılabilir.');return;}
-      }
       var result=originalToggleJoin.apply(this,arguments);syncControls();return result;
     };
     try{m2ToggleJoinMode=wrappedJoin;}catch{}
@@ -176,10 +145,6 @@ const runtime = String.raw`<style data-rafex-unified-free-system-controls="v1">
 
   if(typeof originalSeparate==='function'){
     var wrappedSeparate=function(){
-      if(isFree()){
-        var rack=selectedRack();
-        if(rack&&!isEditableRack(rack)){status('Ayır yalnızca B2B ve MR birleşik raflarında kullanılabilir.');return;}
-      }
       var result=originalSeparate.apply(this,arguments);syncControls();return result;
     };
     try{m2SeparateSelectedRack=wrappedSeparate;}catch{}
@@ -194,43 +159,8 @@ const runtime = String.raw`<style data-rafex-unified-free-system-controls="v1">
 
   // B2B'ye ait O/C kisa yollarini aktif modul yerine secili raf sistemine bagla.
   // Ortak Esc/Delete/Enter/0-9 akisi mevcut handler'da aynen kalir.
-  document.addEventListener('keydown',function(event){
-    if(!isFree()||event.defaultPrevented)return;
-    if(event.ctrlKey||event.metaKey||event.altKey)return;
-    if(/INPUT|TEXTAREA|SELECT/.test(event.target?.tagName||''))return;
-    var key=String(event.key||'').toLowerCase();
-    if(key!=='o'&&key!=='c')return;
-    var rack=selectedRack(),system=rack?rackSystem(rack):contextSystem();
-    if(system!=='b2b'){
-      event.preventDefault();event.stopImmediatePropagation();
-      status((key==='o'?'O · Özelleştir':'C · Çoğalt')+' B2B kısa yoludur; Mekik rafına uygulanmadı.');
-      return;
-    }
-    if(!rack&&key==='c'){
-      var racks=Array.isArray(m2LayoutState?.racks)?m2LayoutState.racks:[];
-      rack=[...racks].reverse().find(isB2BRack)||null;
-      if(rack)m2LayoutState.selected=rack.id;
-    }
-    if(!rack||!isB2BRack(rack)){
-      event.preventDefault();event.stopImmediatePropagation();status('Önce bir B2B raf bloğu seç.');return;
-    }
-    event.preventDefault();event.stopImmediatePropagation();
-    if(key==='o')window.m2OpenCustomizeModal?.(rack.id);
-    else if(typeof window.m2DuplicateRack==='function')window.m2DuplicateRack();
-    syncControls();
-  },true);
-
-  // Masaustu cift tik: B2B rafi hangi sistem secili olursa olsun uzatma acilir.
-  // Mekik cift tik bu B2B davranisini hic almaz.
-  document.addEventListener('dblclick',function(event){
-    if(!isFree())return;
-    var rackNode=event.target?.closest?.('#m2LayoutSvg [data-rack]');
-    if(!rackNode)return;
-    var rack=Array.isArray(m2LayoutState?.racks)?m2LayoutState.racks.find(function(item){return Number(item.id)===Number(rackNode.dataset.rack);}):null;
-    if(!isB2BRack(rack))return;
-    event.preventDefault();event.stopImmediatePropagation();
-    window.m2StartAutoFillGuide?.(rack.id);
-  },true);
+  // Klavye, tiklama ve cift tik olaylari burada ele gecirilmez. Aktif B2B veya
+  // Mekik motorunun kendi sayfasinda kullandigi dogal olay akisi aynen calisir.
 
   document.addEventListener('click',function(){if(isFree())syncControls();},true);
   document.addEventListener('pointerup',function(){if(isFree())syncControls();},true);
@@ -249,7 +179,7 @@ worker = worker.replace(match[0], `${match[1]}${match[2]}${encoded}${match[2]}`)
 fs.writeFileSync(workerPath, worker);
 
 const finalHtml = Buffer.from(encoded, "base64").toString("utf8");
-for (const required of [marker, 'rafex-free-shortcuts', 'Uzatma Mesafesi yalnızca B2B', 'rafexFreeSelectedRackSystem', 'rack?.rafexSystem === "b2b"']) {
+for (const required of [marker, 'rafex-free-shortcuts', 'rafexFreeSelectedRackSystem', 'dogal olay akisi aynen calisir', 'rack?.rafexSystem === "b2b"']) {
   if (!finalHtml.includes(required)) throw new Error(`Unified free system controls dogrulama hatasi: ${required}`);
 }
 console.log(`FINAL: Serbest Cizim sistem bazli kontroller + B2B Uzatma + kisa yollar uygulandi (v1). doubleTap=${doubleTapCount}, dblClick=${dblClickCount}`);
