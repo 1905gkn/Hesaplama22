@@ -33,6 +33,8 @@ await import(`./patch-konsol-viewer-fields-v5.mjs?build=${Date.now()}`);
 // Konsol Kollu ana 3D ekranı ve kullanıcının serbest yerleşim/PDF katmanı.
 await import(`./patch-konsol-cantilever-v2.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-request-v3.mjs?build=${Date.now()}`);
+// V3 PDF çıktısındaki iç içe script kapanışını güvenli print çağrısına çevir.
+await import(`./patch-konsol-request-v3-printfix-v1.mjs?build=${Date.now()}`);
 // Kattaki ağırlık, derinlikler, RAL renkleri ve otomatik/manüel ayak yüksekliği.
 await import(`./patch-konsol-fields-v6.mjs?build=${Date.now()}`);
 
@@ -68,6 +70,7 @@ if (!html.includes('data-rafex-konsol-v2="1"')) throw new Error("Konsol Kollu ek
 if (!html.includes('/konsol-viewer.js?v=konsol-v2')) throw new Error("Konsol Kollu viewer yükleyicisi canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-request="v3"')) throw new Error("Konsol son kullanıcı istekleri canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-fields="v6"')) throw new Error("Konsol eksik kullanıcı alanları canlı HTML içinde bulunamadı");
+if (html.includes('<script>setTimeout(function(){window.print()},400)')) throw new Error("Konsol v3 eski nested print script canlı HTML içinde kaldı");
 for (const required of ["Kattaki ağırlık", "Kat derinliği (mm)", "Taban Kat derinliği (mm)", "RAL-5010", "RAL-1007", "RAL-2004", "konsolHeightMode"]) {
   if (!html.includes(required)) throw new Error(`Konsol v6 alanı canlı HTML içinde bulunamadı: ${required}`);
 }
