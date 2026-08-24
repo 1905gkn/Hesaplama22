@@ -26,6 +26,8 @@ await import(`./patch-free-info-system-modules-v27.mjs?build=${Date.now()}`);
 await import(`./build-drive-in-assets-v1.mjs?build=${Date.now()}`);
 await import(`./patch-drive-in-mekik-v1.mjs?build=${Date.now()}`);
 
+// Konsol viewer kaynağında ayak profili dikey ayağın aynı renk devamıdır.
+await import(`./patch-konsol-viewer-foot-v4.mjs?build=${Date.now()}`);
 // Konsol Kollu ana 3D ekranı ve kullanıcının son istediği serbest yerleşim/PDF katmanı.
 await import(`./patch-konsol-cantilever-v2.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-request-v3.mjs?build=${Date.now()}`);
