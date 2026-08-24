@@ -20,7 +20,7 @@ const runtime = String.raw`
 #page.drive-in-mode #m2Front .rafex-drive-front-status{position:absolute;left:12px;bottom:10px;padding:6px 9px;border:1px solid #dfe5e0;border-radius:7px;background:#ffffffdd;color:#536158;font-size:10px;font-weight:900;pointer-events:none}
 #page.drive-in-mode .m2-view[data-m2-view="front"] .m2-view-header-tools>span{font-weight:900;color:#214f3b}
 </style>
-<script data-rafex-drive-in-viewer-loader="v1" defer src="/drive-in-viewer.js?v=drive-in-front-v1"></script>
+<script data-rafex-drive-in-viewer-loader="v1" defer src="/drive-in-viewer.js?v=drive-in-front-v2"></script>
 <script data-rafex-drive-in-mekik="v1">
 (()=>{
   if(window.__rafexDriveInMekikV1)return;window.__rafexDriveInMekikV1=true;
@@ -31,7 +31,7 @@ const runtime = String.raw`
   const baseShowPage=window.showPage||showPage;
   const baseRefreshReport=typeof m2RefreshActiveReport==='function'?m2RefreshActiveReport:null;
   const baseCorporate=typeof m2RenderCorporateReport==='function'?m2RenderCorporateReport:null;
-  let frontViewer=null,frontMountToken=0;
+  let frontViewer=null,frontMountToken=0,frontScheduleRaf=0,frontConfigKey='';
 
   const isDrive=()=>{try{return m2ActiveModule==='drive'}catch{return false}};
   const number=(id,fallback)=>{const v=Number(document.getElementById(id)?.value);return Number.isFinite(v)?v:fallback};
@@ -84,14 +84,22 @@ const runtime = String.raw`
 
   function destroyFront(){
     frontMountToken+=1;
+    if(frontScheduleRaf){cancelAnimationFrame(frontScheduleRaf);frontScheduleRaf=0;}
     try{frontViewer?.destroy?.()}catch{}
-    frontViewer=null;
+    frontViewer=null;frontConfigKey='';
     try{window.RafexDriveInViewer?.destroy?.()}catch{}
   }
 
   function mountFront(){
     if(!isDrive())return;
     const host=document.getElementById('m2Front');if(!host)return;
+    const nextConfig=config();
+    const nextKey=JSON.stringify(nextConfig);
+    const existingCanvas=host.querySelector('#rafexDriveFrontCanvas');
+    if(frontViewer&&existingCanvas&&frontViewer.canvas===existingCanvas&&!frontViewer.destroyed){
+      if(nextKey!==frontConfigKey){try{frontViewer.update?.(nextConfig)}catch{}frontConfigKey=nextKey;}
+      return;
+    }
     destroyFront();
     const token=frontMountToken;
     host.innerHTML='<div class="rafex-drive-front-wrap"><canvas id="rafexDriveFrontCanvas" aria-label="Drive In GLB ön görünüş"></canvas><span class="rafex-drive-front-status" id="rafexDriveFrontStatus">Drive In GLB parçaları yükleniyor…</span></div>';
@@ -101,7 +109,8 @@ const runtime = String.raw`
       if(token!==frontMountToken||!isDrive()||!document.body.contains(canvas))return;
       const api=window.RafexDriveInViewer;if(!api?.mount){if(status)status.textContent='Drive In 3D motoru hazırlanıyor…';return;}
       try{
-        frontViewer=api.mount(canvas,config());
+        frontViewer=api.mount(canvas,nextConfig);
+        frontConfigKey=nextKey;
         canvas.addEventListener('drive-in-ready',()=>{if(status)status.textContent='DRIVE IN AYAK TOP · RAF MONTAJ · RAY BÜKÜMLÜ';},{once:true});
         canvas.addEventListener('drive-in-error',(event)=>{if(status)status.textContent=event.detail?.message||'Drive In GLB yüklenemedi.';},{once:true});
       }catch(error){if(status)status.textContent=error?.message||'Drive In ön görünüş açılamadı.'}
@@ -111,9 +120,8 @@ const runtime = String.raw`
   }
 
   function scheduleFront(){
-    if(!isDrive())return;
-    const token=++frontMountToken;
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{if(token!==frontMountToken)return;frontMountToken-=1;mountFront()}));
+    if(!isDrive()||frontScheduleRaf)return;
+    frontScheduleRaf=requestAnimationFrame(()=>{frontScheduleRaf=0;if(isDrive())mountFront()});
   }
 
   drawMekik2=function(...args){
@@ -176,7 +184,7 @@ const runtime = String.raw`
 html = html.replace("</body>", runtime + "</body>");
 for (const required of [
   'data-rafex-drive-in-mekik="v1"',
-  '/drive-in-viewer.js?v=drive-in-front-v1',
+  '/drive-in-viewer.js?v=drive-in-front-v2',
   "İlk kat yüksekliği (mm)",
   "m2ActivateModule('drive')",
   "rafexSystem='drive'",
@@ -186,4 +194,4 @@ for (const required of [
 const encoded = Buffer.from(html).toString("base64");
 source = source.slice(0, match.index) + match[0].replace(match[2], encoded) + source.slice(match.index + match[0].length);
 fs.writeFileSync(file, source);
-console.log("Drive In v1: Mekik akışı kopyalandı; ilk kat yüksekliği palet yüksekliği altına alındı; yalnız ön görünüş kullanıcı GLB'leriyle değiştirildi.");
+console.log("Drive In v1: Mekik akışı korundu; GLB ön görünüş tekrar mount döngüsü ve resize titreşimi giderildi.");
