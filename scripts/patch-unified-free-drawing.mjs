@@ -130,7 +130,7 @@ const runtime = `<style ${marker}>
     return '<label class="rafex-system-option" data-ready="'+String(system.ready)+'"><input type="radio" name="rafexUnifiedSystem" value="'+system.key+'"'+checked+'><span class="rafex-system-option-body"><strong>'+system.label+'</strong><small>'+system.desc+'</small><em>'+(system.ready?'MODÜL ÇİZİMİ HAZIR':'ALTYAPI BEKLİYOR')+'</em></span></label>';
   }
   function pickerMarkup(){
-    return '<section class="card rafex-system-picker" id="rafexUnifiedSystemPicker"><div class="rafex-system-picker-head"><div><h3>Raf Sistemi Araçları</h3><p>B2B, Mekik ve MR aynı Serbest Çizim projesinde birlikte kullanılır. Buradaki seçim yalnızca ekleyeceğin rafın ürün girdilerini değiştirir; alanı veya diğer rafları kapatmaz.</p></div><span class="rafex-system-picker-step">ORTAK YERLEŞİM</span></div><div class="rafex-system-options">'+SYSTEMS.map(optionMarkup).join('')+'</div><div class="rafex-system-picker-actions"><button type="button" class="rafex-system-continue" id="rafexUnifiedContinue">Ürün Girdilerini Aç</button><button type="button" class="rafex-system-add-module" id="rafexUnifiedAddModule" disabled>+ Modülü Ortak Alana Ekle</button><span class="rafex-system-picker-message" id="rafexUnifiedMessage"></span></div></section><section class="rafex-system-unavailable" id="rafexUnifiedUnavailable"><h3>Bu sistem için ortak modül geometrisi henüz hazır değil</h3><p id="rafexUnifiedUnavailableText"></p></section>';
+    return '<section class="card rafex-system-picker" id="rafexUnifiedSystemPicker"><div class="rafex-system-picker-head"><div><h3>Raf Sistemi Araçları</h3><p>B2B, Mekik ve MR aynı Serbest Çizim projesinde birlikte kullanılır. Sistem kartına tıklayınca kendi ürün girdileri ve görseli doğrudan açılır.</p></div><span class="rafex-system-picker-step">ORTAK YERLEŞİM</span></div><div class="rafex-system-options">'+SYSTEMS.map(optionMarkup).join('')+'</div><div class="rafex-system-picker-actions"><button type="button" class="rafex-system-add-module" id="rafexUnifiedAddModule" disabled>+ Modülü Ortak Alana Ekle</button><span class="rafex-system-picker-message" id="rafexUnifiedMessage"></span></div></section><section class="rafex-system-unavailable" id="rafexUnifiedUnavailable"><h3>Bu sistem için ortak modül geometrisi henüz hazır değil</h3><p id="rafexUnifiedUnavailableText"></p></section>';
   }
   function setMessage(text,type=''){
     const box=document.getElementById('rafexUnifiedMessage');if(!box)return;
@@ -158,7 +158,7 @@ const runtime = `<style ${marker}>
 
     page.querySelectorAll('input[name="rafexUnifiedSystem"]').forEach((input)=>{
       input.checked=free.pending===input.value;
-      input.addEventListener('change',()=>{free.pending=input.value;setMessage(systemLabel(input.value)+' seçildi. Devam ile hesap girdilerini aç.','ok');});
+      input.addEventListener('change',()=>{free.pending=input.value;free.selected=input.value;continueSelected();});
     });
     document.getElementById('rafexUnifiedContinue')?.addEventListener('click',continueSelected);
     const add=document.getElementById('rafexUnifiedAddModule');
@@ -167,7 +167,7 @@ const runtime = `<style ${marker}>
       const supported=SUPPORTED.has(free.selected);
       setMessage(supported?systemLabel(free.selected)+' hesap girdileri açık.':'Bu sistemin ortak çizim adaptörü henüz mevcut değil.',supported?'ok':'error');
       if(!supported){const text=document.getElementById('rafexUnifiedUnavailableText');if(text)text.textContent=systemLabel(free.selected)+' için mevcut portalda ortak Serbest Çizim alanına aktarılabilecek teknik modül çizimi tanımlı değil. Sistem kartı yerini aldı; çizim motoru eklendiğinde aynı akıştan doğrudan modül üretilecek.';}
-    }else setMessage('Bir sistem tipi seç ve Devam de.');
+    }else setMessage('Bir sistem tipi seç; ürün girdileri doğrudan açılır.');
     setNavActive();
     if(typeof applyTranslations==='function')try{applyTranslations(page);}catch{}
   }
