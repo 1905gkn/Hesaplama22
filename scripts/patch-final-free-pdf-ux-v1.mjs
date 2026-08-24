@@ -127,10 +127,11 @@ const runtime = String.raw`<style data-rafex-final-free-pdf-ux="v1">
   if(window.__rafexFinalFreePdfUxV1)return;
   window.__rafexFinalFreePdfUxV1=true;
 
-  var productOpen={b2b:false,mekik2:false};
+  var productOpen={b2b:false,mr:false,mekik2:false};
   try{
     var storedProductOpen=JSON.parse(localStorage.getItem('rafex_free_product_disclosures_v1')||'{}');
     productOpen.b2b=storedProductOpen.b2b===true;
+    productOpen.mr=storedProductOpen.mr===true;
     productOpen.mekik2=storedProductOpen.mekik2===true;
   }catch{}
 
@@ -166,7 +167,8 @@ const runtime = String.raw`<style data-rafex-final-free-pdf-ux="v1">
   function systemOf(entry){
     var drawing=entry&&entry.drawing?entry.drawing:entry||{};
     var explicit=String((entry&&entry.rafexSystem)||drawing.rafexSystem||'').toLowerCase();
-    if(explicit==='b2b'||explicit==='mekik2')return explicit;
+    if(explicit==='b2b'||explicit==='mr'||explicit==='mekik2')return explicit;
+    if(drawing.mr||drawing.systemType==='mr')return 'mr';
     return drawing.b2bLayout||drawing.b2b?'b2b':'mekik2';
   }
 
@@ -217,9 +219,9 @@ const runtime = String.raw`<style data-rafex-final-free-pdf-ux="v1">
   function renderSystemProductLists(){
     if(!freePage())return false;
     var host=document.getElementById('m2LayoutProductList');if(!host)return false;
-    var b2bRows=productRows('b2b'),mekikRows=productRows('mekik2');
+    var b2bRows=productRows('b2b'),mrRows=productRows('mr'),mekikRows=productRows('mekik2');
     host.classList.add('rafex-system-product-lists');
-    host.innerHTML='<b class="rafex-product-list-title">ÜRÜN DÖKÜMLERİ</b>'+productSection('b2b','B2B ÜRÜN LİSTESİ',b2bRows)+productSection('mekik2','MEKİK ÜRÜN LİSTESİ',mekikRows);
+    host.innerHTML='<b class="rafex-product-list-title">ÜRÜN DÖKÜMLERİ</b>'+productSection('b2b','B2B ÜRÜN LİSTESİ',b2bRows)+productSection('mr','MR ÜRÜN LİSTESİ',mrRows)+productSection('mekik2','MEKİK ÜRÜN LİSTESİ',mekikRows);
     qsa(host,'details[data-rafex-product-system]').forEach(function(details){
       details.addEventListener('toggle',function(){
         var key=details.dataset.rafexProductSystem;if(!key)return;
