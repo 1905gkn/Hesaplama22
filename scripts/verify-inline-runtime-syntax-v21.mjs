@@ -34,7 +34,7 @@ await import(`./patch-konsol-viewer-fields-v5.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-cantilever-v2.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-request-v3.mjs?build=${Date.now()}`);
 // Kattaki ağırlık, derinlikler, RAL renkleri ve otomatik/manüel ayak yüksekliği.
-await import(`./patch-konsol-fields-v5.mjs?build=${Date.now()}`);
+await import(`./patch-konsol-fields-v6.mjs?build=${Date.now()}`);
 
 const workerModule = await import(`${workerPath}?syntax-check=${Date.now()}`);
 const response = await workerModule.default.fetch(
@@ -66,8 +66,8 @@ if (!html.includes('/drive-in-viewer.js?v=drive-in-front-v2')) throw new Error("
 if (!html.includes('data-rafex-konsol-v2="1"')) throw new Error("Konsol Kollu ekranı canlı HTML içinde bulunamadı");
 if (!html.includes('/konsol-viewer.js?v=konsol-v2')) throw new Error("Konsol Kollu viewer yükleyicisi canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-request="v3"')) throw new Error("Konsol son kullanıcı istekleri canlı HTML içinde bulunamadı");
-if (!html.includes('data-rafex-konsol-fields="v5"')) throw new Error("Konsol eksik kullanıcı alanları canlı HTML içinde bulunamadı");
+if (!html.includes('data-rafex-konsol-fields="v6"')) throw new Error("Konsol eksik kullanıcı alanları canlı HTML içinde bulunamadı");
 for (const required of ["Kattaki ağırlık", "Kat derinliği (mm)", "Taban Kat derinliği (mm)", "RAL-5010", "RAL-1007", "RAL-2004", "konsolHeightMode"]) {
-  if (!html.includes(required)) throw new Error(`Konsol v5 alanı canlı HTML içinde bulunamadı: ${required}`);
+  if (!html.includes(required)) throw new Error(`Konsol v6 alanı canlı HTML içinde bulunamadı: ${required}`);
 }
 console.log(`Final response runtime syntax verified: ${scripts.length} script blocks.`);
