@@ -1,7 +1,27 @@
+import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 
 const workerPath = path.join(process.cwd(), "dist/server/index.js");
+
+// Final Mekik label guard. JavaScript's \b does not treat the Turkish dotless
+// "ı" as a word character, so "Ayak takımı" used to be renamed again on every
+// MutationObserver pass: "Ayak takımı takımı takımı ...".
+{
+  let workerSource = fs.readFileSync(workerPath, "utf8");
+  const htmlMatch = workerSource.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1/);
+  if (!htmlMatch) throw new Error("HTML_BASE64 not found for Mekik label guard");
+  let html = Buffer.from(htmlMatch[2], "base64").toString("utf8");
+  const brokenGuard = "!/^Ayak (takımı|Profili)\\b/i.test(value)";
+  const fixedGuard = "!/^Ayak (?:takımı|Profili)(?=\\s|$)/i.test(value)";
+  if (html.includes(brokenGuard)) html = html.replace(brokenGuard, fixedGuard);
+  if (!html.includes(fixedGuard)) throw new Error("Mekik Ayak takımı tekrar koruması uygulanamadı");
+  const encoded = Buffer.from(html).toString("base64");
+  workerSource = workerSource.slice(0, htmlMatch.index) + htmlMatch[0].replace(htmlMatch[2], encoded) + workerSource.slice(htmlMatch.index + htmlMatch[0].length);
+  fs.writeFileSync(workerPath, workerSource);
+  console.log("Mekik Ayak takımı tekrar döngüsü koruması aktif.");
+}
+
 const workerModule = await import(`${workerPath}?syntax-check=${Date.now()}`);
 const response = await workerModule.default.fetch(
   new Request("https://runtime-verifier.invalid/"),
