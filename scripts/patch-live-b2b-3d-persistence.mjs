@@ -122,14 +122,17 @@ if (!html.includes(marker)) {
   }
 
   function pause3D(){
-    if(!mainCanvas())return false;
-    paused=true;
-    window.__rafexFreeLayout3DStopped=true;
-    guardViewer();
-    try{window.RafexB2BViewer?.setAutoRotate?.(false);}catch{}
-    try{window.RafexB2BViewer?.destroy?.();}catch{}
-    applyPausedVisual();
-    return true;
+    // Serbest Cizim de B2B'nin kendi sayfasindaki canli 3D'sini aynen korur.
+    // Raf ekleme/yerlestirme performans yamasi artik viewer'i yok etmez veya
+    // canvas'i gizlemez; kullanici sistem degistirene kadar 3D acik kalir.
+    paused=false;
+    window.__rafexFreeLayout3DStopped=false;
+    pausedOverlay()?.remove();
+    const toolbar=mainToolbar();
+    if(toolbar){toolbar.style.visibility='';delete toolbar.dataset.rafexModulePaused;}
+    const canvas=mainCanvas();
+    if(canvas){canvas.style.visibility='visible';delete canvas.dataset.rafexModulePaused;}
+    return false;
   }
 
   function resume3D(){
@@ -301,4 +304,4 @@ if (!html.includes(marker) || !html.includes('rafexB2BPausedOverlay') || !html.i
 const encoded = Buffer.from(html, "utf8").toString("base64");
 worker = worker.slice(0, match.index) + match[1] + match[2] + encoded + match[2] + worker.slice(match.index + match[0].length);
 fs.writeFileSync(workerPath, worker);
-console.log("FINAL: Modul eklenince ust 3D gizlenir; RAFEX + Yenile ile tekrar acilir (v3).");
+console.log("FINAL: Serbest Cizim B2B canli 3D'si modul ekleme ve yerlesimde acik kalir (v3).");
