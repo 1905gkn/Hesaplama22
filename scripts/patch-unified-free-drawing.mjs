@@ -42,7 +42,7 @@ const runtime = `<style ${marker}>
 .rafex-system-picker-message{min-height:18px;margin-left:auto;font-size:11px;font-weight:700;color:#66736b}
 .rafex-system-picker-message.error{color:#a23a3a}
 .rafex-system-picker-message.ok{color:#245c3c}
-#page.rafex-free-drawing-page .m2-layout{display:block}
+/* Sistem seçilince o sistemin kendi iki kolonlu hesap + görsel düzeni korunur. */
 .rafex-system-unavailable{display:none;margin:0 0 16px;padding:18px;border:1px dashed #c8d3cb;border-radius:12px;background:#fbfcfb}
 #page.rafex-free-drawing-page.rafex-free-unavailable .rafex-system-unavailable{display:block}
 .rafex-system-unavailable h3{margin:0 0 7px;color:#173c2d;font-size:15px}
