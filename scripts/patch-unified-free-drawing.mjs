@@ -176,6 +176,12 @@ const runtime = `<style ${marker}>
     const target=SUPPORTED.has(system)?system:'mekik2';
     if(free.currentEngine&&free.currentEngine!==target)captureEngine();
     restoreEngine(target);
+    const page=document.getElementById('page');
+    if(page){
+      page.classList.remove('b2b-mode','mr-mode');
+      delete page.dataset.m2Module;
+      page.dataset.rafexFreeContextSystem=target;
+    }
     if(target==='b2b')renderB2B();else if(target==='mr')renderMR();else renderMekik2();
     free.continued=Boolean(continued);
     decoratePage();
@@ -253,7 +259,7 @@ worker = worker.replace(match[0], `${match[1]}${match[2]}${encoded}${match[2]}`)
 fs.writeFileSync(workerPath, worker);
 
 const finalHtml = Buffer.from(encoded, "base64").toString("utf8");
-for (const required of [marker, "Serbest Çizim", "Raf Sistemi Araçları", "rafexEnterUnifiedFreeDrawing", "+ Modülü Ortak Alana Ekle", "['b2b','mekik2','mr']", "else if(target==='mr')renderMR()"] ) {
+for (const required of [marker, "Serbest Çizim", "Raf Sistemi Araçları", "rafexEnterUnifiedFreeDrawing", "+ Modülü Ortak Alana Ekle", "['b2b','mekik2','mr']", "else if(target==='mr')renderMR()", "page.classList.remove('b2b-mode','mr-mode')"] ) {
   if (!finalHtml.includes(required)) throw new Error(`Unified free drawing dogrulama hatasi: ${required}`);
 }
 console.log("FINAL: Serbest Cizim menusu + Sistem Tipleri secimi + ortak B2B/Mekik yerlesim durumu eklendi (v1).");
