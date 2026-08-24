@@ -42,8 +42,7 @@ const runtime = `<style ${marker}>
 .rafex-system-picker-message{min-height:18px;margin-left:auto;font-size:11px;font-weight:700;color:#66736b}
 .rafex-system-picker-message.error{color:#a23a3a}
 .rafex-system-picker-message.ok{color:#245c3c}
-#page.rafex-free-drawing-page.rafex-free-awaiting .m2-layout{display:none!important}
-#page.rafex-free-drawing-page.rafex-free-unavailable .m2-layout{display:none!important}
+#page.rafex-free-drawing-page .m2-layout{display:block}
 .rafex-system-unavailable{display:none;margin:0 0 16px;padding:18px;border:1px dashed #c8d3cb;border-radius:12px;background:#fbfcfb}
 #page.rafex-free-drawing-page.rafex-free-unavailable .rafex-system-unavailable{display:block}
 .rafex-system-unavailable h3{margin:0 0 7px;color:#173c2d;font-size:15px}
@@ -58,12 +57,12 @@ const runtime = `<style ${marker}>
   if(window.__rafexUnifiedFreeDrawingV1)return;
   window.__rafexUnifiedFreeDrawingV1=true;
 
-  const SUPPORTED=new Set(['b2b','mekik2']);
+  const SUPPORTED=new Set(['b2b','mekik2','mr']);
   const SYSTEMS=[
-    {key:'b2b',label:'B2B',desc:'B2B raf tipini hesapla ve ortak yerleşime ekle.',ready:true},
-    {key:'mekik2',label:'Mekik',desc:'Mekik rafını hesapla ve aynı serbest alana ekle.',ready:true},
+    {key:'b2b',label:'B2B',desc:'B2B ürün girdilerini aç; mevcut ortak yerleşim korunur.',ready:true},
+    {key:'mekik2',label:'Mekik',desc:'Mekik ürün girdilerini aç; aynı alana raf eklemeye devam et.',ready:true},
     {key:'drive',label:'Drive-In',desc:'Mevcut hesap motoru var; ortak çizim geometrisi bağlanacak.',ready:false},
-    {key:'mr',label:'MR',desc:'Teknik hesap / modül çizim motoru henüz tanımlı değil.',ready:false},
+    {key:'mr',label:'MR',desc:'MR ürün girdilerini aç; B2B ve Mekik ile aynı alana ekle.',ready:true},
     {key:'konsol',label:'Konsol Kollu',desc:'Teknik hesap / modül çizim motoru henüz tanımlı değil.',ready:false}
   ];
   const COMMON_KEYS=['layoutState','layoutZoom','pinnedDimensions','pinnedDimensionsByRack','dimensionOffsets','dimensionFontSizes','selectedDimensionKey','userNotes','selectedNoteId','hiddenSummaryDimensions','visibleRackDimensions','showSharedFootLabels','edgeEditorVisible','freeMeasure','layoutSymbols','selectedSymbolId'];
@@ -131,7 +130,7 @@ const runtime = `<style ${marker}>
     return '<label class="rafex-system-option" data-ready="'+String(system.ready)+'"><input type="radio" name="rafexUnifiedSystem" value="'+system.key+'"'+checked+'><span class="rafex-system-option-body"><strong>'+system.label+'</strong><small>'+system.desc+'</small><em>'+(system.ready?'MODÜL ÇİZİMİ HAZIR':'ALTYAPI BEKLİYOR')+'</em></span></label>';
   }
   function pickerMarkup(){
-    return '<section class="card rafex-system-picker" id="rafexUnifiedSystemPicker"><div class="rafex-system-picker-head"><div><h3>Sistem Tipleri</h3><p>Ortak Serbest Çizim alanına eklemek istediğin raf sistemini seç. Devam dediğinde yalnız o sistemin hesap girdileri açılır.</p></div><span class="rafex-system-picker-step">1 · SİSTEM SEÇ</span></div><div class="rafex-system-options">'+SYSTEMS.map(optionMarkup).join('')+'</div><div class="rafex-system-picker-actions"><button type="button" class="rafex-system-continue" id="rafexUnifiedContinue">Devam</button><button type="button" class="rafex-system-add-module" id="rafexUnifiedAddModule" disabled>+ Modülü Serbest Alana Ekle</button><span class="rafex-system-picker-message" id="rafexUnifiedMessage"></span></div></section><section class="rafex-system-unavailable" id="rafexUnifiedUnavailable"><h3>Bu sistem için ortak modül geometrisi henüz hazır değil</h3><p id="rafexUnifiedUnavailableText"></p></section>';
+    return '<section class="card rafex-system-picker" id="rafexUnifiedSystemPicker"><div class="rafex-system-picker-head"><div><h3>Raf Sistemi Araçları</h3><p>B2B, Mekik ve MR aynı Serbest Çizim projesinde birlikte kullanılır. Buradaki seçim yalnızca ekleyeceğin rafın ürün girdilerini değiştirir; alanı veya diğer rafları kapatmaz.</p></div><span class="rafex-system-picker-step">ORTAK YERLEŞİM</span></div><div class="rafex-system-options">'+SYSTEMS.map(optionMarkup).join('')+'</div><div class="rafex-system-picker-actions"><button type="button" class="rafex-system-continue" id="rafexUnifiedContinue">Ürün Girdilerini Aç</button><button type="button" class="rafex-system-add-module" id="rafexUnifiedAddModule" disabled>+ Modülü Ortak Alana Ekle</button><span class="rafex-system-picker-message" id="rafexUnifiedMessage"></span></div></section><section class="rafex-system-unavailable" id="rafexUnifiedUnavailable"><h3>Bu sistem için ortak modül geometrisi henüz hazır değil</h3><p id="rafexUnifiedUnavailableText"></p></section>';
   }
   function setMessage(text,type=''){
     const box=document.getElementById('rafexUnifiedMessage');if(!box)return;
@@ -155,7 +154,7 @@ const runtime = `<style ${marker}>
     }else if(!document.getElementById('rafexUnifiedSystemPicker'))page.insertAdjacentHTML('afterbegin',pickerMarkup());
 
     const floor=page.querySelector('.m2-floor-editor');
-    if(floor&&!page.querySelector('.rafex-free-mode-note'))floor.insertAdjacentHTML('beforebegin','<div class="rafex-free-mode-note"><b>ORTAK ALAN</b><span>B2B ve Mekik modülleri aynı Serbest Çizim alanında birlikte taşınabilir, döndürülebilir ve PDF yerleşiminde korunur.</span></div>');
+    if(floor&&!page.querySelector('.rafex-free-mode-note'))floor.insertAdjacentHTML('beforebegin','<div class="rafex-free-mode-note"><b>ORTAK ALAN</b><span>B2B, Mekik ve MR modülleri aynı Serbest Çizim alanında birlikte taşınabilir, döndürülebilir ve PDF yerleşiminde korunur.</span></div>');
 
     page.querySelectorAll('input[name="rafexUnifiedSystem"]').forEach((input)=>{
       input.checked=free.pending===input.value;
@@ -177,7 +176,7 @@ const runtime = `<style ${marker}>
     const target=SUPPORTED.has(system)?system:'mekik2';
     if(free.currentEngine&&free.currentEngine!==target)captureEngine();
     restoreEngine(target);
-    if(target==='b2b')renderB2B();else renderMekik2();
+    if(target==='b2b')renderB2B();else if(target==='mr')renderMR();else renderMekik2();
     free.continued=Boolean(continued);
     decoratePage();
   }
@@ -254,7 +253,7 @@ worker = worker.replace(match[0], `${match[1]}${match[2]}${encoded}${match[2]}`)
 fs.writeFileSync(workerPath, worker);
 
 const finalHtml = Buffer.from(encoded, "base64").toString("utf8");
-for (const required of [marker, "Serbest Çizim", "Sistem Tipleri", "rafexEnterUnifiedFreeDrawing", "+ Modülü Serbest Alana Ekle"]) {
+for (const required of [marker, "Serbest Çizim", "Raf Sistemi Araçları", "rafexEnterUnifiedFreeDrawing", "+ Modülü Ortak Alana Ekle", "['b2b','mekik2','mr']", "else if(target==='mr')renderMR()"] ) {
   if (!finalHtml.includes(required)) throw new Error(`Unified free drawing dogrulama hatasi: ${required}`);
 }
 console.log("FINAL: Serbest Cizim menusu + Sistem Tipleri secimi + ortak B2B/Mekik yerlesim durumu eklendi (v1).");
