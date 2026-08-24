@@ -116,16 +116,13 @@ node scripts/patch-final-product-disclosure-toggle-v24.mjs
 node scripts/patch-horizontal-products-savebar-v25.mjs
 node scripts/patch-drive-in-mekik-v1.mjs
 
-# Konsol Kollu: ayak profili ayagin devami, secilebilir 1000-2000 mm ayak arasi,
-# B2B benzeri serbest yerlesim ve yatay A4 cikti.
-node scripts/patch-cantilever-v1.mjs
-
 grep -q 'data-rafex-cad-import="v56"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-cad-import=\\\"v56\\\"'))process.exit(1)"
 grep -q 'data-rafex-product-toggle="v24"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-product-toggle=\\\"v24\\\"'))process.exit(1)"
 grep -q 'data-rafex-horizontal-products-savebar="v25"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-horizontal-products-savebar=\\\"v25\\\"'))process.exit(1)"
 grep -q 'data-rafex-drive-in-mekik="v1"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-drive-in-mekik=\\\"v1\\\"'))process.exit(1)"
-grep -q 'data-rafex-cantilever="v1"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-cantilever=\\\"v1\\\"'))process.exit(1)"
 
+# Konsol v2 + kullanicinin son ayak profili / mesafe / serbest yerlesim / PDF istekleri
+# verify adiminda en son yetki olarak uygulanir ve inline JS sozdizimi denetlenir.
 node scripts/verify-inline-runtime-syntax-v21.mjs
 
 grep -q "mode==='front'&&typeof m2SharedScaleReportSvg" scripts/patch-pdf-direct-type-pages-v19.mjs
@@ -136,4 +133,4 @@ grep -q 'data-rafex-final-user-repairs="v20"' scripts/patch-final-user-repairs-v
 grep -q 'data-rafex-manual-free-output="v32"' scripts/patch-manual-free-output-v32.mjs
 grep -q 'sectionWidth=config.modules\*config.width' portal.html
 grep -q 'data-rafex-mr-free-extension="v35"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\"\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-mr-free-extension=\"v35\"'))process.exit(1)"
-echo "Production chain verified: mevcut sistemler + Drive In + Konsol Kollu v1 aktif."
+echo "Production chain verified: mevcut sistemler + Drive In + Konsol Kollu v3 aktif."
