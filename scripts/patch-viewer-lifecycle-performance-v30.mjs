@@ -133,4 +133,20 @@ patchFile("client/mr-viewer.entry.js", (src) => {
   return src;
 });
 
+// Serbest Cizim bilgi penceresi MR icin ana MR viewer'i bozmadan tek modulu
+// offscreen render edip resim olarak alabilsin.
+patchFile("client/mr-viewer.entry.js", (src) => {
+  if (src.includes("captureMRModuleView")) return src;
+  const anchor = "let active = null;\nwindow.RafexMRViewer = {";
+  if (!src.includes(anchor)) throw new Error("v30: MR capture ekleme noktasi bulunamadi.");
+  const helper = `async function captureMRModuleView(config = {}, settings = {}) {\n  const width = Math.max(520, Math.round(Number(settings.width) || 1280));\n  const height = Math.max(420, Math.round(Number(settings.height) || 820));\n  const host = document.createElement(\"div\");\n  host.style.cssText = \"position:fixed;left:-100000px;top:0;width:\" + width + \"px;height:\" + height + \"px;pointer-events:none;opacity:0;overflow:hidden\";\n  const canvas = document.createElement(\"canvas\");\n  canvas.style.width = \"100%\"; canvas.style.height = \"100%\"; canvas.style.display = \"block\";\n  host.appendChild(canvas); document.body.appendChild(host);\n  let viewer = null;\n  try {\n    const moduleConfig = { ...config, modules:1, dimensions:{ levels:false, markers:false, width:false, depth:false } };\n    viewer = new MRViewer(canvas, { config:moduleConfig });\n    await new Promise((resolve, reject) => {\n      let settled = false;\n      const finish = (fn, value) => { if (settled) return; settled = true; clearTimeout(timer); fn(value); };\n      const timer = setTimeout(() => finish(reject, new Error(\"MR modül görüntüsü zaman aşımına uğradı.\")), 8000);\n      canvas.addEventListener(\"mr-viewer-ready\", () => finish(resolve), { once:true });\n      canvas.addEventListener(\"mr-viewer-error\", (event) => finish(reject, new Error(event.detail?.message || \"MR modülü oluşturulamadı.\")), { once:true });\n    });\n    viewer.setView(settings.view || \"perspective\");\n    viewer.controls.update();\n    viewer.renderer.render(viewer.scene, viewer.camera);\n    await new Promise((resolve) => requestAnimationFrame(() => { viewer?.renderer?.render?.(viewer.scene, viewer.camera); resolve(); }));\n    return canvas.toDataURL(\"image/png\");\n  } finally {\n    try { viewer?.destroy?.(); } catch {}\n    host.remove();\n  }\n}\n\n`;
+  src = src.replace(anchor, helper + anchor);
+  const apiNeedle = "  setAutoRotate(enabled) { active?.setAutoRotate(enabled); },\n  destroy() { active?.destroy(); active = null; },\n};";
+  const apiReplacement = "  setAutoRotate(enabled) { active?.setAutoRotate(enabled); },\n  captureView(config, settings) { return captureMRModuleView(config, settings); },\n  destroy() { active?.destroy(); active = null; },\n};";
+  if (!src.includes(apiNeedle)) throw new Error("v30: MR capture API ekleme noktasi bulunamadi.");
+  src = src.replace(apiNeedle, apiReplacement);
+  if (!src.includes("captureView(config, settings)")) throw new Error("v30: MR capture API eklenemedi.");
+  return src;
+});
+
 console.log("v30: 3D viewer RAF iptali + geometry/material/texture/listener temizligi aktif.");
