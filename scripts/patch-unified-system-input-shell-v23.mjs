@@ -97,7 +97,13 @@ const css = String.raw`
 
 /* Mekik: mevcut form ve cizimleri ayni ortak kabukta iki panele ayirir. */
 #page.rafex-system-input-shell .rafex-mekik-shell{
+  grid-column:1 / -1;
+  display:grid!important;
   grid-template-columns:minmax(360px,var(--rafex-shell-form)) minmax(0,1fr)!important;
+  gap:var(--rafex-shell-gap)!important;
+  border:0!important;
+  background:transparent!important;
+  overflow:visible!important;
 }
 #page.rafex-system-input-shell .rafex-mekik-form-card{grid-column:1}
 #page.rafex-system-input-shell .rafex-mekik-visual-card{grid-column:2;min-height:680px}
