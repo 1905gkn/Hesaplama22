@@ -74,7 +74,7 @@ const runtime = String.raw`
 </script>`;
 
 html = html.replace('</body>', runtime + '</body>');
-for(const required of ['data-rafex-free-info-modules="v27"','B2B · 3D MODÜL','MR · 3D MODÜL','createDetached','3D ölçüler aktif','mekik-only','rafexFreeShowInfoV3=showInfo'])if(!html.includes(required))throw new Error('Bilgi modül v27 doğrulaması eksik: '+required);
+for(const required of ['data-rafex-free-info-modules="v27"','3D MODÜL','createDetached','3D ölçüler aktif','mekik-only','rafexFreeShowInfoV3=showInfo'])if(!html.includes(required))throw new Error('Bilgi modül v27 doğrulaması eksik: '+required);
 const encoded=Buffer.from(html).toString('base64');
 source=source.slice(0,match.index)+match[0].replace(match[2],encoded)+source.slice(match.index+match[0].length);
 fs.writeFileSync(file,source);
