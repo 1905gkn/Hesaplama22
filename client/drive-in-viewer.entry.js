@@ -3,7 +3,7 @@ import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 
-const ASSET_VERSION = "drive-in-front-v1";
+const ASSET_VERSION = "drive-in-front-v2";
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 let sharedModelsPromise = null;
 
@@ -72,6 +72,9 @@ class DriveInFrontViewer {
     this.destroyed = false;
     this.models = null;
     this.root = new THREE.Group();
+    this.lastWidth = 0;
+    this.lastHeight = 0;
+    this.resizeFrame = 0;
 
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -93,8 +96,9 @@ class DriveInFrontViewer {
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 100000);
     this.camera.up.set(0, 0, 1);
 
-    this.resizeObserver = new ResizeObserver(() => this.render());
+    this.resizeObserver = new ResizeObserver(() => this.scheduleResize());
     this.resizeObserver.observe(canvas.parentElement || canvas);
+    this.scheduleResize(true);
     this.load();
   }
 
@@ -110,6 +114,10 @@ class DriveInFrontViewer {
       firstLevelHeight,
       levelSpacing: clamp(Number(next.levelSpacing) || Math.max(1580, palletHeight + 380), palletHeight + 80, 5000),
     };
+  }
+
+  configKey(value = this.config) {
+    return [value.bays, value.levels, value.palletWidth, value.palletDepth, value.palletHeight, value.firstLevelHeight, value.levelSpacing].join("|");
   }
 
   emit(name, detail = {}) {
@@ -150,7 +158,9 @@ class DriveInFrontViewer {
   }
 
   update(next = {}) {
-    this.config = this.normalize({ ...this.config, ...next });
+    const normalized = this.normalize({ ...this.config, ...next });
+    if (this.configKey(normalized) === this.configKey(this.config)) return;
+    this.config = normalized;
     if (this.models) this.rebuild();
   }
 
@@ -170,14 +180,12 @@ class DriveInFrontViewer {
     while (this.root.children.length) this.root.remove(this.root.children[0]);
     const c = this.config;
     const uprightWidth = 100;
-    const sideGap = 120;
     const bayClear = Math.max(950, c.palletWidth + 150);
     const bayPitch = bayClear + uprightWidth;
     const rackWidth = c.bays * bayPitch + uprightWidth;
     const rackHeight = c.firstLevelHeight + Math.max(0, c.levels - 1) * c.levelSpacing + c.palletHeight * 0.55;
     const depth = Math.max(900, c.palletDepth);
 
-    // Ana dikmeler ön görünüşte gerçek Drive-In ayak geometrisini taşıyan iskelet olarak çizilir.
     for (let i = 0; i <= c.bays; i += 1) {
       const x = i * bayPitch;
       this.addBox(new THREE.Vector3(uprightWidth, 110, rackHeight), new THREE.Vector3(x, 0, rackHeight / 2), 0xaeb8bd, 0.62, 0.38);
@@ -196,7 +204,6 @@ class DriveInFrontViewer {
         const left = bay * bayPitch + uprightWidth;
         const centerX = left + bayClear / 2;
 
-        // Raylar derinliğine uzar; önden bakışta kullanıcı tarafından verilen bükümlü ray kesiti görünür.
         const leftRay = fitClone(raySource, new THREE.Vector3(145, depth, 165));
         leftRay.position.set(left + 85, 0, supportZ);
         this.root.add(leftRay);
@@ -216,7 +223,7 @@ class DriveInFrontViewer {
 
     this.addBox(new THREE.Vector3(rackWidth + 300, 18, 18), new THREE.Vector3(rackWidth / 2, 0, 0), 0x25313a, 0.1, 0.8);
     this.fitCamera();
-    this.render();
+    this.renderScene();
   }
 
   fitCamera() {
@@ -224,8 +231,9 @@ class DriveInFrontViewer {
     if (bounds.isEmpty()) return;
     const size = bounds.getSize(new THREE.Vector3());
     const center = bounds.getCenter(new THREE.Vector3());
-    const rect = this.canvas.getBoundingClientRect();
-    const aspect = Math.max(0.3, (rect.width || 1) / Math.max(1, rect.height || 1));
+    const width = this.lastWidth || Math.max(1, Math.round(this.canvas.getBoundingClientRect().width));
+    const height = this.lastHeight || Math.max(1, Math.round(this.canvas.getBoundingClientRect().height));
+    const aspect = Math.max(0.3, width / Math.max(1, height));
     const pad = 1.16;
     let halfW = size.x * pad / 2;
     let halfH = size.z * pad / 2;
@@ -242,19 +250,43 @@ class DriveInFrontViewer {
     this.camera.updateProjectionMatrix();
   }
 
-  render() {
+  scheduleResize(force = false) {
+    if (this.destroyed) return;
+    if (force && this.resizeFrame) cancelAnimationFrame(this.resizeFrame);
+    if (this.resizeFrame && !force) return;
+    this.resizeFrame = requestAnimationFrame(() => {
+      this.resizeFrame = 0;
+      this.resize(force);
+    });
+  }
+
+  resize(force = false) {
     if (this.destroyed) return;
     const rect = this.canvas.getBoundingClientRect();
     const width = Math.max(1, Math.round(rect.width));
     const height = Math.max(1, Math.round(rect.height));
+    if (!force && width === this.lastWidth && height === this.lastHeight) return;
+    this.lastWidth = width;
+    this.lastHeight = height;
     this.renderer.setSize(width, height, false);
-    this.fitCamera();
+    if (this.models) this.fitCamera();
+    this.renderScene();
+  }
+
+  renderScene() {
+    if (this.destroyed) return;
     this.renderer.render(this.scene, this.camera);
+  }
+
+  render() {
+    this.renderScene();
   }
 
   destroy() {
     if (this.destroyed) return;
     this.destroyed = true;
+    if (this.resizeFrame) cancelAnimationFrame(this.resizeFrame);
+    this.resizeFrame = 0;
     this.resizeObserver?.disconnect?.();
     const geometries = new Set(), materials = new Set(), textures = new Set();
     const collect = (material) => {
@@ -277,6 +309,10 @@ class DriveInFrontViewer {
 let active = null;
 window.RafexDriveInViewer = {
   mount(canvas, config = {}) {
+    if (active && active.canvas === canvas && !active.destroyed) {
+      active.update(config);
+      return active;
+    }
     if (active) active.destroy();
     active = new DriveInFrontViewer(canvas, config);
     return active;
