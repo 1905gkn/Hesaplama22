@@ -109,14 +109,16 @@ const runtime = String.raw`
      Ayak profili olarak listelenir. Her ikisi de goz sayisi + 1 hat kuralini kullanir. */
   const normalizeMekikBom=(rows,entry,labels)=>{
     const drawing=entry?.drawing||entry||{};if(drawing.b2bLayout||drawing?.b2b?.mr)return rows;
-    const normalName=labels?.items?.footTeam||'Ayak takımı',profileName=labels?.items?.foot||'Ayak profili',oldProfile=labels?.items?.foot||'Ayak profili',oldExtra=labels?.items?.extra||'Ekstra düz profil',lineCount=(Math.max(1,Math.round(Number(drawing.bays)||1))+1)*Math.max(1,Math.round(Number(entry?.rackCount)||1));
+    const isTurkish=String(labels?.unitEach||'adet').toLocaleLowerCase('tr-TR')==='adet',normalName=isTurkish?'Ayak takımı':(labels?.items?.footTeam||'Ayak takımı'),profileName=isTurkish?'Ayak Profili':(labels?.items?.foot||'Ayak profili'),oldProfile=String(labels?.items?.foot||'Ayak profili').toLocaleLowerCase('tr-TR'),oldExtra=String(labels?.items?.extra||'Ekstra düz profil').toLocaleLowerCase('tr-TR'),lineCount=(Math.max(1,Math.round(Number(drawing.bays)||1))+1)*Math.max(1,Math.round(Number(entry?.rackCount)||1));
     return (Array.isArray(rows)?rows:[]).map((row)=>{
-      if(String(row?.item||'')===String(oldExtra))return{...row,item:profileName,qty:lineCount};
-      if(String(row?.item||'')===String(oldProfile))return{...row,item:normalName};
+      const item=String(row?.item||'').trim(),key=item.toLocaleLowerCase('tr-TR');
+      if(key===oldExtra||key==='düz profil'||key==='ekstra düz profil')return{...row,item:profileName,qty:lineCount};
+      if(key===oldProfile||key==='ayak'||key==='ayak profili')return{...row,item:normalName};
       return row;
     });
   };
   try{const previousBom=window.m2CorporateBomRows;if(typeof previousBom==='function'&&!previousBom.__rafexMekikFootSplitV26){const wrapped=function(entry,labels){return normalizeMekikBom(previousBom.apply(this,arguments),entry,labels)};wrapped.__rafexMekikFootSplitV26=true;try{m2CorporateBomRows=wrapped}catch{}window.m2CorporateBomRows=wrapped}}catch(error){console.warn('Mekik ayak listesi ayrılamadı',error)}
+  const renameMekikPartRows=(page)=>{page.querySelectorAll('#m2Parts .m2-part>span').forEach((node)=>{const value=String(node.textContent||'').trim();if(/^Ekstra düz profil\b/i.test(value)||/^Düz profil\b/i.test(value))node.textContent=value.replace(/^Ekstra düz profil\b|^Düz profil\b/i,'Ayak Profili');else if(/^Ayak\b/i.test(value)&&!/^Ayak (takımı|Profili)\b/i.test(value))node.textContent=value.replace(/^Ayak\b/i,'Ayak takımı')})};
 
   /* Raf arasi alaninin ilk degisiklikten sonra yakinlik listesinden dusmesi
      islemi kilitliyordu. Secilen iki raf arasindaki iliskiyi dogrudan yeniden kur. */
@@ -140,6 +142,7 @@ const runtime = String.raw`
     const isB2B=page.classList.contains('b2b-mode')||page.dataset.rafexFreeContextSystem==='b2b'||!!page.querySelector('#b2bMain3DCanvas');
     const isMekik=!isB2B&&(page.dataset.rafexFreeContextSystem==='mekik2'||!!page.querySelector('#m2Top, #m2Front, #m2Side'));
     if(!isB2B&&!isMekik)return;
+    if(isMekik)renameMekikPartRows(page);
     const layout=page.querySelector('.m2-layout');
     if(!layout)return;
     let bar=page.querySelector('.rafex-b2b-mekik-savebar');
@@ -156,7 +159,7 @@ const runtime = String.raw`
 </script>`;
 
 html = html.replace('</body>', `${runtime}</body>`);
-for (const required of ['data-rafex-reference-front="v26"','__rafexMekikFootSplitV26','directRackGap','Ayak takımı','Ayak profili']) {
+for (const required of ['data-rafex-reference-front="v26"','__rafexMekikFootSplitV26','directRackGap','renameMekikPartRows','Ayak takımı','Ayak Profili']) {
   if (!html.includes(required)) throw new Error(`Mekik/raf arası v26 doğrulaması eksik: ${required}`);
 }
 const encoded = Buffer.from(html).toString('base64');
