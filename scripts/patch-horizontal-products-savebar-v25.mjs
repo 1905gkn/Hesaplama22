@@ -48,10 +48,11 @@ const runtime = String.raw`
     const isB2B=page.classList.contains('b2b-mode')||page.dataset.rafexFreeContextSystem==='b2b'||!!page.querySelector('#b2bMain3DCanvas');
     const isMekik=!isB2B&&(page.dataset.rafexFreeContextSystem==='mekik2'||!!page.querySelector('#m2Top, #m2Front, #m2Side'));
     if(!isB2B&&!isMekik)return;
-    const card=(isB2B?page.querySelector('.m2-config-card'):null)||button.closest('.card')||page.querySelector('.m2-layout>.card');
-    if(!card)return;
-    let bar=card.querySelector(':scope>.rafex-b2b-mekik-savebar');
-    if(!bar){bar=document.createElement('div');bar.className='rafex-b2b-mekik-savebar';card.appendChild(bar)}
+    const layout=page.querySelector('.m2-layout');
+    if(!layout)return;
+    let bar=page.querySelector('.rafex-b2b-mekik-savebar');
+    if(!bar){bar=document.createElement('div');bar.className='rafex-b2b-mekik-savebar'}
+    if(bar.previousElementSibling!==layout)layout.insertAdjacentElement('afterend',bar);
     if(button.parentElement!==bar)bar.appendChild(button);
   };
   const schedule=()=>{if(!queued){queued=true;requestAnimationFrame(apply)}};
