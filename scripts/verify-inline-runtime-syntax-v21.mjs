@@ -57,5 +57,5 @@ if (errors.length) {
 
 if (!html.includes('data-rafex-free-info-modules="v27"')) throw new Error("Serbest bilgi modül v27 canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-drive-in-mekik="v1"')) throw new Error("Drive In Mekik klonu canlı HTML içinde bulunamadı");
-if (!html.includes('/drive-in-viewer.js?v=drive-in-front-v1')) throw new Error("Drive In viewer yükleyicisi canlı HTML içinde bulunamadı");
+if (!html.includes('/drive-in-viewer.js?v=drive-in-front-v2')) throw new Error("Drive In viewer yükleyicisi canlı HTML içinde bulunamadı");
 console.log(`Final response runtime syntax verified: ${scripts.length} script blocks.`);
