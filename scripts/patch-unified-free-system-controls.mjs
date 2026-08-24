@@ -42,7 +42,8 @@ const runtime = String.raw`<style data-rafex-unified-free-system-controls="v1">
 #page.rafex-free-drawing-page[data-rafex-free-context-system="mekik2"] #m2JoinRackButton,
 #page.rafex-free-drawing-page[data-rafex-free-context-system="mekik2"] #m2SeparateRackButton,
 #page.rafex-free-drawing-page[data-rafex-free-context-system="mekik2"] #m2SharedFootLabelButton{display:none!important}
-#page.rafex-free-drawing-page[data-rafex-free-context-system="b2b"] #m2AutoFillControls{display:flex}
+#page.rafex-free-drawing-page[data-rafex-free-context-system="b2b"] #m2AutoFillControls,
+#page.rafex-free-drawing-page[data-rafex-free-context-system="mr"] #m2AutoFillControls{display:flex}
 </style>
 <script data-rafex-unified-free-system-controls="v1">(function(){
   if(window.__rafexUnifiedFreeSystemControlsV1)return;
@@ -62,7 +63,7 @@ const runtime = String.raw`<style data-rafex-unified-free-system-controls="v1">
   function status(text){var box=document.getElementById('m2FloorStatus');if(box)box.textContent=text;}
   function rackSystem(rack){
     if(!rack)return '';
-    return rack.rafexSystem||(rack.b2bLayout||rack.b2b?'b2b':'mekik2');
+    return rack.rafexSystem||(rack.systemType==='mr'||rack.b2b?.mr||rack.plan?.mr?'mr':rack.b2bLayout||rack.b2b?'b2b':'mekik2');
   }
   function selectedRack(){
     try{
@@ -87,9 +88,11 @@ const runtime = String.raw`<style data-rafex-unified-free-system-controls="v1">
     if(saved)return saved;
     var picker=pickerSystem();
     if(picker)return picker;
-    try{return m2ActiveModule==='b2b'?'b2b':'mekik2';}catch{return 'mekik2';}
+    try{return m2ActiveModule==='b2b'?'b2b':m2ActiveModule==='mr'?'mr':'mekik2';}catch{return 'mekik2';}
   }
   function isB2BRack(rack){return rackSystem(rack)==='b2b'&&!!(rack?.b2bLayout||rack?.b2b);}
+  function isMRRack(rack){return rackSystem(rack)==='mr'&&!!(rack?.plan||rack?.b2bLayout||rack?.b2b);}
+  function isEditableRack(rack){return isB2BRack(rack)||isMRRack(rack);}
 
   window.rafexRackSystemOf=rackSystem;
   window.rafexFreeSelectedRackSystem=function(){return rackSystem(selectedRack())||contextSystem();};
@@ -119,17 +122,17 @@ const runtime = String.raw`<style data-rafex-unified-free-system-controls="v1">
       if(!isFree())return;
       ensureShortcutBar();
       var page=document.getElementById('page'),system=contextSystem(),rack=selectedRack();
-      page.dataset.rafexFreeContextSystem=system==='b2b'?'b2b':'mekik2';
+      page.dataset.rafexFreeContextSystem=system==='b2b'?'b2b':system==='mr'?'mr':'mekik2';
       var controls=document.getElementById('m2AutoFillControls');
       if(controls){
-        var b2b=system==='b2b';
-        controls.hidden=!b2b;
-        if(!b2b)controls.style.setProperty('display','none','important');else controls.style.removeProperty('display');
-        if(b2b&&!window.m2AutoFillDraft){
+        var extendable=system==='b2b'||system==='mr';
+        controls.hidden=!extendable;
+        if(!extendable)controls.style.setProperty('display','none','important');else controls.style.removeProperty('display');
+        if(extendable&&!window.m2AutoFillDraft){
           controls.classList.add('is-disabled');
           controls.querySelectorAll('input,button').forEach(function(el){el.disabled=true;});
           var input=document.getElementById('m2AutoFillLength');
-          if(input){input.placeholder=rack&&isB2BRack(rack)?'Rafa çift tıkla':'Önce B2B rafı çift tıkla';if(document.activeElement!==input)input.value='';}
+          if(input){input.placeholder=rack&&isEditableRack(rack)?'Rafa çift tıkla':'Önce B2B veya MR rafı çift tıkla';if(document.activeElement!==input)input.value='';}
         }
       }
     },0);
@@ -139,7 +142,7 @@ const runtime = String.raw`<style data-rafex-unified-free-system-controls="v1">
     var wrappedStart=function(rackId){
       if(isFree()){
         var rack=Array.isArray(m2LayoutState?.racks)?m2LayoutState.racks.find(function(item){return Number(item.id)===Number(rackId);}):null;
-        if(!isB2BRack(rack)){status('Uzatma Mesafesi yalnızca B2B raflarında kullanılabilir.');syncControls();return;}
+        if(!isEditableRack(rack)){status('Uzatma Mesafesi yalnızca B2B ve MR raflarında kullanılabilir.');syncControls();return;}
       }
       var result=originalStartAutoFill.apply(this,arguments);syncControls();return result;
     };
@@ -151,7 +154,7 @@ const runtime = String.raw`<style data-rafex-unified-free-system-controls="v1">
     var wrappedCustomize=function(rackId){
       if(isFree()){
         var rack=Array.isArray(m2LayoutState?.racks)?m2LayoutState.racks.find(function(item){return Number(item.id)===Number(rackId);}):null;
-        if(!isB2BRack(rack)){status('Özelleştir bu Serbest Çizim içinde yalnızca B2B rafına uygulanır.');return;}
+        if(!isEditableRack(rack)){status('Özelleştir yalnızca seçilen raf sisteminin desteklediği raflarda kullanılabilir.');return;}
       }
       return originalOpenCustomize.apply(this,arguments);
     };
@@ -163,7 +166,7 @@ const runtime = String.raw`<style data-rafex-unified-free-system-controls="v1">
     var wrappedJoin=function(){
       if(isFree()){
         var rack=selectedRack();
-        if(rack&&!isB2BRack(rack)){status('Birleştir yalnızca B2B raflarında kullanılabilir.');return;}
+        if(rack&&!isEditableRack(rack)){status('Birleştir yalnızca B2B ve MR raflarında kullanılabilir.');return;}
       }
       var result=originalToggleJoin.apply(this,arguments);syncControls();return result;
     };
@@ -175,7 +178,7 @@ const runtime = String.raw`<style data-rafex-unified-free-system-controls="v1">
     var wrappedSeparate=function(){
       if(isFree()){
         var rack=selectedRack();
-        if(rack&&!isB2BRack(rack)){status('Ayır yalnızca B2B birleşik raflarında kullanılabilir.');return;}
+        if(rack&&!isEditableRack(rack)){status('Ayır yalnızca B2B ve MR birleşik raflarında kullanılabilir.');return;}
       }
       var result=originalSeparate.apply(this,arguments);syncControls();return result;
     };
