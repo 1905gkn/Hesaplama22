@@ -31,6 +31,11 @@ await import(`./patch-free-info-system-modules-v27.mjs?build=${Date.now()}`);
 await import(`./build-drive-in-assets-v1.mjs?build=${Date.now()}`);
 await import(`./patch-drive-in-mekik-v1.mjs?build=${Date.now()}`);
 
+// Konsol Kollu: ayrı 3D viewer, 2/3 ayaklı çapraz set dağılımı ve 0-359 derece
+// kesit yönü. Bu son aşamada eklenir ki diğer sistem yamaları Konsol ekranını ezmesin.
+await import(`./patch-konsol-cantilever-v1.mjs?build=${Date.now()}`);
+await import(`./patch-konsol-loader-v1.mjs?build=${Date.now()}`);
+
 const workerModule = await import(`${workerPath}?syntax-check=${Date.now()}`);
 const response = await workerModule.default.fetch(
   new Request("https://runtime-verifier.invalid/"),
@@ -58,4 +63,6 @@ if (errors.length) {
 if (!html.includes('data-rafex-free-info-modules="v27"')) throw new Error("Serbest bilgi modül v27 canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-drive-in-mekik="v1"')) throw new Error("Drive In Mekik klonu canlı HTML içinde bulunamadı");
 if (!html.includes('/drive-in-viewer.js?v=drive-in-front-v2')) throw new Error("Drive In viewer yükleyicisi canlı HTML içinde bulunamadı");
+if (!html.includes('data-rafex-konsol-v1="1"')) throw new Error("Konsol Kollu ekranı canlı HTML içinde bulunamadı");
+if (!html.includes('/konsol-viewer.js?v=konsol-v1')) throw new Error("Konsol Kollu viewer yükleyicisi canlı HTML içinde bulunamadı");
 console.log(`Final response runtime syntax verified: ${scripts.length} script blocks.`);
