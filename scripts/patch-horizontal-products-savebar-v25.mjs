@@ -61,15 +61,7 @@ const runtime = String.raw`
   display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;
   margin:0 auto!important;transform:none!important
 }
-.rafex-mekik-live-front-overlay{position:absolute;inset:0;z-index:7;pointer-events:none;font-family:Arial,sans-serif}
-.rafex-mekik-live-front-overlay .top-stack{position:absolute;top:1.5%;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;white-space:nowrap}
-.rafex-mekik-live-front-overlay .side-gap{padding:2px 8px;border-radius:10px;background:#fff6bf;color:#6c5600;font-size:11px;font-weight:950}
-.rafex-mekik-live-front-overlay .pallet-chip{padding:3px 9px;border:1px solid #d2a900;border-radius:11px;background:#fff3a5;color:#4d4300;font-size:11px;font-weight:950}
-.rafex-mekik-live-front-overlay .upright-line{position:absolute;right:7.8%;top:20%;bottom:10%;width:3px;background:#d6ac00}
-.rafex-mekik-live-front-overlay .upright-line:before,.rafex-mekik-live-front-overlay .upright-line:after{content:"";position:absolute;left:50%;transform:translateX(-50%);border-left:7px solid transparent;border-right:7px solid transparent}
-.rafex-mekik-live-front-overlay .upright-line:before{top:-1px;border-bottom:12px solid #d6ac00}.rafex-mekik-live-front-overlay .upright-line:after{bottom:-1px;border-top:12px solid #d6ac00}
-.rafex-mekik-live-front-overlay .upright-chip{position:absolute;right:1.2%;top:49%;transform:translateY(-50%);min-width:118px;padding:8px 10px;border-radius:9px;background:#173c2d;color:#fff;text-align:center;font-size:10px;font-weight:950}
-.rafex-mekik-live-front-overlay .upright-chip b{display:block;margin-top:3px;font-size:16px}
+#page #m2Front>svg[data-rafex-reference-front="v26"]{background:#fff}
 
 #page .rafex-b2b-mekik-savebar{width:100%;margin:12px 0 0;box-sizing:border-box}
 #page .rafex-b2b-mekik-savebar>#m2SaveRackButton{
@@ -98,14 +90,38 @@ const runtime = String.raw`
       native=host.querySelector('svg [data-front-layout="ayak2-glb-front-projection"]');
     }
     if(!native)return;
-    const svg=host.querySelector(':scope>svg');
-    if(svg){Array.from(svg.querySelectorAll(':scope>text')).slice(0,2).forEach((node)=>node.style.display='none');const bayDims=Array.from(svg.querySelectorAll('.m2-front-bay-dimension'));bayDims.forEach((node,index)=>node.style.display=index===0?'':'none')}
     let drawing={};try{drawing=typeof m2LastDrawing!=='undefined'&&m2LastDrawing?m2LastDrawing:{}}catch(error){}
-    const side=Math.max(0,Number(drawing.sideClearance??drawing.sideGap??75)||75),levels=Math.max(1,Number(drawing.levels)||1),levelH=Math.max(380,Number(drawing.levelH)||1580),loadH=Math.max(300,Number(drawing.palletHeight)||levelH-380),first=Math.max(0,Number(drawing.firstRailHeight)||430),upright=first+(levels-1)*levelH+loadH/2,pallet=Math.max(600,Number(drawing.palW)||1200);
-    const signature=[side,levels,levelH,loadH,first,pallet].join('|');let overlay=host.querySelector('.rafex-mekik-live-front-overlay');
-    if(!overlay){overlay=document.createElement('div');overlay.className='rafex-mekik-live-front-overlay';host.appendChild(overlay)}
-    if(overlay.dataset.signature!==signature){overlay.dataset.signature=signature;overlay.innerHTML='<div class="top-stack"><span class="side-gap">YAN BOŞLUK · '+formatMm(side)+' + '+formatMm(side)+' mm</span><span class="pallet-chip">PALET · '+formatMm(pallet)+' mm</span></div><span class="upright-line"></span><span class="upright-chip">AYAK UZUNLUĞU<b>'+formatMm(upright)+' mm</b></span>'}
+    const side=Math.max(0,Number(drawing.sideClearance??drawing.sideGap??75)||75),levels=Math.max(1,Number(drawing.levels)||1),levelH=Math.max(380,Number(drawing.levelH)||1580),loadH=Math.max(300,Number(drawing.palletHeight)||levelH-380),first=Math.max(0,Number(drawing.firstRailHeight)||430),upright=first+(levels-1)*levelH+loadH/2,pallet=Math.max(600,Number(drawing.palW)||1200),foot=Math.max(70,Math.min(110,Number(drawing.footType)||90)),pitch=pallet+150+foot,bays=Math.max(1,Number(drawing.bays)||1);
+    const signature=[side,levels,levelH,loadH,first,pallet,foot,bays].join('|');
+    if(host.dataset.rafexReferenceFrontSignature===signature&&host.querySelector('svg[data-rafex-reference-front="v26"]'))return;
+    let projection='';try{projection=m2MekikSetProjection('front',drawing,58,42,740,610)}catch(error){return}
+    const rackTop=153,rackBottom=632,dimX=800,chipX=814;
+    host.innerHTML='<svg viewBox="0 0 950 696" data-rafex-reference-front="v26" role="img" aria-label="Mekik raf referans önden görünüşü">'+
+      '<defs><pattern id="rafex-mekik-grid-v26" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#e8eeeb" stroke-width="1"/></pattern></defs><rect width="950" height="696" fill="#fff"/><rect width="950" height="696" fill="url(#rafex-mekik-grid-v26)"/>'+
+      '<g class="m2-set-projection">'+projection+'</g>'+
+      '<g font-family="Arial,sans-serif" text-anchor="middle" font-weight="900"><rect x="236" y="18" width="206" height="24" rx="12" fill="#fff7c7" stroke="#d4aa00"/><text x="339" y="34" font-size="13" fill="#6b5600">YAN BOŞLUK · '+formatMm(side)+' + '+formatMm(side)+' mm</text><rect x="180" y="44" width="318" height="31" rx="15" fill="#173c2d"/><text x="339" y="65" font-size="15" fill="#fff">KOLON ARALIĞI · '+formatMm(pitch)+' mm</text><rect x="245" y="78" width="188" height="25" rx="12" fill="#fff3a5" stroke="#d4aa00"/><text x="339" y="95" font-size="14" fill="#594700">PALET · '+formatMm(pallet)+' mm</text></g>'+
+      '<g stroke="#d5ad00" fill="#d5ad00"><line x1="'+dimX+'" y1="'+rackTop+'" x2="'+dimX+'" y2="'+rackBottom+'" stroke-width="4"/><path d="M'+dimX+' '+rackTop+'l-8 15h16zM'+dimX+' '+rackBottom+'l-8-15h16z"/></g><g font-family="Arial,sans-serif" text-anchor="middle" font-weight="900"><rect x="'+chipX+'" y="335" width="124" height="62" rx="10" fill="#173c2d"/><text x="'+(chipX+62)+'" y="359" font-size="13" fill="#fff">AYAK UZUNLUĞU</text><text x="'+(chipX+62)+'" y="383" font-size="20" fill="#fff">'+formatMm(upright)+' mm</text></g></svg>';
+    host.dataset.rafexReferenceFrontSignature=signature;
+    host.querySelectorAll('.m2-front-bay-dimension').forEach((node)=>node.style.display='none');
   };
+
+  /* Mekik: normal tasiyici Ayak takimi, yalniz secili arka ilave profil
+     Ayak profili olarak listelenir. Her ikisi de goz sayisi + 1 hat kuralini kullanir. */
+  const normalizeMekikBom=(rows,entry,labels)=>{
+    const drawing=entry?.drawing||entry||{};if(drawing.b2bLayout||drawing?.b2b?.mr)return rows;
+    const normalName=labels?.items?.footTeam||'Ayak takımı',profileName=labels?.items?.foot||'Ayak profili',oldProfile=labels?.items?.foot||'Ayak profili',oldExtra=labels?.items?.extra||'Ekstra düz profil',lineCount=(Math.max(1,Math.round(Number(drawing.bays)||1))+1)*Math.max(1,Math.round(Number(entry?.rackCount)||1));
+    return (Array.isArray(rows)?rows:[]).map((row)=>{
+      if(String(row?.item||'')===String(oldExtra))return{...row,item:profileName,qty:lineCount};
+      if(String(row?.item||'')===String(oldProfile))return{...row,item:normalName};
+      return row;
+    });
+  };
+  try{const previousBom=window.m2CorporateBomRows;if(typeof previousBom==='function'&&!previousBom.__rafexMekikFootSplitV26){const wrapped=function(entry,labels){return normalizeMekikBom(previousBom.apply(this,arguments),entry,labels)};wrapped.__rafexMekikFootSplitV26=true;try{m2CorporateBomRows=wrapped}catch{}window.m2CorporateBomRows=wrapped}}catch(error){console.warn('Mekik ayak listesi ayrılamadı',error)}
+
+  /* Raf arasi alaninin ilk degisiklikten sonra yakinlik listesinden dusmesi
+     islemi kilitliyordu. Secilen iki raf arasindaki iliskiyi dogrudan yeniden kur. */
+  const directRackGap=(owner,other)=>{try{const a=m2CombinedRackBounds(owner),b=m2CombinedRackBounds(other),candidates=[],horizontalStart=Math.max(a.top,b.top),horizontalEnd=Math.min(a.bottom,b.bottom),verticalStart=Math.max(a.left,b.left),verticalEnd=Math.min(a.right,b.right);let candidate;if(a.right<=b.left&&horizontalStart<=horizontalEnd){candidate=m2ClearRackGapLine(owner,other,'right',a.right,b.left,horizontalStart,horizontalEnd);if(candidate)candidates.push(candidate)}if(b.right<=a.left&&horizontalStart<=horizontalEnd){candidate=m2ClearRackGapLine(owner,other,'left',a.left,b.right,horizontalStart,horizontalEnd);if(candidate)candidates.push(candidate)}if(a.bottom<=b.top&&verticalStart<=verticalEnd){candidate=m2ClearRackGapLine(owner,other,'bottom',a.bottom,b.top,verticalStart,verticalEnd);if(candidate)candidates.push(candidate)}if(b.bottom<=a.top&&verticalStart<=verticalEnd){candidate=m2ClearRackGapLine(owner,other,'top',a.top,b.bottom,verticalStart,verticalEnd);if(candidate)candidates.push(candidate)}candidate=candidates.sort((x,y)=>x.distance-y.distance)[0];if(!candidate)return null;candidate.clearanceMm=m2RackClearanceMm(owner,other,candidate.direction);candidate.other=other;return candidate}catch(error){return null}};
+  window.rafexSetRackGapV49=function(ownerId,otherId,rawValue){const owner=(m2LayoutState?.racks||[]).find((rack)=>Number(rack.id)===Number(ownerId)),other=(m2LayoutState?.racks||[]).find((rack)=>Number(rack.id)===Number(otherId));if(!owner||!other)return;const relation=directRackGap(owner,other);if(!relation){document.getElementById('m2FloorStatus').textContent='Bu iki raf artık aynı doğrultuda değil.';return}const displayMm=Math.max(0,Number(rawValue)||0),desiredPx=(displayMm+(Number(relation.clearanceMm)||0))*Math.max(.0001,Number(m2LayoutState.scale)||.04),delta=desiredPx-Number(relation.distance||0);let nextX=owner.x,nextY=owner.y;if(relation.direction==='right')nextX-=delta;else if(relation.direction==='left')nextX+=delta;else if(relation.direction==='bottom')nextY-=delta;else if(relation.direction==='top')nextY+=delta;const moved=m2MoveRackOrJoinedGroup(owner,nextX,nextY),status=document.getElementById('m2FloorStatus');if(status)status.textContent=moved?'Raf arası '+formatMm(displayMm)+' mm olarak ayarlandı.':'Girilen raf arası mesafe bloğu alan dışına çıkarıyor veya başka bir rafla çakıştırıyor.';m2RenderLayout()};
   const savedIndex=(button)=>{const row=button?.closest?.('.m2-saved-type-row');if(!row)return-1;const main=row.querySelector('.m2-saved-type'),source=String(main?.getAttribute('onclick')||'');const match=source.match(/(?:m2HandleSavedRackTypeClick|m2SelectSavedRackType)\((\d+)/);if(match)return Number(match[1]);return Array.from(row.parentElement?.querySelectorAll('.m2-saved-type-row')||[]).indexOf(row)};
   const apply=()=>{
     queued=false;
@@ -140,6 +156,9 @@ const runtime = String.raw`
 </script>`;
 
 html = html.replace('</body>', `${runtime}</body>`);
+for (const required of ['data-rafex-reference-front="v26"','__rafexMekikFootSplitV26','directRackGap','Ayak takımı','Ayak profili']) {
+  if (!html.includes(required)) throw new Error(`Mekik/raf arası v26 doğrulaması eksik: ${required}`);
+}
 const encoded = Buffer.from(html).toString('base64');
 source = source.slice(0, match.index) + match[0].replace(match[2], encoded) + source.slice(match.index + match[0].length);
 fs.writeFileSync(file, source);
