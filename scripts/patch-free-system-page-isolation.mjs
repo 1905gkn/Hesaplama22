@@ -37,14 +37,11 @@ if (html.includes(mixedDbl)) {
   throw new Error("Free system page isolation: dblclick kosulu bulunamadi.");
 }
 
-// Serbest Cizim runtime icindeki ekstra tus/dblclick dinleyicileri zaten isFree()
-// ile sinirli. CSS de #page.rafex-free-drawing-page altina scope edilmis durumda.
-// Burada yalnizca kaynak seviyesinde degisen iki global kosulu izole ediyoruz.
-if (!html.includes('if(!isFree()||event.defaultPrevented)return;')) {
-  throw new Error("Free system page isolation: klavye kisayolu Serbest Cizim guard bulunamadi.");
-}
-if (!html.includes("if(!isFree())return;\n    var rackNode=event.target?.closest?.('#m2LayoutSvg [data-rack]');")) {
-  throw new Error("Free system page isolation: Serbest Cizim dblclick guard bulunamadi.");
+// Serbest Cizim artik klavye/tiklama/cift-tik olaylarini ayrica ele gecirmez.
+// B2B ve Mekik aktif motorunun kendi dogal olay akisi calisir. Burada yalnizca
+// kaynak seviyesinde degisen iki eski global B2B kosulunu sayfaya izole ediyoruz.
+if (!html.includes('dogal olay akisi aynen calisir')) {
+  throw new Error("Free system page isolation: dogal olay akisi isareti bulunamadi.");
 }
 
 const encoded = Buffer.from(html, "utf8").toString("base64");
