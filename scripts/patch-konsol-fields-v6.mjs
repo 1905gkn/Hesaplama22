@@ -55,11 +55,13 @@ const runtime=String.raw`
 })();
 </script>`;
 
-html=html.replace('</body>',runtime+'\n</body>');
+const bodyClose=html.lastIndexOf('</body>');
+if(bodyClose<0)throw new Error('Konsol fields v6 gerçek body kapanışı bulunamadı.');
+html=html.slice(0,bodyClose)+runtime+'\n'+html.slice(bodyClose);
 for(const required of ['data-rafex-konsol-fields="v6"','Kattaki ağırlık','Kat derinliği (mm)','Taban Kat derinliği (mm)','RAL-5010','RAL-1007','RAL-2004','konsolHeightMode','Otomatik','Manuel']){
   if(!html.includes(required))throw new Error('Konsol fields v6 doğrulaması eksik: '+required);
 }
 const encoded=Buffer.from(html).toString('base64');
 source=source.slice(0,match.index)+match[0].replace(match[2],encoded)+source.slice(match.index+match[0].length);
 fs.writeFileSync(file,source);
-console.log('Konsol v6: Kattaki ağırlık, Kat/Taban Kat derinliği, RAL renkleri ve Otomatik/Manuel ayak yüksekliği canlı forma eklendi.');
+console.log('Konsol v6: eksik alanlar gerçek body kapanışına güvenli şekilde eklendi.');
