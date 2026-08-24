@@ -101,11 +101,16 @@ replaceRequired(
       base.castShadow = true;
       base.receiveShadow = true;
       this.root.add(base);`,
-`      const baseDepth = o.doubleSided ? o.baseDepth * 2 : o.baseDepth;
-      const base = iBeamAlongZ(baseDepth, uprightSection, baseMat);
-      base.name = o.uprightProfile.toUpperCase() + ' Taban';
-      base.position.set(x, uprightSection.h / 2, o.doubleSided ? 0 : o.baseDepth / 2);
-      this.root.add(base);`,
+`      // Taban profili dikmenin içine girmesin; dikmenin ön yüzünden başlasın.
+      // Böylece görünen taban derinliği tam olarak seçilen değer olur.
+      const addBase = (direction) => {
+        const base = iBeamAlongZ(o.baseDepth, uprightSection, baseMat);
+        base.name = o.uprightProfile.toUpperCase() + (direction > 0 ? ' Ön Taban' : ' Arka Taban');
+        base.position.set(x, uprightSection.h / 2, direction * (uprightDepth / 2 + o.baseDepth / 2));
+        this.root.add(base);
+      };
+      addBase(1);
+      if (o.doubleSided) addBase(-1);`,
 'IPE taban geometrisi');
 
 replaceRequired(
@@ -122,16 +127,17 @@ replaceRequired(
 
 replaceRequired(
 `      new THREE.PlaneGeometry(Math.max(8000, width + 5000), Math.max(7000, o.armLength * 2 + 4000)),`,
-`      new THREE.PlaneGeometry(Math.max(8000, width + 5000), Math.max(7000, Math.max(o.armLength, o.baseDepth) * 2 + 4000)),`,
+`      new THREE.PlaneGeometry(Math.max(8000, width + 5000), Math.max(7000, Math.max(o.armLength, o.baseDepth) * 2 + uprightDepth + 4000)),`,
 'zemin derinliği');
 
 for(const required of [
   'const IPE_SECTIONS = {','const NPI_SECTIONS = {','iBeamAlongY','iBeamAlongZ',
   "uprightProfile: IPE_SECTIONS[next.uprightProfile]","armProfile: NPI_SECTIONS[next.armProfile]",
-  "color: 0x005387","0xE25303","0xE1A100","o.baseDepth * 2","o.baseDepth / 2",
+  "color: 0x005387","0xE25303","0xE1A100","const addBase = (direction)",
+  "uprightDepth / 2 + o.baseDepth / 2","addBase(1)","if (o.doubleSided) addBase(-1)",
   "o.uprightProfile.toUpperCase() + ' Ayak'","o.armProfile.toUpperCase() + ' Kol'"
 ]){
   if(!source.includes(required))throw new Error('Konsol viewer v5 doğrulaması eksik: '+required);
 }
 fs.writeFileSync(file,source);
-console.log('Konsol v5 viewer: deliksiz IPE 180-300 ayak, NPI 80-220 kol, RAL-5010 ve RAL-1007/2004 aktif.');
+console.log('Konsol v5 viewer: taban profili dikmenin önünden başlıyor; deliksiz IPE 180-300 ayak, NPI 80-220 kol ve RAL renkleri aktif.');
