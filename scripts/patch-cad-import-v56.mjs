@@ -39,6 +39,25 @@ if (!html.includes(marker)) {
   function status(message){var node=document.getElementById('m2FloorStatus');if(node)node.textContent=message;}
   function language(){var value=String(document.documentElement.lang||localStorage.getItem('language')||localStorage.getItem('rafexLanguage')||'tr').toLowerCase();return value.startsWith('fr')?'fr':value.startsWith('en')?'en':'tr';}
   function buttonLabel(){return language()==='fr'?'Importer depuis AutoCAD':language()==='en'?'Import from AutoCAD':'AutoCAD’den Aktar';}
+  function cadFolderDb(){return new Promise(function(resolve,reject){var request=indexedDB.open('rafex-cad-folders',1);request.onupgradeneeded=function(){if(!request.result.objectStoreNames.contains('handles'))request.result.createObjectStore('handles');};request.onsuccess=function(){resolve(request.result);};request.onerror=function(){reject(request.error);};});}
+  async function loadCadFolder(){try{var db=await cadFolderDb();return await new Promise(function(resolve,reject){var tx=db.transaction('handles','readonly'),request=tx.objectStore('handles').get('rafex-export-folder');request.onsuccess=function(){resolve(request.result||null);};request.onerror=function(){reject(request.error);};});}catch(error){return null;}}
+  async function saveCadFolder(handle){try{var db=await cadFolderDb();await new Promise(function(resolve,reject){var tx=db.transaction('handles','readwrite');tx.objectStore('handles').put(handle,'rafex-export-folder');tx.oncomplete=resolve;tx.onerror=function(){reject(tx.error);};});}catch(error){}}
+  async function chooseCadImport(input){
+    if(typeof window.showDirectoryPicker!=='function'||typeof window.showOpenFilePicker!=='function'){input.click();return;}
+    try{
+      var folder=await loadCadFolder(),permission=folder&&typeof folder.queryPermission==='function'?await folder.queryPermission({mode:'read'}):'prompt';
+      if(!folder||String(folder.name||'').toLowerCase()!=='rafex'||permission==='denied'){
+        alert('İlk kullanım: Şimdi C:\\Rafex klasörünü seç. Bu izin kaydedilecek ve sonraki aktarımlar doğrudan aynı klasörden açılacak.');
+        folder=await window.showDirectoryPicker({id:'rafex-cad-export-folder',mode:'read'});
+        if(String(folder?.name||'').toLowerCase()!=='rafex')throw new Error('Lütfen C:\\Rafex klasörünü seç.');
+        await saveCadFolder(folder);
+      }else if(permission!=='granted'&&typeof folder.requestPermission==='function'){
+        permission=await folder.requestPermission({mode:'read'});if(permission!=='granted')throw new Error('C:\\Rafex klasör okuma izni verilmedi.');
+      }
+      var handles=await window.showOpenFilePicker({id:'rafex-cad-import-file',startIn:folder,multiple:false,types:[{description:'RAFEX CAD JSON',accept:{'application/json':['.json']}}]});
+      if(handles&&handles[0])await importFile(await handles[0].getFile());
+    }catch(error){if(error?.name==='AbortError')return;status(error?.message||'C:\\Rafex klasörü açılamadı.');alert(error?.message||'C:\\Rafex klasörü açılamadı.');}
+  }
   function restoreCad(){try{if(!Array.isArray(m2LayoutState.cadElements)||!m2LayoutState.cadElements.length){var items=(Array.isArray(m2LayoutSymbols)?m2LayoutSymbols:[]).filter(function(item){return item&&item.cadImported&&item.cadElement;});if(items.length)m2LayoutState.cadElements=items.map(function(item){return item.cadElement;});}}catch(error){}}
   function renderCad(){
     restoreCad();var content=document.getElementById('m2LayoutContent');if(!content)return;content.querySelector('.rafex-cad-layer')?.remove();
@@ -72,7 +91,7 @@ if (!html.includes(marker)) {
     }catch(error){status('AutoCAD aktarımı başarısız: '+(error?.message||'Dosya okunamadı.'));alert(error?.message||'AutoCAD dosyası okunamadı.');}
   }
   function ensureButton(){
-    var areaButton=Array.from(document.querySelectorAll('.m2-floor-size button')).find(function(button){return /Alanı Belirle|Define Area|Définir/i.test(button.textContent||'')||String(button.getAttribute('onclick')||'').includes('m2CreateRectangle');});if(!areaButton)return;var grid=areaButton.closest('.m2-floor-size');if(!grid)return;grid.classList.add('rafex-cad-import-grid');var input=grid.querySelector('#m2CadImportInput'),button=grid.querySelector('.rafex-cad-import-button');if(!input){input=document.createElement('input');input.id='m2CadImportInput';input.type='file';input.hidden=true;input.accept='.json,.rafex.json,application/json';input.addEventListener('change',function(){importFile(input.files&&input.files[0]);input.value='';});grid.insertBefore(input,areaButton);}if(!button){button=document.createElement('button');button.type='button';button.className='rafex-cad-import-button';button.addEventListener('click',async function(){if(typeof window.showOpenFilePicker==='function'){try{var handles=await window.showOpenFilePicker({id:'rafex-cad-import-folder',multiple:false,types:[{description:'RAFEX CAD JSON',accept:{'application/json':['.json']}}]});if(handles&&handles[0]){await importFile(await handles[0].getFile());return;}}catch(error){if(error?.name==='AbortError')return;}}input.click();});grid.insertBefore(button,areaButton);}button.textContent=buttonLabel();button.title=buttonLabel()+' · İlk kullanımda C:\\Rafex klasörünü seç; tarayıcı sonraki açılışlarda hatırlar.';
+    var areaButton=Array.from(document.querySelectorAll('.m2-floor-size button')).find(function(button){return /Alanı Belirle|Define Area|Définir/i.test(button.textContent||'')||String(button.getAttribute('onclick')||'').includes('m2CreateRectangle');});if(!areaButton)return;var grid=areaButton.closest('.m2-floor-size');if(!grid)return;grid.classList.add('rafex-cad-import-grid');var input=grid.querySelector('#m2CadImportInput'),button=grid.querySelector('.rafex-cad-import-button');if(!input){input=document.createElement('input');input.id='m2CadImportInput';input.type='file';input.hidden=true;input.accept='.json,.rafex.json,application/json';input.addEventListener('change',function(){importFile(input.files&&input.files[0]);input.value='';});grid.insertBefore(input,areaButton);}if(!button){button=document.createElement('button');button.type='button';button.className='rafex-cad-import-button';button.addEventListener('click',function(){chooseCadImport(input);});grid.insertBefore(button,areaButton);}button.textContent=buttonLabel();button.title=buttonLabel()+' · C:\\Rafex klasörü ilk seçimden sonra kalıcı olarak hatırlanır.';
   }
   var originalRender=typeof m2RenderLayout==='function'?m2RenderLayout:null;if(originalRender){var wrappedRender=function(){var result=originalRender.apply(this,arguments);renderCad();return result;};try{m2RenderLayout=wrappedRender;}catch(error){}window.m2RenderLayout=wrappedRender;}
   var originalClear=typeof m2ClearLayout==='function'?m2ClearLayout:null;if(originalClear){var wrappedClear=function(){try{m2LayoutState.cadElements=[];}catch(error){}return originalClear.apply(this,arguments);};try{m2ClearLayout=wrappedClear;}catch(error){}window.m2ClearLayout=wrappedClear;}
@@ -86,7 +105,7 @@ if (!html.includes(marker)) {
   html = html.slice(0, bodyEnd) + runtime + "\n" + html.slice(bodyEnd);
 }
 
-for (const required of [marker, "AutoCAD’den Aktar", "rafex_alan:'area'", "pathBreaks.push(layoutPoints.length-1)", "Kenar Uzunluk Bilgisi", "rafexDeleteCadEdgeV57", "rafexContinueCadEdgeV58", "payload?.projectName", "window.rafexImportCadFileV56"]) {
+for (const required of [marker, "AutoCAD’den Aktar", "rafex_alan:'area'", "pathBreaks.push(layoutPoints.length-1)", "Kenar Uzunluk Bilgisi", "rafexDeleteCadEdgeV57", "rafexContinueCadEdgeV58", "rafex-cad-folders", "showDirectoryPicker", "payload?.projectName", "window.rafexImportCadFileV56"]) {
   if (!html.includes(required)) throw new Error(`CAD v56 dogrulama hatasi: ${required}`);
 }
 
