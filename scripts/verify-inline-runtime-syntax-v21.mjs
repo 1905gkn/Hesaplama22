@@ -52,7 +52,8 @@ scripts.forEach((entry, index) => {
   try {
     new vm.Script(entry[2], { filename: `inline-runtime-${index}.js` });
   } catch (error) {
-    errors.push(`inline #${index} ${attributes.trim()}: ${error.message}`);
+    const stack = String(error && error.stack || error).split("\n").slice(0, 7).join("\n");
+    errors.push(`inline #${index} ${attributes.trim()}:\n${stack}`);
   }
 });
 
