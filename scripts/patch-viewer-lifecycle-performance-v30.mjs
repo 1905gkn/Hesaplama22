@@ -149,4 +149,24 @@ patchFile("client/mr-viewer.entry.js", (src) => {
   return src;
 });
 
+// Bilgi penceresi kendi interaktif 3D sahnesini acsin; ana B2B/MR viewer singleton'ini
+// kapatmadan mouse ile dondurme/zoom ve 3D olculeri kullanabilsin.
+patchFile("client/b2b-viewer.entry.js", (src) => {
+  if (src.includes("createDetached(canvas, options)")) return src;
+  const needle = `  captureViews(options, settings) {\n    return captureB2BViews(options, settings);\n  },\n};`;
+  const replacement = `  captureViews(options, settings) {\n    return captureB2BViews(options, settings);\n  },\n  createDetached(canvas, options) {\n    if (!(canvas instanceof HTMLCanvasElement)) throw new Error(\"B2B bilgi 3D tuvali bulunamadı.\");\n    return new B2BViewer(canvas, options || {});\n  },\n};`;
+  if (!src.includes(needle)) throw new Error("v30: B2B detached API ekleme noktasi bulunamadi.");
+  src = src.replace(needle, replacement);
+  return src;
+});
+
+patchFile("client/mr-viewer.entry.js", (src) => {
+  if (src.includes("createDetached(canvas, config)")) return src;
+  const needle = `  captureView(config, settings) { return captureMRModuleView(config, settings); },\n  destroy() { active?.destroy(); active = null; },`;
+  const replacement = `  captureView(config, settings) { return captureMRModuleView(config, settings); },\n  createDetached(canvas, config) {\n    if (!(canvas instanceof HTMLCanvasElement)) throw new Error(\"MR bilgi 3D tuvali bulunamadı.\");\n    return new MRViewer(canvas, { config: config || {} });\n  },\n  destroy() { active?.destroy(); active = null; },`;
+  if (!src.includes(needle)) throw new Error("v30: MR detached API ekleme noktasi bulunamadi.");
+  src = src.replace(needle, replacement);
+  return src;
+});
+
 console.log("v30: 3D viewer RAF iptali + geometry/material/texture/listener temizligi aktif.");
