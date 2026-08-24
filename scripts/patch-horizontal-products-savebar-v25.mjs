@@ -28,10 +28,31 @@ const runtime = String.raw`
 #page.rafex-free-drawing-page .rafex-system-product-row>span>small{font-size:8px;line-height:1.1;white-space:normal}
 #page.rafex-free-drawing-page .rafex-system-product-row>strong{
   display:flex!important;align-items:center!important;justify-content:center!important;align-self:stretch!important;
-  min-width:46px;padding:0 7px;border-left:1px solid #dfe7e1;box-sizing:border-box;
+  min-width:46px;height:100%!important;padding:0 7px;border-left:1px solid #dfe7e1!important;box-sizing:border-box;
   font-size:11px!important;white-space:nowrap;text-align:center
 }
 #page.rafex-free-drawing-page .rafex-system-product-empty{flex:1 0 100%;box-sizing:border-box}
+
+/* Distance editors keep their headings outside the measurement grid. The
+   four wall fields and four edge fields stay on one row after system changes. */
+#page.rafex-free-drawing-page .m2-wall-editor{
+  display:grid!important;grid-template-columns:repeat(4,minmax(220px,1fr))!important;
+  gap:8px!important;overflow-x:auto!important;align-items:stretch!important
+}
+#page.rafex-free-drawing-page .m2-wall-editor>.m2-wall-editor-title{
+  grid-column:1/-1!important;width:100%!important;box-sizing:border-box
+}
+#page.rafex-free-drawing-page .m2-wall-editor>.m2-wall-editor-empty{grid-column:1/-1!important}
+#page.rafex-free-drawing-page .m2-edge-editor{
+  display:grid!important;grid-template-columns:repeat(4,minmax(220px,1fr))!important;
+  gap:8px!important;overflow-x:auto!important;align-items:stretch!important
+}
+#page.rafex-free-drawing-page .m2-edge-editor[hidden]{display:none!important}
+
+/* MR has its own two-nearest-gap single-row editor; retain that geometry. */
+#page.rafex-free-drawing-page.mr-mode .m2-wall-editor{
+  display:flex!important;flex-wrap:nowrap!important;align-items:stretch!important
+}
 
 #page .rafex-b2b-mekik-savebar{width:100%;margin:12px 0 0;box-sizing:border-box}
 #page .rafex-b2b-mekik-savebar>#m2SaveRackButton{
@@ -50,6 +71,14 @@ const runtime = String.raw`
     queued=false;
     const page=document.getElementById('page'),button=document.getElementById('m2SaveRackButton');
     if(!page||!button)return;
+    page.querySelectorAll('.rafex-system-product-row>span').forEach((cell)=>{
+      if(cell.querySelector('small'))return;
+      const placeholder=document.createElement('small');
+      placeholder.className='rafex-product-spec-placeholder';
+      placeholder.setAttribute('aria-hidden','true');
+      placeholder.innerHTML='&nbsp;';
+      cell.appendChild(placeholder);
+    });
     if(page.classList.contains('mr-mode')||page.querySelector('#mrCanvas'))return;
     const isB2B=page.classList.contains('b2b-mode')||page.dataset.rafexFreeContextSystem==='b2b'||!!page.querySelector('#b2bMain3DCanvas');
     const isMekik=!isB2B&&(page.dataset.rafexFreeContextSystem==='mekik2'||!!page.querySelector('#m2Top, #m2Front, #m2Side'));
