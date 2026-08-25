@@ -207,7 +207,6 @@ const runtime = `<style ${marker}>
     free.pending=selected;free.selected=selected;
     if(SUPPORTED.has(selected)){
       renderEngine(selected,true);
-      setTimeout(()=>document.querySelector('.m2-layout')?.scrollIntoView({behavior:'smooth',block:'start'}),60);
     }else{
       free.continued=true;
       const page=document.getElementById('page');
@@ -262,4 +261,7 @@ const finalHtml = Buffer.from(encoded, "base64").toString("utf8");
 for (const required of [marker, "Serbest Çizim", "Raf Sistemi Araçları", "rafexEnterUnifiedFreeDrawing", "+ Modülü Ortak Alana Ekle", "['b2b','mekik2','mr']", "else if(target==='mr')renderMR()", "page.classList.remove('b2b-mode','mr-mode')"] ) {
   if (!finalHtml.includes(required)) throw new Error(`Unified free drawing dogrulama hatasi: ${required}`);
 }
-console.log("FINAL: Serbest Cizim menusu + Sistem Tipleri secimi + ortak B2B/Mekik yerlesim durumu eklendi (v1).");
+if (finalHtml.includes("setTimeout(()=>document.querySelector('.m2-layout')?.scrollIntoView({behavior:'smooth',block:'start'}),60)")) {
+  throw new Error("Unified free drawing: sistem gecisindeki otomatik kaydirma kaldirilamadi.");
+}
+console.log("FINAL: Ortak B2B/Mekik sistem gecisi ekran kaydirilmadan yapilir (v1).");
