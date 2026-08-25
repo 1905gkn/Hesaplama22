@@ -195,3 +195,5 @@ const encoded = Buffer.from(html).toString("base64");
 source = source.slice(0, match.index) + match[0].replace(match[2], encoded) + source.slice(match.index + match[0].length);
 fs.writeFileSync(file, source);
 console.log("Drive In v1: Mekik akışı korundu; GLB ön görünüş tekrar mount döngüsü ve resize titreşimi giderildi.");
+
+await import("./patch-free-layout-persistence-v37.mjs");
