@@ -16,9 +16,9 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
 #page.rafex-common-independent .rafex-free-mode-note b{white-space:nowrap;color:#173c2d!important}
 #page.rafex-common-independent .m2-floor-editor{border:2px solid #b9d0c0!important;border-radius:13px!important;box-shadow:0 10px 26px rgba(23,60,45,.08)!important;background:#fff!important}
 #page.rafex-common-independent .m2-saved-types{border-color:#b9d0c0!important;background:#fbfdfb!important}
-.rafex-common-pair-gap .m2-rack-distance{stroke:#a86f00!important;stroke-width:2.2!important}
-.rafex-common-pair-gap .m2-measure-hit{fill:#fff8d7!important;stroke:#d29b16!important;stroke-width:1.5!important;cursor:pointer!important;pointer-events:all!important}
-.rafex-common-pair-gap .m2-rack-distance-label{fill:#5f4300!important;font-weight:950!important;cursor:pointer!important;pointer-events:all!important}
+.rafex-common-pair-gap .m2-rack-distance{stroke:#e09b00!important;stroke-width:2!important;stroke-dasharray:6 4!important}
+.rafex-common-pair-gap .m2-measure-hit{fill:transparent!important;stroke:none!important;cursor:pointer!important;pointer-events:all!important}
+.rafex-common-pair-gap .m2-rack-distance-label{fill:#6f4700!important;font:900 8.5px Arial!important;paint-order:stroke!important;stroke:#fff!important;stroke-width:2.5px!important;cursor:pointer!important;pointer-events:auto!important}
 .rafex-common-system-badge{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-width:42px!important;margin-right:6px!important;padding:3px 6px!important;border-radius:999px!important;background:#173c2d!important;color:#fff!important;font-size:8px!important;font-weight:950!important;letter-spacing:.04em!important}
 .rafex-v19-type-card[data-rafex-system="mekik2"] .rafex-common-system-badge{background:#315f88!important}
 .rafex-v19-type-card[data-rafex-system="mr"] .rafex-common-system-badge{background:#8a6300!important}
@@ -40,6 +40,7 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
   var pdfTimer=0;
   var modalTimer=0;
   var syncingPdf=false;
+  var pinnedPairGaps=new Set();
 
   function isFree(){
     var page=document.getElementById('page');
@@ -227,36 +228,54 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
     });
     return Array.from(unique.values());
   }
-  function renderPairGuides(){
+  function pairKey(pair){var first=Math.min(Number(pair.a.id),Number(pair.b.id)),second=Math.max(Number(pair.a.id),Number(pair.b.id));return first+':'+second;}
+  function pairMm(pair){var scale=Math.max(.000001,Number(m2LayoutState.scale)||0);return Math.max(0,Math.round(pair.distance/scale)-Number(pair.clearanceMm||0));}
+  function pairTouches(pair,rackId){return Number(pair.a.id)===Number(rackId)||Number(pair.b.id)===Number(rackId);}
+  function renderPairControls(pairs){
+    var wallEditor=document.getElementById('m2WallEditor'),rack=typeof m2MeasurementRack==='function'?m2MeasurementRack():null;if(!wallEditor||!rack)return;
+    Array.from(wallEditor.querySelectorAll('label')).forEach(function(label){var span=label.querySelector('span');if(span&&String(span.textContent||'').trim()==='En yakın raf arası')label.remove();});
+    var rackPairs=pairs.filter(function(pair){return pairTouches(pair,rack.id);}).sort(function(a,b){var order={left:0,right:1,top:2,bottom:3};return (order[a.direction]||0)-(order[b.direction]||0)||a.distance-b.distance;});
+    if(m2PinnedDimensions&&m2PinnedDimensions.gap&&rackPairs[0]){pinnedPairGaps.add(pairKey(rackPairs[0]));m2PinnedDimensions.gap=false;}
+    rackPairs.forEach(function(pair,index){
+      var label=document.createElement('label'),key=pairKey(pair),mm=pairMm(pair);label.className='m2-edge-field dimension-field';label.dataset.rafexPairField=key;
+      label.innerHTML='<input type="checkbox" '+(pinnedPairGaps.has(key)?'checked':'')+' onchange="rafexToggleRackPairGap('+pair.a.id+','+pair.b.id+',this.checked)" aria-label="Raf arası '+(index+1)+' ölçüsünü göster"><span>Raf arası '+(index+1)+'</span><input type="number" min="0" step="1" value="'+mm+'" oninput="event.stopPropagation()" onchange="rafexSetRackPairDistance('+pair.a.id+','+pair.b.id+',this.value,'+rack.id+')" aria-label="Raf arası '+(index+1)+' mesafesi milimetre">';
+      wallEditor.appendChild(label);
+    });
+  }
+  function renderPairGuides(pairs){
     if(!isFree()||m2LayoutState.drag||window.m2SymbolDrag||window.m2DimensionDrag)return;
     var layer=document.getElementById('m2LayoutContent');if(!layer)return;
     layer.querySelectorAll('.m2-distance-guide[data-rack-gap],.rafex-common-pair-gap').forEach(function(node){node.remove();});
-    var markup=allPairs().map(function(pair){
-      var scale=Math.max(.000001,Number(m2LayoutState.scale)||0),mm=Math.max(0,Math.round(pair.distance/scale)-Number(pair.clearanceMm||0)),mx=(pair.ax+pair.bx)/2,my=(pair.ay+pair.by)/2,key='pair-gap:'+pair.a.id+':'+pair.b.id,label=m2DimensionPosition(key,mx,my-8);
-      return '<g class="m2-distance-guide rafex-common-pair-gap" data-rack-gap="'+mm+'" data-gap-a="'+pair.a.id+'" data-gap-b="'+pair.b.id+'"><line x1="'+pair.ax+'" y1="'+pair.ay+'" x2="'+pair.bx+'" y2="'+pair.by+'" class="m2-rack-distance"/><circle cx="'+pair.ax+'" cy="'+pair.ay+'" r="4" fill="#e09b00"/><circle cx="'+pair.bx+'" cy="'+pair.by+'" r="4" fill="#e09b00"/><rect x="'+(label.x-52)+'" y="'+(label.y-14)+'" width="104" height="22" rx="5" class="m2-measure-hit" onpointerdown="event.preventDefault();event.stopPropagation();rafexPromptRackPairDistance('+pair.a.id+','+pair.b.id+','+mm+')"/><text x="'+label.x+'" y="'+label.y+'" text-anchor="middle" class="m2-rack-distance-label" onpointerdown="event.preventDefault();event.stopPropagation();rafexPromptRackPairDistance('+pair.a.id+','+pair.b.id+','+mm+')">RAF ARASI '+fmt(mm)+' mm</text></g>';
+    var activeId=m2LayoutState.selected,currentKeys=new Set(pairs.map(pairKey));pinnedPairGaps.forEach(function(key){if(!currentKeys.has(key))pinnedPairGaps.delete(key);});
+    var visible=pairs.filter(function(pair){return activeId!=null&&pairTouches(pair,activeId)||pinnedPairGaps.has(pairKey(pair));});
+    var markup=visible.map(function(pair){
+      var mm=pairMm(pair),mx=(pair.ax+pair.bx)/2,my=(pair.ay+pair.by)/2,key='pair-gap:'+pair.a.id+':'+pair.b.id,label=m2DimensionPosition(key,mx,my-8),moveId=activeId!=null&&pairTouches(pair,activeId)?activeId:pair.b.id;
+      return '<g class="m2-distance-guide rafex-common-pair-gap" data-rack-gap="'+mm+'" data-gap-a="'+pair.a.id+'" data-gap-b="'+pair.b.id+'"><line x1="'+pair.ax+'" y1="'+pair.ay+'" x2="'+pair.bx+'" y2="'+pair.by+'" class="m2-rack-distance"/><circle cx="'+pair.ax+'" cy="'+pair.ay+'" r="4" fill="#e09b00"/><circle cx="'+pair.bx+'" cy="'+pair.by+'" r="4" fill="#e09b00"/><rect x="'+(label.x-52)+'" y="'+(label.y-14)+'" width="104" height="22" rx="5" class="m2-measure-hit" onpointerdown="event.preventDefault();event.stopPropagation();rafexPromptRackPairDistance('+pair.a.id+','+pair.b.id+','+mm+','+moveId+')"/><text x="'+label.x+'" y="'+label.y+'" text-anchor="middle" class="m2-rack-distance-label m2-dimension-movable" data-dimension-key="'+key+'" data-dimension-axis="'+(Math.abs(pair.ax-pair.bx)<Math.abs(pair.ay-pair.by)?'vertical':'horizontal')+'" onpointerdown="event.preventDefault();event.stopPropagation();rafexPromptRackPairDistance('+pair.a.id+','+pair.b.id+','+mm+','+moveId+')">RAF ARASI '+fmt(mm)+' mm</text></g>';
     }).join('');
     if(markup)layer.insertAdjacentHTML('beforeend',markup);
   }
-  function setPairDistance(aId,bId,value){
+  function setPairDistance(aId,bId,value,moveId){
     var a=m2LayoutState.racks.find(function(rack){return Number(rack.id)===Number(aId);}),b=m2LayoutState.racks.find(function(rack){return Number(rack.id)===Number(bId);});
     var pair=pairCandidate(a,b);if(!pair)return;
-    var scale=Math.max(.000001,Number(m2LayoutState.scale)||0),desired=(Math.max(0,Number(value)||0)+Number(pair.clearanceMm||0))*scale,delta=desired-pair.distance,nextX=b.x,nextY=b.y;
-    if(pair.direction==='right')nextX+=delta;if(pair.direction==='left')nextX-=delta;if(pair.direction==='bottom')nextY+=delta;if(pair.direction==='top')nextY-=delta;
+    var moving=Number(moveId)===Number(a.id)?a:b,moveA=moving===a,scale=Math.max(.000001,Number(m2LayoutState.scale)||0),desired=(Math.max(0,Number(value)||0)+Number(pair.clearanceMm||0))*scale,delta=desired-pair.distance,nextX=moving.x,nextY=moving.y;
+    if(pair.direction==='right')nextX+=moveA?-delta:delta;if(pair.direction==='left')nextX+=moveA?delta:-delta;if(pair.direction==='bottom')nextY+=moveA?-delta:delta;if(pair.direction==='top')nextY+=moveA?delta:-delta;
     if(typeof m2PushUndo==='function')m2PushUndo('Raf arası ölçü');
-    if(!m2MoveRackOrJoinedGroup(b,nextX,nextY)){if(typeof m2DiscardUndo==='function')m2DiscardUndo();status('Girilen raf arası ölçüsü alan dışına çıkıyor veya başka bir rafla çakışıyor.');}
+    if(!m2MoveRackOrJoinedGroup(moving,nextX,nextY)){if(typeof m2DiscardUndo==='function')m2DiscardUndo();status('Girilen raf arası ölçüsü alan dışına çıkıyor veya başka bir rafla çakışıyor.');}
     else status('Seçilen iki rafın arası '+fmt(Math.max(0,Number(value)||0))+' mm yapıldı.');
     m2RenderLayout();
   }
-  window.rafexPromptRackPairDistance=function(aId,bId,current){
+  window.rafexSetRackPairDistance=setPairDistance;
+  window.rafexToggleRackPairGap=function(aId,bId,visible){var key=Math.min(Number(aId),Number(bId))+':'+Math.max(Number(aId),Number(bId));if(visible)pinnedPairGaps.add(key);else pinnedPairGaps.delete(key);m2RenderLayout();};
+  window.rafexPromptRackPairDistance=function(aId,bId,current,moveId){
     if(typeof m2OpenMeasureEditor!=='function')return;
-    m2OpenMeasureEditor('Seçilen iki rafın arası',current,function(value){setPairDistance(aId,bId,value);});
+    m2OpenMeasureEditor('Seçilen iki rafın arası',current,function(value){setPairDistance(aId,bId,value,moveId);});
   };
 
   var previousRender=typeof m2RenderLayout==='function'?m2RenderLayout:null;
   function commonRender(){
     if(isFree())layoutGroups(true);
     var result=previousRender?previousRender.apply(this,arguments):undefined;
-    if(isFree())renderPairGuides();
+    if(isFree()){var pairs=allPairs();renderPairControls(pairs);renderPairGuides(pairs);}
     return result;
   }
   if(previousRender){try{m2RenderLayout=commonRender}catch(error){}window.m2RenderLayout=commonRender;}
