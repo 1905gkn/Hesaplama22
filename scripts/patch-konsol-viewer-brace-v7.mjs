@@ -8,6 +8,11 @@ const newPlan="      setPlan: Array.isArray(next.setPlan) ? next.setPlan.map((n)
 if(source.includes(oldPlan)) source=source.replace(oldPlan,newPlan);
 else if(!source.includes('clamp(Math.round(Number(n) || 2), 2, 5)')) throw new Error('Konsol v7 setPlan normalize hedefi bulunamadı.');
 
+const oldBraceMat='    const braceMat = uprightMat;';
+const newBraceMat='    const braceMat = new THREE.MeshStandardMaterial({ color: 0xd5443f, metalness: 0.36, roughness: 0.48 });';
+if(source.includes(oldBraceMat)) source=source.replace(oldBraceMat,newBraceMat);
+else if(!source.includes('color: 0xd5443f')) throw new Error('Konsol v7 deprem profili malzemesi bulunamadı.');
+
 const marker='// RAFEX_KONSOL_BRACE_V7';
 if(!source.includes(marker)){
   const braceRe=/    let cursor = 0;[\s\S]*?\n    const floor =/;
@@ -16,8 +21,8 @@ if(!source.includes(marker)){
   source=source.replace(braceRe,block);
 }
 
-for(const required of [marker,'horizontalRowCount','actual === 4','actual === 5','clamp(Math.round(Number(n) || 2), 2, 5)']){
+for(const required of [marker,'horizontalRowCount','actual === 4','actual === 5','clamp(Math.round(Number(n) || 2), 2, 5)','color: 0xd5443f']){
   if(!source.includes(required)) throw new Error('Konsol viewer v7 doğrulaması eksik: '+required);
 }
 fs.writeFileSync(file,source);
-console.log('Konsol v7 viewer: 2/3/4/5 ayak deprem çapraz düzeni ilk referans görsele göre çiziliyor.');
+console.log('Konsol v7 viewer: 2/3/4/5 ayak deprem çapraz düzeni ilk referans görsele göre kırmızı profillerle çiziliyor.');
