@@ -44,37 +44,17 @@ html=html.replace(
   "if(!type||!Number.isFinite(level)||level<0||typeof window.m2ToggleCustomizeRackAccessoryLevel!=='function')return;if(level===0&&(type!=='palletStop'||!rafexGroundPalletStopAllowed()))return;"
 );
 
-// 3) Serbest yerlesime dokunuldugu anda ana 3D viewer'i tamamen durdur.
-const stopMarker='data-rafex-free-layout-stop3d="v1"';
-if(!html.includes(stopMarker)){
-  const runtime=`<script ${stopMarker}>(function(){
-    let stopped=false;
-    function stop3D(){
-      if(stopped)return;stopped=true;
-      try{window.RafexB2BViewer?.setAutoRotate?.(false);}catch{}
-      try{window.RafexB2BViewer?.destroy?.();}catch{}
-      const loading=document.getElementById('b2b3DLoading');if(loading)loading.hidden=true;
-    }
-    window.rafexStopMain3DForFreeLayout=stop3D;
-    document.addEventListener('pointerdown',(event)=>{
-      const target=event.target instanceof Element?event.target:null;if(!target)return;
-      if(target.closest('#m2LayoutSvg'))stop3D();
-    },true);
-    document.addEventListener('click',(event)=>{
-      const target=event.target instanceof Element?event.target:null;if(!target)return;
-      if(target.closest('.m2-floor-tools button,.m2-floor-head-actions button,#m2SavedTypesPanel button'))stop3D();
-    },true);
-  })();</script>`;
-  const bodyEnd=html.lastIndexOf('</body>');
-  if(bodyEnd<0)throw new Error('body kapanisi bulunamadi.');
-  html=html.slice(0,bodyEnd)+runtime+html.slice(bodyEnd);
-}
+// Serbest Cizim artik ana B2B/MR 3D viewer'ini kapatmaz, destroy etmez veya gizlemez.
+// Onceki stop3D runtime'lari baska bir katmandan kalmissa da final HTML'den temizle.
+html=html
+  .replace(/<script\s+data-rafex-free-layout-stop3d="v1">[\s\S]*?<\/script>/g,"")
+  .replace(/<style\s+data-rafex-free-layout-stop3d-hard="v5">[\s\S]*?<\/style>\s*<script\s+data-rafex-free-layout-stop3d-hard="v5">[\s\S]*?<\/script>/g,"");
 
 if(html.includes('Tünel olacak bölüm')) throw new Error('Tunel olacak bolum final HTML icinde kaldi.');
 if(!html.includes('data-level=\"0\"')) throw new Error('Palet Dayama ZEMIN dugmesi eklenemedi.');
-if(!html.includes(stopMarker)) throw new Error('Serbest yerlesim 3D durdurma runtime eklenemedi.');
+if(html.includes('data-rafex-free-layout-stop3d=')||html.includes('data-rafex-free-layout-stop3d-hard=')) throw new Error('Eski Serbest Cizim 3D kapatma runtime final HTML icinde kaldi.');
 
 const encoded=Buffer.from(html,"utf8").toString("base64");
 worker=worker.slice(0,match.index)+match[1]+match[2]+encoded+match[2]+worker.slice(match.index+match[0].length);
 fs.writeFileSync(workerPath,worker);
-console.log('FINAL: Palet Dayama ZEMIN + tunel girdisi kaldirildi + serbest yerlesimde 3D durdurma eklendi.');
+console.log('FINAL: Palet Dayama ZEMIN + tunel girdisi kaldirildi; Serbest Cizim otomatik 3D kapatma devre disi.');
