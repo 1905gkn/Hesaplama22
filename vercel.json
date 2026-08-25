@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "bash scripts/vercel-git-build.sh",
+  "buildCommand": "bash scripts/vercel-git-build.sh && node scripts/patch-cantilever-v3-krs-capacity.mjs && node scripts/patch-cantilever-final-level-gap.mjs && node scripts/verify-inline-runtime-syntax-v21.mjs",
   "installCommand": "npm ci",
   "outputDirectory": "dist",
   "framework": null,
