@@ -25,8 +25,8 @@ const newBlock=`  setView(view) {
     const center = bounds.getCenter(new THREE.Vector3());
     const radius = Math.max(size.x, size.y, size.z, 1000) * 1.55;
     this.controls.target.copy(center);
+    this.topPlanViewVersion = 'RAFEX_KONSOL_TOP_V8';
 
-    // RAFEX_KONSOL_TOP_V8
     // Üst görünüş gerçek plan görünüşüne yakın olmalı. Perspektif kamerayı çok uzaktan
     // ve dar FOV ile kullanarak farklı katların üst üste büyüyüp küçülmesini engelliyoruz.
     if (view === 'top') {
@@ -53,9 +53,9 @@ const newBlock=`  setView(view) {
   }`;
 
 if(source.includes(oldBlock)) source=source.replace(oldBlock,newBlock);
-else if(!source.includes('RAFEX_KONSOL_TOP_V8')) throw new Error('Konsol top v8 setView bloğu bulunamadı.');
+else if(!source.includes("this.topPlanViewVersion = 'RAFEX_KONSOL_TOP_V8';")) throw new Error('Konsol top v8 setView bloğu bulunamadı.');
 
-for(const required of ['RAFEX_KONSOL_TOP_V8','this.camera.fov = 3','this.camera.up.set(0, 0, -1)','this.controls.enableRotate = false','radius * 18']){
+for(const required of ["this.topPlanViewVersion = 'RAFEX_KONSOL_TOP_V8';",'this.camera.fov = 3','this.camera.up.set(0, 0, -1)','this.controls.enableRotate = false','radius * 18']){
   if(!source.includes(required)) throw new Error('Konsol top v8 doğrulaması eksik: '+required);
 }
 
