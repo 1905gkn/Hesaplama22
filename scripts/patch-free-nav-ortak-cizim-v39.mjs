@@ -51,3 +51,5 @@ const encoded = Buffer.from(html, "utf8").toString("base64");
 worker = worker.slice(0, match.index) + match[0].replace(match[2], encoded) + worker.slice(match.index + match[0].length);
 fs.writeFileSync(workerPath, worker);
 console.log("v39: Sol menudeki Serbest Cizim sekmesi Ortak Cizim olarak degistirildi.");
+
+await import("./patch-free-layout-system-switch-v40.mjs");
