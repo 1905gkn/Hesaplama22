@@ -4,9 +4,7 @@ import vm from "node:vm";
 
 const workerPath = path.join(process.cwd(), "dist/server/index.js");
 
-// Final Mekik label guard. JavaScript's \b does not treat the Turkish dotless
-// "ı" as a word character, so "Ayak takımı" used to be renamed again on every
-// MutationObserver pass: "Ayak takımı takımı takımı ...".
+// Final Mekik label guard.
 {
   let workerSource = fs.readFileSync(workerPath, "utf8");
   const htmlMatch = workerSource.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1/);
@@ -26,22 +24,16 @@ await import(`./patch-free-info-system-modules-v27.mjs?build=${Date.now()}`);
 await import(`./build-drive-in-assets-v1.mjs?build=${Date.now()}`);
 await import(`./patch-drive-in-mekik-v1.mjs?build=${Date.now()}`);
 
-// Konsol: ayak profili tabanda devam eder; ardından deliksiz IPE/NPI kesitleri ve referans deprem çapraz düzeni uygulanır.
+// Konsol viewer: deliksiz IPE/INP görünümü, taban ve çapraz düzeni; top arm = KRS H.
 await import(`./patch-konsol-viewer-foot-v4.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-viewer-fields-v5.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-viewer-brace-v7.mjs?build=${Date.now()}`);
-// Eski B2B delikli GLB katmanı bilinçli olarak uygulanmaz: kullanıcı Konsol'da deliksiz IPE/NPI istedi.
+await import(`./patch-konsol-viewer-top-arm-v8.mjs?build=${Date.now()}`);
 
-// Konsol Kollu ana 3D ekranı ve serbest yerleşim/PDF katmanı.
+// Konsol ana ekranı artık bütün alanları ve exact SSI SCHÄFER KRS seçim motorunu tek runtime içinde taşır.
 await import(`./patch-konsol-cantilever-v2.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-request-v3.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-request-v3-printfix-v1.mjs?build=${Date.now()}`);
-// Kattaki ağırlık, derinlikler, RAL renkleri, profil seçimleri ve otomatik/manüel ayak yüksekliği.
-await import(`./patch-konsol-fields-v6.mjs?build=${Date.now()}`);
-// Eski kesit/capraz build-time duzeltmeleri korunur; runtime onerisi sonraki KRS v8 ile kaldirilir.
-await import(`./patch-konsol-recommendations-v7.mjs?build=${Date.now()}`);
-// Yalniz SSI SCHAEFER KRS katalog satirlari: formullu profil secimi yok, katalog disi H/derinlik secilemez.
-await import(`./patch-konsol-krs-catalog-v8.mjs?build=${Date.now()}`);
 
 const workerModule = await import(`${workerPath}?syntax-check=${Date.now()}`);
 const response = await workerModule.default.fetch(
@@ -72,22 +64,33 @@ if (!html.includes('data-rafex-free-info-modules="v27"')) throw new Error("Serbe
 if (!html.includes('data-rafex-drive-in-mekik="v1"')) throw new Error("Drive In Mekik klonu canlı HTML içinde bulunamadı");
 if (!html.includes('/drive-in-viewer.js?v=drive-in-front-v2')) throw new Error("Drive In viewer yükleyicisi canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-v2="1"')) throw new Error("Konsol Kollu ekranı canlı HTML içinde bulunamadı");
-if (!html.includes('/konsol-viewer.js?v=konsol-v2')) throw new Error("Konsol Kollu viewer yükleyicisi canlı HTML içinde bulunamadı");
+if (!html.includes('data-rafex-krs-native="v9"')) throw new Error("Konsol native KRS v9 canlı HTML içinde bulunamadı");
+if (!html.includes('/konsol-viewer.js?v=konsol-krs-v9')) throw new Error("Konsol KRS viewer yükleyicisi canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-request="v3"')) throw new Error("Konsol son kullanıcı istekleri canlı HTML içinde bulunamadı");
-if (!html.includes('data-rafex-konsol-fields="v6"')) throw new Error("Konsol eksik kullanıcı alanları canlı HTML içinde bulunamadı");
-if (!html.includes('data-rafex-konsol-krs-catalog="v8"')) throw new Error("SSI KRS katalog seçim runtime canlı HTML içinde bulunamadı");
-if (html.includes('data-rafex-konsol-recommendations="v7"')) throw new Error("Eski formullu Konsol v7 runtime canlı HTML içinde kalmış");
+if (html.includes('data-rafex-konsol-fields="v6"')) throw new Error("Eski Konsol fields v6 runtime canlı HTML içinde kaldı");
+if (html.includes('data-rafex-konsol-recommendations="v7"')) throw new Error("Eski formüllü Konsol v7 runtime canlı HTML içinde kaldı");
+if (html.includes('data-rafex-konsol-krs-catalog="v8"')) throw new Error("Eski katmanlı KRS v8 runtime canlı HTML içinde kaldı");
 if (html.includes('<script>setTimeout(function(){window.print()},400)')) throw new Error("Konsol v3 eski nested print script canlı HTML içinde kaldı");
-for (const required of ["Kattaki ağırlık", "Kat arası mesafe (mm)", "Taban Kat derinliği (mm)", "RAL-5010", "RAL-1007", "RAL-2004", "konsolHeightMode", "IPE 180", "IPE 300", "konsol-color-row", "konsol-height-row", "konsol-depth-row"]) {
-  if (!html.includes(required)) throw new Error(`Konsol v6 alanı canlı HTML içinde bulunamadı: ${required}`);
+
+for (const required of [
+  "SSI SCHÄFER KRS KATALOG SEÇİMİ",
+  "En üst kol kotu / KRS H (mm)",
+  "Kat arası mesafe (mm)",
+  "Kol derinliği / KRS (mm)",
+  "Kattaki ağırlık (kg)",
+  "RAL-5010", "RAL-1007", "RAL-2004",
+  "IPE 180", "INP ",
+  "6000:{600:{240:7590,270:11420}",
+  "1250:{80:505,100:885,120:1420,140:2110}",
+  "AORDER=[80,100,120,140]"
+]) {
+  if (!html.includes(required)) throw new Error(`Konsol native KRS alanı canlı HTML içinde bulunamadı: ${required}`);
 }
-for (const required of ["SSI SCHÄFER KRS KATALOG SEÇİMİ", "En üst kol kotu / KRS H (mm)", "KATALOGDA UYGUN EŞLEŞME YOK", "AORDER=[80,100,120,140]", "konsolArmDepthCatalog", "if(n<=5){out.push(n);break}"]) {
-  if (!html.includes(required)) throw new Error(`Konsol KRS v8 alanı canlı HTML içinde bulunamadı: ${required}`);
-}
+
 const konsolViewerPath = path.join(process.cwd(), "dist/konsol-viewer.js");
 const konsolViewer = fs.readFileSync(konsolViewerPath, "utf8");
-for (const required of ["ipe180", "ipe300", "npi80", "npi220"]) {
-  if (!konsolViewer.includes(required)) throw new Error(`Konsol IPE/NPI viewer bundle içinde bulunamadı: ${required}`);
+for (const required of ["ipe180", "ipe300", "npi80", "npi140"]) {
+  if (!konsolViewer.includes(required)) throw new Error(`Konsol IPE/INP viewer bundle içinde bulunamadı: ${required}`);
 }
 if (konsolViewer.includes('konsol-glb-professional-v7')) throw new Error("Konsol eski delikli GLB katmanı viewer bundle içinde kalmış");
 console.log(`Final response runtime syntax verified: ${scripts.length} script blocks.`);
