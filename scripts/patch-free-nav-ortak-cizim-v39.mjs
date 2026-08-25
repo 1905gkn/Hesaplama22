@@ -53,3 +53,4 @@ fs.writeFileSync(workerPath, worker);
 console.log("v39: Sol menudeki Serbest Cizim sekmesi Ortak Cizim olarak degistirildi.");
 
 await import("./patch-free-layout-system-switch-v40.mjs");
+await import("./patch-free-ortak-switch-ux-v41.mjs");
