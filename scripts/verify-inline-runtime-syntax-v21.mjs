@@ -30,10 +30,11 @@ await import(`./patch-konsol-viewer-fields-v5.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-viewer-brace-v7.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-viewer-top-arm-v8.mjs?build=${Date.now()}`);
 
-// Konsol ana ekranı artık bütün alanları ve exact SSI SCHÄFER KRS seçim motorunu tek runtime içinde taşır.
+// Konsol ana ekranı: exact SSI SCHÄFER KRS + kullanıcı akışı + FEM 10.2.09 ön kontrol katmanı.
 await import(`./patch-konsol-cantilever-v2.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-request-v3.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-request-v3-printfix-v1.mjs?build=${Date.now()}`);
+await import(`./patch-konsol-fem-10209-v10.mjs?build=${Date.now()}`);
 
 const workerModule = await import(`${workerPath}?syntax-check=${Date.now()}`);
 const response = await workerModule.default.fetch(
@@ -67,6 +68,7 @@ if (!html.includes('data-rafex-konsol-v2="1"')) throw new Error("Konsol Kollu ek
 if (!html.includes('data-rafex-krs-native="v9"')) throw new Error("Konsol native KRS v9 canlı HTML içinde bulunamadı");
 if (!html.includes('/konsol-viewer.js?v=konsol-krs-v9')) throw new Error("Konsol KRS viewer yükleyicisi canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-request="v3"')) throw new Error("Konsol son kullanıcı istekleri canlı HTML içinde bulunamadı");
+if (!html.includes('data-rafex-konsol-fem="v10"')) throw new Error("FEM 10.2.09 Konsol ön kontrol katmanı canlı HTML içinde bulunamadı");
 if (html.includes('data-rafex-konsol-fields="v6"')) throw new Error("Eski Konsol fields v6 runtime canlı HTML içinde kaldı");
 if (html.includes('data-rafex-konsol-recommendations="v7"')) throw new Error("Eski formüllü Konsol v7 runtime canlı HTML içinde kaldı");
 if (html.includes('data-rafex-konsol-krs-catalog="v8"')) throw new Error("Eski katmanlı KRS v8 runtime canlı HTML içinde kaldı");
@@ -85,6 +87,20 @@ for (const required of [
   "1250:{80:505,100:885,120:1420,140:2110}"
 ]) {
   if (!html.includes(required)) throw new Error(`Konsol native KRS alanı canlı HTML içinde bulunamadı: ${required}`);
+}
+
+for (const required of [
+  "FEM 10.2.09 · KONSOL KOLLU ÖN KONTROL",
+  "Ürün toplam ağırlığı Qu (kg)",
+  "Ürünü taşıyan kol adedi na",
+  "Qpv düşey yerleştirme",
+  "Apv yukarı accidental = 5 kN",
+  "3 kN çekme ve 5 kN kesme",
+  "Kol sehim limiti",
+  "Minimum yatay açıklık X4",
+  "Global 2D/3D ikinci mertebe analiz"
+]) {
+  if (!html.includes(required)) throw new Error(`FEM 10.2.09 Konsol alanı canlı HTML içinde bulunamadı: ${required}`);
 }
 
 const konsolViewerPath = path.join(process.cwd(), "dist/konsol-viewer.js");
