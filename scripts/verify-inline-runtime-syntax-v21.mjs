@@ -81,7 +81,7 @@ if (html.includes('<script>setTimeout(function(){window.print()},400)')) throw n
 for (const required of ["Kattaki ağırlık", "Kat arası mesafe (mm)", "Taban Kat derinliği (mm)", "RAL-5010", "RAL-1007", "RAL-2004", "konsolHeightMode", "IPE 180", "IPE 300", "konsol-color-row", "konsol-height-row", "konsol-depth-row"]) {
   if (!html.includes(required)) throw new Error(`Konsol v6 alanı canlı HTML içinde bulunamadı: ${required}`);
 }
-for (const required of ["SSI SCHÄFER KRS KATALOG SEÇİMİ", "En üst kol kotu / KRS H (mm)", "KATALOGDA UYGUN EŞLEŞME YOK", "INP 140", "konsolArmDepthCatalog", "if(n<=5){out.push(n);break}"]) {
+for (const required of ["SSI SCHÄFER KRS KATALOG SEÇİMİ", "En üst kol kotu / KRS H (mm)", "KATALOGDA UYGUN EŞLEŞME YOK", "AORDER=[80,100,120,140]", "konsolArmDepthCatalog", "if(n<=5){out.push(n);break}"]) {
   if (!html.includes(required)) throw new Error(`Konsol KRS v8 alanı canlı HTML içinde bulunamadı: ${required}`);
 }
 const konsolViewerPath = path.join(process.cwd(), "dist/konsol-viewer.js");
