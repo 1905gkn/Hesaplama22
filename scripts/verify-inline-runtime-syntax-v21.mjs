@@ -24,11 +24,12 @@ await import(`./patch-free-info-system-modules-v27.mjs?build=${Date.now()}`);
 await import(`./build-drive-in-assets-v1.mjs?build=${Date.now()}`);
 await import(`./patch-drive-in-mekik-v1.mjs?build=${Date.now()}`);
 
-// Konsol viewer: deliksiz IPE/INP görünümü, taban ve çapraz düzeni; top arm = KRS H.
+// Konsol viewer: deliksiz IPE/INP görünümü, taban, çapraz düzeni, üst kol devamı ve temiz plan görünüşü.
 await import(`./patch-konsol-viewer-foot-v4.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-viewer-fields-v5.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-viewer-brace-v7.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-viewer-top-arm-v8.mjs?build=${Date.now()}`);
+await import(`./patch-konsol-viewer-top-v8.mjs?build=${Date.now()}`);
 
 // Konsol ana ekranı: exact SSI SCHÄFER KRS + kullanıcı akışı + FEM 10.2.09 ön kontrol katmanı.
 await import(`./patch-konsol-cantilever-v2.mjs?build=${Date.now()}`);
@@ -105,8 +106,8 @@ for (const required of [
 
 const konsolViewerPath = path.join(process.cwd(), "dist/konsol-viewer.js");
 const konsolViewer = fs.readFileSync(konsolViewerPath, "utf8");
-for (const required of ["ipe180", "ipe300", "npi80", "npi140"]) {
-  if (!konsolViewer.includes(required)) throw new Error(`Konsol IPE/INP viewer bundle içinde bulunamadı: ${required}`);
+for (const required of ["ipe180", "ipe300", "npi80", "npi140", "RAFEX_KONSOL_TOP_V8"]) {
+  if (!konsolViewer.includes(required)) throw new Error(`Konsol viewer bundle içinde bulunamadı: ${required}`);
 }
 if (konsolViewer.includes('konsol-glb-professional-v7')) throw new Error("Konsol eski delikli GLB katmanı viewer bundle içinde kalmış");
 console.log(`Final response runtime syntax verified: ${scripts.length} script blocks.`);
