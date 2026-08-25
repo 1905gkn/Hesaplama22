@@ -12,7 +12,8 @@ html = html
   .replace(/<script\s+data-rafex-free-layout-system-switch="v40">[\s\S]*?<\/script>/g, "")
   .replace(/<script\s+data-rafex-free-ortak-switch-ux="v41">[\s\S]*?<\/script>/g, "")
   .replace(/<script\s+data-rafex-free-b2b-remount="v42">[\s\S]*?<\/script>/g, "")
-  .replace(/<script\s+data-rafex-free-editor-preserve="v43">[\s\S]*?<\/script>/g, "");
+  .replace(/<script\s+data-rafex-free-editor-preserve="v43">[\s\S]*?<\/script>/g, "")
+  .replace(/<script\s+data-rafex-free-layout-persistence="v37">[\s\S]*?<\/script>/g, "");
 
 const staticFrontWrite = '$("m2Front").innerHTML = elevation("front");';
 const b2b3DOnlyWrite = 'if (m2ActiveModule !== "b2b") $("m2Front").innerHTML = elevation("front");';
@@ -73,7 +74,7 @@ const activateStart = `      function m2ActivateModule(moduleName) {
 const activateStartShared = `      function m2ActivateModule(moduleName) {
         const __rafexCommonState = m2CommonDrawingActive() ? m2CaptureModuleState() : null;
         if (!m2ModuleStates[m2ActiveModule])`;
-if (!html.includes("function m2ActivateModule(moduleName) {\\n        const __rafexCommonState")) {
+if (!html.includes("function m2ActivateModule(moduleName) {\n        const __rafexCommonState")) {
   if (!html.includes(activateStart)) throw new Error("Ortak Cizim: modul gecis baslangici bulunamadi");
   html = html.replace(activateStart, activateStartShared);
 }
@@ -95,7 +96,7 @@ for (const required of [
   "m2MergeCommonDrawingState(m2ModuleStates[moduleName], __rafexCommonState)",
   "m2RestoreModuleState(m2MergeCommonDrawingState(m2CaptureModuleState(), __rafexCommonState))"
 ]) {
-  if (!html.includes(required)) throw new Error(`Ortak Cizim ortak state dogrulamasi eksik: \${required}`);
+  if (!html.includes(required)) throw new Error(`Ortak Cizim ortak state dogrulamasi eksik: ${required}`);
 }
 
 const runtime = `<script data-rafex-free-nav-ortak="v39">
