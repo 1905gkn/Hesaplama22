@@ -16,8 +16,9 @@ const runtime = String.raw`<style data-rafex-manual-free-output="v32">
 #m2CreateOutputButton:hover{background:#65111b!important}
 #m2CreateOutputButton:disabled{cursor:wait!important;opacity:.68!important}
 #m2CreateOutputButton[hidden]{display:none!important}
-.m2-report-panel[data-rafex-manual-output="1"][data-rafex-output-visible="0"]>#m2A4Sheet,
+.m2-report-panel[data-rafex-manual-output="1"]>#m2A4Sheet{display:none!important}
 .m2-report-panel[data-rafex-manual-output="1"][data-rafex-output-visible="0"]>#m2CorporatePreview{display:none!important}
+.m2-report-panel[data-rafex-manual-output="1"] .m2-report-head-actions>button:not(#m2SectionPlacementButton):not(#m2CreateOutputButton){display:none!important}
 </style><script data-rafex-manual-free-output="v32">(function(){
   if(window.__rafexManualFreeOutputV32)return;window.__rafexManualFreeOutputV32=true;
   var manualDepth=0,creating=false,buttonObserver=null;
@@ -73,7 +74,7 @@ const runtime = String.raw`<style data-rafex-manual-free-output="v32">
   function ensureButton(){
     var sectionButton=document.getElementById('m2SectionPlacementButton');
     var host=sectionButton?.parentElement||document.querySelector('.m2-report-head-actions');if(!host)return false;
-    var panel=host.closest('.m2-report-panel');if(panel){panel.dataset.rafexManualOutput='1';if(panel.dataset.rafexOutputVisible!=='1')panel.dataset.rafexOutputVisible='0'}
+    var panel=host.closest('.m2-report-panel');if(panel){panel.dataset.rafexManualOutput='1';if(panel.dataset.rafexOutputVisible!=='1')panel.dataset.rafexOutputVisible='0';var title=panel.querySelector('.m2-report-head>div>b'),subtitle=panel.querySelector('.m2-report-head>div>small');if(title)title.textContent='PDF Çıktı Alanı';if(subtitle)subtitle.textContent='B2B, Mekik ve MR için tek proje çıktısı'}
     var button=document.getElementById('m2CreateOutputButton');if(!button){button=document.createElement('button');button.type='button';button.id='m2CreateOutputButton';button.textContent='Çıktıyı Oluştur';button.addEventListener('click',createOutput)}
     if(sectionButton){if(sectionButton.nextElementSibling!==button)sectionButton.insertAdjacentElement('afterend',button)}else if(!button.isConnected)host.prepend(button);
     button.hidden=false;
@@ -94,11 +95,11 @@ const bodyEnd = html.lastIndexOf("</body>");
 if (bodyEnd < 0) throw new Error("Manual free output v32: body kapanisi bulunamadi.");
 html = html.slice(0, bodyEnd) + runtime + html.slice(bodyEnd);
 
-if (!html.includes('data-rafex-manual-free-output="v32"') || !html.includes("rafexCreateFreeDrawingOutput") || !html.includes("Çıktıyı Oluştur")) {
-  throw new Error("Manual free output v32: son dogrulama basarisiz.");
+for (const required of ['data-rafex-manual-free-output="v32"', "rafexCreateFreeDrawingOutput", "Çıktıyı Oluştur", "PDF Çıktı Alanı", "B2B, Mekik ve MR için tek proje çıktısı"]) {
+  if (!html.includes(required)) throw new Error(`Manual free output v32: son dogrulama eksik: ${required}`);
 }
 
 const encoded = Buffer.from(html, "utf8").toString("base64");
 worker = worker.slice(0, match.index) + match[1] + match[2] + encoded + match[2] + worker.slice(match.index + match[0].length);
 fs.writeFileSync(workerPath, worker);
-console.log('FINAL v32: Serbest Cizim raporu manuel; "Ciktiyi Olustur" Kesit Yer Belirleme yaninda.');
+console.log('FINAL v32: B2B/Mekik/MR icin tek PDF cikti alani manuel olarak olusturulur.');
