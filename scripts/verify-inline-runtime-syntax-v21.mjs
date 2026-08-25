@@ -38,8 +38,10 @@ await import(`./patch-konsol-request-v3.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-request-v3-printfix-v1.mjs?build=${Date.now()}`);
 // Kattaki ağırlık, derinlikler, RAL renkleri, profil seçimleri ve otomatik/manüel ayak yüksekliği.
 await import(`./patch-konsol-fields-v6.mjs?build=${Date.now()}`);
-// 1. kapasite tablosuna göre iki profil önerisi + manuel override + 2/3/4/5 ayak referans kesiti.
+// Eski kesit/capraz build-time duzeltmeleri korunur; runtime onerisi sonraki KRS v8 ile kaldirilir.
 await import(`./patch-konsol-recommendations-v7.mjs?build=${Date.now()}`);
+// Yalniz SSI SCHAEFER KRS katalog satirlari: formullu profil secimi yok, katalog disi H/derinlik secilemez.
+await import(`./patch-konsol-krs-catalog-v8.mjs?build=${Date.now()}`);
 
 const workerModule = await import(`${workerPath}?syntax-check=${Date.now()}`);
 const response = await workerModule.default.fetch(
@@ -73,13 +75,14 @@ if (!html.includes('data-rafex-konsol-v2="1"')) throw new Error("Konsol Kollu ek
 if (!html.includes('/konsol-viewer.js?v=konsol-v2')) throw new Error("Konsol Kollu viewer yükleyicisi canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-request="v3"')) throw new Error("Konsol son kullanıcı istekleri canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-fields="v6"')) throw new Error("Konsol eksik kullanıcı alanları canlı HTML içinde bulunamadı");
-if (!html.includes('data-rafex-konsol-recommendations="v7"')) throw new Error("Konsol iki profil önerisi canlı HTML içinde bulunamadı");
+if (!html.includes('data-rafex-konsol-krs-catalog="v8"')) throw new Error("SSI KRS katalog seçim runtime canlı HTML içinde bulunamadı");
+if (html.includes('data-rafex-konsol-recommendations="v7"')) throw new Error("Eski formullu Konsol v7 runtime canlı HTML içinde kalmış");
 if (html.includes('<script>setTimeout(function(){window.print()},400)')) throw new Error("Konsol v3 eski nested print script canlı HTML içinde kaldı");
-for (const required of ["Kattaki ağırlık", "Kat derinliği (mm)", "Taban Kat derinliği (mm)", "RAL-5010", "RAL-1007", "RAL-2004", "konsolHeightMode", "IPE 180", "IPE 300", "NPI 80", "NPI 220", "konsol-color-row", "konsol-height-row", "konsol-depth-row"]) {
+for (const required of ["Kattaki ağırlık", "Kat arası mesafe (mm)", "Taban Kat derinliği (mm)", "RAL-5010", "RAL-1007", "RAL-2004", "konsolHeightMode", "IPE 180", "IPE 300", "konsol-color-row", "konsol-height-row", "konsol-depth-row"]) {
   if (!html.includes(required)) throw new Error(`Konsol v6 alanı canlı HTML içinde bulunamadı: ${required}`);
 }
-for (const required of ["ÖNERİLEN PROFİL SEÇENEKLERİ", "EN EKONOMİK UYGUN", "BİR ÜST GÜVENLİ", "konsolRecommendationV7", "if(n<=5){out.push(n);break}"]) {
-  if (!html.includes(required)) throw new Error(`Konsol v7 öneri/çapraz alanı canlı HTML içinde bulunamadı: ${required}`);
+for (const required of ["SSI SCHÄFER KRS KATALOG SEÇİMİ", "En üst kol kotu / KRS H (mm)", "KATALOGDA UYGUN EŞLEŞME YOK", "INP 140", "konsolArmDepthCatalog", "if(n<=5){out.push(n);break}"]) {
+  if (!html.includes(required)) throw new Error(`Konsol KRS v8 alanı canlı HTML içinde bulunamadı: ${required}`);
 }
 const konsolViewerPath = path.join(process.cwd(), "dist/konsol-viewer.js");
 const konsolViewer = fs.readFileSync(konsolViewerPath, "utf8");
