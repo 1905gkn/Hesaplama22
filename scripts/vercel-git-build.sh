@@ -80,9 +80,6 @@ node scripts/patch-current-ux-20260819.mjs
 node scripts/patch-customize-ground-k1-final.mjs
 node scripts/patch-final-live-controls.mjs
 node scripts/patch-ground-pallet-stop-tunnel-stop3d.mjs
-node scripts/patch-free-layout-stop3d-hard.mjs
-node scripts/patch-live-b2b-3d-persistence.mjs
-node scripts/patch-live-b2b-3d-add-hook.mjs
 node scripts/patch-unified-free-drawing.mjs
 node scripts/patch-unified-free-drawing-safety.mjs
 node scripts/patch-unified-free-drawing-catalog.mjs
@@ -124,6 +121,7 @@ grep -q 'data-rafex-product-toggle="v24"' dist/server/index.js || node -e "const
 grep -q 'data-rafex-horizontal-products-savebar="v25"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-horizontal-products-savebar=\\\"v25\\\"'))process.exit(1)"
 grep -q 'data-rafex-drive-in-mekik="v1"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-drive-in-mekik=\\\"v1\\\"'))process.exit(1)"
 node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\"\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('function m2PerfLiveNearestRackGap(rack)'))process.exit(1)"
+node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\"\x27])([A-Za-z0-9+/=]+)\\1/);if(!m)process.exit(1);const h=Buffer.from(m[2],'base64').toString('utf8');if(/data-rafex-free-layout-stop3d|data-rafex-b2b-3d-module-pause|data-rafex-b2b-3d-add-hook|rafexPauseB2B3DIfUserAdd/.test(h))process.exit(1)"
 
 # Konsol v2 + kullanicinin son ayak profili / mesafe / serbest yerlesim / PDF istekleri
 # verify adiminda en son yetki olarak uygulanir ve inline JS sozdizimi denetlenir.
@@ -137,4 +135,4 @@ grep -q 'data-rafex-final-user-repairs="v20"' scripts/patch-final-user-repairs-v
 grep -q 'data-rafex-manual-free-output="v32"' scripts/patch-manual-free-output-v32.mjs
 grep -q 'sectionWidth=config.modules\*config.width' portal.html
 grep -q 'data-rafex-mr-free-extension="v35"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\"\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-mr-free-extension=\"v35\"'))process.exit(1)"
-echo "Production chain verified: mevcut sistemler + Drive In + Konsol Kollu v3 aktif."
+echo "Production chain verified: mevcut sistemler + Drive In + Konsol Kollu v3 aktif; Serbest Cizim 3D otomatik kapatma kapali."
