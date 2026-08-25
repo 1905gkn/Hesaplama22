@@ -104,20 +104,6 @@ const runtime = String.raw`<style data-rafex-user-request-v5="1">
     if(typeof prev==='function'&&!prev.__rafexV5){const wrap=function(){let rows=prev.apply(this,arguments)||[];rows=rows.filter(r=>{const n=low(r?.name);return !(/ayak profili|upright profile|profil de montant/.test(n)||n==='palet dayama'||n==='h travers'||n.startsWith('tava'));});mergeRows(rows,allLayoutAccessories().map(r=>({name:r.name,qty:r.qty})));return stableSort(rows);};wrap.__rafexV5=true;try{m2LayoutProductRows=wrap}catch{}window.m2LayoutProductRows=wrap;}
   }catch(e){console.warn('v5 layout BOM',e)}
 
-  // B2B ust seciciler degisirken mevcut Serbest Cizim yerlesimini asla sifirlama.
-  let pendingSnapshot=null;
-  const clone=(v)=>{try{return structuredClone(v)}catch{try{return JSON.parse(JSON.stringify(v))}catch{return null}}};
-  function snapshotIfNeeded(target){
-    if(!freePage()||!(target instanceof Element))return;
-    if(!(String(target.id||'').startsWith('b2b')||target.closest('.b2b-input-card')))return;
-    try{if(!Array.isArray(m2LayoutState?.racks)||!m2LayoutState.racks.length)return;pendingSnapshot={state:clone(m2LayoutState),symbols:clone(typeof m2LayoutSymbols!=='undefined'?m2LayoutSymbols:[])};}catch{}
-  }
-  function restoreIfWiped(){
-    if(!pendingSnapshot?.state?.racks?.length)return;try{if(Array.isArray(m2LayoutState?.racks)&&m2LayoutState.racks.length)return;}catch{}
-    try{m2LayoutState=pendingSnapshot.state;if(typeof m2LayoutSymbols!=='undefined'&&Array.isArray(pendingSnapshot.symbols))m2LayoutSymbols=pendingSnapshot.symbols;if(typeof m2RenderLayout==='function')m2RenderLayout();if(typeof m2RenderLayoutProductList==='function')m2RenderLayoutProductList();}catch(e){console.warn('Serbest yerlesim restore',e)}
-  }
-  ['input','change'].forEach(type=>document.addEventListener(type,(event)=>{snapshotIfNeeded(event.target);setTimeout(restoreIfWiped,0);setTimeout(restoreIfWiped,40);},true));
-
   // Mekik kartlarini native SVG ile tekrar doldur. Eski runtime bos kart biraksa bile PDF oncesi yeniden kurulur.
   function repairMekikReport(){
     let types=[];try{types=typeof m2CorporateUsedTypes==='function'?m2CorporateUsedTypes():[]}catch{}
@@ -153,4 +139,4 @@ if (html.includes('data-rafex-final-live-controls="v3"')) throw new Error('Eski 
 const encoded = Buffer.from(html, 'utf8').toString('base64');
 worker = worker.slice(0, match.index) + match[1] + match[2] + encoded + match[2] + worker.slice(match.index + match[0].length);
 fs.writeFileSync(workerPath, worker);
-console.log('FINAL v5: Mekik PDF geri dolumu, ZEMIN/K1/ust aksesuar akisi, 3 kolon urun detayi, acilir urun listeleri, Ayak Profili duplikasyon temizligi ve Serbest Cizim state korumasi aktif.');
+console.log('FINAL v5: Mekik PDF geri dolumu, ZEMIN/K1/ust aksesuar akisi, 3 kolon urun detayi, acilir urun listeleri ve Ayak Profili duplikasyon temizligi aktif.');
