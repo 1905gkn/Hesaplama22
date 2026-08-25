@@ -50,7 +50,7 @@ const runtime = String.raw`<script data-rafex-free-b2b-remount="v42">
     var token=++remountToken;
     // v40 yerlesim geri yuklemeleri 0/80/220 ms'de m2Front'u yeniden cizer.
     // Son geri yuklemeden sonra gercek WebGL tuvalli B2B gorunumunu kesin olarak bagla.
-    [260,420,700].forEach(function(delay){setTimeout(function(){restoreLiveB2B(token);},delay);});
+    setTimeout(function(){restoreLiveB2B(token);},260);
   },true);
 })();
 </script>`;
