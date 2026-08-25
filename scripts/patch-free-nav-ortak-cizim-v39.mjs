@@ -62,6 +62,18 @@ if (!html.includes("__rafexCommonState = m2CommonDrawingActive()")) {
   html = html.replace(initOpen, initOpenShared);
 }
 
+const rectangleInitAnchor = `        m2CreateRectangle();
+        m2ZoomLayout(0, true);`;
+const rectangleInitShared = `        if (m2CommonDrawingActive()) m2RenderLayout();
+        else {
+          m2CreateRectangle();
+          m2ZoomLayout(0, true);
+        }`;
+if (!html.includes("if (m2CommonDrawingActive()) m2RenderLayout();")) {
+  if (!html.includes(rectangleInitAnchor)) throw new Error("Ortak Cizim: kosulsuz alan olusturma noktasi bulunamadi");
+  html = html.replace(rectangleInitAnchor, rectangleInitShared);
+}
+
 const keyHandlerAnchor = '        if (m2LayoutKeyHandler) document.removeEventListener("keydown", m2LayoutKeyHandler);';
 const sharedRestore = '        if (__rafexCommonState) m2RestoreModuleState(m2MergeCommonDrawingState(m2CaptureModuleState(), __rafexCommonState));\n' + keyHandlerAnchor;
 if (!html.includes("m2RestoreModuleState(m2MergeCommonDrawingState(m2CaptureModuleState(), __rafexCommonState))")) {
@@ -94,7 +106,8 @@ for (const required of [
   "m2CommonDrawingStateKeys",
   "__rafexCommonState = m2CommonDrawingActive()",
   "m2MergeCommonDrawingState(m2ModuleStates[moduleName], __rafexCommonState)",
-  "m2RestoreModuleState(m2MergeCommonDrawingState(m2CaptureModuleState(), __rafexCommonState))"
+  "m2RestoreModuleState(m2MergeCommonDrawingState(m2CaptureModuleState(), __rafexCommonState))",
+  "if (m2CommonDrawingActive()) m2RenderLayout();"
 ]) {
   if (!html.includes(required)) throw new Error(`Ortak Cizim ortak state dogrulamasi eksik: ${required}`);
 }
@@ -140,5 +153,5 @@ if (!html.includes('data-rafex-free-nav-ortak="v39"') || !html.includes("const L
 const encoded = Buffer.from(html, "utf8").toString("base64");
 worker = worker.slice(0, match.index) + match[0].replace(match[2], encoded) + worker.slice(match.index + match[0].length);
 fs.writeFileSync(workerPath, worker);
-console.log("v39: Sol menudeki Serbest Cizim sekmesi Ortak Cizim olarak degistirildi.");
+console.log("v39: Ortak Cizim alanı sistem gecisinde yeniden olusturulmaz; mevcut yerlesim dogrudan kullanilir.");
 
