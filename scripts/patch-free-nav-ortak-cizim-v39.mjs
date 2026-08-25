@@ -29,7 +29,7 @@ html = html.replace(
 );
 
 const commonHelperAnchor = "      function m2ActivateModule(moduleName) {";
-const commonHelpers = \`      function m2CommonDrawingActive() {
+const commonHelpers = `      function m2CommonDrawingActive() {
         const page = document.getElementById("page");
         return Boolean(page && (page.dataset.rafexFreeDrawing === "1" || page.classList.contains("rafex-free-drawing-page")));
       }
@@ -45,17 +45,17 @@ const commonHelpers = \`      function m2CommonDrawingActive() {
         m2CommonDrawingStateKeys.forEach((key) => { target[key] = source[key]; });
         return target;
       }
-\`;
+`;
 if (!html.includes("function m2CommonDrawingActive()")) {
   if (!html.includes(commonHelperAnchor)) throw new Error("Ortak Cizim: m2ActivateModule bulunamadi");
   html = html.replace(commonHelperAnchor, commonHelpers + commonHelperAnchor);
 }
 
-const initOpen = \`      function m2InitLayoutEditor() {
+const initOpen = `      function m2InitLayoutEditor() {
         const svg = $("m2LayoutSvg");
-        if (!svg) return;\`;
-const initOpenShared = initOpen + \`
-        const __rafexCommonState = m2CommonDrawingActive() ? m2CaptureModuleState() : null;\`;
+        if (!svg) return;`;
+const initOpenShared = initOpen + `
+        const __rafexCommonState = m2CommonDrawingActive() ? m2CaptureModuleState() : null;`;
 if (!html.includes("__rafexCommonState = m2CommonDrawingActive()")) {
   if (!html.includes(initOpen)) throw new Error("Ortak Cizim: m2InitLayoutEditor baslangici bulunamadi");
   html = html.replace(initOpen, initOpenShared);
@@ -68,21 +68,21 @@ if (!html.includes("m2RestoreModuleState(m2MergeCommonDrawingState(m2CaptureModu
   html = html.replace(keyHandlerAnchor, sharedRestore);
 }
 
-const activateStart = \`      function m2ActivateModule(moduleName) {
-        if (!m2ModuleStates[m2ActiveModule])\`;
-const activateStartShared = \`      function m2ActivateModule(moduleName) {
+const activateStart = `      function m2ActivateModule(moduleName) {
+        if (!m2ModuleStates[m2ActiveModule])`;
+const activateStartShared = `      function m2ActivateModule(moduleName) {
         const __rafexCommonState = m2CommonDrawingActive() ? m2CaptureModuleState() : null;
-        if (!m2ModuleStates[m2ActiveModule])\`;
+        if (!m2ModuleStates[m2ActiveModule])`;
 if (!html.includes("function m2ActivateModule(moduleName) {\\n        const __rafexCommonState")) {
   if (!html.includes(activateStart)) throw new Error("Ortak Cizim: modul gecis baslangici bulunamadi");
   html = html.replace(activateStart, activateStartShared);
 }
 
-const activateRestore = \`        if (!m2ModuleStates[moduleName]) m2ModuleStates[moduleName]=m2FreshModuleState();
-        m2RestoreModuleState(m2ModuleStates[moduleName]);\`;
-const activateRestoreShared = \`        if (!m2ModuleStates[moduleName]) m2ModuleStates[moduleName]=m2FreshModuleState();
+const activateRestore = `        if (!m2ModuleStates[moduleName]) m2ModuleStates[moduleName]=m2FreshModuleState();
+        m2RestoreModuleState(m2ModuleStates[moduleName]);`;
+const activateRestoreShared = `        if (!m2ModuleStates[moduleName]) m2ModuleStates[moduleName]=m2FreshModuleState();
         if (__rafexCommonState) m2MergeCommonDrawingState(m2ModuleStates[moduleName], __rafexCommonState);
-        m2RestoreModuleState(m2ModuleStates[moduleName]);\`;
+        m2RestoreModuleState(m2ModuleStates[moduleName]);`;
 if (!html.includes("m2MergeCommonDrawingState(m2ModuleStates[moduleName], __rafexCommonState)")) {
   if (!html.includes(activateRestore)) throw new Error("Ortak Cizim: modul restore noktasi bulunamadi");
   html = html.replace(activateRestore, activateRestoreShared);
@@ -95,7 +95,7 @@ for (const required of [
   "m2MergeCommonDrawingState(m2ModuleStates[moduleName], __rafexCommonState)",
   "m2RestoreModuleState(m2MergeCommonDrawingState(m2CaptureModuleState(), __rafexCommonState))"
 ]) {
-  if (!html.includes(required)) throw new Error(\`Ortak Cizim ortak state dogrulamasi eksik: \${required}\`);
+  if (!html.includes(required)) throw new Error(`Ortak Cizim ortak state dogrulamasi eksik: \${required}`);
 }
 
 const runtime = `<script data-rafex-free-nav-ortak="v39">
