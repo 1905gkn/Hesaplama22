@@ -54,4 +54,4 @@ console.log("v39: Sol menudeki Serbest Cizim sekmesi Ortak Cizim olarak degistir
 
 await import("./patch-free-layout-system-switch-v40.mjs");
 await import("./patch-free-ortak-switch-ux-v41.mjs");
-await import("./patch-free-b2b-remount-v42.mjs");
+await import("./patch-free-b2b-remount-v42.mjs");\nawait import("./patch-free-editor-preserve-v43.mjs");
