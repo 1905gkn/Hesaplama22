@@ -62,7 +62,7 @@ if (!html.includes("__rafexCommonState = m2CommonDrawingActive()")) {
 }
 
 const keyHandlerAnchor = '        if (m2LayoutKeyHandler) document.removeEventListener("keydown", m2LayoutKeyHandler);';
-const sharedRestore = '        if (__rafexCommonState) m2RestoreModuleState(m2MergeCommonDrawingState(m2CaptureModuleState(), __rafexCommonState));\\n' + keyHandlerAnchor;
+const sharedRestore = '        if (__rafexCommonState) m2RestoreModuleState(m2MergeCommonDrawingState(m2CaptureModuleState(), __rafexCommonState));\n' + keyHandlerAnchor;
 if (!html.includes("m2RestoreModuleState(m2MergeCommonDrawingState(m2CaptureModuleState(), __rafexCommonState))")) {
   if (!html.includes(keyHandlerAnchor)) throw new Error("Ortak Cizim: editor baglama noktasi bulunamadi");
   html = html.replace(keyHandlerAnchor, sharedRestore);
