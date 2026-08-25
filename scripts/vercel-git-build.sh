@@ -33,7 +33,6 @@ node scripts/patch-free-layout-geometry-cache-v27.mjs
 node scripts/patch-free-layout-dom-table-v28.mjs
 node scripts/patch-free-layout-runtime-tables-v29.mjs
 node scripts/patch-free-layout-live-frame-v31.mjs
-node scripts/patch-free-layout-mekik-gap-stability-v36.mjs
 node scripts/patch-mobile-responsive.mjs
 node scripts/patch-mobile-desktop-view-v30.mjs
 node scripts/patch-foot-priority-fixed-sidebar.mjs
@@ -47,6 +46,9 @@ node scripts/patch-mr-saved-types-v18.mjs
 node scripts/patch-mr-save-api-v20.mjs
 node scripts/patch-b2b-physical-width-v23.mjs
 node scripts/patch-mr-free-extension-v35.mjs source
+node scripts/patch-free-layout-mekik-gap-stability-v36.mjs
+grep -q 'function m2PerfLiveNearestRackGap(rack)' portal.html
+grep -q 'm2PerfLiveRackDistanceGuide(rack)' portal.html
 node scripts/patch-viewer-lifecycle-performance-v30.mjs
 
 grep -q 'const trayDepth = Math.max(1, depth - 25);' client/mr-viewer.entry.js
@@ -64,7 +66,6 @@ grep -q 'const m2LayoutRuntimeCache = {' portal.html
 grep -q 'm2PerfWallGeometryTable()' portal.html
 grep -q 'm2PerfBlockingSymbols().some' portal.html
 grep -q 'function m2ScheduleLiveRackDrag(svg,event)' portal.html
-grep -q 'function m2PerfLiveNearestRackGap(rack)' portal.html
 ! grep -q 'now-drag.perfLastGuideAt<64' portal.html
 grep -q 'data-rafex-mobile-desktop-view="v30"' portal.html
 grep -q '__rafexLifecycleV30' client/b2b-viewer.entry.js
