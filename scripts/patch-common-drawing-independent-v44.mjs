@@ -265,8 +265,8 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
     var page=document.getElementById('page');if(!page)return;
     page.classList.toggle('rafex-common-independent',isFree());
     if(!isFree())return;
-    var note=page.querySelector('.rafex-free-mode-note');
-    if(note){note.innerHTML='<b>BAĞIMSIZ ORTAK ÇİZİM ALANI</b><span>Sistem seçimi yalnız üstteki modül girdilerini değiştirir. Alan, kayıtlı tip sırası, ölçüler, renkler ve PDF kesit sırası bütün sistemler için ortaktır.</span>';}
+    var note=page.querySelector('.rafex-free-mode-note'),noteHtml='<b>BAĞIMSIZ ORTAK ÇİZİM ALANI</b><span>Sistem seçimi yalnız üstteki modül girdilerini değiştirir. Alan, kayıtlı tip sırası, ölçüler, renkler ve PDF kesit sırası bütün sistemler için ortaktır.</span>';
+    if(note&&note.dataset.rafexCommonNote!=='v44'){note.dataset.rafexCommonNote='v44';if(note.innerHTML!==noteHtml)note.innerHTML=noteHtml;}
   }
 
   function groupByLetter(){var map=new Map();layoutGroups(true).forEach(function(group){map.set(group.letter,group);});return map;}
@@ -329,7 +329,7 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
 
   var observer=new MutationObserver(function(records){
     var needsPdf=false,needsModal=false,needsDecorate=false;
-    records.forEach(function(record){var target=record.target&&record.target.nodeType===1?record.target:record.target&&record.target.parentElement;if(!target)return;if(target.id==='m2CorporatePreview'||target.closest&&target.closest('#m2CorporatePreview,#m2CorporatePrint,#m2CorporatePrintArea'))needsPdf=true;if(target.id==='m2SectionPlacementModal'||target.closest&&target.closest('#m2SectionPlacementModal'))needsModal=true;if(target.id==='page'||target.closest&&target.closest('#page'))needsDecorate=true;});
+    records.forEach(function(record){var target=record.target&&record.target.nodeType===1?record.target:record.target&&record.target.parentElement;if(!target)return;if(target.id==='m2CorporatePreview'||target.closest&&target.closest('#m2CorporatePreview,#m2CorporatePrint,#m2CorporatePrintArea'))needsPdf=true;if(target.id==='m2SectionPlacementModal'||target.closest&&target.closest('#m2SectionPlacementModal'))needsModal=true;if(!(target.closest&&target.closest('.rafex-free-mode-note'))&&(target.id==='page'||target.closest&&target.closest('#page')))needsDecorate=true;});
     if(needsPdf)schedulePdf(20);if(needsModal)scheduleModal(20);if(needsDecorate)decorateIndependent();
   });
   function boot(){decorateIndependent();if(document.body)observer.observe(document.body,{childList:true,subtree:true});if(isFree()){loadCatalog(true);layoutGroups(true);if(typeof m2RenderLayout==='function')m2RenderLayout();}schedulePdf(120);}
