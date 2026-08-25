@@ -79,10 +79,10 @@ for (const required of [
   "Kol derinliği / KRS (mm)",
   "Kattaki ağırlık (kg)",
   "RAL-5010", "RAL-1007", "RAL-2004",
-  "IPE 180", "INP ",
+  "UORDER=[180,200,220,240,270,300]",
+  "AORDER=[80,100,120,140]",
   "6000:{600:{240:7590,270:11420}",
-  "1250:{80:505,100:885,120:1420,140:2110}",
-  "AORDER=[80,100,120,140]"
+  "1250:{80:505,100:885,120:1420,140:2110}"
 ]) {
   if (!html.includes(required)) throw new Error(`Konsol native KRS alanı canlı HTML içinde bulunamadı: ${required}`);
 }
