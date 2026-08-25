@@ -7,7 +7,26 @@ const match = worker.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1/
 if (!match) throw new Error("Ortak Cizim nav: HTML_BASE64 bulunamadi");
 
 let html = Buffer.from(match[2], "base64").toString("utf8");
-html = html.replace(/<script\s+data-rafex-free-nav-ortak="v39">[\s\S]*?<\/script>/g, "");
+html = html
+  .replace(/<script\s+data-rafex-free-nav-ortak="v39">[\s\S]*?<\/script>/g, "")
+  .replace(/<script\s+data-rafex-free-layout-system-switch="v40">[\s\S]*?<\/script>/g, "")
+  .replace(/<script\s+data-rafex-free-ortak-switch-ux="v41">[\s\S]*?<\/script>/g, "")
+  .replace(/<script\s+data-rafex-free-b2b-remount="v42">[\s\S]*?<\/script>/g, "")
+  .replace(/<script\s+data-rafex-free-editor-preserve="v43">[\s\S]*?<\/script>/g, "");
+
+const staticFrontWrite = '$("m2Front").innerHTML = elevation("front");';
+const b2b3DOnlyWrite = 'if (m2ActiveModule !== "b2b") $("m2Front").innerHTML = elevation("front");';
+if (html.includes(staticFrontWrite)) html = html.replace(staticFrontWrite, b2b3DOnlyWrite);
+if (!html.includes(b2b3DOnlyWrite)) throw new Error("B2B 3D-only: statik on gorunus yazimi devre disi birakilamadi");
+
+html = html.replace(
+  'if (frontTab) frontTab.textContent = "3D / Önden Görünüş";',
+  'if (frontTab) frontTab.textContent = "3D Görünüş";'
+);
+html = html.replace(
+  `<button type="button" onclick="b2bSet3DCamera('front')">Önden</button>`,
+  ""
+);
 
 const runtime = `<script data-rafex-free-nav-ortak="v39">
 (function(){
@@ -52,7 +71,3 @@ worker = worker.slice(0, match.index) + match[0].replace(match[2], encoded) + wo
 fs.writeFileSync(workerPath, worker);
 console.log("v39: Sol menudeki Serbest Cizim sekmesi Ortak Cizim olarak degistirildi.");
 
-await import("./patch-free-layout-system-switch-v40.mjs");
-await import("./patch-free-ortak-switch-ux-v41.mjs");
-await import("./patch-free-b2b-remount-v42.mjs");
-await import("./patch-free-editor-preserve-v43.mjs");
