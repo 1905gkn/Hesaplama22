@@ -94,9 +94,8 @@ const runtime = String.raw`<script data-rafex-free-ortak-switch-ux="v41">
     if(!input||!isCommonPage())return;
     var snapshot=captureViewport();
     var token=++switchToken;
-    [0,90,180,320].forEach(function(delay){
-      setTimeout(function(){if(token===switchToken){restoreViewport(snapshot);maintain();}},delay);
-    });
+    // Sistem ve 3D yerlesimi tamamen bittikten sonra ekran konumunu yalniz bir kez duzelt.
+    setTimeout(function(){if(token===switchToken){restoreViewport(snapshot);maintain();}},380);
   },true);
 
   function bind(){
