@@ -101,6 +101,13 @@ if (!html.includes("m2MergeCommonDrawingState(m2ModuleStates[moduleName], __rafe
   html = html.replace(activateRestore, activateRestoreShared);
 }
 
+const b2bReportModeAnchor = '        if(reportType){reportType.value="corporate";if(reportTypeControl)reportTypeControl.hidden=true;if($("m2ReportCompleteFront"))$("m2ReportCompleteFront").checked=true;m2ChangeReportMode();}';
+const b2bReportModeShared = '        if(reportType){reportType.value="corporate";if(reportTypeControl)reportTypeControl.hidden=true;if($("m2ReportCompleteFront"))$("m2ReportCompleteFront").checked=true;const __rafexManualSharedReport=m2CommonDrawingActive();if(__rafexManualSharedReport){const panel=reportType.closest(".m2-report-panel");if(panel){panel.dataset.rafexManualOutput="1";panel.dataset.rafexOutputVisible="0";}if($("m2A4Sheet"))$("m2A4Sheet").hidden=true;if($("m2CorporatePreview"))$("m2CorporatePreview").hidden=true;}else m2ChangeReportMode();}';
+if (!html.includes("const __rafexManualSharedReport=m2CommonDrawingActive();")) {
+  if (!html.includes(b2bReportModeAnchor)) throw new Error("Ortak Cizim: B2B otomatik rapor acma noktasi bulunamadi");
+  html = html.replace(b2bReportModeAnchor, b2bReportModeShared);
+}
+
 for (const required of [
   "function m2CommonDrawingActive()",
   "m2CommonDrawingStateKeys",
@@ -153,5 +160,5 @@ if (!html.includes('data-rafex-free-nav-ortak="v39"') || !html.includes("const L
 const encoded = Buffer.from(html, "utf8").toString("base64");
 worker = worker.slice(0, match.index) + match[0].replace(match[2], encoded) + worker.slice(match.index + match[0].length);
 fs.writeFileSync(workerPath, worker);
-console.log("v39: Ortak Cizim alanı sistem gecisinde yeniden olusturulmaz; mevcut yerlesim dogrudan kullanilir.");
+console.log("v39: Ortak Cizim alanı yeniden olusturulmaz; B2B rapor onizlemesi yalniz kullanici istegiyle acilir.");
 
