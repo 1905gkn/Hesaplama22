@@ -127,13 +127,6 @@ const runtime = String.raw`<script data-rafex-user-request-v8="1">(function(){
   document.addEventListener('input',(event)=>{if(event.target?.id==='m2CustomizeTunnelHeight')setTimeout(syncDraftToRack,0);},true);
   document.addEventListener('change',(event)=>{if(event.target?.id==='m2CustomizeTunnel')setTimeout(syncDraftToRack,0);},true);
 
-  // Serbest Çizim: üst B2B girişleri değişirken yerleşim state'i değişmesin/sıfırlanmasın.
-  let layoutSnap=null;
-  function isGuardTarget(target){return freePage()&&target instanceof Element&&!target.closest('#m2CustomizeModal')&&(String(target.id||'').startsWith('b2b')||!!target.closest('.b2b-input-card'));}
-  function takeSnap(target){if(!isGuardTarget(target))return;try{layoutSnap=clone(m2LayoutState)}catch{layoutSnap=null}}
-  function restoreSnap(){if(!layoutSnap)return;try{const current=JSON.stringify({r:m2LayoutState?.racks,p:m2LayoutState?.points,c:m2LayoutState?.closed});const before=JSON.stringify({r:layoutSnap.racks,p:layoutSnap.points,c:layoutSnap.closed});if(current===before)return;Object.keys(m2LayoutState).forEach(k=>delete m2LayoutState[k]);Object.assign(m2LayoutState,clone(layoutSnap));if(typeof m2RenderLayout==='function')m2RenderLayout();scheduleProducts();}catch(e){console.warn('v8 layout restore',e)}}
-  ['input','change'].forEach(type=>document.addEventListener(type,(event)=>{takeSnap(event.target);setTimeout(restoreSnap,0);setTimeout(restoreSnap,60);setTimeout(restoreSnap,180);},true));
-
   // Native B2B ürün alanında aksesuar çıkarınca adet anında düşsün; tunnelHeight de hesaba girsin.
   function refreshNativeParts(){
     const host=document.getElementById('m2Parts');if(!host)return;host.querySelectorAll('[data-rafex-b2b-extra-v4],[data-rafex-b2b-extra-v8]').forEach(n=>n.remove());
@@ -155,4 +148,4 @@ if(!html.includes('data-rafex-user-request-v8="1"'))throw new Error('v8-final ma
 const encoded=Buffer.from(html,'utf8').toString('base64');
 worker=worker.slice(0,match.index)+match[1]+match[2]+encoded+match[2]+worker.slice(match.index+match[0].length);
 fs.writeFileSync(workerPath,worker);
-console.log('FINAL v8: aksesuar kat click/save-load, dinamik tunnel, canlı adet/kod, kapanabilir ürün listeleri, klipsli dübel ve Serbest state koruması aktif.');
+console.log('FINAL v8: aksesuar kat click/save-load, dinamik tunnel, canlı adet/kod, kapanabilir ürün listeleri ve klipsli dübel aktif.');
