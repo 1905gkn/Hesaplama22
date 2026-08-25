@@ -97,7 +97,7 @@ const runtime=String.raw`
 const bodyClose=html.lastIndexOf('</body>');
 if(bodyClose<0)throw new Error('Konsol KRS v8 body kapanisi bulunamadi.');
 html=html.slice(0,bodyClose)+runtime+'\n'+html.slice(bodyClose);
-for(const required of ['data-rafex-konsol-krs-catalog="v8"','SSI SCHÄFER KRS KATALOG SEÇİMİ','En üst kol kotu / KRS H (mm)','KATALOGDA UYGUN EŞLEŞME YOK','INP 140','6000:{600:{240:7590,270:11420}']){
+for(const required of ['data-rafex-konsol-krs-catalog="v8"','SSI SCHÄFER KRS KATALOG SEÇİMİ','En üst kol kotu / KRS H (mm)','KATALOGDA UYGUN EŞLEŞME YOK','AORDER=[80,100,120,140]','6000:{600:{240:7590,270:11420}']){
  if(!html.includes(required))throw new Error('Konsol KRS v8 dogrulama eksigi: '+required);
 }
 if(html.includes('data-rafex-konsol-recommendations="v7"'))throw new Error('Eski formullu Konsol v7 runtime hala canli HTML icinde.');
