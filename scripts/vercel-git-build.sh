@@ -33,6 +33,7 @@ node scripts/patch-free-layout-geometry-cache-v27.mjs
 node scripts/patch-free-layout-dom-table-v28.mjs
 node scripts/patch-free-layout-runtime-tables-v29.mjs
 node scripts/patch-free-layout-live-frame-v31.mjs
+node scripts/patch-free-layout-mekik-gap-stability-v36.mjs
 node scripts/patch-mobile-responsive.mjs
 node scripts/patch-mobile-desktop-view-v30.mjs
 node scripts/patch-foot-priority-fixed-sidebar.mjs
@@ -63,6 +64,7 @@ grep -q 'const m2LayoutRuntimeCache = {' portal.html
 grep -q 'm2PerfWallGeometryTable()' portal.html
 grep -q 'm2PerfBlockingSymbols().some' portal.html
 grep -q 'function m2ScheduleLiveRackDrag(svg,event)' portal.html
+grep -q 'function m2PerfLiveNearestRackGap(rack)' portal.html
 ! grep -q 'now-drag.perfLastGuideAt<64' portal.html
 grep -q 'data-rafex-mobile-desktop-view="v30"' portal.html
 grep -q '__rafexLifecycleV30' client/b2b-viewer.entry.js
@@ -120,6 +122,7 @@ grep -q 'data-rafex-cad-import="v56"' dist/server/index.js || node -e "const fs=
 grep -q 'data-rafex-product-toggle="v24"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-product-toggle=\\\"v24\\\"'))process.exit(1)"
 grep -q 'data-rafex-horizontal-products-savebar="v25"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-horizontal-products-savebar=\\\"v25\\\"'))process.exit(1)"
 grep -q 'data-rafex-drive-in-mekik="v1"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-drive-in-mekik=\\\"v1\\\"'))process.exit(1)"
+node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\"\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('function m2PerfLiveNearestRackGap(rack)'))process.exit(1)"
 
 # Konsol v2 + kullanicinin son ayak profili / mesafe / serbest yerlesim / PDF istekleri
 # verify adiminda en son yetki olarak uygulanir ve inline JS sozdizimi denetlenir.
