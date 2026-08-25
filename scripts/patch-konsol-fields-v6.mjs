@@ -8,7 +8,7 @@ let html=Buffer.from(match[2],'base64').toString('utf8');
 html=html.replace(/<style data-rafex-konsol-fields="v6">[\s\S]*?<\/style>/g,'').replace(/<script data-rafex-konsol-fields="v6">[\s\S]*?<\/script>/g,'');
 
 const oldSpec=" function spec(){return{count:Math.max(2,n('konsolUprightCount',5)),spacing:n('konsolSpacing',1500),height:n('konsolHeight',4500),arm:n('konsolArmLength',1200),levels:Math.max(1,n('konsolLevels',4)),side:e('konsolSide')&&e('konsolSide').value==='double'?'double':'single'}}";
-const newSpec=" function spec(){return{count:Math.max(2,n('konsolUprightCount',5)),spacing:n('konsolSpacing',1500),height:n('konsolHeight',4500),heightMode:e('konsolHeightMode')&&e('konsolHeightMode').value==='manual'?'manual':'auto',arm:n('konsolArmLength',1200),baseDepth:n('konsolBaseDepth',1200),levelLoad:n('konsolLevelLoad',500),legColor:'ral5010',armColor:e('konsolArmColor')&&e('konsolArmColor').value==='ral2004'?'ral2004':'ral1007',uprightProfile:e('konsolUprightProfile')&&e('konsolUprightProfile').value||'ipe180',armProfile:e('konsolArmProfile')&&e('konsolArmProfile').value||'npi120',levels:Math.max(1,n('konsolLevels',4)),side:e('konsolSide')&&e('konsolSide').value==='double'?'double':'single'}}";
+const newSpec=" function spec(){return{count:Math.max(2,n('konsolUprightCount',5)),spacing:n('konsolSpacing',1500),height:n('konsolHeight',4500),heightMode:e('konsolHeightMode')&&e('konsolHeightMode').value==='manual'?'manual':'auto',arm:n('konsolArmLength',1200),baseDepth:n('konsolBaseDepth',1200),levelLoad:n('konsolLevelLoad',500),levelGap:n('konsolLevelGap',1000),legColor:'ral5010',armColor:e('konsolArmColor')&&e('konsolArmColor').value==='ral2004'?'ral2004':'ral1007',uprightProfile:e('konsolUprightProfile')&&e('konsolUprightProfile').value||'ipe180',armProfile:e('konsolArmProfile')&&e('konsolArmProfile').value||'npi120',levels:Math.max(1,n('konsolLevels',4)),side:e('konsolSide')&&e('konsolSide').value==='double'?'double':'single'}}";
 if(html.includes(oldSpec))html=html.replace(oldSpec,newSpec);
 else if(!html.includes("uprightProfile:e('konsolUprightProfile')"))throw new Error('Konsol v3 spec fonksiyonu bulunamadı.');
 const oldFoot=" function footprint(s){return{w:Math.max(600,(s.count-1)*s.spacing+130),h:(s.side==='double'?s.arm*2:s.arm)+220}}";
@@ -31,14 +31,14 @@ const runtime=String.raw`
  var finalRender=window.renderKonsol;
  function e(id){return document.getElementById(id)}
  function positive(id,f){var v=Number(e(id)&&e(id).value);return Number.isFinite(v)&&v>0?v:f}
- function autoHeight(){return Math.max(1000,Math.round((Math.max(1,positive('konsolLevels',4))*1000+500)/100)*100)}
+ function autoHeight(){var levels=Math.max(1,positive('konsolLevels',4));var gap=Math.max(100,positive('konsolLevelGap',1000));return Math.max(1000,Math.round((levels*gap+500)/100)*100)}
  function refreshViewer(){var arm=e('konsolArmLength');if(arm)arm.dispatchEvent(new Event('input',{bubbles:true}))}
  function syncHeight(){var mode=e('konsolHeightMode'),height=e('konsolHeight');if(!mode||!height)return;if(mode.value==='manual'){height.disabled=false}else{height.value=autoHeight();height.disabled=true}height.dispatchEvent(new Event('input',{bubbles:true}))}
  function patchViewer(){
    var api=window.RafexKonsolViewer;if(!api||typeof api.mount!=='function'||api.__konsolFieldsV6)return;
    var originalMount=api.mount.bind(api);api.__konsolFieldsV6=true;
    api.mount=function(canvas,options){
-     function enrich(next){var out=Object.assign({},next||{});out.baseDepth=positive('konsolBaseDepth',1200);out.armColor=e('konsolArmColor')&&e('konsolArmColor').value==='ral2004'?'ral2004':'ral1007';out.legColor='ral5010';out.uprightProfile=e('konsolUprightProfile')&&e('konsolUprightProfile').value||'ipe180';out.armProfile=e('konsolArmProfile')&&e('konsolArmProfile').value||'npi120';return out}
+     function enrich(next){var out=Object.assign({},next||{});out.baseDepth=positive('konsolBaseDepth',1200);out.levelGap=positive('konsolLevelGap',1000);out.armColor=e('konsolArmColor')&&e('konsolArmColor').value==='ral2004'?'ral2004':'ral1007';out.legColor='ral5010';out.uprightProfile=e('konsolUprightProfile')&&e('konsolUprightProfile').value||'ipe180';out.armProfile=e('konsolArmProfile')&&e('konsolArmProfile').value||'npi120';return out}
      var viewer=originalMount(canvas,enrich(options));
      if(viewer&&typeof viewer.update==='function'){var originalUpdate=viewer.update.bind(viewer);viewer.update=function(next,refit){return originalUpdate(enrich(next),refit)}}
      return viewer;
@@ -50,6 +50,7 @@ const runtime=String.raw`
    var page=e('page'),grid=page&&page.querySelector('.konsol-grid');if(!grid||e('konsolLevelLoad'))return;
    var project=e('konsolProjectName'),projectLabel=project&&project.closest('label');
    var height=e('konsolHeight'),heightLabel=setLabelText(height,'Ayak yüksekliği (mm)');
+   var levels=e('konsolLevels'),levelsLabel=setLabelText(levels,'Kol seviyesi');
    var arm=e('konsolArmLength'),armLabel=setLabelText(arm,'Kat derinliği (mm)');
 
    var leg=document.createElement('label');leg.className='konsol-field';leg.innerHTML='Ayak rengi<select id="konsolLegColor" disabled><option value="ral5010" selected>RAL-5010</option></select>';
@@ -63,6 +64,9 @@ const runtime=String.raw`
    var modeLabel=document.createElement('label');modeLabel.className='konsol-field';modeLabel.innerHTML='Ayak yüksekliği modu<select id="konsolHeightMode" class="konsol-height-mode"><option value="auto" selected>Otomatik</option><option value="manual">Manuel</option></select>';
    var heightRow=makePair('konsol-height-row');heightRow.appendChild(modeLabel);if(heightLabel)heightRow.appendChild(heightLabel);
 
+   var gap=document.createElement('label');gap.className='konsol-field';gap.innerHTML='Kat arası mesafe (mm)<input id="konsolLevelGap" type="number" min="100" max="3000" step="50" value="1000">';
+   var levelRow=makePair('konsol-level-row');if(levelsLabel)levelRow.appendChild(levelsLabel);levelRow.appendChild(gap);
+
    var base=document.createElement('label');base.className='konsol-field';base.innerHTML='Taban Kat derinliği (mm)<input id="konsolBaseDepth" type="number" min="250" max="3500" step="50" value="1200">';
    var depthRow=makePair('konsol-depth-row');if(armLabel)depthRow.appendChild(armLabel);depthRow.appendChild(base);
 
@@ -70,11 +74,11 @@ const runtime=String.raw`
    var note=document.createElement('div');note.className='konsol-v6-note';note.textContent='3D profil görünümü deliksizdir. Ayak IPE 180–300, kol NPI 80–220 aralığında seçilir. Ayak RAL-5010 sabit; kol RAL-1007 veya RAL-2004 seçilebilir.';
 
    var anchor=projectLabel;
-   [colorRow,profileRow,heightRow,depthRow,load,note].forEach(function(node){if(anchor){anchor.insertAdjacentElement('afterend',node);anchor=node}else grid.appendChild(node)});
+   [colorRow,profileRow,heightRow,levelRow,depthRow,load,note].forEach(function(node){if(anchor){anchor.insertAdjacentElement('afterend',node);anchor=node}else grid.appendChild(node)});
 
    e('konsolHeightMode').addEventListener('change',syncHeight);
-   ['konsolBaseDepth','konsolArmColor','konsolUprightProfile','konsolArmProfile'].forEach(function(id){var node=e(id);if(node)node.addEventListener(node.tagName==='SELECT'?'change':'input',refreshViewer)});
-   var levels=e('konsolLevels');if(levels)levels.addEventListener('input',function(){if(e('konsolHeightMode')&&e('konsolHeightMode').value==='auto')syncHeight()});
+   ['konsolBaseDepth','konsolLevelGap','konsolArmColor','konsolUprightProfile','konsolArmProfile'].forEach(function(id){var node=e(id);if(node)node.addEventListener(node.tagName==='SELECT'?'change':'input',function(){if(id==='konsolLevelGap'&&e('konsolHeightMode')&&e('konsolHeightMode').value==='auto')syncHeight();refreshViewer()})});
+   if(levels)levels.addEventListener('input',function(){if(e('konsolHeightMode')&&e('konsolHeightMode').value==='auto')syncHeight()});
    syncHeight();refreshViewer();
  }
  patchViewer();window.addEventListener('rafex-konsol-viewer-ready',patchViewer);
@@ -85,10 +89,10 @@ const runtime=String.raw`
 const bodyClose=html.lastIndexOf('</body>');
 if(bodyClose<0)throw new Error('Konsol fields v6 gerçek body kapanışı bulunamadı.');
 html=html.slice(0,bodyClose)+runtime+'\n'+html.slice(bodyClose);
-for(const required of ['data-rafex-konsol-fields="v6"','Kattaki ağırlık','Kat derinliği (mm)','Taban Kat derinliği (mm)','RAL-5010','RAL-1007','RAL-2004','konsolHeightMode','Otomatik','Manuel','IPE 180','IPE 300','NPI 80','NPI 220','konsol-color-row','konsol-height-row','konsol-depth-row']){
+for(const required of ['data-rafex-konsol-fields="v6"','Kattaki ağırlık','Kat arası mesafe (mm)','konsolLevelGap','Kat derinliği (mm)','Taban Kat derinliği (mm)','RAL-5010','RAL-1007','RAL-2004','konsolHeightMode','Otomatik','Manuel','IPE 180','IPE 300','NPI 80','NPI 220','konsol-color-row','konsol-height-row','konsol-level-row','konsol-depth-row']){
   if(!html.includes(required))throw new Error('Konsol fields v6 doğrulaması eksik: '+required);
 }
 const encoded=Buffer.from(html).toString('base64');
 source=source.slice(0,match.index)+match[0].replace(match[2],encoded)+source.slice(match.index+match[0].length);
 fs.writeFileSync(file,source);
-console.log('Konsol v6: renkler proje adının altına, yükseklik modu ve derinlikler yan yana; IPE/NPI profil seçimleri eklendi.');
+console.log('Konsol v6: Kat arası mesafe görünür alana eklendi ve otomatik ayak yüksekliğine bağlandı.');
