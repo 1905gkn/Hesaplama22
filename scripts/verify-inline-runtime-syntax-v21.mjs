@@ -119,7 +119,7 @@ for (const required of [
 
 const konsolViewerPath = path.join(process.cwd(), "dist/konsol-viewer.js");
 const konsolViewer = fs.readFileSync(konsolViewerPath, "utf8");
-for (const required of ["ipe180", "ipe300", "npi80", "npi140", "RAFEX_KONSOL_TOP_V8", "productLength", "productHeight", "liftClearance", "loadKonsolArmModel", "loadType", "SON KAT YÜKSEKLİĞİ"]) {
+for (const required of ["ipe180", "ipe300", "npi80", "npi140", "RAFEX_KONSOL_TOP_V8", "productLength", "productHeight", "liftClearance", "loadKonsolArmModel", "loadType", "RAFEX_KONSOL_DIMENSIONS_V13"]) {
   if (!konsolViewer.includes(required)) throw new Error(`Konsol viewer bundle içinde bulunamadı: ${required}`);
 }
 if (konsolViewer.includes('konsol-glb-professional-v7')) throw new Error("Konsol eski delikli GLB katmanı viewer bundle içinde kalmış");
