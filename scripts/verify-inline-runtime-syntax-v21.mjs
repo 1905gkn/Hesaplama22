@@ -44,6 +44,7 @@ await import(`./patch-konsol-input-redesign-v11.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-product-support-v12.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-load-switch-v13.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-ortak-cizim-ui-v43.mjs?build=${Date.now()}`);
+await import(`./patch-konsol-bottom-workspace-v44.mjs?build=${Date.now()}`);
 
 const workerModule = await import(`${workerPath}?syntax-check=${Date.now()}`);
 const response = await workerModule.default.fetch(
@@ -83,6 +84,8 @@ if (!html.includes('data-rafex-konsol-input-redesign="v11"')) throw new Error("K
 if (!html.includes('data-rafex-konsol-product-support="v12"')) throw new Error("Konsol ürün taşıma ve yarım aralık taşma v12 canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-load-switch="v13"')) throw new Error("Konsol ürün görünümü seçimi v13 canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-ortak-ui="v43"')) throw new Error("Konsol Ortak Cizim uyumlu Serbest Yerlesim ve PDF arayuzu canlı HTML içinde bulunamadı");
+if (!html.includes('data-rafex-konsol-bottom-workspace="v44"')) throw new Error("Konsol Serbest Cizim ve PDF alt ekran yerlesimi canlı HTML içinde bulunamadı");
+if (!html.includes("shell.insertAdjacentElement('afterend',bottom)")) throw new Error("Konsol alt ekranları ana kabuğun dışına alınmadı");
 if (!html.includes('rafexValidateKonsolSsiTableV14')) throw new Error("Konsol exact SSI tablo kapsam kilidi canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-free-nav-ortak="v39"')) throw new Error("Sol menude Ortak Cizim etiketi canlı HTML içinde bulunamadı");
 if (!html.includes("const LABEL='Ortak Çizim'")) throw new Error("Ortak Cizim sol menu etiketi doğrulanamadı");
