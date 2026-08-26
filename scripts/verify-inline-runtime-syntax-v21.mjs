@@ -31,6 +31,7 @@ await import(`./patch-konsol-viewer-brace-v7.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-viewer-top-arm-v8.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-viewer-top-v8.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-viewer-product-support-v12.mjs?build=${Date.now()}`);
+await import(`./patch-konsol-viewer-loads-v13.mjs?build=${Date.now()}`);
 
 // Konsol ana ekranı: exact SSI SCHÄFER KRS + kullanıcı akışı + FEM 10.2.09 ön kontrol katmanı.
 await import(`./patch-konsol-cantilever-v2.mjs?build=${Date.now()}`);
@@ -41,6 +42,7 @@ await import(`./patch-free-konsol-plan-v38.mjs?build=${Date.now()}`);
 await import(`./patch-free-nav-ortak-cizim-v39.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-input-redesign-v11.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-product-support-v12.mjs?build=${Date.now()}`);
+await import(`./patch-konsol-load-switch-v13.mjs?build=${Date.now()}`);
 
 const workerModule = await import(`${workerPath}?syntax-check=${Date.now()}`);
 const response = await workerModule.default.fetch(
@@ -78,6 +80,7 @@ if (!html.includes('data-rafex-konsol-fem="v10"')) throw new Error("FEM 10.2.09 
 if (!html.includes('data-rafex-konsol-free-plan="v38"')) throw new Error("Konsol Serbest Cizim temiz 2D plan katmanı canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-input-redesign="v11"')) throw new Error("Konsol Excel girdi ve FEM ön seçim v11 canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-product-support="v12"')) throw new Error("Konsol ürün taşıma ve yarım aralık taşma v12 canlı HTML içinde bulunamadı");
+if (!html.includes('data-rafex-konsol-load-switch="v13"')) throw new Error("Konsol ürün görünümü seçimi v13 canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-free-nav-ortak="v39"')) throw new Error("Sol menude Ortak Cizim etiketi canlı HTML içinde bulunamadı");
 if (!html.includes("const LABEL='Ortak Çizim'")) throw new Error("Ortak Cizim sol menu etiketi doğrulanamadı");
 if (html.includes('data-rafex-konsol-fields="v6"')) throw new Error("Eski Konsol fields v6 runtime canlı HTML içinde kaldı");
@@ -116,7 +119,7 @@ for (const required of [
 
 const konsolViewerPath = path.join(process.cwd(), "dist/konsol-viewer.js");
 const konsolViewer = fs.readFileSync(konsolViewerPath, "utf8");
-for (const required of ["ipe180", "ipe300", "npi80", "npi140", "RAFEX_KONSOL_TOP_V8", "productLength", "productHeight", "liftClearance"]) {
+for (const required of ["ipe180", "ipe300", "npi80", "npi140", "RAFEX_KONSOL_TOP_V8", "productLength", "productHeight", "liftClearance", "loadKonsolArmModel", "loadType", "SON KAT YÜKSEKLİĞİ"]) {
   if (!konsolViewer.includes(required)) throw new Error(`Konsol viewer bundle içinde bulunamadı: ${required}`);
 }
 if (konsolViewer.includes('konsol-glb-professional-v7')) throw new Error("Konsol eski delikli GLB katmanı viewer bundle içinde kalmış");
