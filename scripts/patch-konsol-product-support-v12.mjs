@@ -24,12 +24,15 @@ const runtime = String.raw`
 <script data-rafex-konsol-product-support="v12">
 (function(){
  if(window.__rafexKonsolProductSupportV12)return;window.__rafexKonsolProductSupportV12=true;
- var baseRender=window.renderKonsol,manualCount=false,writing=false;
+ var baseRender=window.renderKonsol,manualCount=false,writing=false,STORE='rafex_konsol_geometry_v15';
  function e(id){return document.getElementById(id)}
  function n(id,f){var v=Number(e(id)&&e(id).value);return Number.isFinite(v)?v:f}
  function fmt(v){return Math.round(Number(v)||0).toLocaleString('tr-TR')}
  function fire(node){if(!node)return;node.dispatchEvent(new Event('input',{bubbles:true}));node.dispatchEvent(new Event('change',{bubbles:true}))}
  function labelText(node,text){var label=node&&node.closest('label');if(label&&label.firstChild&&label.firstChild.nodeType===3)label.firstChild.nodeValue=text}
+ function readSaved(){try{var s=JSON.parse(localStorage.getItem(STORE)||'null');return s&&typeof s==='object'?s:null}catch(_){return null}}
+ function persist(){try{localStorage.setItem(STORE,JSON.stringify({productLength:n('femProductLength',3000),uprightCount:Math.max(2,Math.round(n('konsolUprightCount',2))),spacing:n('konsolSpacing',1500),manualCount:manualCount,height:n('konsolHeight',4000),armLength:n('konsolArmLength',1000),levels:n('konsolLevels',4),side:e('konsolSide')&&e('konsolSide').value||'single'}))}catch(_){}}
+ function restore(){var s=readSaved();if(!s)return false;var map={femProductLength:s.productLength,konsolUprightCount:s.uprightCount,konsolHeight:s.height,konsolArmLength:s.armLength,konsolLevels:s.levels,konsolSide:s.side};Object.keys(map).forEach(function(id){var node=e(id),value=map[id];if(node&&value!=null&&value!=='')node.value=String(value)});if(s.spacing)ensureSpacing(s.spacing);manualCount=s.manualCount===true;return true}
  function ensureSpacing(value){
    var node=e('konsolSpacing');if(!node)return;
    var rounded=Math.round(value),option=Array.from(node.options||[]).find(function(o){return Number(o.value)===rounded});
@@ -50,10 +53,10 @@ const runtime = String.raw`
    if(summary){summary.className='konsol-support-summary'+(tooWide?' warn':'');summary.innerHTML='<b>'+count+' ayak · '+fmt(spacing)+' mm merkez aralığı</b>'+fmt(length)+' mm ürün · sağ/sol '+fmt(overhang)+' mm taşma (ayak aralığının yarısı) · '+loadLabel+' '+fmt(productHeight)+' mm yüksekliğinde ve '+fmt(n('konsolArmLength',1000))+' mm derinliğinde · kaldırma boşluğu '+fmt(lift)+' mm'+(tooWide?' · UYARI: 2.000 mm maksimum aralık aşıldı':' · maksimum aralık uygun')}
    var mode=e('konsolAutoCountMode');if(mode)mode.textContent=manualCount?'Ayak adedi manuel':'Ayak adedi otomatik';
    var lift=e('konsolLiftClearance');if(lift)fire(lift);
-   writing=false;
+   writing=false;persist();
  }
  function enhance(){
-   var grid=document.querySelector('#page .konsol-grid'),spacing=e('konsolSpacing'),count=e('konsolUprightCount'),product=e('femProductLength');if(!grid||!spacing||!count||!product||e('konsolLiftClearance'))return;
+   var grid=document.querySelector('#page .konsol-grid'),spacing=e('konsolSpacing'),count=e('konsolUprightCount'),product=e('femProductLength');if(!grid||!spacing||!count||!product||e('konsolLiftClearance'))return;var restored=restore();
    labelText(spacing,'Ayak merkez aralığı (otomatik mm)');
    var liftLabel=document.createElement('label');liftLabel.className='konsol-field';liftLabel.innerHTML='Ürünün kaldırma mesafesi (mm)<input id="konsolLiftClearance" type="number" min="0" max="1000" step="10" value="100">';
    spacing.closest('label').insertAdjacentElement('afterend',liftLabel);
@@ -71,7 +74,7 @@ const runtime = String.raw`
    var gap=e('konsolLevelGap');if(gap){gap.addEventListener('input',function(){calculate(false)});gap.addEventListener('change',function(){calculate(false)})}
    e('konsolLiftClearance').addEventListener('input',function(){fire(spacing)});
    e('konsolLiftClearance').addEventListener('change',function(){fire(spacing)});
-   calculate(true);
+   calculate(restored?!manualCount:true);
  }
  window.renderKonsol=function(){if(typeof baseRender==='function')baseRender();setTimeout(enhance,40)};
  document.addEventListener('click',function(ev){if(ev.target.closest('[data-page="konsol"]'))setTimeout(enhance,150)});
