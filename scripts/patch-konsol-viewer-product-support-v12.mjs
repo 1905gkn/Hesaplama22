@@ -15,42 +15,97 @@ else if (!source.includes('productLength: clamp(Number(next.productLength)')) th
 
 const materialAnchor = `    const endMat = new THREE.MeshStandardMaterial({ color: armColor, metalness: 0.35, roughness: 0.48 });`;
 const materialReplacement = `${materialAnchor}
-    const productMat = new THREE.MeshStandardMaterial({ color: 0x9fb6a9, metalness: 0.08, roughness: 0.68, transparent: true, opacity: 0.72 });`;
+    const productOuterMat = new THREE.MeshStandardMaterial({ color: 0xb7bfbc, metalness: 0.72, roughness: 0.34 });
+    const productInnerMat = new THREE.MeshStandardMaterial({ color: 0x202825, metalness: 0.16, roughness: 0.82 });
+    const productBandMat = new THREE.MeshStandardMaterial({ color: 0x747d79, metalness: 0.82, roughness: 0.26 });`;
 if (source.includes(materialAnchor)) source = source.replace(materialAnchor, materialReplacement);
-else if (!source.includes('const productMat = new THREE.MeshStandardMaterial')) throw new Error('Konsol ürün malzemesi ekleme noktası bulunamadı.');
+else if (!source.includes('const productOuterMat = new THREE.MeshStandardMaterial')) throw new Error('Konsol profil bağı malzemesi ekleme noktası bulunamadı.');
 
 const addAnchor = `    // RAFEX_KONSOL_BRACE_V7`;
-const addReplacement = `    // Her kol katındaki uzun ürünü gerçek uzunluk ve kol derinliğiyle göster.
-    // Dengeli yüklemede uç taşma = ayak merkez aralığının yarısıdır.
+const addReplacement = `    // Ürünü tek parça blok yerine galvaniz kare kutu profillerden oluşan bir bağ olarak göster.
+    // Boy = ürün uzunluğu, yükseklik = kat arası eksi kaldırma boşluğu, derinlik = kol derinliği.
+    const addProfileBundle = (centerZ, armY) => {
+      const targetProfileSize = 100;
+      const rows = Math.max(1, Math.min(32, Math.ceil(o.productHeight / targetProfileSize)));
+      const columns = Math.max(1, Math.min(24, Math.ceil(o.armLength / targetProfileSize)));
+      const cellHeight = o.productHeight / rows;
+      const cellDepth = o.armLength / columns;
+      const gap = Math.min(8, Math.max(3, Math.min(cellHeight, cellDepth) * 0.08));
+      const count = rows * columns;
+      const outerGeometry = new THREE.BoxGeometry(
+        o.productLength,
+        Math.max(12, cellHeight - gap),
+        Math.max(12, cellDepth - gap),
+      );
+      const mouthGeometry = new THREE.BoxGeometry(
+        7,
+        Math.max(7, cellHeight - gap * 3),
+        Math.max(7, cellDepth - gap * 3),
+      );
+      const outer = new THREE.InstancedMesh(outerGeometry, productOuterMat, count);
+      const leftMouths = new THREE.InstancedMesh(mouthGeometry, productInnerMat, count);
+      const rightMouths = new THREE.InstancedMesh(mouthGeometry, productInnerMat, count);
+      const dummy = new THREE.Object3D();
+      let index = 0;
+      for (let row = 0; row < rows; row += 1) {
+        const y = armY + armSection.h / 2 + (row + 0.5) * cellHeight;
+        for (let column = 0; column < columns; column += 1) {
+          const z = centerZ - o.armLength / 2 + (column + 0.5) * cellDepth;
+          dummy.position.set(0, y, z);
+          dummy.updateMatrix();
+          outer.setMatrixAt(index, dummy.matrix);
+          dummy.position.set(-(o.productLength / 2 + 4), y, z);
+          dummy.updateMatrix();
+          leftMouths.setMatrixAt(index, dummy.matrix);
+          dummy.position.set(o.productLength / 2 + 4, y, z);
+          dummy.updateMatrix();
+          rightMouths.setMatrixAt(index, dummy.matrix);
+          index += 1;
+        }
+      }
+      outer.instanceMatrix.needsUpdate = true;
+      leftMouths.instanceMatrix.needsUpdate = true;
+      rightMouths.instanceMatrix.needsUpdate = true;
+      outer.castShadow = true;
+      outer.receiveShadow = true;
+      outer.frustumCulled = false;
+      leftMouths.frustumCulled = false;
+      rightMouths.frustumCulled = false;
+      outer.name = 'Kutu profil bağı · galvaniz profil demeti';
+      leftMouths.name = 'Kutu profil bağı · sol boş profil ağızları';
+      rightMouths.name = 'Kutu profil bağı · sağ boş profil ağızları';
+      this.root.add(outer, leftMouths, rightMouths);
+
+      const bundleY = armY + armSection.h / 2 + o.productHeight / 2;
+      const bandInset = Math.max(140, Math.min(360, o.productLength * 0.055));
+      const bandGeometry = new THREE.BoxGeometry(42, o.productHeight + 26, o.armLength + 24);
+      for (const x of [-(o.productLength / 2 - bandInset), o.productLength / 2 - bandInset]) {
+        const band = new THREE.Mesh(bandGeometry, productBandMat);
+        band.position.set(x, bundleY, centerZ);
+        band.castShadow = true;
+        band.name = 'Kutu profil bağı · paketleme şeridi';
+        this.root.add(band);
+      }
+    };
+
+    // Dengeli yüklemede uç taşma = gerçek ayak merkez aralığının yarısıdır.
     for (let level = 1; level <= o.levels; level += 1) {
       const armY = (o.height / Math.max(1, o.levels)) * level;
-      const productY = armY + armSection.h / 2 + o.productHeight / 2;
-      const frontProduct = new THREE.Mesh(
-        new THREE.BoxGeometry(o.productLength, o.productHeight, o.armLength),
-        productMat.clone(),
-      );
-      frontProduct.position.set(0, productY, o.armLength / 2 + uprightDepth / 2);
-      frontProduct.castShadow = true;
-      frontProduct.receiveShadow = true;
-      frontProduct.name = 'Uzun ürün · dengeli yarım ayak aralığı taşmalı';
-      this.root.add(frontProduct);
-      if (o.doubleSided) {
-        const backProduct = frontProduct.clone();
-        backProduct.position.z = -(o.armLength / 2 + uprightDepth / 2);
-        this.root.add(backProduct);
-      }
+      addProfileBundle(o.armLength / 2 + uprightDepth / 2, armY);
+      if (o.doubleSided) addProfileBundle(-(o.armLength / 2 + uprightDepth / 2), armY);
     }
 
     // RAFEX_KONSOL_BRACE_V7`;
 if (source.includes(addAnchor)) source = source.replace(addAnchor, addReplacement);
-else if (!source.includes("Uzun ürün · dengeli yarım ayak aralığı taşmalı")) throw new Error('Konsol ürün kutusu ekleme noktası bulunamadı.');
+else if (!source.includes("Kutu profil bağı · galvaniz profil demeti")) throw new Error('Konsol profil bağı ekleme noktası bulunamadı.');
 
 for (const required of [
   'productLength: clamp(Number(next.productLength)',
   'liftClearance: clamp(Number(next.liftClearance)',
-  'new THREE.BoxGeometry(o.productLength, o.productHeight, o.armLength)',
-  "Uzun ürün · dengeli yarım ayak aralığı taşmalı",
+  'new THREE.InstancedMesh(outerGeometry, productOuterMat, count)',
+  "Kutu profil bağı · galvaniz profil demeti",
+  "Kutu profil bağı · paketleme şeridi",
 ]) if (!source.includes(required)) throw new Error('Konsol viewer ürün desteği v12 eksik: ' + required);
 
 fs.writeFileSync(file, source);
-console.log('Konsol viewer v12: kat aralığı eksi kaldırma boşluğu yüksekliğinde ürün kutusu ve dengeli taşma 3D modele eklendi.');
+console.log('Konsol viewer v12: tek parça ürün kutusu kaldırıldı; galvaniz kare kutu profil demeti, boş profil ağızları ve paketleme şeritleri eklendi.');
