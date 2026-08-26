@@ -189,6 +189,7 @@ if (!source.includes("dimensions.name = 'Konsol 3D Ölçüler';")) {
     '    // B2B görünümündeki gibi kat arası, son kat yüksekliği ve ayak boyu ölçüleri.',
     '    const dimensions = new THREE.Group();',
     "    dimensions.name = 'Konsol 3D Ölçüler';",
+    "    this.konsolDimensionsVersion = 'RAFEX_KONSOL_DIMENSIONS_V13';",
     '    const dimMaterial = new THREE.LineBasicMaterial({ color: 0x287293, depthTest: false, transparent: true, opacity: 0.94 });',
     '    const addDimLine = (points) => {',
     '      const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), dimMaterial);',
@@ -259,6 +260,7 @@ for (const required of [
   "o.loadType === 'pallet'",
   "o.loadType === 'unpacked'",
   "dimensions.name = 'Konsol 3D Ölçüler';",
+  "RAFEX_KONSOL_DIMENSIONS_V13",
   'SON KAT YÜKSEKLİĞİ',
   'cylinderBetween([x1, y1, 0]',
 ]) {
@@ -267,4 +269,3 @@ for (const required of [
 
 fs.writeFileSync(file, source);
 console.log('Konsol viewer v13: net kat kotları, B2B tipi ölçüler, GLB kol ve üç ürün görünümü aktif.');
-
