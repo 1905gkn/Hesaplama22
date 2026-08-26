@@ -24,7 +24,7 @@ const addAnchor = `    let cursor = 0;
 const addReplacement = `    // Her kol katındaki uzun ürünü gerçek uzunluk ve kol derinliğiyle göster.
     // Dengeli yüklemede uç taşma = ayak merkez aralığının yarısıdır.
     for (let level = 1; level <= o.levels; level += 1) {
-      const armY = (o.height / (o.levels + 1)) * level;
+      const armY = (o.height / Math.max(1, o.levels)) * level;
       const productY = armY + 57.5 + o.productHeight / 2;
       const frontProduct = new THREE.Mesh(
         new THREE.BoxGeometry(o.productLength, o.productHeight, o.armLength),
