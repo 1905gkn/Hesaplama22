@@ -57,8 +57,10 @@ const runtime = String.raw`
    labelText(spacing,'Ayak merkez aralığı (otomatik mm)');
    var liftLabel=document.createElement('label');liftLabel.className='konsol-field';liftLabel.innerHTML='Ürünün kaldırma mesafesi (mm)<input id="konsolLiftClearance" type="number" min="0" max="1000" step="10" value="100">';
    spacing.closest('label').insertAdjacentElement('afterend',liftLabel);
+   var inputRow=e('konsolLoadLengthRow');if(inputRow)liftLabel.insertAdjacentElement('afterend',inputRow);
+   labelText(e('femUnitLoad'),'Her katın ürün ağırlığı (kg)');labelText(product,'Ürün uzunluğu (mm)');
    var info=document.createElement('div');info.className='konsol-auto-count';info.innerHTML='<span id="konsolAutoCountMode">Ayak adedi otomatik</span><button id="konsolAutoCountReset" type="button">Otomatik hesapla</button>';
-   liftLabel.insertAdjacentElement('afterend',info);
+   (inputRow||liftLabel).insertAdjacentElement('afterend',info);
    var summary=document.createElement('div');summary.id='konsolSupportSummary';summary.className='konsol-support-summary';info.insertAdjacentElement('afterend',summary);
    e('konsolAutoCountReset').addEventListener('click',function(){calculate(true)});
    count.addEventListener('input',function(){if(writing)return;manualCount=true;calculate(false)});
@@ -86,6 +88,7 @@ for (const required of [
   'Ayak adedi otomatik',
   'ayak aralığının yarısı',
   'Math.ceil(length/2000)',
+  'Her katın ürün ağırlığı (kg)',
 ]) if (!html.includes(required)) throw new Error('Konsol product support v12 eksik: ' + required);
 const encoded = Buffer.from(html).toString('base64');
 source = source.slice(0, match.index) + match[0].replace(match[2], encoded) + source.slice(match.index + match[0].length);
