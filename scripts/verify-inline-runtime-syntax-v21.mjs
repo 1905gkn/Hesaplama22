@@ -47,6 +47,7 @@ await import(`./patch-konsol-ortak-cizim-ui-v43.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-bottom-workspace-v44.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-section-positioner-v45.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-common-drawing-v46.mjs?build=${Date.now()}`);
+await import(`./patch-single-module-customize-v47.mjs?build=${Date.now()}`);
 
 const workerModule = await import(`${workerPath}?syntax-check=${Date.now()}`);
 const response = await workerModule.default.fetch(
@@ -89,6 +90,7 @@ if (!html.includes('data-rafex-konsol-ortak-ui="v43"')) throw new Error("Konsol 
 if (!html.includes('data-rafex-konsol-bottom-workspace="v44"')) throw new Error("Konsol Serbest Cizim ve PDF alt ekran yerlesimi canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-section-positioner="v45"')) throw new Error("Konsol B2B uyumlu Kesit Yer Belirleme canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-common-drawing="v46"')) throw new Error("Konsol Ortak Çizim ekran düzeni canlı HTML içinde bulunamadı");
+if (!html.includes('data-rafex-single-module-customize="v47"')) throw new Error("Birleşik blokta tek modül özelleştirme v47 canlı HTML içinde bulunamadı");
 for (const required of ["RAF / DUVAR UZAKLIKLARI","Kenar Uzunluk Bilgisi","Kayıtlı Konsol Raf Tipleri","Tüm Kenar Ölçülerini Gizle","rafexRenderKonsolCommonDrawingV46"]) if (!html.includes(required)) throw new Error(`Konsol Ortak Çizim alanı bulunamadı: ${required}`);
 for (const required of ["KAYITLI KONSOL BLOKLARI","ALAN VE KESİT ÇİZGİSİ","Kenar çizgileri","Blok adları","rafexOpenKonsolSectionPositionerV45"]) if (!html.includes(required)) throw new Error(`Konsol Kesit Yer Belirleme özelliği bulunamadı: ${required}`);
 if (!html.includes("shell.insertAdjacentElement('afterend',bottom)")) throw new Error("Konsol alt ekranları ana kabuğun dışına alınmadı");
