@@ -47,7 +47,7 @@ const runtime=String.raw`
  function reflow(ctx){
    if(!ctx.group||ctx.order.length<2)return true;
    var list=ctx.order.map(function(id){return racks().find(function(item){return Number(item.id)===Number(id)})}).filter(Boolean);if(list.length<2)return true;
-   var scale=Number(window.m2LayoutState&&window.m2LayoutState.scale)||1,footMm=60;
+   var scale=1,footMm=60;try{scale=Number(window.m2LayoutState&&window.m2LayoutState.scale||m2LayoutState.scale)||1}catch(_){}
    try{footMm=Number(m2B2BFootWidth(list[0]))||60}catch(_){}
    var shared=footMm*scale,total=list.reduce(function(sum,item){return sum+item.w},0)-shared*(list.length-1),cursor=ctx.axis.mid-total/2;
    list.forEach(function(item,index){var saved=ctx.snapshots.find(function(row){return Number(row.id)===Number(item.id)})||item,perp=(saved.x+saved.w/2)*ctx.axis.nx+(saved.y+saved.h/2)*ctx.axis.ny,along=cursor+item.w/2,cx=along*ctx.axis.ux+perp*ctx.axis.nx,cy=along*ctx.axis.uy+perp*ctx.axis.ny;item.x=cx-item.w/2;item.y=cy-item.h/2;cursor+=item.w-(index<list.length-1?shared:0)});
@@ -66,7 +66,7 @@ const runtime=String.raw`
    if(!ctx)return;
    restoreOthers(ctx);var target=racks().find(function(item){return Number(item.id)===Number(targetId)});if(target)mutableCopy(target);
    var valid=reflow(ctx);try{if(ctx.group)m2NormalizeJoinComponents(ctx.group)}catch(_){}
-   if(window.m2LayoutState)window.m2LayoutState.selected=targetId;
+   try{if(window.m2LayoutState)window.m2LayoutState.selected=targetId;else m2LayoutState.selected=targetId}catch(_){}
    var status=document.getElementById('m2FloorStatus');if(status)status.textContent=valid?'Yalnız seçilen modül özelleştirildi; birleşik grubun diğer modülleri değişmedi.':'Yalnız seçilen modül özelleştirildi. Yeni ölçü nedeniyle grup uygun konuma taşınmalı.';
    try{m2RenderSavedRackTypes();m2RenderLayout()}catch(_){}
    context=null
