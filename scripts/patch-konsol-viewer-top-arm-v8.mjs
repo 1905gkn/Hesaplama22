@@ -4,7 +4,7 @@ const file='client/konsol-viewer.entry.js';
 let source=fs.readFileSync(file,'utf8');
 
 // Kollar mevcut KRS H / kat düzeninde kalır. Yalnızca 3D görselde,
-// en üst kolun üzerinde görünen ayak devamı en az bir kat aralığının yarısıdır.
+// en üst kolun üzerinde görünen ayak devamı tam bir kat aralığıdır.
 // Böylece kapasite tablosu ve H seçimi değişmeden yalnız görsel geometri uzatılır.
 const oldArmLine='        const y = (o.height / (o.levels + 1)) * level;';
 const topArmLine='        const y = (o.height / Math.max(1, o.levels)) * level;';
@@ -16,10 +16,10 @@ const oldGeometry=`    const uprightDepth = uprightSection.h;
 const newGeometry=`    const uprightDepth = uprightSection.h;
     const uprightWidth = uprightSection.b;
     const visualLevelGap = o.height / Math.max(1, o.levels);
-    const visualTopExtension = Math.max(0, visualLevelGap / 2);
+    const visualTopExtension = Math.max(0, visualLevelGap);
     const visualUprightHeight = o.height + visualTopExtension;`;
 if(source.includes(oldGeometry)) source=source.replace(oldGeometry,newGeometry);
-else if(!source.includes('const visualTopExtension = Math.max(0, visualLevelGap / 2);')) throw new Error('Konsol ust ayak uzama geometrisi hedefi bulunamadi.');
+else if(!source.includes('const visualTopExtension = Math.max(0, visualLevelGap);')) throw new Error('Konsol ust ayak uzama geometrisi hedefi bulunamadi.');
 
 const oldUpright=`      const upright = iBeamAlongY(o.height, uprightSection, uprightMat);
       upright.name = o.uprightProfile.toUpperCase() + ' Ayak';
@@ -33,7 +33,7 @@ else if(!source.includes('iBeamAlongY(visualUprightHeight, uprightSection, uprig
 for(const required of [
   topArmLine.trim(),
   'const visualLevelGap = o.height / Math.max(1, o.levels);',
-  'const visualTopExtension = Math.max(0, visualLevelGap / 2);',
+  'const visualTopExtension = Math.max(0, visualLevelGap);',
   'iBeamAlongY(visualUprightHeight, uprightSection, uprightMat)',
   'upright.position.set(x, visualUprightHeight / 2, 0)'
 ]){
@@ -41,4 +41,4 @@ for(const required of [
 }
 
 fs.writeFileSync(file,source);
-console.log('Konsol v8 viewer: en ust kol ustunde minimum kat arasi / 2 kadar ayak devamı gorselde aktif.');
+console.log('Konsol v8 viewer: en ust kol ustunde tam bir kat aralığı kadar ayak devamı gorselde aktif.');
