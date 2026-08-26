@@ -83,6 +83,7 @@ if (!html.includes('data-rafex-konsol-input-redesign="v11"')) throw new Error("K
 if (!html.includes('data-rafex-konsol-product-support="v12"')) throw new Error("Konsol ürün taşıma ve yarım aralık taşma v12 canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-load-switch="v13"')) throw new Error("Konsol ürün görünümü seçimi v13 canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-ortak-ui="v43"')) throw new Error("Konsol Ortak Cizim uyumlu Serbest Yerlesim ve PDF arayuzu canlı HTML içinde bulunamadı");
+if (!html.includes('rafexValidateKonsolSsiTableV14')) throw new Error("Konsol exact SSI tablo kapsam kilidi canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-free-nav-ortak="v39"')) throw new Error("Sol menude Ortak Cizim etiketi canlı HTML içinde bulunamadı");
 if (!html.includes("const LABEL='Ortak Çizim'")) throw new Error("Ortak Cizim sol menu etiketi doğrulanamadı");
 if (html.includes('data-rafex-konsol-fields="v6"')) throw new Error("Eski Konsol fields v6 runtime canlı HTML içinde kaldı");
@@ -103,6 +104,16 @@ for (const required of [
   "1250:{80:505,100:885,120:1420,140:2110}"
 ]) {
   if (!html.includes(required)) throw new Error(`Konsol native KRS alanı canlı HTML içinde bulunamadı: ${required}`);
+}
+
+for (const required of [
+  "SSI SCHÄFER KRS TABLO SEÇİMİ",
+  "TAHMİN / EKSTRAPOLASYON YOK",
+  "TABLO KAPSAMI DIŞINDA",
+  "Profil seçimi, Serbest Yerleşim ekleme, proje kaydı ve PDF çıktısı durduruldu",
+  "#konsolFreeAdd,#konsolCreateOutput,#konsolProjectSave,#konsolPdf"
+]) {
+  if (!html.includes(required)) throw new Error(`Konsol SSI kapsam kilidi canlı HTML içinde bulunamadı: ${required}`);
 }
 
 for (const required of [
