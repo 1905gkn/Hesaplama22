@@ -7,7 +7,7 @@ const normalizeAnchor = `      armLength: clamp(Number(next.armLength) || 1200, 
       levels: clamp(Math.round(Number(next.levels) || 4), 1, 12),`;
 const normalizeReplacement = `      armLength: clamp(Number(next.armLength) || 1200, 250, 3000),
       productLength: clamp(Number(next.productLength) || 3000, 500, 60000),
-      productHeight: clamp(Number(next.productHeight) || 100, 50, 1000),
+      productHeight: clamp(Number(next.productHeight) || 900, 50, 5000),
       liftClearance: clamp(Number(next.liftClearance) || 100, 0, 1000),
       levels: clamp(Math.round(Number(next.levels) || 4), 1, 12),`;
 if (source.includes(normalizeAnchor)) source = source.replace(normalizeAnchor, normalizeReplacement);
@@ -55,4 +55,4 @@ for (const required of [
 ]) if (!source.includes(required)) throw new Error('Konsol viewer ürün desteği v12 eksik: ' + required);
 
 fs.writeFileSync(file, source);
-console.log('Konsol viewer v12: 100 mm ürün kutusu ve dengeli yarım ayak aralığı taşması 3D modele eklendi.');
+console.log('Konsol viewer v12: kat aralığı eksi kaldırma boşluğu yüksekliğinde ürün kutusu ve dengeli taşma 3D modele eklendi.');
