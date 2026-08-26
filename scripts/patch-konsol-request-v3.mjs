@@ -34,16 +34,17 @@ const runtime=String.raw`
  function point(svg,ev){var r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal;return{x:(ev.clientX-r.left)*vb.width/Math.max(1,r.width),y:(ev.clientY-r.top)*vb.height/Math.max(1,r.height)}}
  function drawRackPlan(it,i){
   var base=footprint(it.spec),s=size(it),on=it.id===selected,count=Math.max(2,Math.min(60,Number(it.spec.count)||2)),axis=it.spec.side==='double'?base.h/2:110,load=it.spec.loadType||window.__rafexKonsolLoadType||'profile',productLength=Math.max(0,Number(it.spec.productLength)||count*it.spec.spacing),span=Math.max(0,(count-1)*it.spec.spacing),overhang=Math.max(0,(productLength-span)/2),start=(base.w-span)/2;
+  var palette=['#D94F64','#369A73','#2F80C0','#D39A16','#8159B7','#E06B38','#138C91','#B84E88'],letterColor=it.spec.typeColor||palette[i%palette.length];
   var tr=it.rot?'translate('+(it.x+s.w)+' '+it.y+') rotate(90)':'translate('+it.x+' '+it.y+')',g='<g data-kid="'+it.id+'" transform="'+tr+'" style="cursor:grab">';
   if(on)g+='<rect x="10" y="10" width="'+(base.w-20)+'" height="'+(base.h-20)+'" rx="42" fill="none" stroke="#123f2d" stroke-width="34" stroke-dasharray="110 70" opacity=".72"/>';
   var stations=[];
   for(var k=0;k<count;k++)stations.push(start+k*span/(count-1));
-  g+='<rect x="'+Math.max(0,start-60)+'" y="'+(axis-21)+'" width="'+Math.max(80,span+120)+'" height="42" rx="9" fill="url(#kSteelDark)" stroke="#173f58" stroke-width="9"/>';
+  g+='<rect x="'+Math.max(0,start-60)+'" y="'+(axis-34)+'" width="'+Math.max(80,span+120)+'" height="68" rx="13" fill="url(#kSteelDark)" stroke="#062f4b" stroke-width="14"/>';
   stations.forEach(function(x){
     var edge=base.h-52;
-    g+='<path d="M'+(x-35)+' '+axis+' L'+(x-20)+' '+edge+' L'+(x+20)+' '+edge+' L'+(x+35)+' '+axis+' Z" fill="url(#kYellow)" stroke="#9a7900" stroke-width="10"/>';
-    if(it.spec.side==='double')g+='<path d="M'+(x-35)+' '+axis+' L'+(x-20)+' 52 L'+(x+20)+' 52 L'+(x+35)+' '+axis+' Z" fill="url(#kYellow)" stroke="#9a7900" stroke-width="10"/>';
-    g+='<rect x="'+(x-62)+'" y="'+(axis-70)+'" width="124" height="140" rx="10" fill="url(#kSteel)" stroke="#173f58" stroke-width="10"/>';
+    g+='<path d="M'+(x-52)+' '+axis+' L'+(x-30)+' '+edge+' L'+(x+30)+' '+edge+' L'+(x+52)+' '+axis+' Z" fill="url(#kYellow)" stroke="#715500" stroke-width="15"/>';
+    if(it.spec.side==='double')g+='<path d="M'+(x-52)+' '+axis+' L'+(x-30)+' 52 L'+(x+30)+' 52 L'+(x+52)+' '+axis+' Z" fill="url(#kYellow)" stroke="#715500" stroke-width="15"/>';
+    g+='<rect x="'+(x-75)+'" y="'+(axis-84)+'" width="150" height="168" rx="12" fill="url(#kSteel)" stroke="#062f4b" stroke-width="14"/>';
     g+='<path d="M'+(x-49)+' '+(axis-52)+'H'+(x+49)+'V'+(axis-24)+'H'+(x+17)+'V'+(axis+24)+'H'+(x+49)+'V'+(axis+52)+'H'+(x-49)+'V'+(axis+24)+'H'+(x-17)+'V'+(axis-24)+'H'+(x-49)+'Z" fill="#e9efec" stroke="#52645b" stroke-width="7"/>';
     [[-39,-47],[39,-47],[-39,47],[39,47]].forEach(function(p){g+='<circle cx="'+(x+p[0])+'" cy="'+(axis+p[1])+'" r="7" fill="#263b46"/>'});
     g+='<rect x="'+(x-42)+'" y="'+(edge-19)+'" width="84" height="38" rx="7" fill="#e97916" stroke="#9a4307" stroke-width="7"/>';
@@ -53,14 +54,15 @@ const runtime=String.raw`
     var zoneH=Math.max(80,y1-y0),x0=Math.max(0,(base.w-productLength)/2),lw=Math.max(100,productLength);
     if(load==='profile'){
       var bars=Math.max(3,Math.min(8,Math.round(zoneH/135)));
-      for(var q=0;q<bars;q++){var yy=y0+(q+.5)*zoneH/bars,bh=Math.max(28,Math.min(58,zoneH/bars*.48));g+='<rect x="'+x0+'" y="'+(yy-bh/2)+'" width="'+lw+'" height="'+bh+'" rx="8" fill="url(#kProfile)" stroke="#596964" stroke-width="8"/><line x1="'+(x0+18)+'" y1="'+(yy-bh*.18)+'" x2="'+(x0+lw-18)+'" y2="'+(yy-bh*.18)+'" stroke="#f4f7f5" stroke-width="6" opacity=".75"/>'}
+      for(var q=0;q<bars;q++){var yy=y0+(q+.5)*zoneH/bars,bh=Math.max(28,Math.min(58,zoneH/bars*.48));g+='<rect x="'+x0+'" y="'+(yy-bh/2)+'" width="'+lw+'" height="'+bh+'" rx="8" fill="url(#kProfile)" fill-opacity=".78" stroke="#596964" stroke-width="8"/><line x1="'+(x0+18)+'" y1="'+(yy-bh*.18)+'" x2="'+(x0+lw-18)+'" y2="'+(yy-bh*.18)+'" stroke="#f4f7f5" stroke-width="6" opacity=".75"/>'}
       
     }else if(load==='pallet'){
-      for(var bay=0;bay<count-1;bay++){var bx0=x0+bay*lw/(count-1)+12,bx1=x0+(bay+1)*lw/(count-1)-12,pw=Math.max(70,bx1-bx0),pad=16;g+='<rect x="'+bx0+'" y="'+(y0+pad)+'" width="'+pw+'" height="'+Math.max(50,zoneH-pad*2)+'" rx="18" fill="#c58a43" stroke="#75491c" stroke-width="10"/>';for(var d=0;d<5;d++){var yy=y0+pad+(d+.5)*(zoneH-pad*2)/5;g+='<rect x="'+(bx0+8)+'" y="'+(yy-(zoneH-pad*2)/13)+'" width="'+Math.max(20,pw-16)+'" height="'+Math.max(12,(zoneH-pad*2)/6.5)+'" rx="5" fill="url(#kWood)" stroke="#825626" stroke-width="4"/>'}for(var st=1;st<=2;st++){var sx=bx0+st*pw/3;g+='<line x1="'+sx+'" y1="'+(y0+pad+4)+'" x2="'+sx+'" y2="'+(y1-pad-4)+'" stroke="#6d431d" stroke-width="12" opacity=".8"/>'}}
+      for(var bay=0;bay<count-1;bay++){var bx0=x0+bay*lw/(count-1)+12,bx1=x0+(bay+1)*lw/(count-1)-12,pw=Math.max(70,bx1-bx0),pad=16;g+='<rect x="'+bx0+'" y="'+(y0+pad)+'" width="'+pw+'" height="'+Math.max(50,zoneH-pad*2)+'" rx="18" fill="#c58a43" fill-opacity=".82" stroke="#75491c" stroke-width="10"/>';for(var d=0;d<5;d++){var yy=y0+pad+(d+.5)*(zoneH-pad*2)/5;g+='<rect x="'+(bx0+8)+'" y="'+(yy-(zoneH-pad*2)/13)+'" width="'+Math.max(20,pw-16)+'" height="'+Math.max(12,(zoneH-pad*2)/6.5)+'" rx="5" fill="url(#kWood)" stroke="#825626" stroke-width="4"/>'}for(var st=1;st<=2;st++){var sx=bx0+st*pw/3;g+='<line x1="'+sx+'" y1="'+(y0+pad+4)+'" x2="'+sx+'" y2="'+(y1-pad-4)+'" stroke="#6d431d" stroke-width="12" opacity=".8"/>'}}
     }
   }
   if(load!=='unpacked'){loadZone(axis+76,base.h-72);if(it.spec.side==='double')loadZone(72,axis-76)}
-  var letter='',ln=i+1;while(ln){ln--;letter=String.fromCharCode(65+ln%26)+letter;ln=Math.floor(ln/26)}g+='<text x="'+(base.w/2)+'" y="'+(base.h/2+Math.min(330,base.h*.2))+'" text-anchor="middle" font-size="'+Math.min(1050,base.h*.72)+'" font-family="Arial" font-weight="900" fill="#173c2d" opacity=".13" pointer-events="none">'+letter+'</text>';
+  stations.forEach(function(x){var edge=base.h-52;g+='<line x1="'+x+'" y1="'+(axis+42)+'" x2="'+x+'" y2="'+(edge-24)+'" stroke="#8a6900" stroke-width="12" opacity=".9"/>';if(it.spec.side==='double')g+='<line x1="'+x+'" y1="'+(axis-42)+'" x2="'+x+'" y2="76" stroke="#8a6900" stroke-width="12" opacity=".9"/>';g+='<rect x="'+(x-79)+'" y="'+(axis-88)+'" width="158" height="176" rx="13" fill="none" stroke="#062f4b" stroke-width="13"/>'});
+  var letter='',ln=i+1;while(ln){ln--;letter=String.fromCharCode(65+ln%26)+letter;ln=Math.floor(ln/26)}g+='<text x="'+(base.w/2)+'" y="'+(base.h/2+Math.min(330,base.h*.2))+'" text-anchor="middle" font-size="'+Math.min(1050,base.h*.72)+'" font-family="Arial" font-weight="900" fill="'+letterColor+'" opacity=".30" pointer-events="none">'+letter+'</text>';
   if(on)g+='<g pointer-events="none"><line x1="0" y1="'+(base.h-26)+'" x2="'+base.w+'" y2="'+(base.h-26)+'" stroke="#284c3d" stroke-width="10"/><path d="M0 '+(base.h-48)+'V'+(base.h-5)+'M'+base.w+' '+(base.h-48)+'V'+(base.h-5)+'" stroke="#284c3d" stroke-width="10"/><rect x="'+(base.w/2-210)+'" y="'+(base.h-94)+'" width="420" height="70" rx="20" fill="#fff" fill-opacity=".9"/><text x="'+(base.w/2)+'" y="'+(base.h-41)+'" text-anchor="middle" font-size="50" font-family="Arial" font-weight="900" fill="#284c3d">'+fmt(base.w)+' mm</text></g>';
   return g+'</g>'
  }
