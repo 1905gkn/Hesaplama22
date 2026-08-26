@@ -3,11 +3,10 @@ import fs from 'node:fs';
 const file='client/konsol-viewer.entry.js';
 let source=fs.readFileSync(file,'utf8');
 
-// Kollar mevcut KRS H / kat düzeninde kalır. Yalnızca 3D görselde,
-// en üst kolun üzerinde görünen ayak devamı tam bir kat aralığıdır.
-// Böylece kapasite tablosu ve H seçimi değişmeden yalnız görsel geometri uzatılır.
+// Kat arası kullanıcıdan net olarak gelir. Zemin profilinin üst yüzeyi ilk taşıma
+// kotudur; bütün kollar bu yüzden aynı net kat aralığıyla yerleşir.
 const oldArmLine='        const y = (o.height / (o.levels + 1)) * level;';
-const topArmLine='        const y = (o.height / Math.max(1, o.levels)) * level;';
+const topArmLine='        const y = uprightSection.h + (o.productHeight + o.liftClearance) * level - armSection.h / 2;';
 if(source.includes(oldArmLine)) source=source.replace(oldArmLine,topArmLine);
 else if(!source.includes(topArmLine)) throw new Error('Konsol top-arm hedef satiri bulunamadi.');
 
@@ -15,9 +14,10 @@ const oldGeometry=`    const uprightDepth = uprightSection.h;
     const uprightWidth = uprightSection.b;`;
 const newGeometry=`    const uprightDepth = uprightSection.h;
     const uprightWidth = uprightSection.b;
-    const visualLevelGap = o.height / Math.max(1, o.levels);
+    const visualLevelGap = o.productHeight + o.liftClearance;
+    const visualTopArmSupport = uprightSection.h + visualLevelGap * o.levels;
     const visualTopExtension = Math.max(0, visualLevelGap);
-    const visualUprightHeight = o.height + visualTopExtension;`;
+    const visualUprightHeight = visualTopArmSupport + visualTopExtension;`;
 if(source.includes(oldGeometry)) source=source.replace(oldGeometry,newGeometry);
 else if(!source.includes('const visualTopExtension = Math.max(0, visualLevelGap);')) throw new Error('Konsol ust ayak uzama geometrisi hedefi bulunamadi.');
 
@@ -32,7 +32,8 @@ else if(!source.includes('iBeamAlongY(visualUprightHeight, uprightSection, uprig
 
 for(const required of [
   topArmLine.trim(),
-  'const visualLevelGap = o.height / Math.max(1, o.levels);',
+  'const visualLevelGap = o.productHeight + o.liftClearance;',
+  'const visualTopArmSupport = uprightSection.h + visualLevelGap * o.levels;',
   'const visualTopExtension = Math.max(0, visualLevelGap);',
   'iBeamAlongY(visualUprightHeight, uprightSection, uprightMat)',
   'upright.position.set(x, visualUprightHeight / 2, 0)'
@@ -41,4 +42,4 @@ for(const required of [
 }
 
 fs.writeFileSync(file,source);
-console.log('Konsol v8 viewer: en ust kol ustunde tam bir kat aralığı kadar ayak devamı gorselde aktif.');
+console.log('Konsol v8 viewer: zemin üstünden başlayan net kat aralıkları ve tam üst kat devamı aktif.');
