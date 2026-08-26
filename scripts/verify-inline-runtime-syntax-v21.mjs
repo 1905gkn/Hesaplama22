@@ -38,6 +38,7 @@ await import(`./patch-konsol-request-v3-printfix-v1.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-fem-10209-v10.mjs?build=${Date.now()}`);
 await import(`./patch-free-konsol-plan-v38.mjs?build=${Date.now()}`);
 await import(`./patch-free-nav-ortak-cizim-v39.mjs?build=${Date.now()}`);
+await import(`./patch-konsol-input-redesign-v11.mjs?build=${Date.now()}`);
 
 const workerModule = await import(`${workerPath}?syntax-check=${Date.now()}`);
 const response = await workerModule.default.fetch(
@@ -73,6 +74,7 @@ if (!html.includes('/konsol-viewer.js?v=konsol-krs-v9')) throw new Error("Konsol
 if (!html.includes('data-rafex-konsol-request="v3"')) throw new Error("Konsol son kullanıcı istekleri canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-fem="v10"')) throw new Error("FEM 10.2.09 Konsol ön kontrol katmanı canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-free-plan="v38"')) throw new Error("Konsol Serbest Cizim temiz 2D plan katmanı canlı HTML içinde bulunamadı");
+if (!html.includes('data-rafex-konsol-input-redesign="v11"')) throw new Error("Konsol Excel girdi ve FEM ön seçim v11 canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-free-nav-ortak="v39"')) throw new Error("Sol menude Ortak Cizim etiketi canlı HTML içinde bulunamadı");
 if (!html.includes("const LABEL='Ortak Çizim'")) throw new Error("Ortak Cizim sol menu etiketi doğrulanamadı");
 if (html.includes('data-rafex-konsol-fields="v6"')) throw new Error("Eski Konsol fields v6 runtime canlı HTML içinde kaldı");
