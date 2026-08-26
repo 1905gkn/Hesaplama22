@@ -256,7 +256,7 @@ if (!source.includes("dimensions.name = 'Konsol 3D Ölçüler';")) {
     '    const netGap = o.productHeight + o.liftClearance;',
     '    const supportTops = Array.from({ length: o.levels + 1 }, (_, index) => uprightSection.h + index * netGap);',
     '    for (let index = 0; index < supportTops.length - 1; index += 1) {',
-    "      addVerticalDim(gapX, supportTops[index], supportTops[index + 1], 'K' + index + '–K' + (index + 1) + '  ·  ' + Math.round(netGap).toLocaleString('tr-TR') + ' mm', 720);",
+    "      addVerticalDim(gapX, supportTops[index], supportTops[index + 1], 'K' + (index + 1) + '  ·  ' + Math.round(netGap).toLocaleString('tr-TR') + ' mm', 720);",
     '    }',
     '    const lastSupport = supportTops[supportTops.length - 1];',
     "    addLevelMarker(totalX, lastSupport, 'SON KAT YÜKSEKLİĞİ  ·  ' + Math.round(lastSupport).toLocaleString('tr-TR') + ' mm', 960);",
