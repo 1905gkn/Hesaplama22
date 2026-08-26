@@ -46,7 +46,8 @@ const runtime = String.raw`
    ensureSpacing(spacing);
    var arms=e('femSupportArms');if(arms&&Number(arms.value)!==count){arms.value=String(count);fire(arms)}
    var summary=e('konsolSupportSummary'),tooWide=spacing>2000.5;
-   if(summary){summary.className='konsol-support-summary'+(tooWide?' warn':'');summary.innerHTML='<b>'+count+' ayak · '+fmt(spacing)+' mm merkez aralığı</b>'+fmt(length)+' mm ürün · sağ/sol '+fmt(overhang)+' mm taşma (ayak aralığının yarısı) · ürün kutusu 100 mm yüksekliğinde ve '+fmt(n('konsolArmLength',1000))+' mm derinliğinde'+(tooWide?' · UYARI: 2.000 mm maksimum aralık aşıldı':' · maksimum aralık uygun')}
+   var lift=Math.max(0,n('konsolLiftClearance',100)),productHeight=Math.max(50,n('konsolLevelGap',1000)-lift);
+   if(summary){summary.className='konsol-support-summary'+(tooWide?' warn':'');summary.innerHTML='<b>'+count+' ayak · '+fmt(spacing)+' mm merkez aralığı</b>'+fmt(length)+' mm ürün · sağ/sol '+fmt(overhang)+' mm taşma (ayak aralığının yarısı) · ürün kutusu '+fmt(productHeight)+' mm yüksekliğinde ve '+fmt(n('konsolArmLength',1000))+' mm derinliğinde · kaldırma boşluğu '+fmt(lift)+' mm'+(tooWide?' · UYARI: 2.000 mm maksimum aralık aşıldı':' · maksimum aralık uygun')}
    var mode=e('konsolAutoCountMode');if(mode)mode.textContent=manualCount?'Ayak adedi manuel':'Ayak adedi otomatik';
    var lift=e('konsolLiftClearance');if(lift)fire(lift);
    writing=false;
@@ -65,6 +66,7 @@ const runtime = String.raw`
    product.addEventListener('input',function(){calculate(!manualCount)});
    product.addEventListener('change',function(){calculate(!manualCount)});
    var arm=e('konsolArmLength');if(arm){arm.addEventListener('input',function(){calculate(false)});arm.addEventListener('change',function(){calculate(false)})}
+   var gap=e('konsolLevelGap');if(gap){gap.addEventListener('input',function(){calculate(false)});gap.addEventListener('change',function(){calculate(false)})}
    e('konsolLiftClearance').addEventListener('input',function(){fire(spacing)});
    e('konsolLiftClearance').addEventListener('change',function(){fire(spacing)});
    calculate(true);
