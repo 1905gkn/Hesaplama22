@@ -21,6 +21,7 @@ const runtime = String.raw`
 #page #m2LayoutSvg [data-rack].rafex-type-contour>.m2-layout-rack.selected{stroke-width:3px!important;stroke-opacity:1!important}
 #page .rafex-common-view-button{border-color:#2b7d5d!important;background:#edf7f1!important;color:#174a35!important}
 #page .rafex-common-view-button:hover{background:#dff0e6!important}
+#page .rafex-common-view-button.active{background:#174a35!important;color:#fff!important;border-color:#174a35!important}
 #page .rafex-common-view-help{display:flex;align-items:center;gap:7px;margin:7px 0 0;padding:7px 9px;border:1px solid #d1ddd5;border-radius:8px;background:#f7faf8;color:#48675a;font-size:9px;font-weight:800}
 </style>
 <script data-rafex-common-drawing-viewport="v49">
@@ -28,7 +29,7 @@ const runtime = String.raw`
   if(window.__rafexCommonDrawingViewportV49)return;
   window.__rafexCommonDrawingViewportV49=true;
 
-  var BASE_W=1000,BASE_H=650,MIN_W=90,view={x:0,y:0,w:BASE_W,h:BASE_H},pan=null,spacePan=false,lastIds=null,rendering=false,baseRender=typeof m2RenderLayout==="function"?m2RenderLayout:null;
+  var BASE_W=1000,BASE_H=650,MIN_W=90,view={x:0,y:0,w:BASE_W,h:BASE_H},pan=null,navMode=false,rendering=false,baseRender=typeof m2RenderLayout==="function"?m2RenderLayout:null;
   function byId(id){return document.getElementById(id)}
   function state(){try{return m2LayoutState}catch(_){return null}}
   function svg(){return byId("m2LayoutSvg")}
@@ -65,41 +66,41 @@ const runtime = String.raw`
   }
   function focusSelected(){var s=state(),rack=s&&rackById(s.selected);if(!rack){window.alert("Önce serbest alandan bir raf seç.");return false}return focusRack(rack)}
   function decorate(){
-    var node=svg();if(!node)return;node.classList.toggle("rafex-common-pan-ready",!pan);node.classList.toggle("rafex-common-space-pan",spacePan&&!pan);
+    var node=svg();if(!node)return;node.classList.toggle("rafex-common-pan-ready",navMode&&!pan);node.classList.remove("rafex-common-space-pan");
     node.querySelectorAll("[data-rack]").forEach(function(group){
       var color=group.getAttribute("data-type-color")||"#2878d0",frame=group.querySelector(":scope > .m2-layout-rack"),rack=rackById(group.getAttribute("data-rack"));group.classList.add("rafex-type-contour");
       if(frame){frame.style.stroke=color;frame.style.strokeOpacity=frame.classList.contains("selected")?"1":".96";frame.style.fill=color;frame.style.fillOpacity=frame.classList.contains("selected")?".20":".13";frame.setAttribute("vector-effect","non-scaling-stroke")}
-      var frameRect=frame&&frame.getBoundingClientRect(),shortPx=frameRect?Math.min(frameRect.width,frameRect.height):0,shortSide=rack?Math.max(1,Math.min(Number(rack.w)||1,Number(rack.h)||1)):12,fontSize=Math.max(1.8,Math.min(6,shortSide*.3));
-      group.querySelectorAll(".m2-b2b-plan-label,.m2-rack-name").forEach(function(label){label.style.fontSize=fontSize+"px";label.style.opacity=shortPx<34?"0":String(Math.min(.88,.48+(shortPx-34)/180));label.style.transition="opacity .12s linear"});
-      group.querySelectorAll(".m2-rack-pallet-count").forEach(function(label){label.style.fontSize=Math.max(1.5,fontSize*.68)+"px";label.style.opacity=shortPx<48?"0":".72"});
+      var frameRect=frame&&frame.getBoundingClientRect(),shortPx=frameRect?Math.min(frameRect.width,frameRect.height):0,shortSide=rack?Math.max(1,Math.min(Number(rack.w)||1,Number(rack.h)||1)):12,fontSize=Math.max(1.5,Math.min(4,shortSide*.22)),selected=frame&&frame.classList.contains("selected");
+      group.querySelectorAll(".m2-b2b-plan-label,.m2-rack-name").forEach(function(label){label.style.fontSize=fontSize+"px";label.style.display=selected&&shortPx>=56?"":"none";label.style.opacity=selected?".82":"0"});
+      group.querySelectorAll(".m2-rack-pallet-count").forEach(function(label){label.style.display=selected&&shortPx>=72?"":"none";label.style.fontSize=Math.max(1.3,fontSize*.62)+"px"});
     });
   }
+  function setNavMode(on){navMode=Boolean(on);if(!navMode&&pan){pan=null;svg()?.classList.remove("rafex-common-panning")}var button=byId("m2ViewNavigateV49");if(button){button.classList.toggle("active",navMode);button.setAttribute("aria-pressed",navMode?"true":"false");button.textContent=navMode?"Görünümü Taşı: Açık":"Görünümü Taşı"}decorate();return navMode}
   function insertControls(){
     var node=svg();if(!node)return false;var measure=byId("m2MeasureToolButton"),group=measure&&measure.parentElement;if(!group)return false;
-    var focus=byId("m2FocusSelectedRackV49"),fit=byId("m2FitAllProjectV49");
+    var navigate=byId("m2ViewNavigateV49"),focus=byId("m2FocusSelectedRackV49"),fit=byId("m2FitAllProjectV49");
+    if(!navigate){navigate=document.createElement("button");navigate.type="button";navigate.id="m2ViewNavigateV49";navigate.className="rafex-common-view-button";navigate.textContent="Görünümü Taşı";navigate.setAttribute("aria-pressed","false");navigate.onclick=function(){setNavMode(!navMode)};group.insertBefore(navigate,measure)}
     if(!focus){focus=document.createElement("button");focus.type="button";focus.id="m2FocusSelectedRackV49";focus.className="rafex-common-view-button";focus.textContent="Seçili Rafa Yaklaş";focus.onclick=focusSelected;group.insertBefore(focus,measure)}
     if(!fit){fit=document.createElement("button");fit.type="button";fit.id="m2FitAllProjectV49";fit.className="rafex-common-view-button";fit.textContent="Tüm Projeyi Göster";fit.onclick=fitAll;group.insertBefore(fit,measure)}
-    var canvas=node.closest(".m2-floor-canvas"),wrap=canvas&&canvas.parentElement;if(wrap&&!wrap.querySelector(".rafex-common-view-help")){var help=document.createElement("div");help.className="rafex-common-view-help";help.textContent="Tekerlek: imleç merkezli zoom · Orta tuş veya Boşluk + sürükle: kaydır · Tip: renkli gövde ve kontur";wrap.appendChild(help)}
+    var canvas=node.closest(".m2-floor-canvas"),wrap=canvas&&canvas.parentElement;if(wrap&&!wrap.querySelector(".rafex-common-view-help")){var help=document.createElement("div");help.className="rafex-common-view-help";help.textContent="Normal mod: çizim · Görünümü Taşı açıkken: sürükle ve tekerlekle zoom · Tip ayrımı: renkli gövde";wrap.appendChild(help)}
     return true;
   }
   function activeTool(){try{return m2LayoutState.mode==="draw"||typeof m2LayoutTool!=="undefined"&&m2LayoutTool||typeof m2ProtectionDraft!=="undefined"&&m2ProtectionDraft||typeof m2SeismicDraft!=="undefined"&&m2SeismicDraft||typeof m2AutoFillDraft!=="undefined"&&m2AutoFillDraft||typeof m2CopyMode!=="undefined"&&m2CopyMode||typeof m2CustomizeMode!=="undefined"&&m2CustomizeMode||typeof m2JoinMode!=="undefined"&&m2JoinMode||typeof m2MultiSelect!=="undefined"&&m2MultiSelect&&m2MultiSelect.active}catch(_){return false}}
   function bind(){
     var node=svg();if(!node||node.dataset.rafexViewportBound==="v49")return false;node.dataset.rafexViewportBound="v49";
-    node.addEventListener("wheel",function(event){event.preventDefault();event.stopImmediatePropagation();var delta=Math.max(-140,Math.min(140,Number(event.deltaY)||0)),factor=Math.exp(delta*.00165);zoomAt(factor,point(event))},{passive:false,capture:true});
-    node.addEventListener("pointerdown",function(event){var wantsPan=event.button===1||event.button===0&&spacePan;if(!wantsPan||activeTool())return;var rect=node.getBoundingClientRect();pan={id:event.pointerId,cx:event.clientX,cy:event.clientY,x:view.x,y:view.y,sx:view.w/Math.max(1,rect.width),sy:view.h/Math.max(1,rect.height)};node.classList.add("rafex-common-panning");event.preventDefault();event.stopImmediatePropagation();node.setPointerCapture&&node.setPointerCapture(event.pointerId)},true);
+    node.addEventListener("wheel",function(event){if(!navMode)return;event.preventDefault();event.stopImmediatePropagation();var delta=Math.max(-140,Math.min(140,Number(event.deltaY)||0)),factor=Math.exp(delta*.00165);zoomAt(factor,point(event))},{passive:false,capture:true});
+    node.addEventListener("pointerdown",function(event){if(!navMode||event.button!==0||activeTool()){if(activeTool())setNavMode(false);return}var rect=node.getBoundingClientRect();pan={id:event.pointerId,cx:event.clientX,cy:event.clientY,x:view.x,y:view.y,sx:view.w/Math.max(1,rect.width),sy:view.h/Math.max(1,rect.height)};node.classList.add("rafex-common-panning");event.preventDefault();event.stopImmediatePropagation();node.setPointerCapture&&node.setPointerCapture(event.pointerId)},true);
     node.addEventListener("pointermove",function(event){if(!pan||event.pointerId!==pan.id)return;view=clamp({x:pan.x-(event.clientX-pan.cx)*pan.sx,y:pan.y-(event.clientY-pan.cy)*pan.sy,w:view.w,h:view.h});apply();event.preventDefault();event.stopImmediatePropagation()},true);
     function stop(event){if(!pan||event.pointerId!==pan.id)return;pan=null;node.classList.remove("rafex-common-panning");event.preventDefault();event.stopImmediatePropagation()}
-    node.addEventListener("pointerup",stop,true);node.addEventListener("pointercancel",stop,true);
-    if(!window.__rafexCommonSpacePanV49){window.__rafexCommonSpacePanV49=true;window.addEventListener("keydown",function(event){if(event.code!=="Space"||/INPUT|TEXTAREA|SELECT/.test(document.activeElement&&document.activeElement.tagName||""))return;spacePan=true;decorate();if(event.target===document.body)event.preventDefault()});window.addEventListener("keyup",function(event){if(event.code!=="Space")return;spacePan=false;decorate()});window.addEventListener("blur",function(){spacePan=false;pan=null;decorate()})}
-    return true;
+    node.addEventListener("pointerup",stop,true);node.addEventListener("pointercancel",stop,true);return true;
   }
   function afterRender(){
-    if(rendering)return;rendering=true;try{insertControls();bind();apply();var s=state(),ids=new Set(s&&Array.isArray(s.racks)?s.racks.map(function(r){return Number(r.id)}):[]);if(lastIds&&lastIds.size===0){var added=Array.from(ids).filter(function(id){return !lastIds.has(id)});if(added.length&&!(typeof m2AutoFillDraft!=="undefined"&&m2AutoFillDraft)){var selected=s&&rackById(s.selected),target=selected||rackById(added[added.length-1]);setTimeout(function(){focusRack(target)},25)}}lastIds=ids}finally{rendering=false}
+    if(rendering)return;rendering=true;try{insertControls();bind();if(navMode&&activeTool())setNavMode(false);apply()}finally{rendering=false}
   }
   if(baseRender){m2RenderLayout=function(){var result=baseRender.apply(this,arguments);afterRender();return result}}
   m2ZoomLayout=function(change,reset){if(reset)return fitAll();zoomAt(change>0?.82:change<0?1.22:1);return true};
   m2SvgPoint=function(event){return point(event)};
-  window.rafexCommonDrawingFocusSelectedV49=focusSelected;window.rafexCommonDrawingFitAllV49=fitAll;window.rafexCommonDrawingViewportV49={focusSelected:focusSelected,fitAll:fitAll,apply:apply};
+  window.rafexCommonDrawingFocusSelectedV49=focusSelected;window.rafexCommonDrawingFitAllV49=fitAll;window.rafexCommonDrawingViewportV49={focusSelected:focusSelected,fitAll:fitAll,setNavigation:setNavMode,apply:apply};
   document.addEventListener("click",function(event){if(event.target.closest('[data-page="mekik2"],[data-page="b2b"],[data-page="mr"],[data-page="free"]'))[40,160,420,900].forEach(function(ms){setTimeout(afterRender,ms)})},true);
   var observer=new MutationObserver(function(){if(svg())setTimeout(afterRender,25)});observer.observe(document.documentElement,{childList:true,subtree:true});
   [0,80,250,700,1400].forEach(function(ms){setTimeout(afterRender,ms)});
@@ -118,11 +119,13 @@ for (const required of [
   "Tüm Projeyi Göster",
   "rafex-type-contour",
   'typeof m2AutoFillDraft!=="undefined"&&m2AutoFillDraft',
-  "shortPx<34",
-  "event.button===1||event.button===0&&spacePan"
+  "m2ViewNavigateV49",
+  'if(!navMode)return',
+  'label.style.display=selected&&shortPx>=56',
+  "setNavigation:setNavMode"
 ]) if (!html.includes(required)) throw new Error("Common drawing viewport v49 missing: " + required);
 
 const encoded = Buffer.from(html).toString("base64");
 source = source.slice(0, match.index) + match[0].replace(match[2], encoded) + source.slice(match.index + match[0].length);
 fs.writeFileSync(file, source);
-console.log("v49: Ortak Çizim imleç merkezli akıcı zoom, araç güvenli CAD kaydırma, küçük harfi gizleme ve tip rengi gövdesi aktif.");
+console.log("v49: Ortak Çizim normal çizim ve isteğe bağlı görünüm modu ayrıldı; otomatik kamera kapalı, tip rengi ana ayrım oldu.");
