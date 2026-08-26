@@ -204,7 +204,7 @@ if (!source.includes("dimensions.name = 'Konsol 3D Ölçüler';")) {
     '    };',
     '    const addDimLabel = (text, x, y, z, width = 760) => {',
     "      const canvas = document.createElement('canvas');",
-    '      const scale = 4, dimensionScale = 1.5, labelWidth = width * dimensionScale, labelHeight = 105 * dimensionScale;',
+    '      const scale = 2, dimensionScale = 1.5, labelWidth = width * dimensionScale, labelHeight = 105 * dimensionScale;',
     '      canvas.width = labelWidth * scale;',
     '      canvas.height = labelHeight * scale;',
     "      const context = canvas.getContext('2d');",
@@ -224,6 +224,9 @@ if (!source.includes("dimensions.name = 'Konsol 3D Ölçüler';")) {
     '      context.fillText(text, labelWidth / 2, labelHeight / 2, labelWidth - 36);',
     '      const texture = new THREE.CanvasTexture(canvas);',
     '      texture.colorSpace = THREE.SRGBColorSpace;',
+'      texture.generateMipmaps = false;',
+'      texture.minFilter = THREE.LinearFilter;',
+'      texture.magFilter = THREE.LinearFilter;',
     '      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, depthTest: false, transparent: true }));',
     '      sprite.position.set(x, y, z);',
     '      sprite.scale.set(width * 1.85, 220, 1);',
@@ -267,6 +270,46 @@ if (!source.includes("dimensions.name = 'Konsol 3D Ölçüler';")) {
   replaceRequired(dimensionAnchor, dimensions + dimensionAnchor, '3D ölçü katmanı');
 }
 
+// Döndürme sırasında Opera/Chromium sekme kapanmasını önleyen GPU ve olay izolasyonu.
+replaceRequired(
+  '    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));',
+  '    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));',
+  'Konsol GPU piksel oranı'
+);
+replaceRequired(
+  '    key.shadow.mapSize.set(2048, 2048);',
+  '    key.shadow.mapSize.set(1024, 1024);',
+  'Konsol gölge tamponu'
+);
+const rotationGuardAnchor = '    this.controls.maxDistance = 80000;';
+if (!source.includes("this.konsolRotationStabilityVersion = 'RAFEX_KONSOL_ROTATION_STABILITY_V14';")) {
+  const rotationGuard = [
+    rotationGuardAnchor,
+    "    this.konsolRotationStabilityVersion = 'RAFEX_KONSOL_ROTATION_STABILITY_V14';",
+    '    this.konsolCanvasEventGuard = (event) => event.stopPropagation();',
+    "    ['pointerdown', 'pointermove', 'pointerup', 'pointercancel', 'click', 'dblclick', 'wheel', 'contextmenu'].forEach((type) => {",
+    '      canvas.addEventListener(type, this.konsolCanvasEventGuard, { passive: false });',
+    '    });',
+    '    this.konsolContextLost = (event) => {',
+    '      event.preventDefault();',
+    "      console.warn('Konsol 3D WebGL bağlamı korumaya alındı.');",
+    '    };',
+    "    canvas.addEventListener('webglcontextlost', this.konsolContextLost, false);",
+  ].join('\n');
+  replaceRequired(rotationGuardAnchor, rotationGuard, 'Konsol 3D döndürme olay izolasyonu');
+}
+const rotationDestroyAnchor = '    this.controls?.dispose();';
+if (!source.includes("removeEventListener(type, this.konsolCanvasEventGuard)")) {
+  const rotationCleanup = [
+    "    ['pointerdown', 'pointermove', 'pointerup', 'pointercancel', 'click', 'dblclick', 'wheel', 'contextmenu'].forEach((type) => {",
+    '      this.canvas?.removeEventListener(type, this.konsolCanvasEventGuard);',
+    '    });',
+    "    this.canvas?.removeEventListener('webglcontextlost', this.konsolContextLost, false);",
+    rotationDestroyAnchor,
+  ].join('\n');
+  replaceRequired(rotationDestroyAnchor, rotationCleanup, 'Konsol 3D olay temizliği');
+}
+
 for (const required of [
   "from 'three/examples/jsm/loaders/GLTFLoader.js'",
   'async loadKonsolArmModel()',
@@ -277,6 +320,8 @@ for (const required of [
   "o.loadType === 'unpacked'",
   "dimensions.name = 'Konsol 3D Ölçüler';",
   "RAFEX_KONSOL_DIMENSIONS_V13",
+  "RAFEX_KONSOL_ROTATION_STABILITY_V14",
+  "this.konsolCanvasEventGuard",
   'SON KAT YÜKSEKLİĞİ',
   'cylinderBetween([x1, y1, 0]',
 ]) {
