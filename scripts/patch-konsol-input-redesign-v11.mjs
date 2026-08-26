@@ -109,7 +109,10 @@ const runtime = String.raw`
    var handling=e('femHandling');if(handling){handling.innerHTML='<option value="manual">Forklift</option>';handling.value='manual';handling.setAttribute('aria-readonly','true')}
    var qph=e('femAutoQph');if(qph){qph.value='0.25';qph.disabled=true;qph.setAttribute('aria-label','Otomatik sistem Qph bilgi değeri 0,25 kN')}
    var env=e('femEnvironment');if(env){env.innerHTML='<option value="indoor">İç ortam</option>';env.value='indoor'}
-   relabel('femUnitLoad','Her katın ürün ağırlığı (kg)');relabel('femSupportArms','Ürünü taşıyan kol adedi na');relabel('femProductLength','Ürün uzunluğu (mm)');relabel('femHandling','Elleçleme');relabel('femAutoQph','Otomatik sistem Qph (kN) · bilgi');relabel('konsolUprightProfile','Otomatik ayak profili');relabel('konsolArmProfile','Otomatik kol profili');
+   relabel('femUnitLoad','Her katın ürün ağırlığı (kg)');relabel('femSupportArms','Ürünü taşıyan kol adedi na');relabel('femProductLength','Ürün uzunluğu (mm)');relabel('femHandling','Elleçleme');
+   var spacingLabel=e('konsolSpacing')&&e('konsolSpacing').closest('label'),weightLabel=e('femUnitLoad')&&e('femUnitLoad').closest('label'),lengthLabel=e('femProductLength')&&e('femProductLength').closest('label');
+   if(spacingLabel&&weightLabel&&lengthLabel){spacingLabel.insertAdjacentElement('afterend',weightLabel);weightLabel.insertAdjacentElement('afterend',lengthLabel)}
+   relabel('femAutoQph','Otomatik sistem Qph (kN) · bilgi');relabel('konsolUprightProfile','Otomatik ayak profili');relabel('konsolArmProfile','Otomatik kol profili');
    var strip=document.createElement('div');strip.className='konsol-assumption-strip';strip.innerHTML='<div class="konsol-assumption"><small>ORTAM</small><b>İç ortam</b></div><div class="konsol-assumption"><small>ÇEVRESEL YÜKLER</small><b>Rüzgâr / kar uygulanmaz</b></div>';
    fem.querySelector('.fem10209-grid').insertAdjacentElement('afterend',strip);
    var auto=document.createElement('div');auto.id='konsolAutoSelection';auto.className='konsol-auto-selection';strip.insertAdjacentElement('afterend',auto);
