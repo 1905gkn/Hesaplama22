@@ -19,6 +19,9 @@ const runtime = String.raw`
 #page .konsol-panel>h3{font-size:17px!important;margin-bottom:5px!important}
 #page .konsol-panel>h3:after{content:'Excel girişleriyle otomatik KRS seçimi';display:block;margin-top:4px;color:#718078;font-size:10px;font-weight:700}
 #page .konsol-grid{grid-template-columns:1fr 1fr!important;gap:8px!important}
+#page .konsol-load-length-row{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#page .konsol-load-length-row .fem10209-field{min-width:0}
+
 #page .konsol-field{font-size:9px!important}
 #page .konsol-field input,#page .konsol-field select{padding:8px!important;min-height:35px}
 #page .konsol-view-card{padding:14px!important;min-width:0}
@@ -102,7 +105,8 @@ const runtime = String.raw`
  }
  function scheduleSelection(){if(!raf)raf=requestAnimationFrame(updateSelection)}
  function enhance(){
-   var page=e('page'),grid=page&&page.querySelector('.konsol-grid'),fem=e('fem10209');if(!grid||!fem||page.dataset.konsolInputRedesign==='1')return;
+   var page=e('page'),grid=page&&page.querySelector('.konsol-grid'),fem=e('fem10209');if(!grid||!fem)return;
+   if(e('konsolLoadLengthRow'))return;
    page.dataset.konsolInputRedesign='1';
    var panel=page.querySelector('.konsol-panel>h3');if(panel)panel.textContent='Konsol Girdi Bölümü';
    setValue('femLoadMode','direct');setValue('femMethod','simplified');setValue('femHandling','manual');setValue('femEnvironment','indoor');setValue('femLoadSymmetry','sym');
@@ -111,7 +115,7 @@ const runtime = String.raw`
    var env=e('femEnvironment');if(env){env.innerHTML='<option value="indoor">İç ortam</option>';env.value='indoor'}
    relabel('femUnitLoad','Her katın ürün ağırlığı (kg)');relabel('femSupportArms','Ürünü taşıyan kol adedi na');relabel('femProductLength','Ürün uzunluğu (mm)');relabel('femHandling','Elleçleme');
    var spacingLabel=e('konsolSpacing')&&e('konsolSpacing').closest('label'),weightLabel=e('femUnitLoad')&&e('femUnitLoad').closest('label'),lengthLabel=e('femProductLength')&&e('femProductLength').closest('label');
-   if(spacingLabel&&weightLabel&&lengthLabel){spacingLabel.insertAdjacentElement('afterend',weightLabel);weightLabel.insertAdjacentElement('afterend',lengthLabel)}
+   if(spacingLabel&&weightLabel&&lengthLabel){var inputRow=document.createElement('div');inputRow.id='konsolLoadLengthRow';inputRow.className='konsol-load-length-row';spacingLabel.insertAdjacentElement('afterend',inputRow);inputRow.appendChild(weightLabel);inputRow.appendChild(lengthLabel)}
    relabel('femAutoQph','Otomatik sistem Qph (kN) · bilgi');relabel('konsolUprightProfile','Otomatik ayak profili');relabel('konsolArmProfile','Otomatik kol profili');
    var strip=document.createElement('div');strip.className='konsol-assumption-strip';strip.innerHTML='<div class="konsol-assumption"><small>ORTAM</small><b>İç ortam</b></div><div class="konsol-assumption"><small>ÇEVRESEL YÜKLER</small><b>Rüzgâr / kar uygulanmaz</b></div>';
    fem.querySelector('.fem10209-grid').insertAdjacentElement('afterend',strip);
@@ -137,6 +141,7 @@ for (const required of [
   'Rüzgâr / kar uygulanmaz',
   'FEM MUHAFAZAKÂR OTOMATİK ÖN SEÇİM',
   'height:min(76vh,820px)',
+  'konsolLoadLengthRow',
 ]) if (!html.includes(required)) throw new Error('Konsol input redesign v11 eksik: ' + required);
 const encoded = Buffer.from(html).toString('base64');
 source = source.slice(0, match.index) + match[0].replace(match[2], encoded) + source.slice(match.index + match[0].length);
