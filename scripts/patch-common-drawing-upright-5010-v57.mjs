@@ -13,6 +13,8 @@ html = html
 const runtime = String.raw`
 <style data-rafex-common-upright-5010="v57">
 #page #m2LayoutSvg .m2-b2b-plan-upright.rafex-ral5010-upright{fill:#00679d!important;stroke:#002f4a!important;stroke-width:2px!important;opacity:1!important;vector-effect:non-scaling-stroke;transform-box:fill-box;transform-origin:center;transform:scale(1.16);shape-rendering:geometricPrecision}
+#page #m2LayoutSvg .m2-b2b-plan-upright{stroke:#354650!important;stroke-width:2.4px!important;opacity:1!important;vector-effect:non-scaling-stroke;transform-box:fill-box;transform-origin:center;transform:scale(1.14);shape-rendering:geometricPrecision;filter:drop-shadow(0 0 .7px #fff)}
+#page #m2LayoutSvg .m2-b2b-plan-upright.rafex-ral5010-upright{fill:#005f90!important;stroke:#001927!important;stroke-width:3.2px!important;transform:scale(1.32);filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #002f4a88)}
 </style>
 <script data-rafex-common-upright-5010="v57">
 (function(){
@@ -46,6 +48,12 @@ for (const required of [
   'fill:#00679d!important',
   'stroke:#002f4a!important',
   'transform:scale(1.16)',
+  'stroke-width:2.4px!important',
+  'transform:scale(1.14)',
+  'fill:#005f90!important',
+  'stroke:#001927!important',
+  'stroke-width:3.2px!important',
+  'transform:scale(1.32)',
   'rack.b2b.uprightFinish||"ral5010"',
   'rack.b2b&&rack.b2b.footColor',
 ]) if (!html.includes(required)) throw new Error("Common drawing RAL 5010 upright v57 missing: " + required);
@@ -53,4 +61,4 @@ for (const required of [
 const encoded = Buffer.from(html).toString("base64");
 source = source.slice(0, match.index) + match[0].replace(match[2], encoded) + source.slice(match.index + match[0].length);
 fs.writeFileSync(file, source);
-console.log("v57: Serbest Cizim RAL 5010 ayaklari doygun mavi, koyu kenarli ve daha belirgin.");
+console.log("v57: Serbest Cizim tum ayaklari belirgin; RAL 5010 ayaklari koyu konturlu ve daha baskin.");
