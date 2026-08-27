@@ -35,7 +35,7 @@ const runtime = String.raw`
     labels.forEach(function(label){label.style.display="none";label.setAttribute("aria-hidden","true")});
     var label=labels[0],letter=(String(label.textContent||"").trim().toUpperCase().match(/[A-Z0-9]/)||[])[0],pathData=GLYPHS[letter],parent=label.parentNode,old=parent&&existing(parent);
     if(!pathData||!parent){if(old)old.remove();return}
-    var color=group.getAttribute("data-type-color")||"#2878d0",x=Number(label.getAttribute("x"))||0,y=Number(label.getAttribute("y"))||0,fontSize=Math.max(8,Math.min(14,parseFloat(label.style.fontSize)||parseFloat(getComputedStyle(label).fontSize)||12)),sx=fontSize*.72/10,sy=fontSize*.92/10,signature=[letter,color,x,y,fontSize].join("|");
+    var color=group.getAttribute("data-type-color")||"#2878d0",x=Number(label.getAttribute("x"))||0,y=Number(label.getAttribute("y"))||0,fontSize=Math.max(7,Math.min(12,parseFloat(label.style.fontSize)||parseFloat(getComputedStyle(label).fontSize)||11)),sx=fontSize*.72/10,sy=fontSize*.92/10,signature=[letter,color,x,y,fontSize].join("|");
     if(old&&old.getAttribute("data-signature")===signature)return;if(old)old.remove();
     var mark=document.createElementNS(NS,"g"),path=document.createElementNS(NS,"path");mark.setAttribute("class","rafex-single-line-letter-v58");mark.setAttribute("data-signature",signature);mark.setAttribute("data-letter",letter);mark.setAttribute("aria-label",letter);mark.setAttribute("transform","translate("+(x-fontSize*.36)+" "+(y-fontSize*.46)+") scale("+sx+" "+sy+")");path.setAttribute("d",pathData);path.setAttribute("stroke",color);mark.appendChild(path);parent.appendChild(mark);
   }
@@ -58,6 +58,7 @@ for (const required of [
   "rafex-single-line-letter-v58",
   "fill:none;stroke-width:2px",
   "stroke-width:3.4px!important",
+  "Math.max(7,Math.min(12",
   'path.setAttribute("d",pathData)',
   'path.setAttribute("stroke",color)',
   'label.style.display="none"',
@@ -67,4 +68,4 @@ for (const required of [
 const encoded = Buffer.from(html).toString("base64");
 source = source.slice(0, match.index) + match[0].replace(match[2], encoded) + source.slice(match.index + match[0].length);
 fs.writeFileSync(file, source);
-console.log("v58: Serbest Cizim blok harfleri dolgusuz ve cift kontursuz, 3.4 px bold tek merkez cizgisiyle ciziliyor.");
+console.log("v58: Serbest Cizim blok harfleri 7-12 px, dolgusuz ve cift kontursuz, 3.4 px bold tek merkez cizgisiyle ciziliyor.");
