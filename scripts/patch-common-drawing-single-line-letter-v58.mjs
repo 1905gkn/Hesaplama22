@@ -16,7 +16,7 @@ const runtime = String.raw`
 #page #m2LayoutSvg [data-rack] .m2-rack-name{display:none!important}
 #page .rafex-single-line-letter-v58{pointer-events:none}
 #page .rafex-single-line-letter-v58 path{fill:none;stroke-width:2px;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;shape-rendering:geometricPrecision}
-#page #m2LayoutSvg .rafex-single-line-letter-v58 path{stroke-width:2.6px!important}
+#page #m2LayoutSvg .rafex-single-line-letter-v58 path{stroke-width:3.4px!important}
 </style>
 <script data-rafex-common-single-line-letter="v58">
 (function(){
@@ -57,7 +57,7 @@ for (const required of [
   "rafexCommonSingleLineLetterV58",
   "rafex-single-line-letter-v58",
   "fill:none;stroke-width:2px",
-  "stroke-width:2.6px!important",
+  "stroke-width:3.4px!important",
   'path.setAttribute("d",pathData)',
   'path.setAttribute("stroke",color)',
   'label.style.display="none"',
@@ -67,4 +67,4 @@ for (const required of [
 const encoded = Buffer.from(html).toString("base64");
 source = source.slice(0, match.index) + match[0].replace(match[2], encoded) + source.slice(match.index + match[0].length);
 fs.writeFileSync(file, source);
-console.log("v58: Serbest Cizim blok harfleri dolgusuz ve cift kontursuz, 2.6 px kalin tek merkez cizgisiyle ciziliyor.");
+console.log("v58: Serbest Cizim blok harfleri dolgusuz ve cift kontursuz, 3.4 px bold tek merkez cizgisiyle ciziliyor.");
