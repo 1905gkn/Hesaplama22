@@ -162,16 +162,23 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
     var system=systemOf(rack),source=String(rack.rafexOriginalTypeName||rack.typeName||rack.name||'Raf').trim(),block=String(rack.blockName||'').trim();
     return [system,source,block,Math.round(Number(rack.widthMm)||0),Math.round(Number(rack.depthMm)||0),Number(rack.bays)||0,Number(rack.levels)||0,Number(rack.depth)||0,Number(rack.b2bLayout&&rack.b2bLayout.palletCount)||0,Number(rack.b2bLayout&&rack.b2bLayout.rowCount)||0].join('|');
   }
+  function savedLetterForRack(rack){
+    var direct=String(rack&&rack.rafexGlobalTypeLetter||'').trim().toUpperCase();
+    if(/^[A-Z]+$/.test(direct))return direct;
+    var key=String(rack&&rack.rafexCatalogKey||''),entry=key&&catalog.find(function(item){return entryKey(item)===key;});
+    var saved=String(entry&&entry.name||'').trim().toUpperCase();
+    return /^[A-Z]+$/.test(saved)?saved:'';
+  }
   function layoutGroups(apply){
     var groups=[],map=new Map(),racks=Array.isArray(m2LayoutState&&m2LayoutState.racks)?m2LayoutState.racks:[];
     racks.forEach(function(rack,index){
       if(!rack)return;
       if(!rack.rafexOriginalTypeName)rack.rafexOriginalTypeName=String(rack.typeName||rack.name||'Raf').trim();
-      var key=rackSignature(rack),group=map.get(key);
-      if(!group){group={key:key,letter:letter(groups.length+1),system:systemOf(rack),first:index,racks:[]};map.set(key,group);groups.push(group);}
+      var key=rackSignature(rack),group=map.get(key),savedLetter=savedLetterForRack(rack);
+      if(!group){group={key:key,letter:savedLetter||letter(groups.length+1),system:systemOf(rack),first:index,racks:[]};map.set(key,group);groups.push(group);}
       group.racks.push(rack);
     });
-    if(apply!==false)groups.forEach(function(group){group.racks.forEach(function(rack){rack.typeName=group.letter;rack.typeColor=colorFor(group.letter);rack.rafexSystem=group.system;rack.rafexSystemLabel=systemLabel(group.system);rack.rafexSectionLetter=group.letter;});});
+    if(apply!==false)groups.forEach(function(group){group.racks.forEach(function(rack){rack.typeName=group.letter;rack.typeColor=colorFor(group.letter);rack.rafexSystem=group.system;rack.rafexSystemLabel=systemLabel(group.system);rack.rafexSectionLetter=group.letter;if(!rack.rafexGlobalTypeLetter&&savedLetterForRack(rack))rack.rafexGlobalTypeLetter=group.letter;});});
     return groups;
   }
 
@@ -184,7 +191,7 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
     var system=chosen?chosen.__rafexSystem:systemOf(drawing||{}),before=Array.isArray(m2LayoutState&&m2LayoutState.racks)?m2LayoutState.racks.length:0;
     var result=previousAddRack.call(this,drawing,typeName);
     var racks=Array.isArray(m2LayoutState&&m2LayoutState.racks)?m2LayoutState.racks:[];
-    racks.slice(before).forEach(function(rack){rack.rafexSystem=system;rack.rafexSystemLabel=systemLabel(system);rack.rafexCatalogKey=chosen?entryKey(chosen):String(drawing&&drawing.rafexCatalogKey||'');rack.rafexOriginalTypeName=chosen?chosen.__rafexOriginalName:String(typeName||rack.typeName||systemLabel(system));});
+    racks.slice(before).forEach(function(rack){rack.rafexSystem=system;rack.rafexSystemLabel=systemLabel(system);rack.rafexCatalogKey=chosen?entryKey(chosen):String(drawing&&drawing.rafexCatalogKey||'');rack.rafexOriginalTypeName=chosen?chosen.__rafexOriginalName:String(typeName||rack.typeName||systemLabel(system));rack.rafexGlobalTypeLetter=chosen?chosen.name:String(drawing&&drawing.rafexGlobalTypeLetter||typeName||'');});
     layoutGroups(true);
     return result;
   }
@@ -365,6 +372,7 @@ for (const required of [
   'rafexPromptRackPairDistance',
   'rafexGlobalSectionLetter',
   'rafexGlobalTypeLetter',
+  'savedLetterForRack',
   'KESİT '
 ]) if (!html.includes(required)) throw new Error(`Common drawing v44: dogrulama eksik: ${required}`);
 

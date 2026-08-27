@@ -29,13 +29,14 @@ const runtime = String.raw`
     0:"M5 0Q0 0 0 5Q0 10 5 10Q10 10 10 5Q10 0 5 0M2 8L8 2",1:"M3 2L5 0V10M2 10H8",2:"M0 2Q1.5 0 5 0Q10 0 10 3Q10 5 0 10H10",3:"M0 1Q2 0 5 0Q10 0 10 2.6Q10 5 5 5Q10 5 10 7.5Q10 10 5 10Q2 10 0 9",4:"M8 10V0L0 7H10",5:"M10 0H0V5H5Q10 5 10 7.5Q10 10 5 10Q2 10 0 9",6:"M9 1Q7.5 0 5 0Q0 0 0 5V7Q0 10 5 10Q10 10 10 7Q10 4 5 4H0",7:"M0 0H10L3 10",8:"M5 0Q0 0 0 2.5Q0 5 5 5Q10 5 10 2.5Q10 0 5 0M5 5Q0 5 0 7.5Q0 10 5 10Q10 10 10 7.5Q10 5 5 5",9:"M10 6H5Q0 6 0 3Q0 0 5 0Q10 0 10 3V5Q10 10 5 10Q2.5 10 1 9"
   };
   function svg(){return document.getElementById("m2LayoutSvg")}
+  function letterScale(){try{return typeof window.rafexCommonTypeLetterScaleV65==="function"?Math.max(.5,Math.min(2,Number(window.rafexCommonTypeLetterScaleV65())||1)):1}catch(_){return 1}}
   function existing(parent){return Array.from(parent.children||[]).find(function(node){return node.classList&&node.classList.contains("rafex-single-line-letter-v58")})||null}
   function decorateGroup(group){
     var labels=Array.from(group.querySelectorAll(".m2-b2b-plan-label,.m2-rack-name"));if(!labels.length)return;
     labels.forEach(function(label){label.style.display="none";label.setAttribute("aria-hidden","true")});
     var label=labels[0],letter=(String(label.textContent||"").trim().toUpperCase().match(/[A-Z0-9]/)||[])[0],pathData=GLYPHS[letter],parent=label.parentNode,old=parent&&existing(parent);
     if(!pathData||!parent){if(old)old.remove();return}
-    var color=group.getAttribute("data-type-color")||"#2878d0",x=Number(label.getAttribute("x"))||0,y=Number(label.getAttribute("y"))||0,fontSize=Math.max(7,Math.min(12,parseFloat(label.style.fontSize)||parseFloat(getComputedStyle(label).fontSize)||11)),sx=fontSize*.72/10,sy=fontSize*.92/10,signature=[letter,color,x,y,fontSize].join("|");
+    var color=group.getAttribute("data-type-color")||"#2878d0",x=Number(label.getAttribute("x"))||0,y=Number(label.getAttribute("y"))||0,baseSize=Math.max(7,Math.min(12,parseFloat(label.style.fontSize)||parseFloat(getComputedStyle(label).fontSize)||11)),fontSize=baseSize*letterScale(),sx=fontSize*.72/10,sy=fontSize*.92/10,signature=[letter,color,x,y,fontSize].join("|");
     if(old&&old.getAttribute("data-signature")===signature)return;if(old)old.remove();
     var mark=document.createElementNS(NS,"g"),path=document.createElementNS(NS,"path");mark.setAttribute("class","rafex-single-line-letter-v58");mark.setAttribute("data-signature",signature);mark.setAttribute("data-letter",letter);mark.setAttribute("aria-label",letter);mark.setAttribute("transform","translate("+(x-fontSize*.36)+" "+(y-fontSize*.46)+") scale("+sx+" "+sy+")");path.setAttribute("d",pathData);path.setAttribute("stroke",color);mark.appendChild(path);parent.appendChild(mark);
   }
@@ -59,6 +60,7 @@ for (const required of [
   "fill:none;stroke-width:2px",
   "stroke-width:3.4px!important",
   "Math.max(7,Math.min(12",
+  "rafexCommonTypeLetterScaleV65",
   'path.setAttribute("d",pathData)',
   'path.setAttribute("stroke",color)',
   'label.style.display="none"',
