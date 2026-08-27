@@ -34,10 +34,13 @@ const runtime = String.raw`
     originals.forEach(function(node){var x=Number(node.getAttribute("x"))||0,key=x.toFixed(2);(columns[key]||(columns[key]=[])).push(node)});
     Object.keys(columns).forEach(function(key){
       var nodes=columns[key].sort(function(a,b){return (Number(a.getAttribute("y"))||0)-(Number(b.getAttribute("y"))||0)});if(nodes.length!==4)return;
+      var firstInnerEnd=(Number(nodes[1].getAttribute("y"))||0)+(Number(nodes[1].getAttribute("height"))||0),secondInnerStart=Number(nodes[2].getAttribute("y"))||0;
+      group.setAttribute("data-b2b-profile-gap",String(Math.max(0,secondInnerStart-firstInnerEnd)));
       [[nodes[0],nodes[1]],[nodes[2],nodes[3]]].forEach(function(pair){
         var first=pair[0],second=pair[1],top=Math.min(Number(first.getAttribute("y"))||0,Number(second.getAttribute("y"))||0),bottom=Math.max((Number(first.getAttribute("y"))||0)+(Number(first.getAttribute("height"))||0),(Number(second.getAttribute("y"))||0)+(Number(second.getAttribute("height"))||0)),merged=first.cloneNode(true);
         first.classList.add("rafex-profile-merge-source-v61");second.classList.add("rafex-profile-merge-source-v61");
         merged.classList.remove("rafex-profile-merge-source-v61");merged.classList.add("rafex-merged-b2b-profile-v61");merged.removeAttribute("id");merged.setAttribute("y",String(top));merged.setAttribute("height",String(bottom-top));merged.setAttribute("data-merged-profiles","2");
+        merged.style.setProperty("transform","none","important");merged.style.setProperty("filter","none","important");merged.style.setProperty("stroke","none","important");
         group.appendChild(merged);
       });
     });
@@ -61,7 +64,7 @@ const runtime = String.raw`
     svg.querySelectorAll("[data-rack]").forEach(function(group){
       var id=Number(group.getAttribute("data-rack")),rack=state.racks.find(function(item){return Number(item.id)===id}),finish=rack&&rack.b2b&&rack.b2b.mr?(rack.b2b.uprightFinish||"ral5010"):rack&&rack.b2b&&rack.b2b.footColor,is5010=finish==="ral5010";
       mergeBackToBackProfiles(group);
-      group.querySelectorAll(".m2-b2b-plan-upright").forEach(function(upright){upright.classList.toggle("rafex-ral5010-upright",is5010);upright.setAttribute("data-upright-finish",is5010?"RAL 5010":finish||"PGV")});
+      group.querySelectorAll(".m2-b2b-plan-upright").forEach(function(upright){upright.classList.toggle("rafex-ral5010-upright",is5010);upright.setAttribute("data-upright-finish",is5010?"RAL 5010":finish||"PGV");upright.style.setProperty("filter","none","important")});
     });
     renderSharedFeet(state,svg);
   }
@@ -98,6 +101,9 @@ for (const required of [
   'rafex-profile-merge-source-v61',
   'rafex-merged-b2b-profile-v61',
   'data-merged-profiles',
+  'data-b2b-profile-gap',
+  'merged.style.setProperty("transform","none","important")',
+  'upright.style.setProperty("filter","none","important")',
   'rack.b2b.uprightFinish||"ral5010"',
   'rack.b2b&&rack.b2b.footColor',
 ]) if (!html.includes(required)) throw new Error("Common drawing RAL 5010 upright v57 missing: " + required);
