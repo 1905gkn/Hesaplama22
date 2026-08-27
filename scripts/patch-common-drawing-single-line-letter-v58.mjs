@@ -30,15 +30,17 @@ const runtime = String.raw`
   };
   function svg(){return document.getElementById("m2LayoutSvg")}
   function letterScale(){try{return typeof window.rafexCommonTypeLetterScaleV65==="function"?Math.max(.5,Math.min(2,Number(window.rafexCommonTypeLetterScaleV65())||1)):1}catch(_){return 1}}
+  function letterContrast(){try{return typeof window.rafexCommonTypeLetterContrastV65==="function"?Math.max(.5,Math.min(1.5,Number(window.rafexCommonTypeLetterContrastV65())||1)):1}catch(_){return 1}}
+  function contrastColor(color,contrast){if(contrast<=1||!/^#[0-9a-f]{6}$/i.test(color))return color;var mix=Math.min(.25,(contrast-1)*.5),r=parseInt(color.slice(1,3),16),g=parseInt(color.slice(3,5),16),b=parseInt(color.slice(5,7),16);return "rgb("+Math.round(r*(1-mix))+","+Math.round(g*(1-mix))+","+Math.round(b*(1-mix))+")"}
   function existing(parent){return Array.from(parent.children||[]).find(function(node){return node.classList&&node.classList.contains("rafex-single-line-letter-v58")})||null}
   function decorateGroup(group){
     var labels=Array.from(group.querySelectorAll(".m2-b2b-plan-label,.m2-rack-name"));if(!labels.length)return;
     labels.forEach(function(label){label.style.display="none";label.setAttribute("aria-hidden","true")});
     var label=labels[0],letter=(String(label.textContent||"").trim().toUpperCase().match(/[A-Z0-9]/)||[])[0],pathData=GLYPHS[letter],parent=label.parentNode,old=parent&&existing(parent);
     if(!pathData||!parent){if(old)old.remove();return}
-    var color=group.getAttribute("data-type-color")||"#2878d0",x=Number(label.getAttribute("x"))||0,y=Number(label.getAttribute("y"))||0,baseSize=Math.max(7,Math.min(12,parseFloat(label.style.fontSize)||parseFloat(getComputedStyle(label).fontSize)||11)),fontSize=baseSize*letterScale(),sx=fontSize*.72/10,sy=fontSize*.92/10,signature=[letter,color,x,y,fontSize].join("|");
+    var color=group.getAttribute("data-type-color")||"#2878d0",x=Number(label.getAttribute("x"))||0,y=Number(label.getAttribute("y"))||0,baseSize=Math.max(7,Math.min(12,parseFloat(label.style.fontSize)||parseFloat(getComputedStyle(label).fontSize)||11)),fontSize=baseSize*letterScale(),contrast=letterContrast(),opacity=Math.min(1,contrast),strokeColor=contrastColor(color,contrast),sx=fontSize*.72/10,sy=fontSize*.92/10,signature=[letter,color,x,y,fontSize,contrast].join("|");
     if(old&&old.getAttribute("data-signature")===signature)return;if(old)old.remove();
-    var mark=document.createElementNS(NS,"g"),path=document.createElementNS(NS,"path");mark.setAttribute("class","rafex-single-line-letter-v58");mark.setAttribute("data-signature",signature);mark.setAttribute("data-letter",letter);mark.setAttribute("aria-label",letter);mark.setAttribute("transform","translate("+(x-fontSize*.36)+" "+(y-fontSize*.46)+") scale("+sx+" "+sy+")");path.setAttribute("d",pathData);path.setAttribute("stroke",color);mark.appendChild(path);parent.appendChild(mark);
+    var mark=document.createElementNS(NS,"g"),path=document.createElementNS(NS,"path");mark.setAttribute("class","rafex-single-line-letter-v58");mark.setAttribute("data-signature",signature);mark.setAttribute("data-letter",letter);mark.setAttribute("aria-label",letter);mark.setAttribute("opacity",String(opacity));mark.setAttribute("transform","translate("+(x-fontSize*.36)+" "+(y-fontSize*.46)+") scale("+sx+" "+sy+")");path.setAttribute("d",pathData);path.setAttribute("stroke",strokeColor);mark.appendChild(path);parent.appendChild(mark);
   }
   function decorate(){var node=svg();if(!node)return;node.querySelectorAll("[data-rack]").forEach(decorateGroup)}
   function schedule(){clearTimeout(pending);pending=setTimeout(function(){pending=0;decorate()},20)}
@@ -61,8 +63,11 @@ for (const required of [
   "stroke-width:3.4px!important",
   "Math.max(7,Math.min(12",
   "rafexCommonTypeLetterScaleV65",
+  "rafexCommonTypeLetterContrastV65",
+  "contrastColor",
+  'mark.setAttribute("opacity",String(opacity))',
   'path.setAttribute("d",pathData)',
-  'path.setAttribute("stroke",color)',
+  'path.setAttribute("stroke",strokeColor)',
   'label.style.display="none"',
   'data-letter',
 ]) if (!html.includes(required)) throw new Error("Common drawing single-line letter v58 missing: " + required);
