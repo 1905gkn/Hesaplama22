@@ -73,7 +73,7 @@ const runtime = String.raw`
       var color=group.getAttribute("data-type-color")||"#2878d0",frame=group.querySelector(":scope > .m2-layout-rack"),rack=rackById(group.getAttribute("data-rack"));group.classList.add("rafex-type-contour");
       if(frame){frame.style.stroke=color;frame.style.strokeOpacity=frame.classList.contains("selected")?"1":".96";frame.style.fill=color;frame.style.fillOpacity=frame.classList.contains("selected")?".20":".13";frame.setAttribute("vector-effect","non-scaling-stroke")}
       var frameRect=frame&&frame.getBoundingClientRect(),shortPx=frameRect?Math.min(frameRect.width,frameRect.height):0,shortSide=rack?Math.max(1,Math.min(Number(rack.w)||1,Number(rack.h)||1)):12,fontSize=Math.max(7,Math.min(14,shortSide*.64)),selected=frame&&frame.classList.contains("selected"),labels=Array.from(group.querySelectorAll(".m2-b2b-plan-label,.m2-rack-name"));
-      labels.forEach(function(label,index){label.style.fontSize=fontSize+"px";label.style.display=index===0?"":"none";label.style.opacity=".82";label.style.fill=color;label.style.stroke="#fff";label.style.strokeWidth=Math.max(.55,fontSize*.065)+"px";label.style.paintOrder="stroke";label.style.fontWeight="800";label.style.letterSpacing=".02em";label.style.pointerEvents="none"});
+      labels.forEach(function(label,index){label.style.fontSize=fontSize+"px";label.style.display=index===0?"":"none";label.style.opacity=".92";label.style.fill="none";label.style.stroke=color;label.style.strokeWidth=Math.max(.8,fontSize*.09)+"px";label.style.paintOrder="stroke";label.style.strokeLinejoin="round";label.style.fontWeight="800";label.style.letterSpacing=".02em";label.style.pointerEvents="none"});
       group.querySelectorAll(".m2-rack-pallet-count").forEach(function(label){label.style.display=selected&&shortPx>=72?"":"none";label.style.fontSize=Math.max(1.3,fontSize*.62)+"px"});
     });
   }
@@ -124,7 +124,9 @@ for (const required of [
   "m2ViewNavigateV49",
   'if(!navMode)return',
   'label.style.display=index===0?"":"none"',
-  'label.style.fill=color',
+  'label.style.fill="none"',
+  'label.style.stroke=color',
+  'label.style.strokeLinejoin="round"',
   "setNavigation:setNavMode"
 ]) if (!html.includes(required)) throw new Error("Common drawing viewport v49 missing: " + required);
 
