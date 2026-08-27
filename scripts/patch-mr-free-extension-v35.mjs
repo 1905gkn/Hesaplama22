@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 43305)
-Total output lines: 1470
-
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -791,7 +788,162 @@ async function captureMRPerspective(config = {}, settings = {}) {
       this.addDimensionLine(layer,[left,right]);this.addDimensionLine(layer,[left,new THREE.Vector3(0,0,z)]);this.addDimensionLine(layer,[right,new THREE.Vector3(totalWidth,0,z)]);this.addDimensionPoint(layer,left);this.addDimensionPoint(layer,right);this.addDimensionLabel(layer,totalWidth/2,y,z+220,\`TOPLAM GENİŞLİK · \${this.dimensionValue(totalWidth)}\`,900,"width");`;
     const singleWidthDimensionV52 = `      // __rafexMrSingleSectionWidthV52
       const y = -90, sectionWidth = this.config.width, sectionLeft = this.config.uprightWidth, sectionRight = sectionLeft + sectionWidth, left = new THREE.Vector3(sectionLeft,y,z+220), right = new THREE.Vector3(sectionRight,y,z+220);
-      this.addDimensionLine(layer,[left,right]);this.addDimensionLine(layer,[left,new THREE.Vector3(sectionLeft,0,z)]);this.addDimensionLine(layer,[right,new THREE.Vect…3305 tokens truncated…teArtwork();
+      this.addDimensionLine(layer,[left,right]);this.addDimensionLine(layer,[left,new THREE.Vector3(sectionLeft,0,z)]);this.addDimensionLine(layer,[right,new THREE.Vector3(sectionRight,0,z)]);this.addDimensionPoint(layer,left);this.addDimensionPoint(layer,right);this.addDimensionLabel(layer,(sectionLeft+sectionRight)/2,y,z+220,\`GENİŞLİK · \${this.dimensionValue(sectionWidth)}\`,760,"width");`;
+    if (!mrViewer.includes(widthDimensionV52)) throw new Error("MR v52: toplam genislik olcu blogu bulunamadi.");
+    mrViewer = mrViewer.replace(widthDimensionV52, singleWidthDimensionV52);
+  }
+  for (const required of ['rowCount: Math.round(bounded(config.rowCount, 1, 1, 2))', 'dimensionScale: bounded(config.dimensionScale, 2, .7, 3)', 'const uprightHeight = Math.ceil(rawUprightHeight / 50) * 50', 'const footprintDepth = rowCount * depth', 'firstTraverse + index * (levelGap + traverseHeight)', 'rowZ + depth - 10', 'K${index} → K${index+1} NET', 'this.addDimensions(levelYs, totalWidth, footprintDepth, uprightHeight)', '__rafexMrDetachedPerspectiveCaptureV38', '__rafexMrSingleSectionWidthV52', '`GENİŞLİK · ${this.dimensionValue(sectionWidth)}`']) {
+    if (!mrViewer.includes(required)) throw new Error(`MR v45 viewer kaynak dogrulama hatasi: ${required}`);
+  }
+  fs.writeFileSync(mrViewerPath, mrViewer);
+
+  // Kesit Yer Belirleme MR tipini ayri tutar ve secilen rafin kendi kaydini
+  // MR viewer'a yollar. Eski/hatali 3'lu B2B varsayimi burada devre disidir.
+  let positioner = fs.readFileSync(sectionPositionerPath, "utf8");
+  if (!positioner.includes("__rafexMrSectionOutputV38")) {
+    const palletAnchor = `  function palletCountOf(drawing) {
+    return clamp(Math.round(number(drawing?.b2bLayout?.palletCount ?? drawing?.b2b?.palletCount ?? drawing?.bays, 3)), 1, 4);
+  }
+`;
+    if (!positioner.includes(palletAnchor)) throw new Error("MR v38: kesit pallet sayisi baglanti noktasi bulunamadi.");
+    positioner = positioner.replace(palletAnchor, `${palletAnchor}
+  // __rafexMrSectionOutputV38
+  function isMrDrawing(drawing) {
+    return Boolean(drawing?.b2b?.mr || drawing?.rafexSystem === "mr" || drawing?.systemType === "mr" || drawing?.b2bLayout?.palletType === "mr" || drawing?.plan?.mr);
+  }
+`);
+    positioner = positioner.replace(
+      "        const label = safeKey(entry?.name || entry?.typeName || entry?.label || `Raf Tipi ${index + 1}`);\n        if (!groups.has(label)) groups.set(label, { key: label, label, entries: new Map(), cards: [] });",
+      "        const label = safeKey(entry?.name || entry?.typeName || entry?.label || `Raf Tipi ${index + 1}`);\n        const system = isMrDrawing(drawing) ? \"mr\" : \"b2b\";\n        if (!groups.has(label)) groups.set(label, { key: label, label, system, entries: new Map(), cards: [] });"
+    );
+    const captureStart = positioner.indexOf("  async function capturePerspective(key, source = draft, force = false) {");
+    const captureEnd = positioner.indexOf("\n  function installStyles", captureStart);
+    if (captureStart < 0 || captureEnd < 0) throw new Error("MR v38: kesit yakalama fonksiyonu bulunamadi.");
+    const mrCapture = `  async function capturePerspective(key, source = draft, force = false) {
+    // __rafexDetachedSectionCaptureV1 + __rafexMrSectionCaptureV38
+    const type = rackTypeCache.find((item) => item.key === safeKey(key)) || collectRackTypes().find((item) => item.key === safeKey(key));
+    const settings = settingFor(key, source);
+    const seed = type?.entries?.values?.().next?.().value;
+    const mr = type?.system === "mr" || isMrDrawing(seed?.drawing);
+    const mrOptions = mr ? window.rafexMrConfigFromRackV37?.(seed?.drawing) : null;
+    const options = mr ? (mrOptions ? { ...mrOptions, dimensions:{ ...(mrOptions.dimensions || {}), ...settings.dimensions } } : null) : optionsForType(type, settings);
+    const capture = mr ? window.RafexMRViewer?.capturePerspective : window.RafexB2BViewer?.capturePerspective;
+    if (!options || typeof capture !== "function") return null;
+    const signature = JSON.stringify({ system:mr?"mr":"b2b", key:safeKey(key), azimuth:settings.azimuth, elevation:settings.elevation, showPallets:settings.showPallets, dimensions:settings.dimensions, options });
+    if (!force && previewCache.get(key)?.signature === signature) return previewCache.get(key).src;
+    if (previewPending.has(key)) return previewPending.get(key);
+    const task = (async () => {
+      // MR'de modules/kat/olculer seed kaydindan birebir gelir; B2B sayaclari uygulanmaz.
+      const src = await capture.call(mr ? window.RafexMRViewer : window.RafexB2BViewer, options, { width:1120, height:900, azimuth:settings.azimuth, elevation:settings.elevation, pixelRatio:1.5, quality:.9 });
+      if (src) { previewCache.set(key, { signature, src }); trimPreviewCache(); }
+      return src || null;
+    })().catch((error) => {
+      console.error(mr ? "MR kesit perspektifi hazirlanamadi" : "Kesit Yer Belirleme perspektif goruntusu hazirlanamadi", error);
+      return null;
+    }).finally(() => previewPending.delete(key));
+    previewPending.set(key, task);
+    return task;
+  }
+`;
+    positioner = positioner.slice(0, captureStart) + mrCapture + positioner.slice(captureEnd);
+    for (const required of ["__rafexMrSectionOutputV38", "__rafexMrSectionCaptureV38", "RafexMRViewer?.capturePerspective"]) {
+      if (!positioner.includes(required)) throw new Error(`MR v38 kesit kaynak dogrulama hatasi: ${required}`);
+    }
+    fs.writeFileSync(sectionPositionerPath, positioner);
+  }
+
+  // Kesit Yer Belirleme'de MR kendi modul/kat verisini kayittan kullanir.
+  // Bu nedenle B2B'ye ait 4-3-2-1 ve palet secenekleri MR seciliyken gizlenir.
+  if (!positioner.includes("__rafexMrSectionControlsV46")) {
+    const controlsAnchorV46 = `    const value = ensureSetting(activeKey);
+    document.querySelectorAll("[data-rafex-count]")`;
+    const controlsReplacementV46 = `    const value = ensureSetting(activeKey);
+    // __rafexMrSectionControlsV46
+    const modal = document.getElementById("m2SectionPlacementModal"), mr = type?.system === "mr" || isMrDrawing(type?.entries?.values?.().next?.().value?.drawing);
+    modal?.classList.toggle("is-mr", Boolean(mr));
+    if (mr) value.showPallets = false;
+    document.querySelectorAll("[data-rafex-count]")`;
+    if (!positioner.includes(controlsAnchorV46)) throw new Error("MR v46: kesit kontrol baglanti noktasi bulunamadi.");
+    positioner = positioner.replace(controlsAnchorV46, controlsReplacementV46);
+    positioner = positioner.replace('perspektif, ölçüler, palet görünümü ve modül dağılımını ayrı ayrı kaydet.', 'perspektif ve ölçü görünümünü raf tipine göre ayrı ayrı kaydet.');
+    positioner = positioner.replace('      @media(max-width:820px){.rafex-section-editor-shell{grid-template-columns:1fr}', '      .rafex-section-placement-modal.is-mr .rafex-module-selector,.rafex-section-placement-modal.is-mr .rafex-option-row:has([data-rafex-pallets]){display:none!important}\n      @media(max-width:820px){.rafex-section-editor-shell{grid-template-columns:1fr}');
+    fs.writeFileSync(sectionPositionerPath, positioner);
+  }
+
+  // MR'de 4-3-2-1 modul satiri gizli kalirken mevcut bos toolbar alani aci
+  // bilgisini gosterir. B2B'nin markup ve kontrolleri aynen korunur.
+  if (!positioner.includes("__rafexMrSectionWorkingControlsV48")) {
+    positioner = positioner.replace(
+      '.rafex-section-placement-modal.is-mr .rafex-module-selector,.rafex-section-placement-modal.is-mr .rafex-option-row:has([data-rafex-pallets]){display:none!important}',
+      '.rafex-section-placement-modal.is-mr .rafex-placement-controls>span:nth-of-type(2){color:#68736c;font-size:9px;font-weight:850}.rafex-section-placement-modal.is-mr .rafex-module-selector,.rafex-section-placement-modal.is-mr .rafex-option-row:has([data-rafex-pallets]){display:none!important}'
+    );
+    positioner = positioner.replace(
+      'if (mr) value.showPallets = false;',
+      'if (mr) value.showPallets = false;\n    const mrAngles = modal?.querySelector(".rafex-placement-controls>span:nth-of-type(2)");\n    if (mrAngles) mrAngles.textContent = mr ? `${Math.round(value.azimuth)}° / ${Math.round(value.elevation)}°` : ""; // __rafexMrSectionWorkingControlsV48'
+    );
+    for (const required of ["__rafexMrSectionWorkingControlsV48", "mrAngles.textContent", "mrOptions.dimensions"]) {
+      if (!positioner.includes(required)) throw new Error(`MR v48 kesit kontrol dogrulama hatasi: ${required}`);
+    }
+    fs.writeFileSync(sectionPositionerPath, positioner);
+  }
+
+  // MR kesit ekraninda ilk olcu yazi boyu 3D ile aynidir. Metin olcegi raf
+  // tipine gore saklanir; On görünüm ve Sığdır (perspektif) birbirinden nettir.
+  if (!positioner.includes("__rafexMrSectionViewAndTextV49")) {
+    const cloneViewAnchorV49 = `      elevation: clamp(number(value.elevation, defaults.elevation), -35, 75),
+      counts: Array.isArray(value.counts)`;
+    const cloneViewReplacementV49 = `      elevation: clamp(number(value.elevation, defaults.elevation), -35, 75),
+      dimensionScale: clamp(number(value.dimensionScale, number(defaults.dimensionScale, 2)), .7, 3),
+      counts: Array.isArray(value.counts)`;
+    if (!positioner.includes(cloneViewAnchorV49)) throw new Error("MR v49: kesit yazi olcegi ayar noktasi bulunamadi.");
+    positioner = positioner.replace(cloneViewAnchorV49, cloneViewReplacementV49);
+
+    const defaultsForAnchorV49 = `    return cloneView({ ...DEFAULT_VIEW, counts: type?.existingCounts?.length ? type.existingCounts : [3] });`;
+    const defaultsForReplacementV49 = `    const seed = type?.entries?.values?.().next?.().value, mrScale = type?.system === "mr" ? number(window.rafexMrConfigFromRackV37?.(seed?.drawing)?.dimensionScale, 2) : 2;
+    return cloneView({ ...DEFAULT_VIEW, dimensionScale:mrScale, counts: type?.existingCounts?.length ? type.existingCounts : [3] });`;
+    if (!positioner.includes(defaultsForAnchorV49)) throw new Error("MR v49: kesit varsayilan 3D yazi olcegi bulunamadi.");
+    positioner = positioner.replace(defaultsForAnchorV49, defaultsForReplacementV49);
+
+    const mrOptionsAnchorV49 = `const options = mr ? (mrOptions ? { ...mrOptions, dimensions:{ ...(mrOptions.dimensions || {}), ...settings.dimensions } } : null) : optionsForType(type, settings);`;
+    const mrOptionsReplacementV49 = `const options = mr ? (mrOptions ? { ...mrOptions, dimensions:{ ...(mrOptions.dimensions || {}), ...settings.dimensions }, dimensionScale:settings.dimensionScale } : null) : optionsForType(type, settings);`;
+    if (!positioner.includes(mrOptionsAnchorV49)) throw new Error("MR v49: kesit MR olcu olcegi aktarimi bulunamadi.");
+    positioner = positioner.replace(mrOptionsAnchorV49, mrOptionsReplacementV49);
+
+    const toolbarAnchorV49 = `<button type="button" data-rafex-fit>Sığdır</button><span></span><button type="button" data-rafex-rotate-left`;
+    const toolbarReplacementV49 = `<button type="button" data-rafex-fit>Sığdır</button><button type="button" data-rafex-front>Önden</button><span></span><button type="button" data-rafex-rotate-left`;
+    if (!positioner.includes(toolbarAnchorV49)) throw new Error("MR v49: kesit görünüm dugmesi baglanti noktasi bulunamadi.");
+    positioner = positioner.replace(toolbarAnchorV49, toolbarReplacementV49);
+
+    const dimensionRowEndV49 = `</label><button type="button" data-rafex-dim-all>Hepsini Göster</button><button type="button" data-rafex-dim-none>Hepsini Gizle</button></div>`;
+    const dimensionRowReplacementV49 = `${dimensionRowEndV49}<div class="rafex-option-row rafex-mr-text-scale"><strong>YAZI BÜYÜKLÜĞÜ</strong><button type="button" data-rafex-text-smaller aria-label="Kesit ölçü yazısını küçült">−</button><span data-rafex-text-scale>200%</span><button type="button" data-rafex-text-larger aria-label="Kesit ölçü yazısını büyüt">+</button></div>`;
+    if (!positioner.includes(dimensionRowEndV49)) throw new Error("MR v49: kesit yazi kontrol satiri bulunamadi.");
+    positioner = positioner.replace(dimensionRowEndV49, dimensionRowReplacementV49);
+
+    const fitListenerV49 = `    modal.querySelector("[data-rafex-fit]")?.addEventListener("click", fitCurrent);`;
+    const fitListenerReplacementV49 = `${fitListenerV49}
+    modal.querySelector("[data-rafex-front]")?.addEventListener("click", frontCurrentV49);
+    modal.querySelector("[data-rafex-text-smaller]")?.addEventListener("click", () => changeDimensionScaleV49(-.2));
+    modal.querySelector("[data-rafex-text-larger]")?.addEventListener("click", () => changeDimensionScaleV49(.2));`;
+    if (!positioner.includes(fitListenerV49)) throw new Error("MR v49: kesit kontrol olaylari bulunamadi.");
+    positioner = positioner.replace(fitListenerV49, fitListenerReplacementV49);
+
+    const fitFunctionV49 = `  function fitCurrent() {
+    if (!activeKey) return;`;
+    const newViewFunctionsV49 = `  // __rafexMrSectionViewAndTextV49
+  function frontCurrentV49() {
+    if (!activeKey) return;
+    const value = ensureSetting(activeKey);
+    value.azimuth = 0; value.elevation = 0;
+    updateArtwork();
+    schedulePreview(true, 80);
+  }
+
+  function changeDimensionScaleV49(delta) {
+    if (!activeKey) return;
+    const value = ensureSetting(activeKey);
+    value.dimensionScale = clamp(Math.round((value.dimensionScale + delta) * 10) / 10, .7, 3);
+    previewCache.delete(activeKey);
+    updateArtwork();
     schedulePreview(true, 80);
   }
 
