@@ -95,6 +95,11 @@ if (mode === "source") {
   const sectionPositionerPath = path.join(root, "client/b2b-section-positioner-v5.js");
   let portal = fs.readFileSync(portalPath, "utf8");
 
+  const oldB2BRowLoopV74 = "for (let row = 0; row < layout.rowCount; row++) {";
+  const newB2BRowLoopV74 = "for (let row = 0, rowCount = Math.max(1, Number(rack.rafexMrRowCount) || Number(layout.rowCount) || 1); row < rowCount; row++) {";
+  if (portal.includes(oldB2BRowLoopV74)) portal = portal.replace(oldB2BRowLoopV74, newB2BRowLoopV74);
+  else if (!portal.includes(newB2BRowLoopV74)) throw new Error("MR v74: serbest cizim sira cizici bulunamadi.");
+
   const oldSection = "const config=mrConfigurationV2(),footWidth=config.uprightWidth,totalWidth=config.modules*config.width+(config.modules+1)*footWidth,sectionWidth=totalWidth;";
   const newSection = "const config=mrConfigurationV2(),footWidth=config.uprightWidth,totalWidth=config.modules*config.width+(config.modules+1)*footWidth,sectionWidth=config.modules*config.width;";
   if (portal.includes(oldSection)) portal = portal.replace(oldSection, newSection);
@@ -1199,7 +1204,7 @@ ${fitFunctionV49}`;
 @media(max-width:560px){.rafex-mr-extension-summary{grid-template-columns:1fr}.rafex-mr-extension-card{padding:15px}}
 </style>
 <script ${marker}>(function(){
-  if(window.__rafexMrFreeExtensionV35)return;window.__rafexMrFreeExtensionV35=true;window.__rafexMrPointerDoubleTapV36=true;window.__rafexMrExtensionGeometryV72=true;window.__rafexMrFullRowExtensionV73=true;
+  if(window.__rafexMrFreeExtensionV35)return;window.__rafexMrFreeExtensionV35=true;window.__rafexMrPointerDoubleTapV36=true;window.__rafexMrExtensionGeometryV72=true;window.__rafexMrFullRowExtensionV73=true;window.__rafexMrPhysicalPairExtensionV74=true;
   var originalStart=window.m2StartAutoFillGuide;
   var originalPreview=window.m2PreviewAutoFillLength;
   var originalApply=window.m2ApplyAutoFillLength;
@@ -1258,20 +1263,18 @@ ${fitFunctionV49}`;
   }
   function pairedMrSources(source){
     var geometry=rowGeometryOf(source);if(geometry.rowCount>1)return[source];
-    var scale=Math.max(.0001,Number(m2LayoutState?.scale)||.04),radians=(Number(source.angle)||0)*Math.PI/180,ux=Math.cos(radians),uy=Math.sin(radians),nx=-uy,ny=ux,cx=source.x+source.w/2,cy=source.y+source.h/2,sourceName=String(source.typeName||'').trim(),best=null;
+    var radians=(Number(source.angle)||0)*Math.PI/180,ux=Math.cos(radians),uy=Math.sin(radians),nx=-uy,ny=ux,cx=source.x+source.w/2,cy=source.y+source.h/2,best=null;
     (m2LayoutState.racks||[]).forEach(function(other){
       if(!other||Number(other.id)===Number(source.id)||!isMr(other)||rowGeometryOf(other).rowCount>1)return;
-      if(sourceName&&String(other.typeName||'').trim()!==sourceName)return;
-      if(Math.abs(sectionOf(other)-sectionOf(source))>1||Math.abs(rowGeometryOf(other).palletDepth-geometry.palletDepth)>1||Math.abs(Number(other.levels||0)-Number(source.levels||0))>0)return;
       var angleDelta=Math.abs((((Number(other.angle)||0)-(Number(source.angle)||0)+90)%180+180)%180-90);if(angleDelta>.5)return;
-      var ox=other.x+other.w/2,oy=other.y+other.h/2,dx=ox-cx,dy=oy-cy,along=Math.abs(dx*ux+dy*uy),across=Math.abs(dx*nx+dy*ny),alongMm=along/scale,acrossMm=across/scale,expected=(geometry.footprintDepth+rowGeometryOf(other).footprintDepth)/2+Math.max(0,Number(source?.b2b?.rowGap??other?.b2b?.rowGap??200));
-      if(alongMm>Math.max(120,footOf(source)*2)||acrossMm<geometry.palletDepth*.65||acrossMm>expected+800)return;
-      var score=Math.abs(acrossMm-expected)+alongMm*4;if(!best||score<best.score)best={rack:other,score:score};
+      var ox=other.x+other.w/2,oy=other.y+other.h/2,dx=ox-cx,dy=oy-cy,along=Math.abs(dx*ux+dy*uy),across=Math.abs(dx*nx+dy*ny),minAcross=Math.max(4,(Number(source.h)||8)*.45),maxAcross=Math.max(36,(Number(source.h)||8)+(Number(other.h)||8)+24),alongLimit=Math.max(8,Math.min(Number(source.w)||8,Number(other.w)||8)*.18);
+      if(along>alongLimit||across<minAcross||across>maxAcross)return;
+      var score=across+along*6;if(!best||score<best.score)best={rack:other,score:score};
     });
     return best?[source,best.rack]:[source];
   }
   function applyRowGeometry(target,source,centerY){
-    var geometry=rowGeometryOf(source);target.depth=geometry.rowCount;target.palD=geometry.palletDepth;target.depthMm=geometry.footprintDepth;target.railLength=geometry.footprintDepth;target.h=Math.max(8,geometry.footprintDepth*Math.max(.0001,Number(m2LayoutState?.scale)||.04));if(Number.isFinite(centerY))target.y=centerY-target.h/2;target.palletPositions=Array.from({length:geometry.rowCount},function(_,index){return index*(geometry.palletDepth+Math.max(0,geometry.rowGap-2*geometry.palletOverhang));});target.palletGaps=geometry.rowCount>1?[geometry.rowGap]:[];
+    var geometry=rowGeometryOf(source);target.rafexMrRowCount=geometry.rowCount;target.depth=geometry.rowCount;target.palD=geometry.palletDepth;target.depthMm=geometry.footprintDepth;target.railLength=geometry.footprintDepth;target.h=Math.max(8,geometry.footprintDepth*Math.max(.0001,Number(m2LayoutState?.scale)||.04));if(Number.isFinite(centerY))target.y=centerY-target.h/2;target.palletPositions=Array.from({length:geometry.rowCount},function(_,index){return index*(geometry.palletDepth+Math.max(0,geometry.rowGap-2*geometry.palletOverhang));});target.palletGaps=geometry.rowCount>1?[geometry.rowGap]:[];
     target.b2b={...(target.b2b||{}),rowCount:geometry.rowCount,rowType:geometry.rowCount>1?'double':'single',rowGap:geometry.rowGap,depth:geometry.palletDepth};target.b2bLayout={...(target.b2bLayout||{}),rowCount:geometry.rowCount,rowGap:geometry.rowGap,palletDepth:geometry.palletDepth,palletOverhang:geometry.palletOverhang,frameDepth:geometry.frameDepth};return geometry;
   }
   function setStatus(text){var node=document.getElementById('m2FloorStatus');if(node)node.textContent=text;}
@@ -1482,7 +1485,7 @@ ${fitFunctionV49}`;
   const bodyEnd = html.lastIndexOf("</body>");
   if (bodyEnd < 0) throw new Error("MR v35: body kapanisi bulunamadi.");
   html = html.slice(0, bodyEnd) + runtime + "\n" + html.slice(bodyEnd);
-  for (const required of [marker, "__rafexMrPointerDoubleTapV36", "__rafexMrExtensionGeometryV72", "__rafexMrFullRowExtensionV73", "rowGeometryOf", "pairedMrSources", "applyRowGeometry", "placeSourceSetAfter", "rafexMrConfigFromRackV37", "__rafexMrSectionCaptureV38", "function buildMRCard(group,index)", "rafex-v38-mr-type-card", "data-rafex-system=\"mr\"", "x==='b2b'||x==='mekik2'||x==='mr'", "if(document.activeElement===input)input.blur()", "rafexProjectMrObstacleV40", "rafexCommitMrObstacleV40", "DUVARA KALAN", "KOLONA KALAN", "RAFA KALAN", "rafex-mr-customize-v37", "MR 3D RAF ÖNİZLEMESİ", "addEventListener('pointerdown'", "rafexMrExtensionPlan", "Kalan MR Bölümü", "Özel Rafı Oluştur", "netRemaining>500", "step=\"50\"", "rafex-extension-disclosure-v42", "rafexMrQuantitySummaryV42", "__rafexMrExactQuantitiesV42", "rafexInspectMrSavedV45", "rafexCopyMrSavedV45", "rowCount:rowCount", "rowGap:rowGap", "Math.min(3,Number(state.dimensionScale)||2)", "inspectConfig.dimensionScale=Math.max(2", "<small>GENİŞLİK</small>"]) {
+  for (const required of [marker, "__rafexMrPointerDoubleTapV36", "__rafexMrExtensionGeometryV72", "__rafexMrFullRowExtensionV73", "__rafexMrPhysicalPairExtensionV74", "rafexMrRowCount", "rowGeometryOf", "pairedMrSources", "applyRowGeometry", "placeSourceSetAfter", "rafexMrConfigFromRackV37", "__rafexMrSectionCaptureV38", "function buildMRCard(group,index)", "rafex-v38-mr-type-card", "data-rafex-system=\"mr\"", "x==='b2b'||x==='mekik2'||x==='mr'", "if(document.activeElement===input)input.blur()", "rafexProjectMrObstacleV40", "rafexCommitMrObstacleV40", "DUVARA KALAN", "KOLONA KALAN", "RAFA KALAN", "rafex-mr-customize-v37", "MR 3D RAF ÖNİZLEMESİ", "addEventListener('pointerdown'", "rafexMrExtensionPlan", "Kalan MR Bölümü", "Özel Rafı Oluştur", "netRemaining>500", "step=\"50\"", "rafex-extension-disclosure-v42", "rafexMrQuantitySummaryV42", "__rafexMrExactQuantitiesV42", "rafexInspectMrSavedV45", "rafexCopyMrSavedV45", "rowCount:rowCount", "rowGap:rowGap", "Math.min(3,Number(state.dimensionScale)||2)", "inspectConfig.dimensionScale=Math.max(2", "<small>GENİŞLİK</small>"]) {
     if (!html.includes(required)) throw new Error(`MR v35 runtime dogrulama hatasi: ${required}`);
   }
   const encoded = Buffer.from(html, "utf8").toString("base64");
