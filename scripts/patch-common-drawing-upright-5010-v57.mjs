@@ -34,10 +34,12 @@ const runtime = String.raw`
     originals.forEach(function(node){var x=Number(node.getAttribute("x"))||0,key=x.toFixed(2);(columns[key]||(columns[key]=[])).push(node)});
     Object.keys(columns).forEach(function(key){
       var nodes=columns[key].sort(function(a,b){return (Number(a.getAttribute("y"))||0)-(Number(b.getAttribute("y"))||0)});if(nodes.length!==4)return;
-      var first=nodes[1],second=nodes[2],top=Math.min(Number(first.getAttribute("y"))||0,Number(second.getAttribute("y"))||0),bottom=Math.max((Number(first.getAttribute("y"))||0)+(Number(first.getAttribute("height"))||0),(Number(second.getAttribute("y"))||0)+(Number(second.getAttribute("height"))||0)),merged=first.cloneNode(true);
-      first.classList.add("rafex-profile-merge-source-v61");second.classList.add("rafex-profile-merge-source-v61");
-      merged.classList.remove("rafex-profile-merge-source-v61");merged.classList.add("rafex-merged-b2b-profile-v61");merged.removeAttribute("id");merged.setAttribute("y",String(top));merged.setAttribute("height",String(bottom-top));merged.setAttribute("data-merged-profiles","2");
-      group.appendChild(merged);
+      [[nodes[0],nodes[1]],[nodes[2],nodes[3]]].forEach(function(pair){
+        var first=pair[0],second=pair[1],top=Math.min(Number(first.getAttribute("y"))||0,Number(second.getAttribute("y"))||0),bottom=Math.max((Number(first.getAttribute("y"))||0)+(Number(first.getAttribute("height"))||0),(Number(second.getAttribute("y"))||0)+(Number(second.getAttribute("height"))||0)),merged=first.cloneNode(true);
+        first.classList.add("rafex-profile-merge-source-v61");second.classList.add("rafex-profile-merge-source-v61");
+        merged.classList.remove("rafex-profile-merge-source-v61");merged.classList.add("rafex-merged-b2b-profile-v61");merged.removeAttribute("id");merged.setAttribute("y",String(top));merged.setAttribute("height",String(bottom-top));merged.setAttribute("data-merged-profiles","2");
+        group.appendChild(merged);
+      });
     });
   }
   function renderSharedFeet(state,svg){
