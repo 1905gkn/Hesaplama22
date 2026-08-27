@@ -50,6 +50,7 @@ await import(`./patch-konsol-common-drawing-v46.mjs?build=${Date.now()}`);
 await import(`./patch-single-module-customize-v47.mjs?build=${Date.now()}`);
 await import(`./patch-common-drawing-viewport-v49.mjs?build=${Date.now()}`);
 await import(`./patch-common-drawing-fixed-canvas-v50.mjs?build=${Date.now()}`);
+await import(`./patch-common-drawing-upright-5010-v57.mjs?build=${Date.now()}`);
 
 const workerModule = await import(`${workerPath}?syntax-check=${Date.now()}`);
 const response = await workerModule.default.fetch(
@@ -97,6 +98,8 @@ if (!html.includes('data-rafex-common-drawing-viewport="v49"')) throw new Error(
 for (const required of ["rafexCommonDrawingFocusSelectedV49","rafexCommonDrawingFitAllV49","Seçili Rafa Yaklaş","Tüm Projeyi Göster","rafex-type-contour"]) if (!html.includes(required)) throw new Error("Ortak Çizim görünüm özelliği bulunamadı: " + required);
 if (!html.includes('data-rafex-common-drawing-fixed-canvas="v50"')) throw new Error("Ortak Çizim sabit plan v50 canlı HTML içinde bulunamadı");
 for (const required of ["rafexCommonDrawingMoveSelectedV50","m2SelectedRackDetailV50","Taşıma adımı","Rafı doğrudan tutup sürükle","m2SvgPoint=fixedPoint"]) if (!html.includes(required)) throw new Error("Ortak Çizim sabit plan özelliği bulunamadı: " + required);
+if (!html.includes('data-rafex-common-upright-5010="v57"')) throw new Error("Serbest Çizim RAL 5010 ayak görünümü v57 canlı HTML içinde bulunamadı");
+for (const required of ["rafexCommonUpright5010V57","rafex-ral5010-upright","fill:#00679d!important","stroke:#002f4a!important","transform:scale(1.16)",'rack.b2b.uprightFinish||"ral5010"']) if (!html.includes(required)) throw new Error("Serbest Çizim RAL 5010 ayak görünürlüğü bulunamadı: " + required);
 for (const required of ['label.style.display=index===0?"":"none"','label.style.fill="none"','label.style.stroke=color','label.style.paintOrder="stroke"','label.style.strokeLinejoin="round"']) if (!html.includes(required)) throw new Error("Serbest Çizim çizgi blok harfi görünürlüğü bulunamadı: " + required);
 for (const required of ["Math.max(7,Math.min(14,shortSide*.64))",'label.style.opacity=".92"','Math.max(.8,fontSize*.09)','label.style.fontWeight="800"','label.style.letterSpacing=".02em"']) if (!html.includes(required)) throw new Error("Serbest Çizim dengeli çizgi blok harfi görünümü bulunamadı: " + required);
 if (!html.includes('else if(rack.b2b?.showPallets!==false) html += `<rect')) throw new Error("B2B palet görünürlüğü Serbest Çizim üst görünüşüne bağlanmadı");
