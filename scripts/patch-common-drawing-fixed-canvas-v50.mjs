@@ -50,10 +50,12 @@ const runtime = String.raw`
   if(window.__rafexCommonDrawingFixedCanvasV50)return;
   window.__rafexCommonDrawingFixedCanvasV50=true;
 
-  var BASE_W=1000,BASE_H=650,rendering=false,detailSignature="",baseRender=typeof m2RenderLayout==="function"?m2RenderLayout:null;
+  var BASE_W=1000,BASE_H=650,rendering=false,pendingRender=0,detailSignature="",baseRender=typeof m2RenderLayout==="function"?m2RenderLayout:null;
   function byId(id){return document.getElementById(id)}
   function state(){try{return m2LayoutState}catch(_){return null}}
   function svg(){return byId("m2LayoutSvg")}
+  function isActive(){var node=svg(),rect=node&&node.getBoundingClientRect();return Boolean(node&&node.isConnected&&node.getClientRects().length&&rect&&rect.width>0&&rect.height>0)}
+  function scheduleAfterRender(delay){if(!isActive())return;clearTimeout(pendingRender);pendingRender=setTimeout(function(){pendingRender=0;if(isActive())afterRender()},Math.max(0,Number(delay)||0))}
   function rackById(id){var s=state();return s&&Array.isArray(s.racks)?s.racks.find(function(r){return Number(r.id)===Number(id)}):null}
   function selectedRack(){var s=state();return s?rackById(s.selected):null}
   function rackBounds(rack){
@@ -118,14 +120,14 @@ const runtime = String.raw`
       var rect=frame&&frame.getBoundingClientRect(),shortPx=rect?Math.min(rect.width,rect.height):0,shortSide=rack?Math.max(1,Math.min(Number(rack.w)||1,Number(rack.h)||1)):12,fontSize=Math.max(1.4,Math.min(4,shortSide*.20));group.querySelectorAll(".m2-b2b-plan-label,.m2-rack-name").forEach(function(label){label.style.fontSize=fontSize+"px";label.style.display=selected&&shortPx>=58?"":"none";label.style.opacity=selected?".8":"0"});group.querySelectorAll(".m2-rack-pallet-count").forEach(function(label){label.style.display=selected&&shortPx>=78?"":"none"})});
   }
   function afterRender(){
-    if(rendering)return;rendering=true;try{resetCanvas();removeCameraControls();decorateRacks();renderDetail()}finally{rendering=false}
+    if(rendering||!isActive())return;rendering=true;try{resetCanvas();removeCameraControls();decorateRacks();renderDetail()}finally{rendering=false}
   }
   if(baseRender)m2RenderLayout=function(){var result=baseRender.apply(this,arguments);afterRender();return result};
   m2SvgPoint=fixedPoint;m2ZoomLayout=function(){resetCanvas();return true};
   window.rafexCommonDrawingMoveSelectedV50=moveSelected;window.rafexCommonDrawingFixedCanvasV50={moveSelected:moveSelected,reset:resetCanvas};
-  document.addEventListener("click",function(event){if(event.target.closest('[data-page="mekik2"],[data-page="b2b"],[data-page="mr"],[data-page="free"],[data-rack]'))[0,40,160,500].forEach(function(ms){setTimeout(afterRender,ms)})},true);
-  var observer=new MutationObserver(function(){if(svg())setTimeout(afterRender,20)});observer.observe(document.documentElement,{childList:true,subtree:true});
-  [0,80,250,700,1400].forEach(function(ms){setTimeout(afterRender,ms)});
+  document.addEventListener("click",function(event){if(event.target.closest('[data-page="mekik2"],[data-page="b2b"],[data-page="mr"],[data-page="free"],[data-rack]'))[0,40,160,500].forEach(function(ms){setTimeout(function(){scheduleAfterRender(0)},ms)})},true);
+  var observer=new MutationObserver(function(){scheduleAfterRender(45)});observer.observe(document.documentElement,{childList:true,subtree:true});
+  [0,80,250,700,1400].forEach(function(ms){setTimeout(function(){scheduleAfterRender(0)},ms)});
 })();
 </script>`;
 

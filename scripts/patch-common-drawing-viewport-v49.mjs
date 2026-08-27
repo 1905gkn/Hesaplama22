@@ -29,10 +29,12 @@ const runtime = String.raw`
   if(window.__rafexCommonDrawingViewportV49)return;
   window.__rafexCommonDrawingViewportV49=true;
 
-  var BASE_W=1000,BASE_H=650,MIN_W=90,view={x:0,y:0,w:BASE_W,h:BASE_H},pan=null,navMode=false,rendering=false,baseRender=typeof m2RenderLayout==="function"?m2RenderLayout:null;
+  var BASE_W=1000,BASE_H=650,MIN_W=90,view={x:0,y:0,w:BASE_W,h:BASE_H},pan=null,navMode=false,rendering=false,pendingRender=0,baseRender=typeof m2RenderLayout==="function"?m2RenderLayout:null;
   function byId(id){return document.getElementById(id)}
   function state(){try{return m2LayoutState}catch(_){return null}}
   function svg(){return byId("m2LayoutSvg")}
+  function isActive(){var node=svg(),rect=node&&node.getBoundingClientRect();return Boolean(node&&node.isConnected&&node.getClientRects().length&&rect&&rect.width>0&&rect.height>0)}
+  function scheduleAfterRender(delay){if(!isActive())return;clearTimeout(pendingRender);pendingRender=setTimeout(function(){pendingRender=0;if(isActive())afterRender()},Math.max(0,Number(delay)||0))}
   function clamp(next){
     var aspect=BASE_W/BASE_H,w=Math.max(MIN_W,Math.min(BASE_W,Number(next.w)||BASE_W)),h=w/aspect;
     if(h>BASE_H){h=BASE_H;w=h*aspect}
@@ -95,15 +97,15 @@ const runtime = String.raw`
     node.addEventListener("pointerup",stop,true);node.addEventListener("pointercancel",stop,true);return true;
   }
   function afterRender(){
-    if(rendering)return;rendering=true;try{insertControls();bind();if(navMode&&activeTool())setNavMode(false);apply()}finally{rendering=false}
+    if(rendering||!isActive())return;rendering=true;try{insertControls();bind();if(navMode&&activeTool())setNavMode(false);apply()}finally{rendering=false}
   }
   if(baseRender){m2RenderLayout=function(){var result=baseRender.apply(this,arguments);afterRender();return result}}
   m2ZoomLayout=function(change,reset){if(reset)return fitAll();zoomAt(change>0?.82:change<0?1.22:1);return true};
   m2SvgPoint=function(event){return point(event)};
   window.rafexCommonDrawingFocusSelectedV49=focusSelected;window.rafexCommonDrawingFitAllV49=fitAll;window.rafexCommonDrawingViewportV49={focusSelected:focusSelected,fitAll:fitAll,setNavigation:setNavMode,apply:apply};
-  document.addEventListener("click",function(event){if(event.target.closest('[data-page="mekik2"],[data-page="b2b"],[data-page="mr"],[data-page="free"]'))[40,160,420,900].forEach(function(ms){setTimeout(afterRender,ms)})},true);
-  var observer=new MutationObserver(function(){if(svg())setTimeout(afterRender,25)});observer.observe(document.documentElement,{childList:true,subtree:true});
-  [0,80,250,700,1400].forEach(function(ms){setTimeout(afterRender,ms)});
+  document.addEventListener("click",function(event){if(event.target.closest('[data-page="mekik2"],[data-page="b2b"],[data-page="mr"],[data-page="free"]'))[40,160,420,900].forEach(function(ms){setTimeout(function(){scheduleAfterRender(0)},ms)})},true);
+  var observer=new MutationObserver(function(){scheduleAfterRender(45)});observer.observe(document.documentElement,{childList:true,subtree:true});
+  [0,80,250,700,1400].forEach(function(ms){setTimeout(function(){scheduleAfterRender(0)},ms)});
 })();
 </script>`;
 
