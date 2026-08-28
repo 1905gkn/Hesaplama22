@@ -37,76 +37,65 @@ if (summaryIndex >= 0) {
   throw new Error("Free performance v79: secili raf toplam sayim kalibi bulunamadi.");
 }
 
-// v80: Sadece secim yapmak tam SVG renderi yapmaz.
+// v81: Onceki performans yamasi tum proje undo snapshot'ini pointerdown'a tasimisti.
+// Bu nedenle raf sadece secilirken bile tum proje JSON stringify oluyordu.
+// Secimde snapshot alma; ilk gercek harekette yalnizca hareket eden raf/grubun koordinatlarini kaydet.
 const queueMarker = '      function m2QueueLayoutRender() {';
-if (!html.includes('function m2FastSelectRackV80(')) {
-  if (!html.includes(queueMarker)) throw new Error("Free performance v80: render queue kalibi bulunamadi.");
-  const fastSelection = String.raw`      let m2SelectionGuideTokenV80=0;
-      function m2FastSelectRackV80(id){
-        const layer=$("m2LayoutContent"),rack=m2LayoutState.racks.find((item)=>item.id===id);
-        if(!layer||!rack)return;
-        layer.querySelectorAll("[data-rack]").forEach((host)=>{
-          const rect=host.querySelector(".m2-layout-rack");if(!rect)return;
-          const selected=Number(host.dataset.rack)===id,color=host.dataset.typeColor||m2TypeColor(rack.typeName||"RAF");
-          rect.classList.toggle("selected",selected);
-          rect.style.fill=selected?color+"24":"transparent";
-          rect.style.stroke=selected?color:"transparent";
-        });
-        const separateButton=$("m2SeparateRackButton");if(separateButton)separateButton.disabled=!rack?.joinGroup;
-        if(typeof m2RenderSelectedRackInfo==="function")m2RenderSelectedRackInfo();
+if (!html.includes('function m2PushRackMoveUndoV81(')) {
+  if (!html.includes(queueMarker)) throw new Error("Free performance v81: render queue kalibi bulunamadi.");
+  const moveUndoHelpers = String.raw`      function m2PushRackMoveUndoV81(drag){
+        if(!drag)return;
+        const racks=(drag.groupMembers?.length?drag.groupMembers:[{id:drag.id,x:drag.originX,y:drag.originY}]).map((item)=>({id:item.id,x:item.x,y:item.y}));
+        const symbols=(drag.symbolMembers||[]).map((item)=>({id:item.id,x:item.x,y:item.y}));
+        m2UndoHistory.push({kind:"rack-move-v81",label:"Raf taşıma",racks,symbols});
+        if(m2UndoHistory.length>30)m2UndoHistory.shift();
+        m2UpdateUndoButton();
       }
-      function m2RefreshSelectionGuidesV80(id){
-        if(m2LayoutState.drag||m2LayoutState.selected!==id)return;
-        const layer=$("m2LayoutContent"),selectedRack=m2LayoutState.racks.find((item)=>item.id===id);if(!layer||!selectedRack)return;
-        layer.querySelectorAll(".m2-wall-guide,.m2-distance-guide,.m2-fast-selection-guides-v80").forEach((node)=>node.remove());
-        let guides=m2WallDistanceGuides(selectedRack,{left:true,right:true,top:true,bottom:true,gap:true})+m2RackDistanceGuide(selectedRack)+m2ColumnDistanceGuide(selectedRack);
-        m2LayoutState.racks.forEach((rack)=>{if(rack.id===id)return;const pinned=m2PinnedForRack(rack.id);if(!Object.values(pinned).some(Boolean))return;guides+=m2WallDistanceGuides(rack,pinned)+(pinned.gap?m2RackDistanceGuide(rack)+m2ColumnDistanceGuide(rack):"");});
-        if(guides)layer.insertAdjacentHTML("beforeend",'<g class="m2-fast-selection-guides-v80">'+guides+'</g>');
+      function m2RestoreRackMoveUndoV81(snapshot){
+        (snapshot?.racks||[]).forEach((origin)=>{const rack=m2LayoutState.racks.find((item)=>item.id===origin.id);if(rack){rack.x=origin.x;rack.y=origin.y;}});
+        (snapshot?.symbols||[]).forEach((origin)=>{const symbol=m2LayoutSymbols.find((item)=>item.id===origin.id);if(symbol){symbol.x=origin.x;symbol.y=origin.y;}});
       }
-      function m2ScheduleSelectionGuidesV80(id){
-        const token=++m2SelectionGuideTokenV80,run=()=>{if(token!==m2SelectionGuideTokenV80)return;m2RefreshSelectionGuidesV80(id);};
-        if(typeof requestIdleCallback==="function")requestIdleCallback(run,{timeout:180});else setTimeout(run,0);
-      }
-      function m2CancelSelectionGuidesV80(){m2SelectionGuideTokenV80++;}
 `;
-  html = html.replace(queueMarker, fastSelection + queueMarker);
+  html = html.replace(queueMarker, moveUndoHelpers + queueMarker);
 }
 
-if (!html.includes('selectionOnly:!rack.freePlacement')) {
-  const symbolAnchor = html.indexOf('const symbolMembers=selectionGroup?');
-  if (symbolAnchor < 0) throw new Error("Free performance v80: raf secim anchor bulunamadi.");
-  const dragStart = html.indexOf('m2LayoutState.drag = {', symbolAnchor);
-  const dragLineEnd = html.indexOf('\n', dragStart);
-  if (dragStart < 0 || dragLineEnd < 0) throw new Error("Free performance v80: raf drag satiri bulunamadi.");
-  let dragLine = html.slice(dragStart, dragLineEnd);
-  if (!dragLine.includes('undoCaptured:false')) throw new Error("Free performance v80: raf drag undo alani bulunamadi.");
-  dragLine = dragLine.replace('undoCaptured:false', 'undoCaptured:false,selectionOnly:!rack.freePlacement');
-  html = html.slice(0, dragStart) + dragLine + html.slice(dragLineEnd);
-
-  const captureStart = html.indexOf('svg.setPointerCapture?.(event.pointerId);', dragStart);
-  const captureLineEnd = html.indexOf('\n', captureStart);
-  if (captureStart < 0 || captureLineEnd < 0) throw new Error("Free performance v80: raf pointer capture satiri bulunamadi.");
-  const captureLine = html.slice(captureStart, captureLineEnd);
-  if (!captureLine.includes('m2RenderLayout()') && !captureLine.includes('m2QueueLayoutRender()')) throw new Error("Free performance v80: raf secim render cagrisi bulunamadi.");
-  html = html.slice(0, captureStart) + 'svg.setPointerCapture?.(event.pointerId); m2CancelSelectionGuidesV80(); m2FastSelectRackV80(id);' + html.slice(captureLineEnd);
+if (!html.includes('kind==="rack-move-v81"')) {
+  const undoPop = 'const snapshot=m2UndoHistory.pop();if(!snapshot){m2UpdateUndoButton();return;}';
+  if (!html.includes(undoPop)) throw new Error("Free performance v81: undo pop kalibi bulunamadi.");
+  const undoFast = undoPop + 'if(snapshot?.kind==="rack-move-v81"){m2RestoreRackMoveUndoV81(snapshot);m2ClearAllSelections(`${snapshot.label} geri alındı.`);m2UpdateUndoButton();return;}';
+  html = html.replace(undoPop, undoFast);
 }
 
-if (!html.includes('m2LayoutState.drag.selectionOnly=false')) {
+// Gercek build sirasinda patch-free-layout-drag-start-performance.mjs bu blogu
+// undoCaptured:true + m2PushUndo("Raf taşıma") seklinde birakir. Onu geri hafiflet.
+const symbolAnchor = html.indexOf('const symbolMembers=selectionGroup?');
+if (symbolAnchor < 0) throw new Error("Free performance v81: raf secim anchor bulunamadi.");
+const dragStart = html.indexOf('m2LayoutState.drag = {', symbolAnchor);
+const dragLineEnd = html.indexOf('\n', dragStart);
+if (dragStart < 0 || dragLineEnd < 0) throw new Error("Free performance v81: raf drag satiri bulunamadi.");
+let dragLine = html.slice(dragStart, dragLineEnd);
+if (!/undoCaptured:(true|false)/.test(dragLine)) throw new Error("Free performance v81: undoCaptured alani bulunamadi.");
+dragLine = dragLine.replace(/undoCaptured:(true|false)/, 'undoCaptured:false');
+html = html.slice(0, dragStart) + dragLine + html.slice(dragLineEnd);
+
+const captureStart = html.indexOf('svg.setPointerCapture?.(event.pointerId);', dragStart);
+if (captureStart < 0) throw new Error("Free performance v81: pointer capture bulunamadi.");
+const betweenDragAndCapture = html.slice(dragLineEnd, captureStart);
+if (betweenDragAndCapture.includes('m2PushUndo("Raf taşıma");')) {
+  const cleaned = betweenDragAndCapture.replace(/\s*m2PushUndo\("Raf taşıma"\);\s*/g, '\n            ');
+  html = html.slice(0, dragLineEnd) + cleaned + html.slice(captureStart);
+}
+
+if (!html.includes('m2PushRackMoveUndoV81(m2LayoutState.drag)')) {
   const moveAnchor = html.indexOf('svg.onpointermove = (event) => {');
   const dragBranch = html.indexOf('} else if (m2LayoutState.drag) {', moveAnchor);
-  if (dragBranch < 0) throw new Error("Free performance v80: pointermove drag blogu bulunamadi.");
+  if (dragBranch < 0) throw new Error("Free performance v81: pointermove drag blogu bulunamadi.");
   const insertAt = html.indexOf('\n', dragBranch) + 1;
-  html = html.slice(0, insertAt) + '            m2CancelSelectionGuidesV80();m2LayoutState.drag.selectionOnly=false;\n' + html.slice(insertAt);
+  const lightweightCapture = '            if(!m2LayoutState.drag.undoCaptured){m2PushRackMoveUndoV81(m2LayoutState.drag);m2LayoutState.drag.undoCaptured=true;}\n';
+  html = html.slice(0, insertAt) + lightweightCapture + html.slice(insertAt);
 }
 
-if (!html.includes('m2LayoutState.drag?.selectionOnly')) {
-  const stopAnchor = html.indexOf('const stop = () => {');
-  const stopDrag = html.indexOf('          if (m2LayoutState.drag) {', stopAnchor);
-  if (stopAnchor < 0 || stopDrag < 0) throw new Error("Free performance v80: pointerup drag blogu bulunamadi.");
-  const fastStop = '          if(m2LayoutState.drag?.selectionOnly){const selectedId=m2LayoutState.selected;m2LayoutState.drag=null;m2DimensionDrag=null;m2FastSelectRackV80(selectedId);m2ScheduleSelectionGuidesV80(selectedId);return;}\n';
-  html = html.slice(0, stopDrag) + fastStop + html.slice(stopDrag);
-}
-
+// PDF/rapor cizimini kesin olarak kullanici PDF Olustur'a basana kadar kilitle.
 const bootMarker = '      changeProgramLanguage(appLanguage, false);\n      boot();';
 if (!html.includes(bootMarker) && !html.includes("rafexInstallPdfLazyV79")) {
   throw new Error("PDF lazy v79: boot kalibi bulunamadi.");
@@ -170,16 +159,17 @@ for (const required of [
   "rafexPdfLazyStateV79",
   "__rafexPdfLazyGuardV79",
   "__rafexPdfLazyPrintV79",
-  "m2FastSelectRackV80",
-  "m2ScheduleSelectionGuidesV80",
-  "selectionOnly:!rack.freePlacement",
-  "m2LayoutState.drag.selectionOnly=false",
-  "m2LayoutState.drag?.selectionOnly"
-]) if (!html.includes(required)) throw new Error("Free performance v80 dogrulama eksigi: " + required);
+  "m2PushRackMoveUndoV81",
+  "rack-move-v81",
+  "m2PushRackMoveUndoV81(m2LayoutState.drag)",
+  "undoCaptured:false"
+]) if (!html.includes(required)) throw new Error("Free performance v81 dogrulama eksigi: " + required);
 
 if (html.includes('if(!interactiveRender){m2RenderSelectedRackInfo();m2RenderLayoutProductList();m2ScheduleReportRefresh(650);')) {
   throw new Error("Free performance v79: ana renderda urun/PDF cagrisi kaldi.");
 }
+const selectedArea = html.slice(symbolAnchor, html.indexOf('svg.onpointermove = (event) => {', symbolAnchor));
+if (selectedArea.includes('m2PushUndo("Raf taşıma")')) throw new Error("Free performance v81: secim aninda tam undo snapshot cagrisi kaldi.");
 
 fs.writeFileSync(portalPath, html);
-console.log("SOURCE v80: raf secimi tam SVG renderinden ayrildi; secim hafif DOM guncellemesi, kilavuzlar idle pointerup sonrasinda.");
+console.log("SOURCE v81: raf secimindeki tam proje undo snapshot kaldirildi; geri al icin sadece tasinan koordinatlar kaydediliyor.");
