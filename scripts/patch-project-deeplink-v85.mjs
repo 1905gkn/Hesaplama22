@@ -15,3 +15,5 @@ if (!html.includes(newBlock)) {
 if (!html.includes('m2LoadProject(project.id)') || !html.includes('setTimeout(()=>{')) throw new Error("Project deeplink v85 dogrulama eksigi");
 fs.writeFileSync(portalPath, html);
 console.log("Project deeplink v85: kayitli proje, UI'daki kayit butonuyla ayni m2LoadProject yolundan aciliyor.");
+
+await import("./patch-common-project-source-v87.mjs");
