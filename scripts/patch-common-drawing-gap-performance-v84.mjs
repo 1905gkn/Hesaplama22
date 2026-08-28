@@ -75,3 +75,5 @@ await import("./patch-product-detail-restore-v86.mjs");
 await import("./patch-common-project-mode-v87.mjs");
 // Eski karma kayitlar hangi yoldan acilirsa acilsin module=ortak olarak yuklenir.
 await import("./patch-common-loader-normalize-v88.mjs");
+// Ortak Cizim, sistemlerin kendi Serbest Yerlesim sayfalarindan ayri kimlikle takip edilir.
+await import("./patch-common-mode-identity-v89.mjs");
