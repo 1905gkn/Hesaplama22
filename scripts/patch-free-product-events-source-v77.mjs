@@ -40,6 +40,57 @@ if (summaryIndex >= 0) {
   throw new Error("Free performance v79: secili raf toplam sayim kalibi bulunamadi.");
 }
 
+// v80: Raf secmek tam SVG renderi yapmasin. Secim cercevesi ve bilgi paneli aninda
+// hafif DOM guncellemesiyle degissin; mesafe kilavuzlari pointerup sonrasinda idle'da gelsin.
+const queueMarker = '      function m2QueueLayoutRender() {';
+if (!html.includes('function m2FastSelectRackV80(')) {
+  if (!html.includes(queueMarker)) throw new Error("Free performance v80: render queue kalibi bulunamadi.");
+  const fastSelection = String.raw`      let m2SelectionGuideTokenV80=0;
+      function m2FastSelectRackV80(id){
+        const layer=$("m2LayoutContent"),rack=m2LayoutState.racks.find((item)=>item.id===id);
+        if(!layer||!rack)return;
+        layer.querySelectorAll("[data-rack]").forEach((host)=>{
+          const rect=host.querySelector(".m2-layout-rack");if(!rect)return;
+          const selected=Number(host.dataset.rack)===id,color=host.dataset.typeColor||m2TypeColor(rack.typeName||"RAF");
+          rect.classList.toggle("selected",selected);
+          rect.style.fill=selected?color+"24":"transparent";
+          rect.style.stroke=selected?color:"transparent";
+        });
+        const separateButton=$("m2SeparateRackButton");if(separateButton)separateButton.disabled=!rack?.joinGroup;
+        if(typeof m2RenderSelectedRackInfo==="function")m2RenderSelectedRackInfo();
+      }
+      function m2RefreshSelectionGuidesV80(id){
+        if(m2LayoutState.drag||m2LayoutState.selected!==id)return;
+        const layer=$("m2LayoutContent"),selectedRack=m2LayoutState.racks.find((item)=>item.id===id);if(!layer||!selectedRack)return;
+        layer.querySelectorAll(".m2-wall-guide,.m2-distance-guide,.m2-fast-selection-guides-v80").forEach((node)=>node.remove());
+        let guides=m2WallDistanceGuides(selectedRack,{left:true,right:true,top:true,bottom:true,gap:true})+m2RackDistanceGuide(selectedRack)+m2ColumnDistanceGuide(selectedRack);
+        m2LayoutState.racks.forEach((rack)=>{if(rack.id===id)return;const pinned=m2PinnedForRack(rack.id);if(!Object.values(pinned).some(Boolean))return;guides+=m2WallDistanceGuides(rack,pinned)+(pinned.gap?m2RackDistanceGuide(rack)+m2ColumnDistanceGuide(rack):"");});
+        if(guides)layer.insertAdjacentHTML("beforeend",'<g class="m2-fast-selection-guides-v80">'+guides+'</g>');
+      }
+      function m2ScheduleSelectionGuidesV80(id){
+        const token=++m2SelectionGuideTokenV80,run=()=>{if(token!==m2SelectionGuideTokenV80)return;m2RefreshSelectionGuidesV80(id);};
+        if(typeof requestIdleCallback==="function")requestIdleCallback(run,{timeout:180});else setTimeout(run,0);
+      }
+      function m2CancelSelectionGuidesV80(){m2SelectionGuideTokenV80++;}
+`;
+  html = html.replace(queueMarker, fastSelection + queueMarker);
+}
+
+const selectOld = '            m2LayoutState.drag = { id, dx: point.x - rack.x, dy: point.y - rack.y, originX:rack.x, originY:rack.y, groupMembers,selectionGroup,symbolMembers,undoCaptured:false };\n            svg.setPointerCapture?.(event.pointerId); m2RenderLayout();';
+const selectNew = '            m2LayoutState.drag = { id, dx: point.x - rack.x, dy: point.y - rack.y, originX:rack.x, originY:rack.y, groupMembers,selectionGroup,symbolMembers,undoCaptured:false,selectionOnly:!rack.freePlacement };\n            svg.setPointerCapture?.(event.pointerId); m2CancelSelectionGuidesV80(); m2FastSelectRackV80(id);';
+if (html.includes(selectOld)) html = html.replace(selectOld, selectNew);
+else if (!html.includes('selectionOnly:!rack.freePlacement')) throw new Error("Free performance v80: raf secim render kalibi bulunamadi.");
+
+const dragOld = '          } else if (m2LayoutState.drag) {\n            if(!m2LayoutState.drag.undoCaptured){m2PushUndo("Raf taşıma");m2LayoutState.drag.undoCaptured=true;}';
+const dragNew = '          } else if (m2LayoutState.drag) {\n            m2CancelSelectionGuidesV80();m2LayoutState.drag.selectionOnly=false;\n            if(!m2LayoutState.drag.undoCaptured){m2PushUndo("Raf taşıma");m2LayoutState.drag.undoCaptured=true;}';
+if (html.includes(dragOld)) html = html.replace(dragOld, dragNew);
+else if (!html.includes('m2LayoutState.drag.selectionOnly=false')) throw new Error("Free performance v80: drag baslangic kalibi bulunamadi.");
+
+const stopOld = '          if (m2LayoutState.drag) {\n            const rack = m2LayoutState.racks.find((item) => item.id === m2LayoutState.drag.id);';
+const stopNew = '          if(m2LayoutState.drag?.selectionOnly){const selectedId=m2LayoutState.selected;m2LayoutState.drag=null;m2DimensionDrag=null;m2FastSelectRackV80(selectedId);m2ScheduleSelectionGuidesV80(selectedId);return;}\n          if (m2LayoutState.drag) {\n            const rack = m2LayoutState.racks.find((item) => item.id === m2LayoutState.drag.id);';
+if (html.includes(stopOld)) html = html.replace(stopOld, stopNew);
+else if (!html.includes('m2LayoutState.drag?.selectionOnly')) throw new Error("Free performance v80: pointerup kalibi bulunamadi.");
+
 // PDF/rapor cizimini kesin olarak kullanici PDF Olustur'a basana kadar kilitle.
 // Boot ve diger UI aksiyonlarindaki tum rapor cagirilari sadece 'dirty' isareti birakir.
 const bootMarker = '      changeProgramLanguage(appLanguage, false);\n      boot();';
@@ -104,12 +155,18 @@ for (const required of [
   "rafexInstallPdfLazyV79",
   "rafexPdfLazyStateV79",
   "__rafexPdfLazyGuardV79",
-  "__rafexPdfLazyPrintV79"
-]) if (!html.includes(required)) throw new Error("Free performance v79 dogrulama eksigi: " + required);
+  "__rafexPdfLazyPrintV79",
+  "m2FastSelectRackV80",
+  "m2ScheduleSelectionGuidesV80",
+  "selectionOnly:!rack.freePlacement"
+]) if (!html.includes(required)) throw new Error("Free performance v80 dogrulama eksigi: " + required);
 
 if (html.includes('if(!interactiveRender){m2RenderSelectedRackInfo();m2RenderLayoutProductList();m2ScheduleReportRefresh(650);')) {
   throw new Error("Free performance v79: ana renderda urun/PDF cagrisi kaldi.");
 }
+if (html.includes('svg.setPointerCapture?.(event.pointerId); m2RenderLayout();\n          } else { m2ClearAllSelections')) {
+  throw new Error("Free performance v80: raf seciminde tam render cagrisi kaldi.");
+}
 
 fs.writeFileSync(portalPath, html);
-console.log("SOURCE v79: hareket renderindan urun/blok sayimi ve PDF tamamen ayrildi; secili raf toplam sayimlari cache'e baglandi.");
+console.log("SOURCE v80: raf secimi tam SVG renderinden ayrildi; secim hafif DOM guncellemesi, kilavuzlar idle pointerup sonrasinda.");
