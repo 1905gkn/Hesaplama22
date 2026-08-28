@@ -9,6 +9,7 @@ html=html.replace(/<script data-rafex-common-loader-normalize="v88">[\s\S]*?<\/s
 
 const runtime=String.raw`<script data-rafex-common-loader-normalize="v88">(()=>{
   if(window.__rafexCommonLoaderNormalizeV88)return;window.__rafexCommonLoaderNormalizeV88=true;
+  const marker=document.createElement('span');marker.textContent='RAFEX COMMON RUNTIME V88';marker.style.cssText='position:fixed;left:-10000px;top:-10000px;width:1px;height:1px;overflow:hidden';marker.dataset.rafexCommonRuntime='v88';document.body.appendChild(marker);
   const low=(v)=>String(v||'').toLocaleLowerCase('tr-TR').trim();
   const systemsOf=(project)=>new Set((project?.payload?.layout?.racks||[]).map((rack)=>low(rack?.rafexSystem||(rack?.b2b?.mr?'mr':rack?.b2bLayout?'b2b':''))).filter(Boolean));
   const isCommon=(project)=>low(project?.module)==='ortak'||systemsOf(project).size>1;
@@ -33,12 +34,27 @@ const runtime=String.raw`<script data-rafex-common-loader-normalize="v88">(()=>{
       wrapped.__rafexCommonNormalizeV88=true;wrapped.__rafexOriginal=opener;window.rafexOpenCommonProjectV87=wrapped;
     }
   };
+  const forceQueryCommon=async()=>{
+    let wanted='';try{wanted=String(new URLSearchParams(location.search).get('project')||'').trim();}catch{}if(!wanted)return;
+    try{
+      const request=window.req||((typeof req==='function')?req:null);if(typeof request!=='function')return;
+      const result=await request('/api/projects'),wantedNo=Number(wanted),wantedPad=String(Number.isFinite(wantedNo)?wantedNo:wanted).padStart(4,'0');
+      const project=(result?.projects||[]).find((item)=>String(item?.serial_no??'').padStart(4,'0')===wantedPad||Number(item?.serial_no)===wantedNo);
+      if(!project||!isCommon(project))return;
+      install();const loader=window.rafexLoadUnifiedProjectV75;if(typeof loader!=='function')return;
+      const page=document.getElementById('page'),alreadyCommon=!!(page&&(page.dataset.rafexFreeDrawing==='1'||page.classList.contains('rafex-free-drawing-page')));
+      if(!alreadyCommon)loader(normalize(project),false);
+      const title=document.getElementById('pageTitle');if(title)title.textContent='Ortak Çizim';
+      const status=document.getElementById('m2FloorStatus');if(status)status.textContent='Proje #'+wantedPad+' Ortak Çizim\'de açıldı.';
+    }catch(error){console.warn('v88 ortak proje koruması',error);}
+  };
   install();queueMicrotask(install);setTimeout(install,0);setTimeout(install,250);
+  setTimeout(forceQueryCommon,500);setTimeout(forceQueryCommon,1400);setTimeout(forceQueryCommon,2800);
   window.rafexNormalizeCommonProjectV88=normalize;
 })();</script>`;
 html=html.replace('</body>',runtime+'\n</body>');
-if(!html.includes('data-rafex-common-loader-normalize="v88"'))throw new Error('Common loader v88 marker missing');
+if(!html.includes('data-rafex-common-loader-normalize="v88"')||!html.includes('RAFEX COMMON RUNTIME V88'))throw new Error('Common loader v88 marker missing');
 const encoded=Buffer.from(html,'utf8').toString('base64');
 source=source.slice(0,match.index)+match[0].replace(match[2],encoded)+source.slice(match.index+match[0].length);
 fs.writeFileSync(file,source);
-console.log('v88: Ortak yukleyicinin tum girislerinde eski MR/B2B module etiketi module=ortak normalize edilir.');
+console.log('v88.1: ortak yukleyici normalize + query guard + canli runtime dogrulama isareti aktif.');
