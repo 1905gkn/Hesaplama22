@@ -21,11 +21,11 @@ function insertApiPause(source, apiName, mainCanvasIds) {
   const end = source.indexOf("\n};", start);
   if (end < 0) throw new Error(`v101: ${apiName} API sonu bulunamadi`);
   const block = source.slice(start, end);
-  if (block.includes("setPaused(paused)")) return source;
+  if (block.includes("setPaused(paused)") && block.includes("activeCanvasId()")) return source;
   const destroyAt = block.lastIndexOf("\n  destroy()");
   if (destroyAt < 0) throw new Error(`v101: ${apiName} destroy API anchor bulunamadi`);
   const ids = JSON.stringify(mainCanvasIds);
-  const method = `\n  setPaused(paused) {\n    const canvasId = String(active?.canvas?.id || \"\");\n    if (!${ids}.includes(canvasId)) return;\n    active?.setPaused?.(paused);\n  },`;
+  const method = `\n  activeCanvasId() { return String(active?.canvas?.id || \"\"); },\n  isMounted(canvasId) { return String(active?.canvas?.id || \"\") === String(canvasId || \"\"); },\n  setPaused(paused) {\n    const canvasId = String(active?.canvas?.id || \"\");\n    if (!${ids}.includes(canvasId)) return;\n    active?.setPaused?.(paused);\n  },`;
   const absolute = start + destroyAt;
   return source.slice(0, absolute) + method + source.slice(absolute);
 }
@@ -83,7 +83,7 @@ patch("client/b2b-viewer.entry.js", (input) => {
   }
 
   source = insertApiPause(source, "RafexB2BViewer", ["b2bMain3DCanvas"]);
-  if (!source.includes("__rafexPauseV101") || !source.includes("active?.setPaused?.(paused)")) {
+  if (!source.includes("__rafexPauseV101") || !source.includes("activeCanvasId()") || !source.includes("active?.setPaused?.(paused)")) {
     throw new Error("v101: B2B pause API eklenemedi");
   }
   return source;
@@ -127,7 +127,7 @@ patch("client/mr-viewer.entry.js", (input) => {
   }
 
   source = insertApiPause(source, "RafexMRViewer", ["mrCanvas"]);
-  if (!source.includes("__rafexPauseV101") || !source.includes("active?.setPaused?.(paused)")) {
+  if (!source.includes("__rafexPauseV101") || !source.includes("activeCanvasId()") || !source.includes("active?.setPaused?.(paused)")) {
     throw new Error("v101: MR pause API eklenemedi");
   }
   return source;
