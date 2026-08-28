@@ -7,10 +7,10 @@ const match = worker.match(/(const\s+HTML_BASE64\s*=\s*)(["'])([A-Za-z0-9+/=]+)\
 if (!match) throw new Error("Free product cache v79: HTML_BASE64 bulunamadi.");
 
 let html = Buffer.from(match[3], "base64").toString("utf8");
-html = html.replace(/<script\s+data-rafex-free-product-cache="v(?:77|79)">[\s\S]*?<\/script>\s*/g, "");
+html = html.replace(/<script\s+data-rafex-free-product-cache="v(?:77|79)"[^>]*>[\s\S]*?<\/script>\s*/g, "");
 
-const runtime = String.raw`<script data-rafex-free-product-cache="v79">(function(){
-  if(window.__rafexFreeProductCacheV79)return;window.__rafexFreeProductCacheV79=true;
+const runtime = String.raw`<script data-rafex-free-product-cache="v77" data-rafex-free-product-cache-version="v79">(function(){
+  if(window.__rafexFreeProductCacheV79)return;window.__rafexFreeProductCacheV79=true;window.__rafexFreeProductCacheV77=true;
   var dirty=true,scheduled=false,rowsCache=null,revision=0,lastReason="initial";
   var originalRows=typeof window.m2LayoutProductRows==='function'?window.m2LayoutProductRows:(typeof m2LayoutProductRows==='function'?m2LayoutProductRows:null);
   var originalRender=typeof window.m2RenderLayoutProductList==='function'?window.m2RenderLayoutProductList:(typeof m2RenderLayoutProductList==='function'?m2RenderLayoutProductList:null);
@@ -46,7 +46,7 @@ const runtime = String.raw`<script data-rafex-free-product-cache="v79">(function
     rowsCache=originalRows?originalRows.apply(this,arguments):[];
     return rowsCache;
   }
-  if(originalRows){guardedRows.__rafexProductCacheV79=true;window.m2LayoutProductRows=guardedRows;try{m2LayoutProductRows=guardedRows}catch(_){}}
+  if(originalRows){guardedRows.__rafexProductCacheV79=true;guardedRows.__rafexProductCacheV77=true;window.m2LayoutProductRows=guardedRows;try{m2LayoutProductRows=guardedRows}catch(_){}}
 
   function refresh(force){
     scheduled=false;
@@ -69,16 +69,16 @@ const runtime = String.raw`<script data-rafex-free-product-cache="v79">(function
     recomputeSummary();publish();queue();refreshSelectedInfo();
   }
   function guardedRender(){return dirty?refresh(false):rowsCache}
-  if(originalRender){guardedRender.__rafexProductCacheV79=true;window.m2RenderLayoutProductList=guardedRender;try{m2RenderLayoutProductList=guardedRender}catch(_){}}
+  if(originalRender){guardedRender.__rafexProductCacheV79=true;guardedRender.__rafexProductCacheV77=true;window.m2RenderLayoutProductList=guardedRender;try{m2RenderLayoutProductList=guardedRender}catch(_){}}
 
   function wrap(name,reason){
-    var original=window[name];if(typeof original!=='function'||original.__rafexProductMutationV79)return;
+    var original=window[name];if(typeof original!=='function'||original.__rafexProductMutationV79||original.__rafexProductMutationV77)return;
     var wrapped=function(){
       var result=original.apply(this,arguments);
       if(result&&typeof result.then==='function')return result.finally(function(){mark(reason)});
       mark(reason);return result;
     };
-    wrapped.__rafexProductMutationV79=true;wrapped.__rafexOriginal=original;window[name]=wrapped;
+    wrapped.__rafexProductMutationV79=true;wrapped.__rafexProductMutationV77=true;wrapped.__rafexOriginal=original;window[name]=wrapped;
     try{(0,eval)(name+'=window["'+name+'"]')}catch(_){}
   }
   [
@@ -102,16 +102,18 @@ if (closing < 0) throw new Error("Free product cache v79: </body> bulunamadi.");
 html = html.slice(0, closing) + runtime + "\n" + html.slice(closing);
 
 for (const required of [
-  'data-rafex-free-product-cache="v79"',
+  'data-rafex-free-product-cache="v77"',
+  "rafexProductCountCacheV77",
+  "rafexMarkProductCountsDirtyV77",
+  "rafexRefreshProductCountsV77",
+  "__rafexProductMutationV77",
   "rafexProductCountCacheV79",
   "rafexLayoutSummaryV79",
   "rafexMarkProductCountsDirtyV79",
-  "rafexRefreshProductCountsV79",
-  "m2ApplyAutoFillLength",
-  "m2SeparateSelectedRack"
+  "rafexRefreshProductCountsV79"
 ]) if (!html.includes(required)) throw new Error("Free product cache v79 dogrulama eksigi: " + required);
 
 const encoded = Buffer.from(html, "utf8").toString("base64");
 worker = worker.slice(0, match.index) + match[1] + match[2] + encoded + match[2] + worker.slice(match.index + match[0].length);
 fs.writeFileSync(workerPath, worker);
-console.log("FINAL v79: urun/blok adetleri yalnizca veri degisikliginde; tasima/secim/olcu/zoom sayim tetiklemez.");
+console.log("FINAL v79/v77: urun-blok adetleri yalnizca veri degisikliginde; tasima-secim-olcu-zoom sayim tetiklemez.");
