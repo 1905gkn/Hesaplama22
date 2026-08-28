@@ -13,8 +13,9 @@ else if(!html.includes(newV87))throw new Error('Common identity v89: v87 pageIsC
 
 const oldV88=`const page=document.getElementById('page'),alreadyCommon=!!(page&&(page.dataset.rafexFreeDrawing==='1'||page.classList.contains('rafex-free-drawing-page')));`;
 const newV88=`const alreadyCommon=window.rafexUnifiedFreeDrawingActiveV75?.()===true&&!!document.getElementById('rafexUnifiedSystemPicker');`;
+const directV88=`const realCommon=()=>window.rafexUnifiedFreeDrawingActiveV75?.()===true&&!!document.getElementById('rafexUnifiedSystemPicker');`;
 if(html.includes(oldV88))html=html.replace(oldV88,newV88);
-else if(!html.includes(newV88))throw new Error('Common identity v89: v88 alreadyCommon anchor missing');
+else if(!html.includes(newV88)&&!html.includes(directV88))throw new Error('Common identity v89: v88 common identity guard missing');
 
 html=html.replace(/<script data-rafex-common-mode-identity="v89">[\s\S]*?<\/script>/g,'');
 const runtime=String.raw`<script data-rafex-common-mode-identity="v89">(()=>{
@@ -26,8 +27,9 @@ const runtime=String.raw`<script data-rafex-common-mode-identity="v89">(()=>{
 })();</script>`;
 html=html.replace('</body>',runtime+'\n</body>');
 
-for(const token of [newV87,newV88,'data-rafex-common-mode-identity="v89"'])if(!html.includes(token))throw new Error('Common identity v89 verification missing: '+token.slice(0,80));
+for(const token of [newV87,'data-rafex-common-mode-identity="v89"'])if(!html.includes(token))throw new Error('Common identity v89 verification missing: '+token.slice(0,80));
+if(!html.includes(newV88)&&!html.includes(directV88))throw new Error('Common identity v89 verification missing: v88 identity');
 const encoded=Buffer.from(html,'utf8').toString('base64');
 source=source.slice(0,match.index)+match[0].replace(match[2],encoded)+source.slice(match.index+match[0].length);
 fs.writeFileSync(file,source);
-console.log('v89: Ortak Cizim kimligi standalone MR/B2B serbest yerlesiminden kesin olarak ayrildi.');
+console.log('v89.1: Ortak Cizim kimligi standalone serbest yerlesimden ayrildi; v88.3 dogrudan kimlik kontrolu destekleniyor.');
