@@ -212,8 +212,7 @@ const runtime = String.raw`<style data-rafex-final-products-mekik="v4">
     if(typeof prep==='function'&&!prep.__rafexProductsV4){var wrappedPrep=function(){postReport();var r=prep.apply(this,arguments);postReport();setTimeout(postReport,0);return r;};wrappedPrep.__rafexProductsV4=true;window.__rafexPrepareCorporatePrint=wrappedPrep;}
   }catch(e){}
 
-  function schedule(){[0,40,140,350].forEach(function(ms){setTimeout(function(){if(freePage()){try{if(typeof m2RenderLayoutProductList==='function')m2RenderLayoutProductList();}catch{}}appendB2BParts();postReport();},ms);});}
-  document.addEventListener('click',schedule,true);document.addEventListener('change',schedule,true);document.addEventListener('input',function(e){if(e.target&&/b2b|m2Customize/i.test(e.target.id||''))schedule();},true);
+  function schedule(){setTimeout(function(){if(!freePage())appendB2BParts();},0);}
   schedule();
 })();</script>`;
 

@@ -58,6 +58,7 @@ await import(`./patch-common-drawing-precise-wall-hit-v66.mjs?build=${Date.now()
 await import(`./patch-b2b-tunnel-label-v67.mjs?build=${Date.now()}`);
 await import(`./patch-mr-extension-controls-v70.mjs?build=${Date.now()}`);
 await import(`./patch-mr-extension-activation-v71.mjs?build=${Date.now()}`);
+await import(`./patch-free-product-cache-v77.mjs?build=${Date.now()}`);
 
 const workerModule = await import(`${workerPath}?syntax-check=${Date.now()}`);
 const response = await workerModule.default.fetch(
@@ -125,6 +126,8 @@ if (!html.includes('const m2PerfLargeBlockVersion="v76";')) throw new Error("Bü
 for (const required of ["m2PerfIsLargeJoinedDrag","m2PerfLargeBlockState","m2PerfSmoothLargeBlock","rafex-large-block-drag-v76","m2PerfTranslateLargeBlock","m2PerfCleanupLargeBlock","window.rafexFreeLargeBlockV76"]) if (!html.includes(required)) throw new Error("Büyük birleşik blok performans v76 eksik: " + required);
 if (!html.includes('data-rafex-mr-extension-controls="v70"')) throw new Error("MR uzatma mesafesi v70 canlı HTML içinde bulunamadı");
 for (const required of ["rafexMrPreviewDistanceV70","rafexMrApplyDistanceV70","rafex-mr-distance-active","MR uzatma mesafesini 0’dan büyük"]) if (!html.includes(required)) throw new Error("MR uzatma mesafesi özelliği bulunamadı: " + required);
+if (!html.includes('data-rafex-free-product-cache="v77"')) throw new Error("Serbest Çizim olay-temelli ürün önbelleği v77 canlı HTML içinde bulunamadı");
+for (const required of ["rafexProductCountCacheV77","rafexMarkProductCountsDirtyV77","rafexRefreshProductCountsV77","__rafexProductMutationV77"]) if (!html.includes(required)) throw new Error("Serbest Çizim ürün önbelleği v77 eksik: " + required);
 if (!html.includes('data-rafex-mr-extension-activation="v71"')) throw new Error("MR çift tık aktivasyonu v71 canlı HTML içinde bulunamadı");
 for (const required of ["rafex-mr-extension-ready","window.addEventListener('pointerdown'","window.addEventListener('dblclick'","rack.rafexSystem='mr'","MR uzatma açıldı"]) if (!html.includes(required)) throw new Error("MR çift tık aktivasyonu bulunamadı: " + required);
 if (!html.includes("__rafexMrExtensionGeometryV72")) throw new Error("MR uzatma sıra geometrisi v72 canlı HTML içinde bulunamadı");

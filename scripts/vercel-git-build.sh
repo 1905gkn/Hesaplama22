@@ -50,6 +50,7 @@ node scripts/patch-free-layout-mekik-gap-stability-v36.mjs
 node scripts/patch-free-layout-group-drag-v68.mjs
 node scripts/patch-free-layout-shared-foot-drag-v69.mjs
 node scripts/patch-free-layout-large-block-v76.mjs
+node scripts/patch-free-product-events-source-v77.mjs
 grep -q 'function m2PerfLiveNearestRackGap(rack)' portal.html
 grep -q 'm2PerfLiveRackDistanceGuide(rack)' portal.html
 node scripts/patch-viewer-lifecycle-performance-v30.mjs
@@ -75,6 +76,9 @@ grep -q 'const m2PerfSharedFootDragVersion="v69";' portal.html
 grep -q 'm2PerfTranslateSharedFeet(drag,movingIds,dx,dy)' portal.html
 grep -q 'const m2PerfLargeBlockVersion="v76";' portal.html
 grep -q 'rafex-large-block-drag-v76' portal.html
+! grep -q 'm2RefreshReportAfterStableAdd' portal.html
+! grep -q 'if(!interactiveRender){m2RenderSelectedRackInfo();m2RenderLayoutProductList()' portal.html
+! grep -q "document.addEventListener('click',schedule,true)" scripts/patch-final-products-mekik-layout-v4.mjs
 ! grep -q 'now-drag.perfLastGuideAt<64' portal.html
 grep -q 'data-rafex-mobile-desktop-view="v30"' portal.html
 grep -q '__rafexLifecycleV30' client/b2b-viewer.entry.js
