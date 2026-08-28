@@ -15,7 +15,12 @@ const runtime=String.raw`<script data-rafex-common-loader-normalize="v88">(()=>{
   const isCommon=(project)=>low(project?.module)==='ortak'||systemsOf(project).size>1;
   const normalize=(project)=>isCommon(project)?{...project,module:'ortak'}:project;
   const realCommon=()=>window.rafexUnifiedFreeDrawingActiveV75?.()===true&&!!document.getElementById('rafexUnifiedSystemPicker');
-  const enterCommon=()=>{if(!realCommon()&&typeof window.rafexEnterUnifiedFreeDrawing==='function')window.rafexEnterUnifiedFreeDrawing();};
+  const enterCommon=()=>{
+    if(realCommon())return true;
+    try{if(typeof window.showPage==='function')window.showPage('free');}catch(error){console.warn('v88 showPage free',error);}
+    if(!realCommon())try{if(typeof window.rafexEnterUnifiedFreeDrawing==='function')window.rafexEnterUnifiedFreeDrawing();}catch(error){console.warn('v88 enter unified',error);}
+    return realCommon();
+  };
   const install=()=>{
     const loader=window.rafexLoadUnifiedProjectV75;
     if(typeof loader==='function'&&!loader.__rafexCommonNormalizeV88){
@@ -45,13 +50,13 @@ const runtime=String.raw`<script data-rafex-common-loader-normalize="v88">(()=>{
       const result=await request('/api/projects'),wantedNo=Number(wanted),wantedPad=String(Number.isFinite(wantedNo)?wantedNo:wanted).padStart(4,'0');
       const project=(result?.projects||[]).find((item)=>String(item?.serial_no??'').padStart(4,'0')===wantedPad||Number(item?.serial_no)===wantedNo);
       if(!project||!isCommon(project))return;
-      install();
-      const alreadyCommon=window.rafexUnifiedFreeDrawingActiveV75?.()===true&&!!document.getElementById('rafexUnifiedSystemPicker');
-      if(!alreadyCommon)enterCommon();
-      install();const loader=window.rafexLoadUnifiedProjectV75;if(typeof loader!=='function')return;
-      loader(normalize(project),false);
-      const title=document.getElementById('pageTitle');if(title)title.textContent='Ortak Çizim';
-      const status=document.getElementById('m2FloorStatus');if(status)status.textContent='Proje #'+wantedPad+' Ortak Çizim\'de açıldı.';
+      install();enterCommon();
+      requestAnimationFrame(()=>{
+        enterCommon();install();const loader=window.rafexLoadUnifiedProjectV75;if(typeof loader!=='function')return;
+        loader(normalize(project),false);
+        const title=document.getElementById('pageTitle');if(title)title.textContent='Ortak Çizim';
+        const status=document.getElementById('m2FloorStatus');if(status)status.textContent='Proje #'+wantedPad+' Ortak Çizim\'de açıldı.';
+      });
     }catch(error){console.warn('v88 ortak proje koruması',error);}
   };
   install();queueMicrotask(install);setTimeout(install,0);setTimeout(install,250);
@@ -59,8 +64,8 @@ const runtime=String.raw`<script data-rafex-common-loader-normalize="v88">(()=>{
   window.rafexNormalizeCommonProjectV88=normalize;
 })();</script>`;
 html=html.replace('</body>',runtime+'\n</body>');
-if(!html.includes('data-rafex-common-loader-normalize="v88"')||!html.includes('RAFEX COMMON RUNTIME V88')||!html.includes('rafexEnterUnifiedFreeDrawing'))throw new Error('Common loader v88 marker missing');
+if(!html.includes('data-rafex-common-loader-normalize="v88"')||!html.includes('RAFEX COMMON RUNTIME V88')||!html.includes("window.showPage('free')"))throw new Error('Common loader v88 marker missing');
 const encoded=Buffer.from(html,'utf8').toString('base64');
 source=source.slice(0,match.index)+match[0].replace(match[2],encoded)+source.slice(match.index+match[0].length);
 fs.writeFileSync(file,source);
-console.log('v88.2: ortak proje yuklenmeden once Ortak Cizim motoru kesin olarak aktif edilir.');
+console.log('v88.3: karma proje sol menudeki Ortak Cizim ile ayni showPage free yolundan acilir.');
