@@ -14,7 +14,8 @@ const newUndo = String.raw`      let m2UndoBytes=0;const m2UndoMaxBytes=8*1024*1
       }
       function m2UndoTrim(){while(m2UndoHistory.length>m2UndoMaxEntries||(m2UndoBytes>m2UndoMaxBytes&&m2UndoHistory.length>1)){const removed=m2UndoHistory.shift();m2UndoBytes=Math.max(0,m2UndoBytes-(Number(removed?.bytes)||0));}}
       function m2UpdateUndoButton(){const button=$("m2UndoButton");if(button){button.disabled=!m2UndoHistory.length;button.title=m2UndoHistory.length?m2UndoHistory.at(-1).label+" işlemini geri al":"Geri alınacak işlem yok";}}
-      function m2PushUndo(label){const snapshot=m2UndoSnapshot(label),previous=m2UndoHistory.at(-1);if(previous?.kind==="snapshot"&&previous.label===label&&previous.bytes===snapshot.bytes)return;m2UndoHistory.push(snapshot);m2UndoBytes+=snapshot.bytes;m2UndoTrim();m2UpdateUndoButton();}
+      function m2PushSnapshotUndo(label){const snapshot=m2UndoSnapshot(label),previous=m2UndoHistory.at(-1);if(previous?.kind==="snapshot"&&previous.label===label&&previous.bytes===snapshot.bytes)return;m2UndoHistory.push(snapshot);m2UndoBytes+=snapshot.bytes;m2UndoTrim();m2UpdateUndoButton();}
+      function m2PushUndo(label){if(/^(Raf taşıma|Raf döndürme|Hassas taşıma|Raf konumu)$/.test(String(label||"")))return m2PushPositionUndo(label);return m2PushSnapshotUndo(label);}
       function m2PushPositionUndo(label="Raf taşıma"){
         const drag=m2LayoutState?.drag||{},rackIds=new Set(),symbolIds=new Set(),addId=(set,value)=>{const id=Number(value&&typeof value==="object"?value.id:value);if(Number.isFinite(id))set.add(id)};
         addId(rackIds,drag.id);addId(rackIds,m2LayoutState?.selected);[...(drag.groupMembers||[]),...(drag.selectionGroup||[])].forEach((value)=>addId(rackIds,value));(drag.symbolMembers||[]).forEach((value)=>addId(symbolIds,value));
@@ -22,7 +23,7 @@ const newUndo = String.raw`      let m2UndoBytes=0;const m2UndoMaxBytes=8*1024*1
         const selectedRack=(m2LayoutState?.racks||[]).find((rack)=>rackIds.has(Number(rack.id)));if(selectedRack?.joinGroup)(m2LayoutState.racks||[]).filter((rack)=>rack.joinGroup===selectedRack.joinGroup).forEach((rack)=>addId(rackIds,rack.id));
         const racks=(m2LayoutState?.racks||[]).filter((rack)=>rackIds.has(Number(rack.id))).map((rack)=>({id:Number(rack.id),x:Number(rack.x)||0,y:Number(rack.y)||0,angle:Number(rack.angle)||0}));
         const symbols=(m2LayoutSymbols||[]).filter((symbol)=>symbolIds.has(Number(symbol.id))).map((symbol)=>({id:Number(symbol.id),x:Number(symbol.x)||0,y:Number(symbol.y)||0,angle:Number(symbol.angle)||0}));
-        if(!racks.length&&!symbols.length){m2PushUndo(label);return;}
+        if(!racks.length&&!symbols.length){m2PushSnapshotUndo(label);return;}
         const entry={kind:"positions",label,racks,symbols,bytes:128+(racks.length+symbols.length)*80};m2UndoHistory.push(entry);m2UndoBytes+=entry.bytes;m2UndoTrim();m2UpdateUndoButton();
       }
       function m2DiscardUndo(){const removed=m2UndoHistory.pop();m2UndoBytes=Math.max(0,m2UndoBytes-(Number(removed?.bytes)||0));m2UpdateUndoButton();}
@@ -42,18 +43,8 @@ if (!html.includes("m2UndoMaxBytes=8*1024*1024")) {
   html = html.replace(undoPattern, newUndo);
 }
 
-const dragUndo = `            m2PushUndo("Raf taşıma");`;
-const positionUndo = `            m2PushPositionUndo("Raf taşıma");`;
-if (html.includes(dragUndo)) html = html.replace(dragUndo, positionUndo);
-if (!html.includes(positionUndo)) throw new Error("Common source v90: raf tasima fark undo baglanamadi");
-
-for (const [label, replacement] of [
-  ["m2PushUndo(\"Raf döndürme\")", "m2PushPositionUndo(\"Raf döndürme\")"],
-  ["m2PushUndo(\"Hassas taşıma\")", "m2PushPositionUndo(\"Hassas taşıma\")"],
-  ["m2PushUndo(\"Raf konumu\")", "m2PushPositionUndo(\"Raf konumu\")"],
-]) html = html.replaceAll(label, replacement);
-
+if (!html.includes("m2PushPositionUndo(label)") || !html.includes("m2PushSnapshotUndo(label)")) throw new Error("Common source v90: fark undo yonlendiricisi eklenemedi");
 if (!html.includes("m2UndoMaxBytes=8*1024*1024") || !html.includes('kind:"positions"')) throw new Error("Common source v90: undo performans dogrulamasi eksik");
 
 fs.writeFileSync(portalPath, html);
-console.log("SOURCE v90: raf tasima geri alma fark tabanli; tam snapshotlar 8 MB bellek butcesiyle sinirli.");
+console.log("SOURCE v90: hareket geri alma fark tabanli; tam snapshotlar 8 MB bellek butcesiyle sinirli.");
