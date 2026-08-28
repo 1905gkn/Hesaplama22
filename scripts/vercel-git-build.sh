@@ -51,6 +51,7 @@ node scripts/patch-free-layout-group-drag-v68.mjs
 node scripts/patch-free-layout-shared-foot-drag-v69.mjs
 node scripts/patch-free-layout-large-block-v76.mjs
 node scripts/patch-free-product-events-source-v77.mjs
+node scripts/patch-project-deeplink-v85.mjs
 grep -q 'function m2PerfLiveNearestRackGap(rack)' portal.html
 grep -q 'm2PerfLiveRackDistanceGuide(rack)' portal.html
 node scripts/patch-viewer-lifecycle-performance-v30.mjs
