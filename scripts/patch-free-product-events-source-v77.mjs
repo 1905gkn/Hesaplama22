@@ -95,13 +95,44 @@ if (!html.includes('m2PushRackMoveUndoV81(m2LayoutState.drag)')) {
   html = html.slice(0, insertAt) + lightweightCapture + html.slice(insertAt);
 }
 
-// PDF/rapor cizimini kesin olarak kullanici PDF Olustur'a basana kadar kilitle.
+// v82: Kullanici mevcut oturumunda ?project=0006 ile kayitli projeyi dogrudan acabilsin.
+// Sadece mevcut kullanicinin /api/projects listesinden proje bulur; oturum yoksa sessizce tekrar dener.
 const bootMarker = '      changeProgramLanguage(appLanguage, false);\n      boot();';
+if (!html.includes('function rafexOpenProjectFromQueryV82()')) {
+  if (!html.includes(bootMarker)) throw new Error("Project deeplink v82: boot kalibi bulunamadi.");
+  const deeplink = String.raw`      function rafexOpenProjectFromQueryV82(){
+        let wanted="";try{wanted=String(new URLSearchParams(location.search).get("project")||"").replace(/^#/,"").trim();}catch(_){}
+        if(!wanted)return;
+        const wantedNo=Number(wanted),wantedPad=String(Number.isFinite(wantedNo)?wantedNo:wanted).padStart(4,"0");let tries=0,done=false;
+        const run=async()=>{
+          if(done||++tries>30)return;
+          try{
+            const result=await req("/api/projects"),projects=Array.isArray(result?.projects)?result.projects:[];
+            const project=projects.find((item)=>String(item?.serial_no??"").padStart(4,"0")===wantedPad||Number(item?.serial_no)===wantedNo);
+            if(!project){if($("pageTitle"))$("pageTitle").textContent="Proje #"+wantedPad+" bulunamadı";done=true;return;}
+            const moduleName=["b2b","mr","mekik2"].includes(project.module)?project.module:"b2b";
+            showPage(moduleName);
+            m2ProjectRecords=projects.filter((item)=>item.module===moduleName);
+            requestAnimationFrame(()=>requestAnimationFrame(()=>{
+              m2ApplyProjectRecord(project,false);done=true;
+              if($("m2FloorStatus"))$("m2FloorStatus").textContent="Proje #"+wantedPad+" açıldı.";
+            }));
+          }catch(_){setTimeout(run,350);}
+        };
+        setTimeout(run,0);
+      }
+`;
+  html = html.replace(bootMarker, deeplink + '      changeProgramLanguage(appLanguage, false);\n      boot();\n      rafexOpenProjectFromQueryV82();');
+}
+
+// PDF/rapor cizimini kesin olarak kullanici PDF Olustur'a basana kadar kilitle.
 if (!html.includes(bootMarker) && !html.includes("rafexInstallPdfLazyV79")) {
   throw new Error("PDF lazy v79: boot kalibi bulunamadi.");
 }
 
 if (!html.includes("rafexInstallPdfLazyV79")) {
+  const lazyBootMarker = '      changeProgramLanguage(appLanguage, false);\n      boot();\n      rafexOpenProjectFromQueryV82();';
+  if (!html.includes(lazyBootMarker)) throw new Error("PDF lazy v79: deeplink boot kalibi bulunamadi.");
   const lazyInstall = String.raw`      function rafexInstallPdfLazyV79(){
         if(window.__rafexPdfLazyV79)return;
         window.__rafexPdfLazyV79=true;
@@ -148,8 +179,9 @@ if (!html.includes("rafexInstallPdfLazyV79")) {
       }
       rafexInstallPdfLazyV79();
       changeProgramLanguage(appLanguage, false);
-      boot();`;
-  html = html.replace(bootMarker, lazyInstall);
+      boot();
+      rafexOpenProjectFromQueryV82();`;
+  html = html.replace(lazyBootMarker, lazyInstall);
 }
 
 for (const required of [
@@ -162,8 +194,10 @@ for (const required of [
   "m2PushRackMoveUndoV81",
   "rack-move-v81",
   "m2PushRackMoveUndoV81(m2LayoutState.drag)",
-  "undoCaptured:false"
-]) if (!html.includes(required)) throw new Error("Free performance v81 dogrulama eksigi: " + required);
+  "undoCaptured:false",
+  "rafexOpenProjectFromQueryV82",
+  "URLSearchParams(location.search)"
+]) if (!html.includes(required)) throw new Error("Free performance v82 dogrulama eksigi: " + required);
 
 if (html.includes('if(!interactiveRender){m2RenderSelectedRackInfo();m2RenderLayoutProductList();m2ScheduleReportRefresh(650);')) {
   throw new Error("Free performance v79: ana renderda urun/PDF cagrisi kaldi.");
@@ -172,4 +206,4 @@ const selectedArea = html.slice(symbolAnchor, html.indexOf('svg.onpointermove = 
 if (selectedArea.includes('m2PushUndo("Raf taşıma")')) throw new Error("Free performance v81: secim aninda tam undo snapshot cagrisi kaldi.");
 
 fs.writeFileSync(portalPath, html);
-console.log("SOURCE v81: raf secimindeki tam proje undo snapshot kaldirildi; geri al icin sadece tasinan koordinatlar kaydediliyor.");
+console.log("SOURCE v82: raf secimi hafif; PDF/sayim ayrik; ?project=NNNN ile kayitli proje dogrudan acilir.");
