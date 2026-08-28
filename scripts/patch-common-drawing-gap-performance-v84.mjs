@@ -68,3 +68,6 @@ const encoded = Buffer.from(html, "utf8").toString("base64");
 worker = worker.replace(oldEncoded, encoded);
 fs.writeFileSync(workerPath, worker);
 console.log("v84: Ortak Cizim raf secimi O(n) en yakin komsu hesabina indirildi; biriken Raf arasi DOM alanlari temizleniyor.");
+
+// Adet hesaplarini degistirmeden urun kartlarindaki teknik detaylari geri getir.
+await import("./patch-product-detail-restore-v86.mjs");
