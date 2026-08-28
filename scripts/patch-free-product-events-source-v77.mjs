@@ -66,8 +66,6 @@ if (!html.includes('kind==="rack-move-v81"')) {
   html = html.replace(undoPop, undoFast);
 }
 
-// Gercek build sirasinda patch-free-layout-drag-start-performance.mjs bu blogu
-// undoCaptured:true + m2PushUndo("Raf taşıma") seklinde birakir. Onu geri hafiflet.
 const symbolAnchor = html.indexOf('const symbolMembers=selectionGroup?');
 if (symbolAnchor < 0) throw new Error("Free performance v81: raf secim anchor bulunamadi.");
 const dragStart = html.indexOf('m2LayoutState.drag = {', symbolAnchor);
@@ -95,11 +93,11 @@ if (!html.includes('m2PushRackMoveUndoV81(m2LayoutState.drag)')) {
   html = html.slice(0, insertAt) + lightweightCapture + html.slice(insertAt);
 }
 
-// v82: Kullanici mevcut oturumunda ?project=0006 ile kayitli projeyi dogrudan acabilsin.
-// Sadece mevcut kullanicinin /api/projects listesinden proje bulur; oturum yoksa sessizce tekrar dener.
+// v82/v83: ?project=0006 mevcut kullanicinin kaydini boot tamamlandiktan sonra dogrudan acar.
 const bootMarker = '      changeProgramLanguage(appLanguage, false);\n      boot();';
+const deeplinkBootMarker = '      changeProgramLanguage(appLanguage, false);\n      boot().then(()=>rafexOpenProjectFromQueryV82()).catch(()=>{});';
 if (!html.includes('function rafexOpenProjectFromQueryV82()')) {
-  if (!html.includes(bootMarker)) throw new Error("Project deeplink v82: boot kalibi bulunamadi.");
+  if (!html.includes(bootMarker)) throw new Error("Project deeplink v83: boot kalibi bulunamadi.");
   const deeplink = String.raw`      function rafexOpenProjectFromQueryV82(){
         let wanted="";try{wanted=String(new URLSearchParams(location.search).get("project")||"").replace(/^#/,"").trim();}catch(_){}
         if(!wanted)return;
@@ -119,20 +117,19 @@ if (!html.includes('function rafexOpenProjectFromQueryV82()')) {
             }));
           }catch(_){setTimeout(run,350);}
         };
-        setTimeout(run,0);
+        run();
       }
 `;
-  html = html.replace(bootMarker, deeplink + '      changeProgramLanguage(appLanguage, false);\n      boot();\n      rafexOpenProjectFromQueryV82();');
+  html = html.replace(bootMarker, deeplink + deeplinkBootMarker);
 }
 
 // PDF/rapor cizimini kesin olarak kullanici PDF Olustur'a basana kadar kilitle.
-if (!html.includes(bootMarker) && !html.includes("rafexInstallPdfLazyV79")) {
+if (!html.includes(bootMarker) && !html.includes(deeplinkBootMarker) && !html.includes("rafexInstallPdfLazyV79")) {
   throw new Error("PDF lazy v79: boot kalibi bulunamadi.");
 }
 
 if (!html.includes("rafexInstallPdfLazyV79")) {
-  const lazyBootMarker = '      changeProgramLanguage(appLanguage, false);\n      boot();\n      rafexOpenProjectFromQueryV82();';
-  if (!html.includes(lazyBootMarker)) throw new Error("PDF lazy v79: deeplink boot kalibi bulunamadi.");
+  if (!html.includes(deeplinkBootMarker)) throw new Error("PDF lazy v79: deeplink boot kalibi bulunamadi.");
   const lazyInstall = String.raw`      function rafexInstallPdfLazyV79(){
         if(window.__rafexPdfLazyV79)return;
         window.__rafexPdfLazyV79=true;
@@ -179,9 +176,8 @@ if (!html.includes("rafexInstallPdfLazyV79")) {
       }
       rafexInstallPdfLazyV79();
       changeProgramLanguage(appLanguage, false);
-      boot();
-      rafexOpenProjectFromQueryV82();`;
-  html = html.replace(lazyBootMarker, lazyInstall);
+      boot().then(()=>rafexOpenProjectFromQueryV82()).catch(()=>{});`;
+  html = html.replace(deeplinkBootMarker, lazyInstall);
 }
 
 for (const required of [
@@ -196,8 +192,9 @@ for (const required of [
   "m2PushRackMoveUndoV81(m2LayoutState.drag)",
   "undoCaptured:false",
   "rafexOpenProjectFromQueryV82",
-  "URLSearchParams(location.search)"
-]) if (!html.includes(required)) throw new Error("Free performance v82 dogrulama eksigi: " + required);
+  "URLSearchParams(location.search)",
+  "boot().then(()=>rafexOpenProjectFromQueryV82())"
+]) if (!html.includes(required)) throw new Error("Free performance v83 dogrulama eksigi: " + required);
 
 if (html.includes('if(!interactiveRender){m2RenderSelectedRackInfo();m2RenderLayoutProductList();m2ScheduleReportRefresh(650);')) {
   throw new Error("Free performance v79: ana renderda urun/PDF cagrisi kaldi.");
@@ -206,4 +203,4 @@ const selectedArea = html.slice(symbolAnchor, html.indexOf('svg.onpointermove = 
 if (selectedArea.includes('m2PushUndo("Raf taşıma")')) throw new Error("Free performance v81: secim aninda tam undo snapshot cagrisi kaldi.");
 
 fs.writeFileSync(portalPath, html);
-console.log("SOURCE v82: raf secimi hafif; PDF/sayim ayrik; ?project=NNNN ile kayitli proje dogrudan acilir.");
+console.log("SOURCE v83: ?project=NNNN boot tamamlandiktan sonra acilir; secim/PDF/sayim performans kurallari korunur.");
