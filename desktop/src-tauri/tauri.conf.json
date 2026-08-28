@@ -1,0 +1,42 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Rafex Configurator Desktop",
+  "version": "0.1.0",
+  "identifier": "com.rafex.configurator.desktop",
+  "build": {
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Rafex Configurator Desktop",
+        "url": "https://rafex-configurator.vercel.app/?desktop=1",
+        "width": 1600,
+        "height": 980,
+        "minWidth": 1200,
+        "minHeight": 760,
+        "maximized": true,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": true,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "shortDescription": "Rafex raf sistemi konfiguratoru",
+    "longDescription": "B2B, MR, Mekik, Drive-In ve ortak cizim icin Rafex Configurator masaustu uygulamasi.",
+    "windows": {
+      "nsis": {
+        "displayLanguageSelector": false,
+        "installMode": "currentUser"
+      }
+    }
+  }
+}
