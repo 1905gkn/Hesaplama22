@@ -34,6 +34,10 @@ jobs:
         working-directory: desktop
         run: npm install
 
+      - name: Generate Rafex desktop icons
+        working-directory: desktop
+        run: npx tauri icon icon.svg
+
       - name: Build Rafex Desktop
         working-directory: desktop
         run: npm run build
