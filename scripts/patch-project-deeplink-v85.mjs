@@ -21,3 +21,4 @@ fs.writeFileSync(portalPath, html);
 console.log("Project deeplink v85.1: tek acilis noktasi v90 kontrolcusune baglandi; eski v87 kaynak override kaldirildi.");
 
 await import("./patch-common-source-performance-v90.mjs");
+await import("./patch-viewer-pause-hook-v90.mjs");
