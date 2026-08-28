@@ -66,3 +66,4 @@ await import("./patch-product-detail-restore-v86.mjs");
 await import("./patch-common-architecture-v90.mjs");
 await import("./patch-common-3d-v101.mjs");
 await import("./patch-common-output-add-v102.mjs");
+await import("./patch-common-output-flag-v103.mjs");
