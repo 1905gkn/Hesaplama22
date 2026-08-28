@@ -117,7 +117,7 @@ for (const required of [
   'RAFEX COMMON OUTPUT ADD V102',
   'rafexCommonAddSavedBlockV102',
   '__rafexCommonSavedDoubleV102',
-  "typeof window.rafexCreateFreeDrawingOutput==='function'",
+  'const manual=window.rafexCreateFreeDrawingOutput',
   "panel.dataset.rafexOutputVisible='1'",
   "isOutput||isPdf",
 ]) if (!html.includes(required)) throw new Error("Common output/add v102 dogrulama eksigi: " + required);
