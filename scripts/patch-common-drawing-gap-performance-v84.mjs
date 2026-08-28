@@ -71,3 +71,5 @@ console.log("v84: Ortak Cizim raf secimi O(n) en yakin komsu hesabina indirildi;
 
 // Adet hesaplarini degistirmeden urun kartlarindaki teknik detaylari geri getir.
 await import("./patch-product-detail-restore-v86.mjs");
+// Ortak proje modu, ayri proje adi ve module=ortak kaydi son runtime olarak uygula.
+await import("./patch-common-project-mode-v87.mjs");
