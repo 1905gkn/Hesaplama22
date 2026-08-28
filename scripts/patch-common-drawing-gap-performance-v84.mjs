@@ -64,3 +64,4 @@ console.log("v84: Ortak Cizim raf secimi O(n) en yakin komsu hesabina indirildi;
 
 await import("./patch-product-detail-restore-v86.mjs");
 await import("./patch-common-architecture-v90.mjs");
+await import("./patch-common-3d-v101.mjs");
