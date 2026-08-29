@@ -150,7 +150,7 @@ const accessoryMethods = `
 
         if (accessory.type === "palletStop" && this.models.palletStop) {
           const stop = this.accessoryModel(this.models.palletStop, { x:clearWidth, y:163 * depthScale, z:90 }, false);
-          stop.name = `Palet Dayama K${humanLevel}`;
+          stop.name = "Palet Dayama K" + humanLevel;
           stop.position.set(clearLeft - 4 * sectionScale, 42 * depthScale, -(supportTop + 40));
           section.add(stop);
           return;
@@ -159,7 +159,7 @@ const accessoryMethods = `
         if (accessory.type === "hTraverse" && this.models.hTraverse) {
           const targetX = Math.max(200, clearWidth - 106 * sectionScale);
           const h = this.accessoryModel(this.models.hTraverse, { x:targetX, y:depthInner, z:89 }, true);
-          h.name = `H Travers K${humanLevel}`;
+          h.name = "H Travers K" + humanLevel;
           h.position.set(clearLeft + 50 * sectionScale, 162 * depthScale, -this.traverseBottom(level));
           section.add(h);
           return;
@@ -170,7 +170,7 @@ const accessoryMethods = `
           const pieces = this.trayPiecePlan(clearWidth, accessory.width);
           pieces.forEach((pieceWidth, pieceIndex) => {
             const tray = this.accessoryModel(this.models.tray, { x:pieceWidth, y:depthInner, z:45 }, true);
-            tray.name = `Tava K${humanLevel}-${pieceIndex + 1} · ${pieceWidth} mm`;
+            tray.name = "Tava K" + humanLevel + "-" + (pieceIndex + 1) + " · " + pieceWidth + " mm";
             tray.position.set(clearLeft + cursor, 176 * depthScale, -(this.traverseBottom(level) + 65));
             section.add(tray);
             cursor += pieceWidth;
@@ -239,6 +239,16 @@ NODE
 
 "$project_root/node_modules/.bin/esbuild" "$mr_viewer_source" --bundle --format=iife --minify --target=es2022 --outfile="$mr_viewer_bundle"
 
+mekik_front_viewer="$dist_root/mekik-front-viewer.js"
+"$project_root/node_modules/.bin/esbuild" "$project_root/client/mekik-front-viewer.entry.js" \
+  --bundle \
+  --format=iife \
+  --minify \
+  --target=es2022 \
+  --outfile="$mekik_front_viewer"
+cat "$project_root"/assets/mekik-son-hali.b64.parts/part-* | base64 -d > "$dist_root/mekik-son-hali.glb"
+base64 -d "$project_root/assets/mekik-travers.glb.b64" > "$dist_root/mekik-travers.glb"
+
 node - "$project_root/portal.html" "$project_root/assets/mekik-corridor-front.png" "$project_root/assets/ray-side.png" "$project_root/assets/travers-side.png" "$project_root/assets/ayak-side.png" "$project_root/assets/paletli-side.png" "$project_root/assets/ayak2-front.png" "$project_root/assets/pallet-definition.png" "$project_root/assets/b2b-takim.glb" "$project_root/assets/b2b-palet.glb" "$project_root/assets/b2b-travers.glb" "$project_root/assets/b2b-ayak.glb" "$project_root/assets/b2b-sac-arabag.glb" "$pallet_stop_glb" "$h_traverse_glb" "$tray_glb" "$viewer_bundle" "$project_root/client/b2b-visual-fixes.js" "$project_root/client/b2b-report-3d.js" "$project_root/client/b2b-report-sections.js" "$project_root/client/b2b-accessories.js" "$project_root/node_modules/three/examples/jsm/libs/draco/gltf/draco_decoder.js" "$project_root/node_modules/three/examples/jsm/libs/draco/gltf/draco_wasm_wrapper.js" "$project_root/node_modules/three/examples/jsm/libs/draco/gltf/draco_decoder.wasm" "$dist_root/server/index.js" <<'NODE'
 const fs = require('node:fs');
 const portalPath = process.argv[2];
@@ -282,6 +292,7 @@ let portalSource = fs.readFileSync(portalPath, 'utf8')
   .replaceAll('__M2_AYAK2_FRONT_BASE64__', ayak2FrontBase64)
   .replaceAll('__M2_PALLET_DEFINITION_BASE64__', fs.readFileSync(palletDefinitionPath).toString('base64'))
   .replaceAll('b2b-double-row-side-ties-367', 'b2b-accessories-599');
+portalSource = portalSource.replace(/<\/body>\s*<\/html>\s*$/i, `<script src="/mekik-front-viewer.js" defer data-mekik-front-viewer="user-glb-front-v1"></script>\n</body>\n</html>`);
 portalSource = portalSource.replace(/<\/body>\s*<\/html>\s*$/i, `<script data-rafex-b2b-visual-fixes="back-to-back-reference-v2">\n${b2bVisualFixes}\n</script>\n<script data-rafex-b2b-report-3d="front-side-capture-v35">\n${b2bReport3d}\n</script>\n<script data-rafex-b2b-report-sections="corporate-type-sections-v6">\n${b2bReportSections}\n</script>\n<script data-rafex-b2b-accessories="b2b-accessories-v1">\n${b2bAccessories}\n</script>\n</body>\n</html>`);
 if (!portalSource.includes('data-rafex-b2b-accessories="b2b-accessories-v1"')) throw new Error('B2B aksesuar betiği portala eklenemedi.');
 const unresolvedAsset = portalSource.match(/__[A-Z0-9_]+_BASE64__/);
