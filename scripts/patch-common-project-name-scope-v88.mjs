@@ -66,3 +66,5 @@ const encoded = Buffer.from(html, "utf8").toString("base64");
 worker = worker.replace(match[0], `${match[1]}${match[2]}${encoded}${match[2]}`);
 fs.writeFileSync(workerPath, worker);
 console.log("v88: Proje Adi gizleme yalniz gercek Ortak Cizim aktifken uygulanir; B2B/MR/Mekik/Drive-In/Konsol kendi sayfalarinda eski alanlarini korur.");
+
+await import("./patch-global-pdf-gate-v89.mjs");
