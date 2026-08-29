@@ -14,14 +14,6 @@ let html = Buffer.from(match[3], "base64").toString("utf8");
 html = html
   .replace(/<style\s+data-rafex-unified-free-drawing="v1">[\s\S]*?<\/style>\s*<script\s+data-rafex-unified-free-drawing="v1">[\s\S]*?<\/script>/g, "");
 
-const saveNeedle = "projectName, module: m2ActiveModule, payload:";
-if (!html.includes(saveNeedle) && !html.includes('projectName, module: (window.rafexUnifiedFreeDrawingActiveV75?.() ? "ortak" : m2ActiveModule), payload:')) {
-  throw new Error("Unified free drawing: proje kayıt modülü bulunamadı.");
-}
-html = html.replace(saveNeedle, 'projectName, module: (window.rafexUnifiedFreeDrawingActiveV75?.() ? "ortak" : m2ActiveModule), payload:');
-html = html.replace('if (p.module === "mekik2" || p.module === "b2b") {', 'if (p.module === "mekik2" || p.module === "b2b" || p.module === "ortak") {');
-html = html.replace('p.module === "mekik2" || p.module === "b2b"\n                          ?', 'p.module === "mekik2" || p.module === "b2b" || p.module === "ortak"\n                          ?');
-
 const runtime = `<style ${marker}>
 #page.rafex-free-drawing-page{--rafex-free-green:#173c2d;--rafex-free-soft:#edf4ef;--rafex-free-line:#d8e5dc}
 #page.rafex-free-drawing-page>.hero{margin-bottom:14px}
@@ -237,38 +229,9 @@ const runtime = `<style ${marker}>
     }catch(error){console.warn('Serbest Cizim modul ekleme hatasi',error);setMessage(error?.message||'Modül eklenemedi.','error');}
   }
 
-  function isUnifiedProject(project){
-    const racks=project?.payload?.layout?.racks;
-    const module=String(project?.module||'').toLocaleLowerCase('tr-TR').replace(/[\s_-]+/g,'');
-    return module==='ortak'||(Array.isArray(racks)&&racks.some((rack)=>Boolean(rack?.rafexSystem)));
-  }
-
-  function loadUnifiedProject(project,asCopy=true){
-    if(!isUnifiedProject(project)||typeof m2ApplyProjectRecord!=='function')return false;
-    try{
-      document.getElementById('historyModal')?.classList.remove('show');
-      if(!free.active){saveStandaloneState();ensureUnifiedState();free.active=true;}
-      free.pending='b2b';free.selected='b2b';free.continued=true;
-      renderEngine('b2b',true);
-      const opened=m2ApplyProjectRecord(project,Boolean(asCopy));
-      const state=m2CaptureModuleState();
-      free.systemStates.b2b=state;
-      free.common=pickCommon(state);
-      decoratePage();
-      setMessage('Kayıtlı ortak çizim projesi açıldı.','ok');
-      window.scrollTo({top:0,behavior:'smooth'});
-      return opened!==false;
-    }catch(error){
-      console.warn('Ortak Cizim projesi acilamadi',error);
-      return false;
-    }
-  }
-
   window.rafexEnterUnifiedFreeDrawing=enterFreeDrawing;
   window.rafexFreeDrawingContinue=continueSelected;
   window.rafexFreeAddCurrentModule=addCurrentModule;
-  window.rafexLoadUnifiedProjectV75=loadUnifiedProject;
-  window.rafexUnifiedFreeDrawingActiveV75=()=>free.active;
 
   const originalShowPage=window.showPage||showPage;
   if(typeof originalShowPage==='function'){
@@ -279,17 +242,6 @@ const runtime = `<style ${marker}>
     };
     try{showPage=wrapped;}catch{}
     window.showPage=wrapped;
-  }
-
-  const originalCopyProject=window.copyProject||(typeof copyProject==='function'?copyProject:null);
-  if(typeof originalCopyProject==='function'){
-    const wrappedCopyProject=function(id){
-      const project=Array.isArray(projects)?projects.find((entry)=>Number(entry?.id)===Number(id)):null;
-      if(isUnifiedProject(project))return loadUnifiedProject(project,true);
-      return originalCopyProject(id);
-    };
-    try{copyProject=wrappedCopyProject;}catch{}
-    window.copyProject=wrappedCopyProject;
   }
 
   function boot(){ensureNav();}
@@ -306,7 +258,7 @@ worker = worker.replace(match[0], `${match[1]}${match[2]}${encoded}${match[2]}`)
 fs.writeFileSync(workerPath, worker);
 
 const finalHtml = Buffer.from(encoded, "base64").toString("utf8");
-for (const required of [marker, "Serbest Çizim", "Raf Sistemi Araçları", "rafexEnterUnifiedFreeDrawing", "+ Modülü Ortak Alana Ekle", "['b2b','mekik2','mr']", "else if(target==='mr')renderMR()", "page.classList.remove('b2b-mode','mr-mode')", "rafexLoadUnifiedProjectV75", "isUnifiedProject(project)", "Kayıtlı ortak çizim projesi açıldı.", "rafexUnifiedFreeDrawingActiveV75", 'module: (window.rafexUnifiedFreeDrawingActiveV75?.() ? "ortak" : m2ActiveModule)'] ) {
+for (const required of [marker, "Serbest Çizim", "Raf Sistemi Araçları", "rafexEnterUnifiedFreeDrawing", "+ Modülü Ortak Alana Ekle", "['b2b','mekik2','mr']", "else if(target==='mr')renderMR()", "page.classList.remove('b2b-mode','mr-mode')"] ) {
   if (!finalHtml.includes(required)) throw new Error(`Unified free drawing dogrulama hatasi: ${required}`);
 }
 if (finalHtml.includes("setTimeout(()=>document.querySelector('.m2-layout')?.scrollIntoView({behavior:'smooth',block:'start'}),60)")) {

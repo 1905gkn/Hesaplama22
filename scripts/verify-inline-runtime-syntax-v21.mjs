@@ -58,7 +58,6 @@ await import(`./patch-common-drawing-precise-wall-hit-v66.mjs?build=${Date.now()
 await import(`./patch-b2b-tunnel-label-v67.mjs?build=${Date.now()}`);
 await import(`./patch-mr-extension-controls-v70.mjs?build=${Date.now()}`);
 await import(`./patch-mr-extension-activation-v71.mjs?build=${Date.now()}`);
-await import(`./patch-free-product-cache-v77.mjs?build=${Date.now()}`);
 
 const workerModule = await import(`${workerPath}?syntax-check=${Date.now()}`);
 const response = await workerModule.default.fetch(
@@ -122,12 +121,8 @@ if (!html.includes('const m2PerfGroupDragVersion="v68";')) throw new Error("Birl
 for (const required of ["m2PerfDragMembers","m2PerfTranslateDragSymbols","m2PerfMovingGroupSeismicSvg","window.rafexFreeGroupDragV68","for (let i = 0; i < 6; i++)"]) if (!html.includes(required)) throw new Error("Birleşik blok hızlı taşıma özelliği bulunamadı: " + required);
 if (!html.includes('const m2PerfSharedFootDragVersion="v69";')) throw new Error("Ortak ayak canlı taşıma v69 canlı HTML içinde bulunamadı");
 for (const required of ["m2PerfTranslateSharedFeet","rafex-shared-foot-layer-v60 [data-shared-foot]","drag.perfSharedFootEntries",'entry.node.style.visibility="hidden"',"m2PerfTranslateSharedFeet(drag,movingIds,dx,dy)"]) if (!html.includes(required)) throw new Error("Ortak ayak canlı taşıma özelliği bulunamadı: " + required);
-if (!html.includes('const m2PerfLargeBlockVersion="v76";')) throw new Error("Büyük birleşik blok performans yolu v76 canlı HTML içinde bulunamadı");
-for (const required of ["m2PerfIsLargeJoinedDrag","m2PerfLargeBlockState","m2PerfSmoothLargeBlock","rafex-large-block-drag-v76","m2PerfTranslateLargeBlock","m2PerfCleanupLargeBlock","window.rafexFreeLargeBlockV76"]) if (!html.includes(required)) throw new Error("Büyük birleşik blok performans v76 eksik: " + required);
 if (!html.includes('data-rafex-mr-extension-controls="v70"')) throw new Error("MR uzatma mesafesi v70 canlı HTML içinde bulunamadı");
 for (const required of ["rafexMrPreviewDistanceV70","rafexMrApplyDistanceV70","rafex-mr-distance-active","MR uzatma mesafesini 0’dan büyük"]) if (!html.includes(required)) throw new Error("MR uzatma mesafesi özelliği bulunamadı: " + required);
-if (!html.includes('data-rafex-free-product-cache="v77"')) throw new Error("Serbest Çizim olay-temelli ürün önbelleği v77 canlı HTML içinde bulunamadı");
-for (const required of ["rafexProductCountCacheV77","rafexMarkProductCountsDirtyV77","rafexRefreshProductCountsV77","__rafexProductMutationV77"]) if (!html.includes(required)) throw new Error("Serbest Çizim ürün önbelleği v77 eksik: " + required);
 if (!html.includes('data-rafex-mr-extension-activation="v71"')) throw new Error("MR çift tık aktivasyonu v71 canlı HTML içinde bulunamadı");
 for (const required of ["rafex-mr-extension-ready","window.addEventListener('pointerdown'","window.addEventListener('dblclick'","rack.rafexSystem='mr'","MR uzatma açıldı"]) if (!html.includes(required)) throw new Error("MR çift tık aktivasyonu bulunamadı: " + required);
 if (!html.includes("__rafexMrExtensionGeometryV72")) throw new Error("MR uzatma sıra geometrisi v72 canlı HTML içinde bulunamadı");
@@ -135,9 +130,6 @@ if (!html.includes("__rafexMrFullRowExtensionV73")) throw new Error("MR uzatma t
 for (const required of ["rowGeometryOf", "pairedMrSources", "applyRowGeometry", "placeSourceSetAfter", "rowType:geometry.rowCount>1?'double':'single'"]) if (!html.includes(required)) throw new Error("MR uzatma tam sıra v73 eksik: " + required);
 if (!html.includes("__rafexMrPhysicalPairExtensionV74")) throw new Error("MR fiziksel çift sıra eşleştirmesi v74 canlı HTML içinde bulunamadı");
 for (const required of ["rack.rafexMrRowCount", "target.rafexMrRowCount=geometry.rowCount", "alongLimit", "maxAcross", "score=across+along*6"]) if (!html.includes(required)) throw new Error("MR fiziksel çift sıra v74 eksik: " + required);
-if (!html.includes("rafexLoadUnifiedProjectV75")) throw new Error("Ortak Çizim proje açma yönlendirmesi v75 canlı HTML içinde bulunamadı");
-for (const required of ["isUnifiedProject(project)", "Kayıtlı ortak çizim projesi açıldı.", "free.systemStates.b2b=state"]) if (!html.includes(required)) throw new Error("Ortak Çizim proje açma v75 eksik: " + required);
-for (const required of ["rafexUnifiedFreeDrawingActiveV75", 'module: (window.rafexUnifiedFreeDrawingActiveV75?.() ? "ortak" : m2ActiveModule)', 'p.module === "ortak"']) if (!html.includes(required)) throw new Error("Ortak Çizim proje kayıt türü v75 eksik: " + required);
 for (const required of ["target.depth=geometry.rowCount", "target.depthMm=geometry.footprintDepth", "target.railLength=geometry.footprintDepth", "target.h=Math.max(8,geometry.footprintDepth", "state.rowType==='double'?2:0"]) if (!html.includes(required)) throw new Error("MR uzatma sıra geometrisi bulunamadı: " + required);
 for (const required of ['label.style.display=index===0?"":"none"','label.style.fill="none"','label.style.stroke=color','label.style.paintOrder="stroke"','label.style.strokeLinejoin="round"']) if (!html.includes(required)) throw new Error("Serbest Çizim çizgi blok harfi görünürlüğü bulunamadı: " + required);
 for (const required of ["Math.max(7,Math.min(14,shortSide*.64))",'label.style.opacity=".92"','Math.max(.8,fontSize*.09)','label.style.fontWeight="800"','label.style.letterSpacing=".02em"']) if (!html.includes(required)) throw new Error("Serbest Çizim dengeli çizgi blok harfi görünümü bulunamadı: " + required);
