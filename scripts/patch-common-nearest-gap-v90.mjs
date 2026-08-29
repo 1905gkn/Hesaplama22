@@ -117,3 +117,4 @@ const encoded = Buffer.from(html, "utf8").toString("base64");
 worker = worker.replace(match[0], `${match[1]}${match[2]}${encoded}${match[2]}`);
 fs.writeFileSync(workerPath, worker);
 console.log("v90/v92: En yakin raf O(n); Ortak kayit module=ortak; Mekik v91 override kaldirildi ve eski native v13 on gorunus korundu.");
+await import("./patch-mekik-main-front-v93.mjs");
