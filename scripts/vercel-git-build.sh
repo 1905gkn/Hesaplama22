@@ -123,6 +123,7 @@ node scripts/patch-horizontal-products-savebar-v25.mjs
 node scripts/patch-drive-in-mekik-v1.mjs
 node scripts/patch-common-drawing-independent-v44.mjs
 node scripts/patch-common-project-name-v87.mjs
+node scripts/patch-common-project-name-scope-v88.mjs
 
 grep -q 'data-rafex-cad-import="v56"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-cad-import=\\\"v56\\\"'))process.exit(1)"
 grep -q 'data-rafex-product-toggle="v24"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-product-toggle=\\\"v24\\\"'))process.exit(1)"
@@ -130,6 +131,7 @@ grep -q 'data-rafex-horizontal-products-savebar="v25"' dist/server/index.js || n
 grep -q 'data-rafex-drive-in-mekik="v1"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-drive-in-mekik=\\\"v1\\\"'))process.exit(1)"
 grep -q 'data-rafex-common-independent="v44"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-common-independent=\\\"v44\\\"'))process.exit(1)"
 grep -q 'data-rafex-common-project-name="v87"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-common-project-name=\\\"v87\\\"'))process.exit(1)"
+grep -q 'data-rafex-common-project-name-scope="v88"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-common-project-name-scope=\\\"v88\\\"'))process.exit(1)"
 node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\"\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('function m2PerfLiveNearestRackGap(rack)'))process.exit(1)"
 node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\"\x27])([A-Za-z0-9+/=]+)\\1/);if(!m)process.exit(1);const h=Buffer.from(m[2],'base64').toString('utf8');if(/data-rafex-free-layout-stop3d|data-rafex-b2b-3d-module-pause|data-rafex-b2b-3d-add-hook|rafexPauseB2B3DIfUserAdd/.test(h))process.exit(1)"
 
