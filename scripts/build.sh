@@ -150,7 +150,7 @@ const accessoryMethods = `
 
         if (accessory.type === "palletStop" && this.models.palletStop) {
           const stop = this.accessoryModel(this.models.palletStop, { x:clearWidth, y:163 * depthScale, z:90 }, false);
-          stop.name = "Palet Dayama K" + humanLevel;
+          stop.name = `Palet Dayama K${humanLevel}`;
           stop.position.set(clearLeft - 4 * sectionScale, 42 * depthScale, -(supportTop + 40));
           section.add(stop);
           return;
@@ -159,7 +159,7 @@ const accessoryMethods = `
         if (accessory.type === "hTraverse" && this.models.hTraverse) {
           const targetX = Math.max(200, clearWidth - 106 * sectionScale);
           const h = this.accessoryModel(this.models.hTraverse, { x:targetX, y:depthInner, z:89 }, true);
-          h.name = "H Travers K" + humanLevel;
+          h.name = `H Travers K${humanLevel}`;
           h.position.set(clearLeft + 50 * sectionScale, 162 * depthScale, -this.traverseBottom(level));
           section.add(h);
           return;
@@ -170,7 +170,7 @@ const accessoryMethods = `
           const pieces = this.trayPiecePlan(clearWidth, accessory.width);
           pieces.forEach((pieceWidth, pieceIndex) => {
             const tray = this.accessoryModel(this.models.tray, { x:pieceWidth, y:depthInner, z:45 }, true);
-            tray.name = "Tava K" + humanLevel + "-" + (pieceIndex + 1) + " · " + pieceWidth + " mm";
+            tray.name = `Tava K${humanLevel}-${pieceIndex + 1} · ${pieceWidth} mm`;
             tray.position.set(clearLeft + cursor, 176 * depthScale, -(this.traverseBottom(level) + 65));
             section.add(tray);
             cursor += pieceWidth;
