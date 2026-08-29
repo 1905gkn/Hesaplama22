@@ -124,7 +124,7 @@ node scripts/patch-drive-in-mekik-v1.mjs
 node scripts/patch-common-drawing-independent-v44.mjs
 node scripts/patch-common-project-name-v87.mjs
 node scripts/patch-common-project-name-scope-v88.mjs
-node scripts/patch-global-pdf-explicit-gate-v89.mjs
+node scripts/patch-global-pdf-gate-v89.mjs
 node scripts/patch-common-nearest-gap-v90.mjs
 
 grep -q 'data-rafex-cad-import="v56"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-cad-import=\\\"v56\\\"'))process.exit(1)"
@@ -139,8 +139,6 @@ grep -q 'data-rafex-common-nearest-gap="v90"' dist/server/index.js || node -e "c
 node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\"\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('function m2PerfLiveNearestRackGap(rack)'))process.exit(1)"
 node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\"\x27])([A-Za-z0-9+/=]+)\\1/);if(!m)process.exit(1);const h=Buffer.from(m[2],'base64').toString('utf8');if(/data-rafex-free-layout-stop3d|data-rafex-b2b-3d-module-pause|data-rafex-b2b-3d-add-hook|rafexPauseB2B3DIfUserAdd/.test(h))process.exit(1)"
 
-# Konsol v2 + kullanicinin son ayak profili / mesafe / serbest yerlesim / PDF istekleri
-# verify adiminda en son yetki olarak uygulanir ve inline JS sozdizimi denetlenir.
 node scripts/verify-inline-runtime-syntax-v21.mjs
 
 grep -q "mode==='front'&&typeof m2SharedScaleReportSvg" scripts/patch-pdf-direct-type-pages-v19.mjs
