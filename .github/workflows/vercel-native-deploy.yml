@@ -1,4 +1,4 @@
-name: Deploy rafex-configurator to Vercel
+name: Verify Vercel Git deployment
 
 on:
   push:
@@ -9,60 +9,11 @@ on:
 permissions:
   contents: read
 
-env:
-  VERCEL_ORG_ID: team_na0LSwDQ6yYTYeOdJgrjzUYj
-  VERCEL_PROJECT_ID: prj_2BNBxHcbHo1JZreVUjUl1j59txmO
-
 jobs:
-  deploy:
+  verify:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Pull Vercel project settings
-        run: npx vercel@58.1.0 pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}" --scope=gokhankaya-4823s-projects
-
-      - name: Apply B2B accessory fixes
+      - name: Vercel Git integration active
         run: |
-          sed -i "s/b2b-accessories-v2/b2b-accessories-v1/" client/b2b-accessories.js
-          cp scripts/apply-b2b-accessory-fixes.js /tmp/apply-b2b-accessory-fixes.cjs
-          node /tmp/apply-b2b-accessory-fixes.cjs
-          cp scripts/apply-b2b-accessory-placement-v2.js /tmp/apply-b2b-accessory-placement-v2.cjs
-          node /tmp/apply-b2b-accessory-placement-v2.cjs
-          cp scripts/apply-b2b-accessory-fit-v3.js /tmp/apply-b2b-accessory-fit-v3.cjs
-          node /tmp/apply-b2b-accessory-fit-v3.cjs
-          cp scripts/apply-b2b-h-traverse-lower-v5.js /tmp/apply-b2b-h-traverse-lower-v5.cjs
-          node /tmp/apply-b2b-h-traverse-lower-v5.cjs
-
-      - name: Build production artifact
-        run: npx vercel@58.1.0 build --prod --token="${{ secrets.VERCEL_TOKEN }}" --scope=gokhankaya-4823s-projects
-
-      - name: Inject and verify section locator in prebuilt function
-        shell: bash
-        run: |
-          node scripts/inject-b2b-section-positioner.mjs
-          output_worker=$(find .vercel/output/functions -type f -path '*/dist/server/index.js' -print -quit)
-          if [ -z "$output_worker" ]; then
-            echo "Vercel prebuilt server output was not found."
-            find .vercel/output -maxdepth 6 -type f -print
-            exit 1
-          fi
-          cp dist/server/index.js "$output_worker"
-          cmp -s dist/server/index.js "$output_worker"
-          echo "Kesit Yer Belirleme injected into $output_worker"
-
-      - name: Remove Git metadata before deploy
-        run: rm -rf .git
-
-      - name: Deploy production artifact
-        run: npx vercel@58.1.0 deploy --prebuilt --prod --force --token="${{ secrets.VERCEL_TOKEN }}" --scope=gokhankaya-4823s-projects
+          echo "Production deployment is handled directly by the Vercel Git integration for 1905gkn/Hesaplama22:rafex-configurator."
+          echo "The old CLI workflow was removed because VERCEL_TOKEN was empty and caused false deployment failures."
