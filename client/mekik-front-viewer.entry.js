@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v29";
+const ASSET_VERSION = "mekik-front-glb-v30";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -455,7 +455,8 @@ class MekikFrontViewer {
       return object ? new THREE.Box3().setFromObject(object) : fallbackBounds(minZ, maxZ);
     };
     const uprightBounds = boundsFor("Mekik Ayak 1", 0, config.uprightHeight);
-    const groundZ = uprightBounds.min.z;
+    // Bütün düşey ölçülerin sıfırı, ayak GLB sınırı değil gerçek zemin kotudur.
+    const groundZ = 0;
     const uprightTopZ = uprightBounds.max.z;
     const traverseBounds = Array.from({ length: config.levels }, (_, level) => {
       const supportZ = config.firstLevelHeight + level * config.levelSpacing;
