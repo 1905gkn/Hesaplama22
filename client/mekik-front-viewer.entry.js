@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v14";
+const ASSET_VERSION = "mekik-front-glb-v15";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -439,8 +439,8 @@ function updateTraverseChoice(panel, keepSelection = false) {
   const hasExtra = String(liveField("m2Extra")?.value || "0") === "1";
   const divisor = Math.max(1,
     system === "fifo"
-      ? (footCount * 2) - (hasExtra ? 0 : 1)
-      : (footCount * 2) - (hasExtra ? 1 : 2)
+      ? (footCount * 2) - (hasExtra ? 1 : 2)
+      : (footCount * 2) - (hasExtra ? 0 : 1)
   );
   document.querySelectorAll(".rafex-mekik-channel-traverse-count").forEach((node) => {
     node.textContent = `${new Intl.NumberFormat("tr-TR").format(divisor)} adet`;
