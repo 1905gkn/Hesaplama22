@@ -1,11 +1,14 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 
-const AYAK_URL = "/mekik-front-ayak.glb";
-const TRAVERS_URL = "/mekik-front-travers.glb";
+const MAIN_URL = "/mekik-son-hali.glb";
 const UPRIGHT_SELECTOR = ".m2-front-upright";
 const TRAVERS_SELECTOR = ".m2-front-traverse-set";
 const LEGACY_GEOMETRY_SELECTOR = [UPRIGHT_SELECTOR, TRAVERS_SELECTOR].join(",");
+const UPRIGHT_NAME = /HR 100 AYAK 5500/i;
+const TRAVERS_ASSEMBLY = /MEKIK TRAVERS MONTA L1500-28/i;
+const TRAVERS_PART = /MEKIK TRAVERS 40X80X2 PROFIL|CC100 KONNEKTÖR/i;
 
 let assetsPromise;
 let renderToken = 0;
@@ -21,57 +24,70 @@ function isMekikScreen() {
   }
 }
 
-function cloneMaterials(root) {
-  root.traverse((node) => {
-    if (!node.isMesh) return;
-    node.visible = true;
-    node.frustumCulled = false;
-    node.castShadow = false;
-    node.receiveShadow = false;
-    const list = Array.isArray(node.material) ? node.material : [node.material];
-    const cloned = list.filter(Boolean).map((material) => {
-      const next = material.clone();
-      next.side = THREE.DoubleSide;
-      next.needsUpdate = true;
-      return next;
-    });
-    node.material = Array.isArray(node.material) ? cloned : cloned[0];
+function cloneMeshWorld(node) {
+  const mesh = node.clone();
+  if (node.geometry) mesh.geometry = node.geometry;
+  const materials = Array.isArray(node.material) ? node.material : [node.material];
+  const cloned = materials.filter(Boolean).map((material) => {
+    const next = material.clone();
+    next.side = THREE.DoubleSide;
+    next.needsUpdate = true;
+    return next;
   });
-  return root;
+  mesh.material = Array.isArray(node.material) ? cloned : cloned[0];
+  mesh.matrix.copy(node.matrixWorld);
+  mesh.matrix.decompose(mesh.position, mesh.quaternion, mesh.scale);
+  mesh.matrixAutoUpdate = true;
+  mesh.frustumCulled = false;
+  mesh.castShadow = false;
+  mesh.receiveShadow = false;
+  return mesh;
 }
 
-function objectBounds(root) {
-  root.updateMatrixWorld(true);
-  const box = new THREE.Box3().setFromObject(root);
-  return box.isEmpty() ? new THREE.Box3(new THREE.Vector3(), new THREE.Vector3(1, 1, 1)) : box;
-}
-
-function normalizeTemplate(source, rotateQuarter = false) {
-  const root = cloneMaterials(source.clone(true));
-  const holder = new THREE.Group();
-  holder.add(root);
-  if (rotateQuarter) holder.rotation.y = Math.PI / 2;
-  holder.updateMatrixWorld(true);
-  const box = objectBounds(holder);
-  holder.position.x -= box.min.x;
-  holder.position.z -= box.min.z;
-  holder.updateMatrixWorld(true);
-  const size = objectBounds(holder).getSize(new THREE.Vector3());
-  holder.userData.baseWidth = Math.max(0.001, size.x);
-  holder.userData.baseHeight = Math.max(0.001, size.z);
-  return holder;
+function buildTemplate(scene, predicate, firstOnly = false) {
+  scene.updateMatrixWorld(true);
+  const group = new THREE.Group();
+  let found = false;
+  scene.traverse((node) => {
+    if (!node.isMesh || found && firstOnly) return;
+    const lineage = [];
+    let current = node;
+    while (current) {
+      if (current.name) lineage.push(current.name);
+      current = current.parent;
+    }
+    const label = lineage.join(" | ");
+    if (!predicate(node.name || "", label)) return;
+    group.add(cloneMeshWorld(node));
+    found = true;
+  });
+  if (!group.children.length) throw new Error("Mekik exact GLB parca bulunamadi");
+  group.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(group);
+  group.position.x -= box.min.x;
+  group.position.z -= box.min.z;
+  group.updateMatrixWorld(true);
+  const size = new THREE.Box3().setFromObject(group).getSize(new THREE.Vector3());
+  group.userData.baseWidth = Math.max(0.001, size.x);
+  group.userData.baseHeight = Math.max(0.001, size.z);
+  return group;
 }
 
 function loadAssets() {
   if (assetsPromise) return assetsPromise;
+  const draco = new DRACOLoader();
+  draco.setDecoderPath("/draco/");
   const loader = new GLTFLoader();
-  assetsPromise = Promise.all([
-    loader.loadAsync(AYAK_URL),
-    loader.loadAsync(TRAVERS_URL),
-  ]).then(([ayak, travers]) => ({
-    ayak: normalizeTemplate(ayak.scene, true),
-    travers: normalizeTemplate(travers.scene, false),
-  }));
+  loader.setDRACOLoader(draco);
+  assetsPromise = loader.loadAsync(MAIN_URL).then((gltf) => {
+    const ayak = buildTemplate(gltf.scene, (name) => UPRIGHT_NAME.test(name), true);
+    const travers = buildTemplate(
+      gltf.scene,
+      (name, lineage) => TRAVERS_ASSEMBLY.test(lineage) && TRAVERS_PART.test(name),
+      false,
+    );
+    return { ayak, travers };
+  }).finally(() => draco.dispose());
   return assetsPromise;
 }
 
@@ -114,7 +130,7 @@ function installShell(stage) {
   shell.className = "m2-glb-front-shell";
   const canvas = document.createElement("canvas");
   canvas.className = "m2-glb-front-canvas";
-  canvas.setAttribute("aria-label", "Mekik uploaded GLB component front view");
+  canvas.setAttribute("aria-label", "Mekik exact GLB component front view");
   svg.classList.add("m2-glb-front-overlay");
   shell.append(svg, canvas);
   stage.append(shell);
@@ -126,12 +142,7 @@ function legacyRects(svg, selector, shellRect) {
   return [...svg.querySelectorAll(selector)]
     .map((node) => node.getBoundingClientRect())
     .filter((rect) => rect.width > 0.5 && rect.height > 0.5)
-    .map((rect) => ({
-      x: rect.left - shellRect.left,
-      z: rect.top - shellRect.top,
-      width: rect.width,
-      height: rect.height,
-    }));
+    .map((rect) => ({ x: rect.left - shellRect.left, z: rect.top - shellRect.top, width: rect.width, height: rect.height }));
 }
 
 function hideLegacyGeometry(svg) {
@@ -157,7 +168,6 @@ function addTemplate(scene, template, rect, depth = 0) {
   item.scale.set(rect.width / bw, 1, rect.height / bh);
   item.position.set(rect.x, depth, rect.z);
   scene.add(item);
-  return item;
 }
 
 function disposeRenderer() {
@@ -181,9 +191,7 @@ function removeShell() {
 
 function renderKey(shell, svg) {
   const rect = shell.getBoundingClientRect();
-  const uprightCount = svg.querySelectorAll(UPRIGHT_SELECTOR).length;
-  const traversCount = svg.querySelectorAll(TRAVERS_SELECTOR).length;
-  return [Math.round(rect.width), Math.round(rect.height), uprightCount, traversCount].join("|");
+  return [Math.round(rect.width), Math.round(rect.height), svg.querySelectorAll(UPRIGHT_SELECTOR).length, svg.querySelectorAll(TRAVERS_SELECTOR).length].join("|");
 }
 
 async function renderFront(stage, force = false) {
@@ -240,8 +248,8 @@ async function renderFront(stage, force = false) {
   renderer.render(scene, camera);
 
   hideLegacyGeometry(svg);
-  shell.dataset.glbSource = "mekikson2 ayak(1).glb + mekikson2 travers(1).glb";
-  shell.dataset.glbLayout = "uploaded-component-overlay-v97";
+  shell.dataset.glbSource = "mekikson2 ayak(1) + travers(1) node mapping / mekik-son-hali.glb";
+  shell.dataset.glbLayout = "uploaded-exact-node-map-v98";
   shell.dataset.glbReady = "true";
   shell.dataset.glbRenderKey = key;
   delete shell.dataset.glbPending;
@@ -259,7 +267,7 @@ function refresh(force = false) {
   renderFront(stage, force).catch((error) => {
     const shell = stage.querySelector(":scope > .m2-glb-front-shell");
     if (shell) delete shell.dataset.glbPending;
-    console.error("Mekik uploaded GLB component front view failed", error);
+    console.error("Mekik exact GLB node-map front view failed", error);
   });
 }
 
