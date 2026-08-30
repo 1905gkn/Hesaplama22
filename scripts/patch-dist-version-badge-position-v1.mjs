@@ -6,7 +6,7 @@ const match = source.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1\
 if (!match) throw new Error('HTML_BASE64 bulunamadi.');
 
 let html = Buffer.from(match[2], 'base64').toString('utf8');
-const marker = 'data-rafex-version-badge-position="v11"';
+const marker = 'data-rafex-version-badge-position="v12"';
 const buildSha = String(process.env.VERCEL_GIT_COMMIT_SHA || process.env.GITHUB_SHA || 'local').slice(0, 7);
 
 function istanbulStamp(date = new Date()) {
@@ -30,7 +30,6 @@ html = html
   .replace(/<div\s+id="rafexVersionInfoLogin"[^>]*>[\s\S]*?<\/div>\s*/g, '');
 
 const cardInner = `<span class="rafex-version-dot" aria-hidden="true"></span><span class="rafex-version-copy"><span class="rafex-version-main">Son sürüm · ${buildSha}</span><span class="rafex-version-time">Yüklenme: ${buildTime}</span></span>`;
-const topCard = `<div id="rafexVersionInfoTop" class="rafex-version-info-card" aria-label="Son sürüm ve yüklenme bilgisi">${cardInner}</div>`;
 const loginCard = `<div id="rafexVersionInfoLogin" class="rafex-version-info-card" aria-label="Son sürüm ve yüklenme bilgisi">${cardInner}</div>`;
 
 const style = `
@@ -56,7 +55,7 @@ const style = `
     opacity:1!important;
     visibility:visible!important;
   }
-  #rafexVersionInfoTop{display:flex!important;position:static!important;margin:0!important;transform:none!important;align-self:center!important;}
+  #rafexVersionInfoTop{display:none!important;}
   #rafexVersionInfoLogin{display:none!important;position:fixed!important;right:18px!important;bottom:18px!important;top:auto!important;left:auto!important;margin:0!important;transform:none!important;z-index:99991!important;}
   body:has(#auth:not(.hidden)) #rafexVersionInfoLogin{display:flex!important;}
   body:has(#app:not(.hidden)) #rafexVersionInfoLogin{display:none!important;}
@@ -71,10 +70,6 @@ const style = `
   }
 </style>`;
 
-const historyRe = /(<button\s+class="soft history-top"\s+onclick="openHistory\(\)"[^>]*>[\s\S]*?<\/button>)/;
-if (!historyRe.test(html)) throw new Error('Proje Gecmisi butonu bulunamadi.');
-html = html.replace(historyRe, `$1${topCard}`);
-
 if (html.includes('<body>')) html = html.replace('<body>', `<body>${loginCard}`);
 else throw new Error('body etiketi bulunamadi.');
 
@@ -85,4 +80,4 @@ const encoded = Buffer.from(html, 'utf8').toString('base64');
 source = source.replace(match[0], `const HTML_BASE64 =\n  "${encoded}";`);
 fs.writeFileSync(target, source);
 
-console.log(`Version badge position patch v11 STATIC RED applied: ${buildSha} @ ${buildTime}`);
+console.log(`Version badge position patch v12: app top duplicate removed, login card kept: ${buildSha} @ ${buildTime}`);
