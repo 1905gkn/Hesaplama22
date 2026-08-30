@@ -1,11 +1,10 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v17";
+const ASSET_VERSION = "mekik-front-glb-v18";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
-const TRAVERSE_HEIGHT = 80;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 let sharedModelsPromise = null;
@@ -60,16 +59,8 @@ function readConfig() {
     : clamp(Number(palletDepthChoice) || Number(drawing?.palD) || 800, 1, 3000);
   const palletHeight = numberFrom("m2LevelH", Number(drawing?.palletHeight) || 1200, 300, 3000);
   const firstLevelHeight = numberFrom("m2FirstLevelHeight", Number(drawing?.firstRailHeight) || 430, 0, 5000);
-  const palletClearance = numberFromAny(
-    ["m2PalletGap", "m2PalGap", "m2PalletClearance", "m2Gap"],
-    Number(drawing?.palletGap ?? drawing?.palGap ?? drawing?.palletClearance ?? drawing?.gap) || 300,
-    0,
-    2000,
-  );
-  // Kat aksı: paletli yük (Euro palet dahil) + ray/travers yüksekliği + iki palet arası net boşluk.
-  const calculatedSpacing = palletHeight + TRAVERSE_HEIGHT + palletClearance;
-  const requestedSpacing = numberFrom("m2LevelSpacing", Number(drawing?.levelH) || calculatedSpacing, 380, 5000);
-  const levelSpacing = Math.max(calculatedSpacing, requestedSpacing);
+  const requestedSpacing = numberFrom("m2LevelSpacing", Number(drawing?.levelH) || palletHeight + 380, 380, 5000);
+  const levelSpacing = requestedSpacing;
   const footType = clamp(Number(drawing?.footType) || numberFrom("m2FootType", 100, 60, 200), 60, 200);
   const uprightHeight = Math.max(150, firstLevelHeight + (levels - 1) * levelSpacing + palletHeight / 2);
   const bayPitch = palletWidth + 150 + footType;
@@ -79,7 +70,6 @@ function readConfig() {
     palletWidth,
     palletDepth,
     palletHeight,
-    palletClearance,
     firstLevelHeight,
     levelSpacing,
     footType,
@@ -234,7 +224,7 @@ class MekikFrontViewer {
   }
 
   configKey(config = this.config) {
-    return [config.bays, config.levels, config.palletWidth, config.palletDepth, config.palletHeight, config.palletClearance, config.firstLevelHeight, config.levelSpacing, config.footType, config.uprightHeight].join("|");
+    return [config.bays, config.levels, config.palletWidth, config.palletDepth, config.palletHeight, config.firstLevelHeight, config.levelSpacing, config.footType, config.uprightHeight].join("|");
   }
 
   update() {
@@ -423,6 +413,42 @@ function traverseValue(item) {
   return item ? `${item.grade}|${item.profile}` : "";
 }
 
+function traverseProfileHeight(item) {
+  const match = String(item?.profile || "").match(/(\d+)\s*[×xX]\s*(\d+)/);
+  return Math.max(1, Number(match?.[2]) || 50);
+}
+
+function syncMekikLevelSpacing(panel, selectedTraverse) {
+  const levelInput = liveField("m2LevelSpacing");
+  if (!levelInput) return;
+  if (levelInput.dataset.rafexManualSpacing !== "ready") {
+    levelInput.dataset.rafexManualSpacing = "ready";
+    levelInput.addEventListener("input", (event) => {
+      if (event.isTrusted) levelInput.dataset.rafexLevelSpacingManual = "1";
+    });
+  }
+
+  const palletHeight = numberFrom("m2LevelH", 1200, 300, 3000);
+  const railHeight = numberFrom("m2RailHeight", 170, 150, 170);
+  const traverseHeight = traverseProfileHeight(selectedTraverse);
+  const palletGap = railHeight + 70 + traverseHeight + 100;
+  const automaticSpacing = palletHeight + palletGap;
+  const previousAutomatic = Number(levelInput.dataset.rafexAutomaticSpacing);
+  const current = Number(levelInput.value);
+  const manuallyChanged = levelInput.dataset.rafexLevelSpacingManual === "1";
+  if (!manuallyChanged || current === previousAutomatic) {
+    levelInput.value = String(automaticSpacing);
+    levelInput.dataset.rafexLevelSpacingManual = "0";
+  }
+  levelInput.dataset.rafexAutomaticSpacing = String(automaticSpacing);
+
+  const modal = levelInput.closest(".m2-spacing-modal");
+  const footer = modal?.querySelector(".m2-spacing-dialog-foot span");
+  if (footer) {
+    footer.textContent = `Standart: ${palletHeight} + (${railHeight} ray + 70 + ${traverseHeight} travers + 100) = ${automaticSpacing} mm. Elle değiştirilebilir.`;
+  }
+}
+
 function updateTraverseChoice(panel, keepSelection = false) {
   const select = panel.querySelector(".rafex-mekik-traverse-select");
   const formula = panel.querySelector(".rafex-mekik-traverse-formula");
@@ -477,6 +503,7 @@ function updateTraverseChoice(panel, keepSelection = false) {
 
   const selected = choices.find((item) => traverseValue(item) === select.value) || choices[0];
   select.value = traverseValue(selected);
+  syncMekikLevelSpacing(panel, selected);
 }
 
 function ensureTraverseCalculator() {
