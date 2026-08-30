@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v12";
+const ASSET_VERSION = "mekik-front-glb-v13";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -424,14 +424,29 @@ function traverseValue(item) {
 }
 
 function updateTraverseChoice(panel, keepSelection = false) {
-  const input = panel.querySelector(".rafex-mekik-traverse-load");
   const select = panel.querySelector(".rafex-mekik-traverse-select");
   const summary = panel.querySelector(".rafex-mekik-traverse-summary");
+  const formula = panel.querySelector(".rafex-mekik-traverse-formula");
   const manualButton = panel.querySelector(".rafex-mekik-traverse-manual");
-  if (!input || !select || !summary || !manualButton) return;
+  if (!select || !summary || !formula || !manualButton) return;
 
-  const load = Math.max(0, Number(input.value) || 0);
+  const bays = Math.max(1, Math.round(numberFrom("m2Bays", 4, 1, 50)));
+  const levels = Math.max(1, Math.round(numberFrom("m2Levels", 4, 1, 15)));
+  const depth = Math.max(1, Math.round(numberFrom("m2Depth", 5, 1, 60)));
+  const palletWeight = numberFrom("m2PalletWeight", 1000, 0, 10000);
+  const footCount = bays + 1;
+  const system = String(liveField("m2System")?.value || "fifo").toLowerCase() === "filo" ? "filo" : "fifo";
+  const hasExtra = String(liveField("m2Extra")?.value || "0") === "1";
+  const divisor = Math.max(1,
+    system === "fifo"
+      ? (footCount * 2) - (hasExtra ? 0 : 1)
+      : (footCount * 2) - (hasExtra ? 1 : 2)
+  );
+  const totalPalletLoad = palletWeight * depth * levels;
+  const levelLoad = totalPalletLoad / levels;
+  const load = levelLoad / divisor;
   const manual = manualButton.getAttribute("aria-pressed") === "true";
+  formula.textContent = `${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(totalPalletLoad)} ÷ ${levels} ÷ ${divisor} = ${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(load)} kg · ${system.toUpperCase()} · ${hasExtra ? "ekstra profil var" : "ekstra profil yok"}`;
   const previous = keepSelection ? select.value : "";
   const recommendations = ["ST37", "ST52"].map((grade) => bestTraverseFor(load, grade)).filter(Boolean);
   const choices = manual ? MEKIK_TRAVERSE_CAPACITIES : recommendations;
@@ -440,7 +455,7 @@ function updateTraverseChoice(panel, keepSelection = false) {
   if (!load) {
     select.add(new Option("Yük girin", ""));
     select.disabled = true;
-    summary.textContent = "Travers yükünü girin.";
+    summary.textContent = "Palet yükü girin.";
     return;
   }
   if (!choices.length) {
@@ -472,8 +487,7 @@ function ensureTraverseCalculator() {
       .rafex-mekik-traverse-choice>span{display:block;margin-bottom:6px}
       .rafex-mekik-traverse-choice .m2-foot-choice-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
       .rafex-mekik-traverse-select{min-width:0}
-      .rafex-mekik-traverse-load-row{display:flex;align-items:center;gap:8px;margin-top:8px;color:#486056;font:700 11px/1.2 Arial,sans-serif}
-      .rafex-mekik-traverse-load{min-width:0;flex:1;padding:8px 9px;border:1px solid #d8c86f;border-radius:8px;background:#fff9d8;color:#14261f;font:800 13px/1 Arial,sans-serif}
+      .rafex-mekik-traverse-formula{display:block;margin-top:8px;padding:7px 8px;border-radius:7px;background:#fff9d8;color:#5d5120;font:800 10px/1.35 Arial,sans-serif}
       .rafex-mekik-traverse-summary{display:block;margin-top:7px;color:#286244;font:800 10px/1.35 Arial,sans-serif}
     `;
     document.head.appendChild(style);
@@ -481,7 +495,10 @@ function ensureTraverseCalculator() {
 
   document.querySelectorAll(".rafex-mekik-traverse-calc").forEach((node) => node.remove());
   for (const placeholder of document.querySelectorAll(".m2-traverse-placeholder")) {
-    if (placeholder.dataset.rafexTraverseChoice === "ready") continue;
+    if (placeholder.dataset.rafexTraverseChoice === "ready") {
+      updateTraverseChoice(placeholder, true);
+      continue;
+    }
     placeholder.dataset.rafexTraverseChoice = "ready";
     placeholder.classList.add("rafex-mekik-traverse-choice");
     placeholder.innerHTML = `
@@ -490,15 +507,11 @@ function ensureTraverseCalculator() {
         <select class="classic-choice rafex-mekik-traverse-select" aria-label="Önerilen Mekik traversi"></select>
         <button class="m2-foot-manual-button rafex-mekik-traverse-manual" type="button" aria-pressed="false">Manuel Seç</button>
       </div>
-      <label class="rafex-mekik-traverse-load-row">Travers yükü (kg)
-        <input class="rafex-mekik-traverse-load" type="number" min="0" max="100000" step="10" value="1600" inputmode="decimal">
-      </label>
+      <small class="rafex-mekik-traverse-formula"></small>
       <small class="m2-foot-recommendation rafex-mekik-traverse-summary"></small>
     `;
     const select = placeholder.querySelector(".rafex-mekik-traverse-select");
-    const input = placeholder.querySelector(".rafex-mekik-traverse-load");
     const manualButton = placeholder.querySelector(".rafex-mekik-traverse-manual");
-    input?.addEventListener("input", () => updateTraverseChoice(placeholder));
     select?.addEventListener("change", () => updateTraverseChoice(placeholder, true));
     manualButton?.addEventListener("click", () => {
       const manual = manualButton.getAttribute("aria-pressed") !== "true";
