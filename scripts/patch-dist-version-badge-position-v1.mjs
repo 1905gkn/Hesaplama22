@@ -6,7 +6,7 @@ const match = source.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1\
 if (!match) throw new Error('HTML_BASE64 bulunamadi.');
 
 let html = Buffer.from(match[2], 'base64').toString('utf8');
-const marker = 'data-rafex-version-badge-position="v13"';
+const marker = 'data-rafex-version-badge-position="v14"';
 const buildSha = String(process.env.VERCEL_GIT_COMMIT_SHA || process.env.GITHUB_SHA || 'local').slice(0, 7);
 
 function istanbulStamp(date = new Date()) {
@@ -56,8 +56,8 @@ const style = `
     visibility:visible!important;
   }
   .top-actions>#rafexVersionInfoTop{display:flex!important;position:static!important;margin:0!important;transform:none!important;align-self:center!important;}
-  .top-actions>#rafexVersionInfoCard,
-  .top-actions>.rafex-version-info-card:not(#rafexVersionInfoTop){display:none!important;}
+  .top #rafexVersionInfoCard,
+  .top .rafex-version-info-card:not(#rafexVersionInfoTop){display:none!important;}
   #rafexVersionInfoLogin{display:none!important;position:fixed!important;right:18px!important;bottom:18px!important;top:auto!important;left:auto!important;margin:0!important;transform:none!important;z-index:99991!important;}
   body:has(#auth:not(.hidden)) #rafexVersionInfoLogin{display:flex!important;}
   body:has(#app:not(.hidden)) #rafexVersionInfoLogin{display:none!important;}
@@ -82,22 +82,40 @@ else throw new Error('body etiketi bulunamadi.');
 const dedupeScript = `
 <script ${marker}>
 (function(){
+  function normalized(el){
+    return String(el && (el.innerText || el.textContent) || '').replace(/\\s+/g,' ').trim().toLocaleLowerCase('tr-TR');
+  }
+  function isVersionCopy(el){
+    var txt=normalized(el);
+    return (txt.includes('son sürüm') || txt.includes('son surum')) && (txt.includes('yüklenme') || txt.includes('yuklenme'));
+  }
   function dedupe(){
     var keep=document.getElementById('rafexVersionInfoTop');
-    var actions=document.querySelector('.top-actions');
-    if(!keep||!actions)return;
-    Array.from(actions.children).forEach(function(el){
-      if(el===keep)return;
-      var txt=String(el.innerText||el.textContent||'').replace(/\\s+/g,' ').trim().toLocaleLowerCase('tr-TR');
-      if(txt.includes('son sürüm')||txt.includes('son surum')) el.style.setProperty('display','none','important');
+    var top=document.querySelector('.top');
+    if(!keep||!top)return;
+
+    Array.from(top.querySelectorAll('*')).forEach(function(el){
+      if(el===keep || el.contains(keep) || keep.contains(el)) return;
+      if(!isVersionCopy(el)) return;
+      el.style.setProperty('display','none','important');
+      el.setAttribute('data-rafex-version-duplicate-hidden','1');
     });
   }
-  new MutationObserver(dedupe).observe(document.documentElement,{subtree:true,childList:true});
-  window.addEventListener('load',dedupe);
-  document.addEventListener('click',function(){setTimeout(dedupe,0)},true);
-  dedupe();
-  setTimeout(dedupe,100);
-  setTimeout(dedupe,500);
+
+  var queued=false;
+  function schedule(){
+    if(queued)return;
+    queued=true;
+    requestAnimationFrame(function(){queued=false;dedupe();});
+  }
+
+  new MutationObserver(schedule).observe(document.documentElement,{subtree:true,childList:true});
+  window.addEventListener('load',schedule);
+  document.addEventListener('click',function(){setTimeout(schedule,0)},true);
+  schedule();
+  setTimeout(schedule,100);
+  setTimeout(schedule,500);
+  setTimeout(schedule,1200);
 })();
 </script>`;
 
@@ -110,4 +128,4 @@ const encoded = Buffer.from(html, 'utf8').toString('base64');
 source = source.replace(match[0], `const HTML_BASE64 =\n  "${encoded}";`);
 fs.writeFileSync(target, source);
 
-console.log(`Version badge position patch v13: global top restored, duplicates hidden: ${buildSha} @ ${buildTime}`);
+console.log(`Version badge position patch v14: one app-header card only: ${buildSha} @ ${buildTime}`);
