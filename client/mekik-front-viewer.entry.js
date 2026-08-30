@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 
-const MAIN_URL = "/mekikson2.glb";
+const MAIN_URL = "/mekik-son-hali.glb";
 const LEGACY_GEOMETRY_SELECTOR = [
   ".m2-front-load",
   ".m2-front-traverse-set",
@@ -41,7 +41,8 @@ function drawingValues() {
 
 function isMekikScreen() {
   try {
-    return typeof m2ActiveModule !== "undefined" && m2ActiveModule === "mekik2";
+    if (typeof m2ActiveModule === "undefined") return false;
+    return m2ActiveModule === "mekik" || m2ActiveModule === "mekik2";
   } catch {
     return false;
   }
@@ -80,21 +81,14 @@ function preserveOriginalModel(scene) {
 }
 
 function unionClientRect(nodes, fallbackRect) {
-  const rects = nodes
-    .map((node) => node.getBoundingClientRect())
-    .filter((rect) => rect.width > 0.5 && rect.height > 0.5);
+  const rects = nodes.map((node) => node.getBoundingClientRect()).filter((rect) => rect.width > 0.5 && rect.height > 0.5);
   if (!rects.length) return fallbackRect;
   return rects.reduce((result, rect) => ({
     left: Math.min(result.left, rect.left),
     top: Math.min(result.top, rect.top),
     right: Math.max(result.right, rect.right),
     bottom: Math.max(result.bottom, rect.bottom),
-  }), {
-    left: rects[0].left,
-    top: rects[0].top,
-    right: rects[0].right,
-    bottom: rects[0].bottom,
-  });
+  }), { left: rects[0].left, top: rects[0].top, right: rects[0].right, bottom: rects[0].bottom });
 }
 
 function overlayBounds(svg, shell) {
@@ -117,9 +111,7 @@ function overlayBounds(svg, shell) {
 
 function hideLegacyGeometry(svg) {
   svg.querySelectorAll(LEGACY_GEOMETRY_SELECTOR).forEach((node) => {
-    if (!node.hasAttribute("data-m2-glb-old-visibility")) {
-      node.setAttribute("data-m2-glb-old-visibility", node.style.visibility || "");
-    }
+    if (!node.hasAttribute("data-m2-glb-old-visibility")) node.setAttribute("data-m2-glb-old-visibility", node.style.visibility || "");
     node.style.visibility = "hidden";
   });
   svg.setAttribute("data-m2-glb-overlay", "true");
@@ -160,10 +152,7 @@ function installShell(stage) {
   if (existing) {
     const canvas = existing.querySelector(":scope > .m2-glb-front-canvas");
     const svg = existing.querySelector(":scope > svg");
-    if (canvas && svg) {
-      styleShell(existing, canvas, svg);
-      return { shell: existing, canvas, svg };
-    }
+    if (canvas && svg) { styleShell(existing, canvas, svg); return { shell: existing, canvas, svg }; }
     existing.remove();
   }
   const svg = stage.querySelector(":scope > svg");
@@ -172,7 +161,7 @@ function installShell(stage) {
   shell.className = "m2-glb-front-shell";
   const canvas = document.createElement("canvas");
   canvas.className = "m2-glb-front-canvas";
-  canvas.setAttribute("aria-label", "Mekik exact GLB front view");
+  canvas.setAttribute("aria-label", "Mekik GLB front view");
   svg.classList.add("m2-glb-front-overlay");
   shell.append(svg, canvas);
   stage.append(shell);
@@ -180,22 +169,14 @@ function installShell(stage) {
   return { shell, canvas, svg };
 }
 
-function disposeRenderer() {
-  if (!activeRenderer) return;
-  activeRenderer.dispose();
-  activeRenderer = null;
-}
+function disposeRenderer() { if (activeRenderer) { activeRenderer.dispose(); activeRenderer = null; } }
 
 function removeShell() {
   const stage = document.getElementById("m2Front");
   const shell = stage?.querySelector(":scope > .m2-glb-front-shell");
   if (!shell) return;
   const svg = shell.querySelector(":scope > svg");
-  if (svg) {
-    restoreLegacyGeometry(svg);
-    svg.classList.remove("m2-glb-front-overlay");
-    stage.insertBefore(svg, shell);
-  }
+  if (svg) { restoreLegacyGeometry(svg); svg.classList.remove("m2-glb-front-overlay"); stage.insertBefore(svg, shell); }
   shell.remove();
 }
 
@@ -212,7 +193,6 @@ async function renderFront(stage, force = false) {
   const key = renderKey(values, shell);
   if (!force && (shell.dataset.glbPending === key || shell.dataset.glbRenderKey === key)) return;
   shell.dataset.glbPending = key;
-
   const token = ++renderToken;
   const mainGltf = await loadTemplates();
   if (token !== renderToken || !canvas.isConnected || !isMekikScreen()) return;
@@ -220,7 +200,6 @@ async function renderFront(stage, force = false) {
   const width = Math.max(320, Math.round(shell.getBoundingClientRect().width || shell.clientWidth || 640));
   const height = Math.max(240, Math.round(shell.getBoundingClientRect().height || shell.clientHeight || 400));
   const target = overlayBounds(svg, shell);
-
   disposeRenderer();
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, preserveDrawingBuffer: true });
   activeRenderer = renderer;
@@ -232,18 +211,13 @@ async function renderFront(stage, force = false) {
   const scene = new THREE.Scene();
   scene.add(new THREE.HemisphereLight(0xffffff, 0x59635e, 2.0));
   scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-  const keyLight = new THREE.DirectionalLight(0xffffff, 2.4);
-  keyLight.position.set(-5000, 12000, -7000);
-  scene.add(keyLight);
-  const fillLight = new THREE.DirectionalLight(0xffffff, 1.2);
-  fillLight.position.set(7000, 9000, 1500);
-  scene.add(fillLight);
+  const keyLight = new THREE.DirectionalLight(0xffffff, 2.4); keyLight.position.set(-5000, 12000, -7000); scene.add(keyLight);
+  const fillLight = new THREE.DirectionalLight(0xffffff, 1.2); fillLight.position.set(7000, 9000, 1500); scene.add(fillLight);
 
   const source = preserveOriginalModel(mainGltf.scene.clone(true));
   source.updateMatrixWorld(true);
   const sourceBounds = objectBounds(source);
   const sourceSize = sourceBounds.getSize(new THREE.Vector3());
-
   const rack = new THREE.Group();
   for (let bay = 0; bay < values.bays; bay += 1) {
     const exactBay = preserveOriginalModel(mainGltf.scene.clone(true));
@@ -270,14 +244,7 @@ async function renderFront(stage, force = false) {
   const worldCenterUp = (worldUpMin + worldUpMax) / 2;
   const cameraCenterX = rackCenter.x - (desiredCenterX - width / 2) * worldPerPixel;
   const cameraCenterUp = worldCenterUp + (desiredCenterY - height / 2) * worldPerPixel;
-  const camera = new THREE.OrthographicCamera(
-    -frustumWidth / 2,
-    frustumWidth / 2,
-    frustumHeight / 2,
-    -frustumHeight / 2,
-    1,
-    100000,
-  );
+  const camera = new THREE.OrthographicCamera(-frustumWidth / 2, frustumWidth / 2, frustumHeight / 2, -frustumHeight / 2, 1, 100000);
   const cameraDistance = Math.max(12000, rackSize.y * 4);
   camera.position.set(cameraCenterX, rackBounds.max.y + cameraDistance, -cameraCenterUp);
   camera.up.set(0, 0, -1);
@@ -286,35 +253,27 @@ async function renderFront(stage, force = false) {
   renderer.render(scene, camera);
 
   hideLegacyGeometry(svg);
-  shell.dataset.glbSource = "mekikson2.glb";
-  shell.dataset.glbLayout = "exact-model-no-generated-geometry-v4";
+  shell.dataset.glbSource = "mekik-son-hali.glb";
+  shell.dataset.glbLayout = "mekik-main-screen-three-v5";
   shell.dataset.glbReady = "true";
   shell.dataset.glbRenderKey = key;
   delete shell.dataset.glbPending;
 }
 
 function refresh(force = false) {
-  if (!isMekikScreen()) {
-    ++renderToken;
-    disposeRenderer();
-    removeShell();
-    return;
-  }
+  if (!isMekikScreen()) { ++renderToken; disposeRenderer(); removeShell(); return; }
   const stage = document.getElementById("m2Front");
   if (!stage || (!stage.querySelector(":scope > svg") && !stage.querySelector(":scope > .m2-glb-front-shell"))) return;
   renderFront(stage, force).catch((error) => {
     const shell = stage.querySelector(":scope > .m2-glb-front-shell");
     if (shell) delete shell.dataset.glbPending;
-    console.error("Mekik exact GLB front view failed", error);
+    console.error("Mekik GLB front view failed", error);
   });
 }
 
 function scheduleRefresh(force = false) {
   if (refreshFrame) cancelAnimationFrame(refreshFrame);
-  refreshFrame = requestAnimationFrame(() => {
-    refreshFrame = 0;
-    refresh(force);
-  });
+  refreshFrame = requestAnimationFrame(() => { refreshFrame = 0; refresh(force); });
 }
 
 const observer = new MutationObserver(() => scheduleRefresh(false));
