@@ -6,7 +6,7 @@ const match = source.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1\
 if (!match) throw new Error('HTML_BASE64 bulunamadi.');
 
 let html = Buffer.from(match[2], 'base64').toString('utf8');
-const marker = 'data-rafex-version-badge-position="v14"';
+const marker = 'data-rafex-version-badge-position="v15"';
 const buildSha = String(process.env.VERCEL_GIT_COMMIT_SHA || process.env.GITHUB_SHA || 'local').slice(0, 7);
 
 function istanbulStamp(date = new Date()) {
@@ -21,10 +21,16 @@ function istanbulStamp(date = new Date()) {
 }
 const buildTime = istanbulStamp();
 
+// Tum eski surum badge enjeksiyonlarini ve bilinen eski elemanlari fiziksel olarak temizle.
 html = html
   .replace(/<style\s+data-rafex-version-badge-position="v\d+">[\s\S]*?<\/style>\s*/g, '')
   .replace(/<script\s+data-rafex-version-badge-position="v\d+">[\s\S]*?<\/script>\s*/g, '')
+  .replace(/<style\s+data-rafex-version-badge-top="v\d+">[\s\S]*?<\/style>\s*/g, '')
+  .replace(/<script\s+data-rafex-version-badge-top="v\d+">[\s\S]*?<\/script>\s*/g, '')
+  .replace(/<div\s+id="rafexVersionBadge"[^>]*>[\s\S]*?<\/div>\s*/g, '')
+  .replace(/<span\s+id="rafexVersionBadge"[^>]*>[\s\S]*?<\/span>\s*/g, '')
   .replace(/<span\s+id="rafexBuildVersionBadge"[^>]*>[\s\S]*?<\/span>\s*/g, '')
+  .replace(/<div\s+id="rafexVersionInfoCard"[^>]*>[\s\S]*?<\/div>\s*/g, '')
   .replace(/<div\s+id="rafexVersionInfoTop"[^>]*>[\s\S]*?<\/div>\s*/g, '')
   .replace(/<div\s+id="rafexVersionInfoLogin"[^>]*>[\s\S]*?<\/div>\s*/g, '');
 
@@ -34,7 +40,7 @@ const loginCard = `<div id="rafexVersionInfoLogin" class="rafex-version-info-car
 
 const style = `
 <style ${marker}>
-  #rafexVersionBadge,#rafexBuildVersionBadge{display:none!important;}
+  #rafexVersionBadge,#rafexBuildVersionBadge,#rafexVersionInfoCard{display:none!important;}
   .top-actions{display:flex!important;align-items:center!important;gap:8px!important;}
   .rafex-version-info-card{
     box-sizing:border-box!important;
@@ -56,8 +62,6 @@ const style = `
     visibility:visible!important;
   }
   .top-actions>#rafexVersionInfoTop{display:flex!important;position:static!important;margin:0!important;transform:none!important;align-self:center!important;}
-  .top #rafexVersionInfoCard,
-  .top .rafex-version-info-card:not(#rafexVersionInfoTop){display:none!important;}
   #rafexVersionInfoLogin{display:none!important;position:fixed!important;right:18px!important;bottom:18px!important;top:auto!important;left:auto!important;margin:0!important;transform:none!important;z-index:99991!important;}
   body:has(#auth:not(.hidden)) #rafexVersionInfoLogin{display:flex!important;}
   body:has(#app:not(.hidden)) #rafexVersionInfoLogin{display:none!important;}
@@ -82,6 +86,9 @@ else throw new Error('body etiketi bulunamadi.');
 const dedupeScript = `
 <script ${marker}>
 (function(){
+  if(window.__rafexSingleVersionCardV15)return;
+  window.__rafexSingleVersionCardV15=true;
+
   function normalized(el){
     return String(el && (el.innerText || el.textContent) || '').replace(/\\s+/g,' ').trim().toLocaleLowerCase('tr-TR');
   }
@@ -89,17 +96,33 @@ const dedupeScript = `
     var txt=normalized(el);
     return (txt.includes('son sürüm') || txt.includes('son surum')) && (txt.includes('yüklenme') || txt.includes('yuklenme'));
   }
-  function dedupe(){
-    var keep=document.getElementById('rafexVersionInfoTop');
-    var top=document.querySelector('.top');
-    if(!keep||!top)return;
-
-    Array.from(top.querySelectorAll('*')).forEach(function(el){
-      if(el===keep || el.contains(keep) || keep.contains(el)) return;
-      if(!isVersionCopy(el)) return;
-      el.style.setProperty('display','none','important');
-      el.setAttribute('data-rafex-version-duplicate-hidden','1');
+  function removeKnownLegacy(){
+    ['rafexVersionBadge','rafexBuildVersionBadge','rafexVersionInfoCard'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el) el.remove();
     });
+  }
+  function removeVisibleDuplicateCards(){
+    var keep=document.getElementById('rafexVersionInfoTop');
+    var login=document.getElementById('rafexVersionInfoLogin');
+    if(!document.body)return;
+
+    Array.from(document.body.querySelectorAll('*')).forEach(function(el){
+      if(el===keep || el===login) return;
+      if((keep && keep.contains(el)) || (login && login.contains(el))) return;
+      if(!isVersionCopy(el)) return;
+
+      var aria=String(el.getAttribute && el.getAttribute('aria-label') || '').toLocaleLowerCase('tr-TR');
+      var r=el.getBoundingClientRect ? el.getBoundingClientRect() : {width:0,height:0};
+      var cardSized=r.width>=120 && r.width<=360 && r.height>=28 && r.height<=100;
+      var labelled=aria.includes('son sürüm') || aria.includes('son surum');
+      var knownClass=el.classList && (el.classList.contains('rafex-version-info-card') || el.classList.contains('version-badge') || el.classList.contains('version-info'));
+      if(cardSized || labelled || knownClass) el.remove();
+    });
+  }
+  function dedupe(){
+    removeKnownLegacy();
+    removeVisibleDuplicateCards();
   }
 
   var queued=false;
@@ -112,10 +135,13 @@ const dedupeScript = `
   new MutationObserver(schedule).observe(document.documentElement,{subtree:true,childList:true});
   window.addEventListener('load',schedule);
   document.addEventListener('click',function(){setTimeout(schedule,0)},true);
+  window.addEventListener('hashchange',schedule);
   schedule();
   setTimeout(schedule,100);
   setTimeout(schedule,500);
   setTimeout(schedule,1200);
+  setTimeout(schedule,3000);
+  setInterval(schedule,2000);
 })();
 </script>`;
 
@@ -124,8 +150,13 @@ else html = style + html;
 if (html.includes('</body>')) html = html.replace('</body>', dedupeScript + '\n</body>');
 else html += dedupeScript;
 
+const count = (needle) => html.split(needle).length - 1;
+if (count('id="rafexVersionInfoTop"') !== 1) throw new Error('Version top card sayisi 1 degil.');
+if (count('id="rafexVersionInfoLogin"') !== 1) throw new Error('Version login card sayisi 1 degil.');
+if (/data-rafex-version-badge-top="v\d+"/.test(html)) throw new Error('Legacy version badge generator build icinde kaldi.');
+
 const encoded = Buffer.from(html, 'utf8').toString('base64');
 source = source.replace(match[0], `const HTML_BASE64 =\n  "${encoded}";`);
 fs.writeFileSync(target, source);
 
-console.log(`Version badge position patch v14: one app-header card only: ${buildSha} @ ${buildTime}`);
+console.log(`Version badge position patch v15: legacy generator stripped, duplicate cards physically removed: ${buildSha} @ ${buildTime}`);
