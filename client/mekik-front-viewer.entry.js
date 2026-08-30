@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v3";
+const ASSET_VERSION = "mekik-front-glb-v4";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -38,6 +38,10 @@ function readConfig() {
   const bays = Math.round(numberFrom("m2Bays", Number(drawing?.bays) || 4, 1, 50));
   const levels = Math.round(numberFrom("m2Levels", Number(drawing?.levels) || 4, 1, 15));
   const palletWidth = numberFrom("m2PalW", Number(drawing?.palW) || 1200, 600, 1800);
+  const palletDepthChoice = document.getElementById("m2PalD")?.value;
+  const palletDepth = palletDepthChoice === "other"
+    ? numberFrom("m2PalDOther", Number(drawing?.palD) || 800, 1, 3000)
+    : clamp(Number(palletDepthChoice) || Number(drawing?.palD) || 800, 1, 3000);
   const palletHeight = numberFrom("m2LevelH", Number(drawing?.palletHeight) || 1200, 300, 3000);
   const firstLevelHeight = numberFrom("m2FirstLevelHeight", Number(drawing?.firstRailHeight) || 430, 0, 5000);
   const requestedSpacing = numberFrom("m2LevelSpacing", Number(drawing?.levelH) || 1580, 380, 5000);
@@ -49,6 +53,7 @@ function readConfig() {
     bays,
     levels,
     palletWidth,
+    palletDepth,
     palletHeight,
     firstLevelHeight,
     levelSpacing,
@@ -91,7 +96,38 @@ function prepareTemplate(scene, type) {
   return {
     root,
     size: normalizedBounds.getSize(new THREE.Vector3()),
+    topOffset: normalizedBounds.max.z,
     source: type === "upright" ? "mekik 3ayak(2).glb" : "mekik 3travers(2).glb",
+  };
+}
+
+function preparePalletTemplate(scene) {
+  const source = scene.clone(true);
+  source.scale.z = -1;
+  source.traverse((part) => {
+    if (!part.isMesh) return;
+    const upper = String(part.name || "").toLocaleUpperCase("tr-TR");
+    part.material = new THREE.MeshStandardMaterial({
+      color: upper.includes("PALET") ? 0x9a6028 : 0xa96f35,
+      metalness: 0.04,
+      roughness: 0.94,
+    });
+    part.castShadow = false;
+    part.receiveShadow = false;
+    part.frustumCulled = true;
+  });
+  source.updateMatrixWorld(true);
+  const bounds = new THREE.Box3().setFromObject(source);
+  const center = bounds.getCenter(new THREE.Vector3());
+  source.position.add(new THREE.Vector3(-center.x, -center.y, -bounds.min.z));
+  const root = new THREE.Group();
+  root.add(source);
+  root.updateMatrixWorld(true);
+  const normalizedBounds = new THREE.Box3().setFromObject(root);
+  return {
+    root,
+    size: normalizedBounds.getSize(new THREE.Vector3()),
+    source: "PALET (1).glb",
   };
 }
 
@@ -102,9 +138,11 @@ async function loadModels() {
     sharedModelsPromise = Promise.all([
       loader.loadAsync(source("ayak")),
       loader.loadAsync(source("travers")),
-    ]).then(([upright, traverse]) => ({
+      loader.loadAsync(source("palet")),
+    ]).then(([upright, traverse, pallet]) => ({
       upright: prepareTemplate(upright.scene, "upright"),
       traverse: prepareTemplate(traverse.scene, "traverse"),
+      pallet: preparePalletTemplate(pallet.scene),
     })).catch((error) => {
       sharedModelsPromise = null;
       throw error;
@@ -171,7 +209,7 @@ class MekikFrontViewer {
   }
 
   configKey(config = this.config) {
-    return [config.bays, config.levels, config.palletWidth, config.palletHeight, config.firstLevelHeight, config.levelSpacing, config.footType, config.uprightHeight].join("|");
+    return [config.bays, config.levels, config.palletWidth, config.palletDepth, config.palletHeight, config.firstLevelHeight, config.levelSpacing, config.footType, config.uprightHeight].join("|");
   }
 
   update() {
@@ -200,14 +238,24 @@ class MekikFrontViewer {
     }
 
     const traverseScaleX = config.bayPitch / REFERENCE_BAY_PITCH;
+    const palletScaleX = config.palletWidth / Math.max(1, this.models.pallet.size.x);
+    const palletScaleY = config.palletDepth / Math.max(1, this.models.pallet.size.y);
+    const bracketTopOffset = this.models.traverse.topOffset;
     for (let level = 0; level < config.levels; level += 1) {
       const supportZ = config.firstLevelHeight + level * config.levelSpacing;
       for (let bay = 0; bay < config.bays; bay += 1) {
+        const bayCenterX = (bay + 0.5) * config.bayPitch;
         const traverse = this.models.traverse.root.clone(true);
         traverse.name = `Mekik Travers G${bay + 1} K${level + 1}`;
         traverse.scale.set(traverseScaleX, 1, 1);
-        traverse.position.set((bay + 0.5) * config.bayPitch, 0, supportZ);
+        traverse.position.set(bayCenterX, 0, supportZ);
         this.root.add(traverse);
+
+        const pallet = this.models.pallet.root.clone(true);
+        pallet.name = `Mekik Paletli Yük G${bay + 1} K${level + 1}`;
+        pallet.scale.set(palletScaleX, palletScaleY, 1);
+        pallet.position.set(bayCenterX, 0, supportZ + bracketTopOffset);
+        this.root.add(pallet);
       }
     }
 
@@ -227,7 +275,7 @@ class MekikFrontViewer {
     this.render();
     this.canvas.dispatchEvent(new CustomEvent("rafex-mekik-front-ready", {
       detail: {
-        sources: ["mekik 3tam(3).glb", this.models.upright.source, this.models.traverse.source],
+        sources: ["mekik 3tam(3).glb", this.models.upright.source, this.models.traverse.source, this.models.pallet.source],
         config: { ...config },
       },
     }));
