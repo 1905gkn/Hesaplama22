@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v15";
+const ASSET_VERSION = "mekik-front-glb-v16";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -448,6 +448,9 @@ function updateTraverseChoice(panel, keepSelection = false) {
   const totalPalletLoad = palletWeight * depth * levels;
   const levelLoad = totalPalletLoad / levels;
   const load = levelLoad / divisor;
+  document.querySelectorAll(".rafex-mekik-traverse-load-value").forEach((node) => {
+    node.textContent = `${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(load)} kg`;
+  });
   const manual = manualButton.getAttribute("aria-pressed") === "true";
   formula.textContent = `${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(totalPalletLoad)} ÷ ${levels} ÷ ${divisor} = ${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(load)} kg · ${system.toUpperCase()} · ${hasExtra ? "ekstra profil var" : "ekstra profil yok"}`;
   const previous = keepSelection ? select.value : "";
@@ -505,6 +508,10 @@ function ensureTraverseCalculator() {
     metric.innerHTML = '<small>KANALDAKİ TRAVERS ADEDİ</small><b class="rafex-mekik-channel-traverse-count">—</b>';
     const rowMate = totalMetric.nextElementSibling?.classList.contains("m2-metric") ? totalMetric.nextElementSibling : totalMetric;
     rowMate.insertAdjacentElement("afterend", metric);
+    const loadMetric = document.createElement("div");
+    loadMetric.className = "m2-metric rafex-mekik-traverse-load-metric";
+    loadMetric.innerHTML = '<small>TRAVERS BAŞINA GELEN YÜK</small><b class="rafex-mekik-traverse-load-value">—</b>';
+    metric.insertAdjacentElement("afterend", loadMetric);
   }
   for (const placeholder of document.querySelectorAll(".m2-traverse-placeholder")) {
     if (placeholder.dataset.rafexTraverseChoice === "ready") {
