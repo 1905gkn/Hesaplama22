@@ -1,12 +1,11 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v7";
+const ASSET_VERSION = "mekik-front-glb-v8";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
 const TRAVERSE_HEIGHT = 80;
-const MINIMUM_PALLET_CLEARANCE = 300;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 let sharedModelsPromise = null;
@@ -15,6 +14,15 @@ function numberFrom(id, fallback, min, max) {
   const node = document.getElementById(id);
   const value = Number(node?.value);
   return clamp(Number.isFinite(value) ? value : fallback, min, max);
+}
+
+function numberFromAny(ids, fallback, min, max) {
+  for (const id of ids) {
+    const node = document.getElementById(id);
+    const value = Number(node?.value);
+    if (Number.isFinite(value)) return clamp(value, min, max);
+  }
+  return clamp(Number.isFinite(Number(fallback)) ? Number(fallback) : min, min, max);
 }
 
 function activeDrawing() {
@@ -47,7 +55,14 @@ function readConfig() {
     : clamp(Number(palletDepthChoice) || Number(drawing?.palD) || 800, 1, 3000);
   const palletHeight = numberFrom("m2LevelH", Number(drawing?.palletHeight) || 1200, 300, 3000);
   const firstLevelHeight = numberFrom("m2FirstLevelHeight", Number(drawing?.firstRailHeight) || 430, 0, 5000);
-  const calculatedSpacing = palletHeight + TRAVERSE_HEIGHT + MINIMUM_PALLET_CLEARANCE;
+  const palletClearance = numberFromAny(
+    ["m2PalletGap", "m2PalGap", "m2PalletClearance", "m2Gap"],
+    Number(drawing?.palletGap ?? drawing?.palGap ?? drawing?.palletClearance ?? drawing?.gap) || 300,
+    0,
+    2000,
+  );
+  // Kat aksı: paletli yük (Euro palet dahil) + ray/travers yüksekliği + iki palet arası net boşluk.
+  const calculatedSpacing = palletHeight + TRAVERSE_HEIGHT + palletClearance;
   const requestedSpacing = numberFrom("m2LevelSpacing", Number(drawing?.levelH) || calculatedSpacing, 380, 5000);
   const levelSpacing = Math.max(calculatedSpacing, requestedSpacing);
   const footType = clamp(Number(drawing?.footType) || numberFrom("m2FootType", 100, 60, 200), 60, 200);
@@ -59,6 +74,7 @@ function readConfig() {
     palletWidth,
     palletDepth,
     palletHeight,
+    palletClearance,
     firstLevelHeight,
     levelSpacing,
     footType,
@@ -213,7 +229,7 @@ class MekikFrontViewer {
   }
 
   configKey(config = this.config) {
-    return [config.bays, config.levels, config.palletWidth, config.palletDepth, config.palletHeight, config.firstLevelHeight, config.levelSpacing, config.footType, config.uprightHeight].join("|");
+    return [config.bays, config.levels, config.palletWidth, config.palletDepth, config.palletHeight, config.palletClearance, config.firstLevelHeight, config.levelSpacing, config.footType, config.uprightHeight].join("|");
   }
 
   update() {
