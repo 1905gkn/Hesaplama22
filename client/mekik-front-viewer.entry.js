@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v13";
+const ASSET_VERSION = "mekik-front-glb-v14";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -442,6 +442,9 @@ function updateTraverseChoice(panel, keepSelection = false) {
       ? (footCount * 2) - (hasExtra ? 0 : 1)
       : (footCount * 2) - (hasExtra ? 1 : 2)
   );
+  document.querySelectorAll(".rafex-mekik-channel-traverse-count").forEach((node) => {
+    node.textContent = `${new Intl.NumberFormat("tr-TR").format(divisor)} adet`;
+  });
   const totalPalletLoad = palletWeight * depth * levels;
   const levelLoad = totalPalletLoad / levels;
   const load = levelLoad / divisor;
@@ -494,6 +497,15 @@ function ensureTraverseCalculator() {
   }
 
   document.querySelectorAll(".rafex-mekik-traverse-calc").forEach((node) => node.remove());
+  for (const totalValue of document.querySelectorAll('[id="m2TotalPalletLoad"]')) {
+    const totalMetric = totalValue.closest(".m2-metric");
+    if (!totalMetric || totalMetric.parentElement?.querySelector(".rafex-mekik-channel-traverse-metric")) continue;
+    const metric = document.createElement("div");
+    metric.className = "m2-metric rafex-mekik-channel-traverse-metric";
+    metric.innerHTML = '<small>KANALDAKİ TRAVERS ADEDİ</small><b class="rafex-mekik-channel-traverse-count">—</b>';
+    const rowMate = totalMetric.nextElementSibling?.classList.contains("m2-metric") ? totalMetric.nextElementSibling : totalMetric;
+    rowMate.insertAdjacentElement("afterend", metric);
+  }
   for (const placeholder of document.querySelectorAll(".m2-traverse-placeholder")) {
     if (placeholder.dataset.rafexTraverseChoice === "ready") {
       updateTraverseChoice(placeholder, true);
