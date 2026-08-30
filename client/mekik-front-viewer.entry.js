@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 
-const MAIN_URL = "/mekikson2.glb";
+const MAIN_URL = "/mekik-son-hali.glb";
 const LEGACY_GEOMETRY_SELECTOR = [
   ".m2-front-load",
   ".m2-front-traverse-set",
@@ -247,8 +247,8 @@ async function renderFront(stage, force = false) {
   renderer.render(scene, camera);
 
   hideLegacyGeometry(svg);
-  shell.dataset.glbSource = "mekikson2.glb";
-  shell.dataset.glbLayout = "exact-upload-single-model-v6";
+  shell.dataset.glbSource = "mekikson2(2).glb";
+  shell.dataset.glbLayout = "exact-upload-single-model-v7";
   shell.dataset.glbReady = "true";
   shell.dataset.glbRenderKey = key;
   delete shell.dataset.glbPending;
