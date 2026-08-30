@@ -437,8 +437,10 @@ function syncMekikLevelSpacing(panel, selectedTraverse) {
   const current = Number(levelInput.value);
   const manuallyChanged = levelInput.dataset.rafexLevelSpacingManual === "1";
   if (!manuallyChanged || current === previousAutomatic) {
+    const changed = current !== automaticSpacing;
     levelInput.value = String(automaticSpacing);
     levelInput.dataset.rafexLevelSpacingManual = "0";
+    if (changed) levelInput.dispatchEvent(new Event("input", { bubbles: true }));
   }
   levelInput.dataset.rafexAutomaticSpacing = String(automaticSpacing);
 
