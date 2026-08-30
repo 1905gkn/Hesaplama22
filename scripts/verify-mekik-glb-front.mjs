@@ -1,44 +1,29 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import crypto from "node:crypto";
 
-const read = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url));
-const text = (path) => read(path).toString("utf8");
-const hash = (value) => crypto.createHash("sha256").update(value).digest("hex");
+const readText = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
-const mainParts = fs.readdirSync(new URL("../assets/mekik-son-hali.b64.parts/", import.meta.url))
-  .sort()
-  .map((name) => read(`assets/mekik-son-hali.b64.parts/${name}`).toString("ascii"));
-const main = Buffer.from(mainParts.join(""), "base64");
-assert.equal(main.length, 2_006_944);
-assert.equal(hash(main), "fc784a115cf36a33c1837a59b2d0aa81c7875ae0abda12889cdbac23904ad781");
+const nativePatch = readText("scripts/patch-mekik-native-front-details-v13.mjs");
+const vercel = readText("vercel.json");
+const pkg = readText("package.json");
 
-const source = text("client/mekik-front-viewer.entry.js");
-assert.match(source, /DRACOLoader/);
-assert.match(source, /const MAIN_URL = "\/mekik-son-hali\.glb"/);
-assert.match(source, /HR 100 5500 D1050 MONTAJ - HR 100 AYAK 5500 -12\\\.001/);
-assert.match(source, /HRTD100-14\\\.001/);
-assert.match(source, /MEKIK TRAVERS MONTA L1500-14/);
-assert.match(source, /MEKIK TRAVERS 40X80X2 PROFIL-1\\\.001/);
-assert.match(source, /CC100 KONNEKTÖR-\[12\]\\\.001/);
-assert.match(source, /BRAKET YENİ R3-9\\\.001/);
-assert.match(source, /BRAKET YENİ R3-11\\\.001/);
-assert.match(source, /const UPRIGHT_SELECTOR = "\.m2-front-upright"/);
-assert.match(source, /const TRAVERS_SELECTOR = "\.m2-front-traverse-set"/);
-assert.match(source, /uprightRects\.forEach/);
-assert.match(source, /traversRects\.forEach/);
-assert.match(source, /dataset\.glbLayout = "mekik3-exact-components-v99"/);
-assert.match(source, /dataset\.glbReady = "true"/);
-assert.doesNotMatch(source, /L1500-28/);
+assert.match(nativePatch, /m2MekikSetProjection\('front'/);
+assert.match(nativePatch, /rafex-mekik-native-front-v13/);
+assert.match(nativePatch, /ÖNDEN GÖRÜNÜŞ/);
+assert.match(vercel, /bash scripts\/vercel-git-build\.sh/);
+assert.doesNotMatch(vercel, /patch-mekik-real-front-v95/);
+assert.match(pkg, /patch-mekik-native-front-details-v13\.mjs/);
+assert.doesNotMatch(pkg, /patch-mekik-real-front-v95\.mjs/);
 
-assert.equal(hash(read("dist/mekik-son-hali.glb")), hash(main));
-assert.ok(read("dist/mekik-front-viewer.js").length > 100_000);
+const serverUrl = new URL("../dist/server/index.js", import.meta.url);
+if (fs.existsSync(serverUrl)) {
+  const server = fs.readFileSync(serverUrl, "utf8");
+  const encodedPortal = server.match(/^const HTML_BASE64\s*=\s*"([^"]+)";/m)?.[1];
+  assert.ok(encodedPortal, "Build icindeki portal bulunamadi");
+  const portal = Buffer.from(encodedPortal, "base64").toString("utf8");
+  assert.match(portal, /data-rafex-mekik-native-front-details="v13"/);
+  assert.match(portal, /rafex-mekik-native-front-v13/);
+  assert.doesNotMatch(portal, /data-rafex-mekik-real-glb-front="v95"/);
+}
 
-const server = text("dist/server/index.js");
-const encodedPortal = server.match(/^const HTML_BASE64\s*=\s*"([^"]+)";/m)?.[1];
-assert.ok(encodedPortal, "Build icindeki portal bulunamadi");
-const portal = Buffer.from(encodedPortal, "base64").toString("utf8");
-assert.match(portal, /mekik-front-viewer\.js/);
-assert.doesNotMatch(portal, /data-rafex-mekik-glb-front="v94"/);
-
-console.log("Mekik on gorunumu Mekik 3 ayak/travers exact node haritasina bagli: HR100+HRTD100 ve L1500-14+CC100+iki braket.");
+console.log("Mekik on gorunumu eski sitedeki native SVG projection mantigina geri alindi; GLB v95 override kapali.");
