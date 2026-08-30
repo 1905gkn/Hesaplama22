@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v2";
+const ASSET_VERSION = "mekik-front-glb-v3";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -68,9 +68,9 @@ function materialFor(name) {
 }
 
 function prepareTemplate(scene, type) {
-  const root = scene.clone(true);
+  const source = scene.clone(true);
   let profile = null;
-  root.traverse((part) => {
+  source.traverse((part) => {
     if (!part.isMesh) return;
     part.material = materialFor(part.name);
     part.castShadow = false;
@@ -78,12 +78,14 @@ function prepareTemplate(scene, type) {
     part.frustumCulled = true;
     if (type === "traverse" && String(part.name || "").toLocaleUpperCase("tr-TR").includes("PROFIL")) profile = part;
   });
-  root.updateMatrixWorld(true);
-  const bounds = new THREE.Box3().setFromObject(root);
+  source.updateMatrixWorld(true);
+  const bounds = new THREE.Box3().setFromObject(source);
   const center = bounds.getCenter(new THREE.Vector3());
   let zeroZ = bounds.min.z;
   if (type === "traverse" && profile) zeroZ = new THREE.Box3().setFromObject(profile).max.z;
-  root.position.add(new THREE.Vector3(-center.x, -center.y, -zeroZ));
+  source.position.add(new THREE.Vector3(-center.x, -center.y, -zeroZ));
+  const root = new THREE.Group();
+  root.add(source);
   root.updateMatrixWorld(true);
   const normalizedBounds = new THREE.Box3().setFromObject(root);
   return {

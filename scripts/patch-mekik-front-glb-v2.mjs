@@ -46,7 +46,7 @@ const frontRuntime = String.raw`<style data-rafex-mekik-front-glb="v2">
 #m2Front[data-rafex-mekik-front-glb="v2"]>.rafex-mekik-front-info-v2{position:absolute;left:12px;bottom:12px;z-index:2;padding:7px 10px;border:1px solid rgba(23,60,45,.22);border-radius:7px;background:rgba(255,255,255,.9);color:#173c2d;font:900 12px/1.2 Arial,sans-serif;box-shadow:0 5px 16px rgba(20,43,34,.1);pointer-events:none}
 @media(max-width:760px){#m2Front[data-rafex-mekik-front-glb="v2"],#m2Front[data-rafex-mekik-front-glb="v2"]>.rafex-mekik-front-glb-canvas-v2{min-height:400px!important}}
 </style>
-<script data-rafex-mekik-front-glb="v2" src="/mekik-front-viewer.js?v=mekik-front-glb-v2"></script>`;
+<script data-rafex-mekik-front-glb="v2" src="/mekik-front-viewer.js?v=mekik-front-glb-v3"></script>`;
 
 const bodyEnd = html.lastIndexOf("</body>");
 if (bodyEnd < 0) throw new Error("Mekik front GLB v2: </body> bulunamadi.");
@@ -79,4 +79,3 @@ for (const marker of [
 
 fs.writeFileSync(workerPath, worker);
 console.log("Mekik front GLB v2: tam montaj referansi + dinamik ayak/travers renderer yalniz Mekik on gorunusune eklendi.");
-
