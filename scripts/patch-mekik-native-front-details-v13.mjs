@@ -11,36 +11,6 @@ html = html
   .replace(/<style\s+data-rafex-mekik-native-front-details="v13">[\s\S]*?<\/style>\s*/g, "")
   .replace(/<script\s+data-rafex-mekik-native-front-details="v13">[\s\S]*?<\/script>\s*/g, "");
 
-// Mekik ana ekraninda AYAK2 PNG/raster ayak katmanini kaldir.
-// Yalnizca front projection icindeki upright dongusu degisir; side/top/B2B dokunulmaz.
-const rasterUprightLoop = /for\s*\(let\s+upright\s*=\s*0;\s*upright\s*<=\s*bays;\s*upright\+\+\)\s*\{[\s\S]{0,5000}?m2-front-upright--ayak2-glb[\s\S]{0,5000}?\}\s*(?=\[\.\.\.new Set\(\(Array\.isArray\(drawing\?\.topVBraceBays\))/;
-if (!rasterUprightLoop.test(html)) throw new Error("Mekik native front/details v13: AYAK2 raster upright dongusu bulunamadi.");
-const nativeUprightLoop = String.raw`for (let upright = 0; upright <= bays; upright++) {
-            const postX = marginX + upright * bayPitch + uprightWidth / 2,
-              postTopY = floorY - rackHeight,
-              postBodyWidth = Math.max(86, uprightWidth),
-              footHeight = Math.max(58, Math.min(108, rackHeight * 0.018)),
-              footWidth = Math.max(baseWidth, postBodyWidth * 1.72),
-              postLeft = postX - postBodyWidth / 2,
-              footLeft = postX - footWidth / 2,
-              holeTop = postTopY + 74,
-              holeBottom = floorY - footHeight - 42;
-            posts += \`<g class=\"m2-front-upright m2-front-upright--native\" data-projection=\"front\" data-upright-source=\"native-svg\" data-upright-finish=\"galvanized\"><rect class=\"m2-front-post\" x=\"\${postLeft}\" y=\"\${postTopY}\" width=\"\${postBodyWidth}\" height=\"\${rackHeight}\" rx=\"8\"/><path class=\"m2-front-post-edge\" d=\"M\${postLeft + postBodyWidth * .22} \${postTopY + 10}V\${floorY - footHeight - 8}\"/><line class=\"m2-front-post-holes\" x1=\"\${postX}\" y1=\"\${holeTop}\" x2=\"\${postX}\" y2=\"\${holeBottom}\"/><rect class=\"m2-front-base\" x=\"\${footLeft}\" y=\"\${floorY - footHeight}\" width=\"\${footWidth}\" height=\"\${footHeight}\" rx=\"8\"/><circle class=\"m2-front-bolt\" cx=\"\${postX - footWidth * .28}\" cy=\"\${floorY - footHeight * .42}\" r=\"10\"/><circle class=\"m2-front-bolt\" cx=\"\${postX + footWidth * .28}\" cy=\"\${floorY - footHeight * .42}\" r=\"10\"/></g>\`;
-          }
-          `;
-html = html.replace(rasterUprightLoop, nativeUprightLoop);
-
-html = html.replace(
-  'data-glb-assembly="ayak2-ray-travers-palet" data-front-layout="ayak2-glb-front-projection" data-upright-source="AYAK2.glb"',
-  'data-front-layout="native-svg-front-projection" data-upright-source="native-svg"'
-);
-
-// Build sirasinda enjekte edilen agir AYAK2 PNG artik kullanilmiyor; final HTML'den bosalt.
-html = html.replace(
-  /const m2Ayak2FrontRaster = "data:image\/png;base64,[A-Za-z0-9+/=]+";/,
-  'const m2Ayak2FrontRaster = "";'
-);
-
 const runtime = String.raw`<style data-rafex-mekik-native-front-details="v13">
 /* Son otorite: Mekik yarim sayfada kalir, on/yan esit yuksekliktedir. */
 .m2-corporate-type-card[data-rafex-system="mekik2"]{
@@ -135,4 +105,4 @@ html = html.slice(0, bodyEnd) + runtime + html.slice(bodyEnd);
 const encoded = Buffer.from(html, "utf8").toString("base64");
 worker = worker.slice(0, match.index) + match[1] + match[2] + encoded + match[2] + worker.slice(match.index + match[0].length);
 fs.writeFileSync(workerPath, worker);
-console.log("FINAL v13: Mekik on gorunuste AYAK2 raster kaldirildi; native SVG ayak/taban aktif. Yan/ust/B2B degismedi.");
+console.log("FINAL v13: Mekik detayli native on gorunus geri geldi; yesil bilgi etiketleri ve esit on/yan slotlari restore edildi.");
