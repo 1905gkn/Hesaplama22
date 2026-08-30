@@ -16,15 +16,20 @@ assert.equal(hash(main), "fc784a115cf36a33c1837a59b2d0aa81c7875ae0abda12889cdbac
 const source = text("client/mekik-front-viewer.entry.js");
 assert.match(source, /DRACOLoader/);
 assert.match(source, /const MAIN_URL = "\/mekik-son-hali\.glb"/);
-assert.match(source, /HR 100 AYAK 5500/);
-assert.match(source, /MEKIK TRAVERS MONTA L1500-28/);
-assert.match(source, /MEKIK TRAVERS 40X80X2 PROFIL\|CC100 KONNEKTÖR/);
+assert.match(source, /HR 100 5500 D1050 MONTAJ - HR 100 AYAK 5500 -12\\\.001/);
+assert.match(source, /HRTD100-14\\\.001/);
+assert.match(source, /MEKIK TRAVERS MONTA L1500-14/);
+assert.match(source, /MEKIK TRAVERS 40X80X2 PROFIL-1\\\.001/);
+assert.match(source, /CC100 KONNEKTÖR-\[12\]\\\.001/);
+assert.match(source, /BRAKET YENİ R3-9\\\.001/);
+assert.match(source, /BRAKET YENİ R3-11\\\.001/);
 assert.match(source, /const UPRIGHT_SELECTOR = "\.m2-front-upright"/);
 assert.match(source, /const TRAVERS_SELECTOR = "\.m2-front-traverse-set"/);
 assert.match(source, /uprightRects\.forEach/);
 assert.match(source, /traversRects\.forEach/);
-assert.match(source, /dataset\.glbLayout = "uploaded-exact-node-map-v98"/);
+assert.match(source, /dataset\.glbLayout = "mekik3-exact-components-v99"/);
 assert.match(source, /dataset\.glbReady = "true"/);
+assert.doesNotMatch(source, /L1500-28/);
 
 assert.equal(hash(read("dist/mekik-son-hali.glb")), hash(main));
 assert.ok(read("dist/mekik-front-viewer.js").length > 100_000);
@@ -36,4 +41,4 @@ const portal = Buffer.from(encodedPortal, "base64").toString("utf8");
 assert.match(portal, /mekik-front-viewer\.js/);
 assert.doesNotMatch(portal, /data-rafex-mekik-glb-front="v94"/);
 
-console.log("Mekik on gorunumu yeni ayak/travers GLB node adlarina gore exact ana GLB'den kuruluyor; eski v94 override yok.");
+console.log("Mekik on gorunumu Mekik 3 ayak/travers exact node haritasina bagli: HR100+HRTD100 ve L1500-14+CC100+iki braket.");
