@@ -6,7 +6,7 @@ const match = source.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1\
 if (!match) throw new Error('HTML_BASE64 bulunamadi.');
 
 let html = Buffer.from(match[2], 'base64').toString('utf8');
-const marker = 'data-rafex-version-badge-position="v1"';
+const marker = 'data-rafex-version-badge-position="v2"';
 
 if (!html.includes(marker)) {
   const style = `
@@ -54,12 +54,12 @@ if (!html.includes(marker)) {
     return s.display!=='none' && s.visibility!=='hidden';
   }
   function findBadge(){
+    var direct=document.querySelector('[aria-label="Son surum bilgisi"],[aria-label="Son sürüm bilgisi"],[data-version-badge],[data-rafex-version-badge]');
+    if(direct) return direct;
     var nodes=Array.from(document.querySelectorAll('body *')).filter(function(el){
       if(['SCRIPT','STYLE','NOSCRIPT'].includes(el.tagName)) return false;
       var text=cleanText(el);
-      var hasVersion=text.includes('son sürüm') || text.includes('son surum');
-      var hasLoaded=text.includes('yüklenme') || text.includes('yuklenme');
-      return hasVersion && hasLoaded;
+      return text.includes('son sürüm') || text.includes('son surum');
     });
     nodes.sort(function(a,b){
       var childDiff=a.querySelectorAll('*').length-b.querySelectorAll('*').length;
@@ -68,27 +68,30 @@ if (!html.includes(marker)) {
     });
     return nodes[0] || null;
   }
+  function findHistory(actions){
+    if(!actions) return null;
+    var history=actions.querySelector('.history-top');
+    if(history) return history;
+    return Array.from(actions.children).find(function(el){
+      var text=cleanText(el);
+      return text.includes('proje geçmişi') || text.includes('proje gecmisi');
+    }) || null;
+  }
   function placeBadge(){
     var badge=findBadge();
     if(!badge) return;
     badge.classList.add('rafex-version-badge-managed');
-    var auth=document.querySelector('.auth');
-    var shell=document.querySelector('.shell');
-    var loginMode=isVisible(auth) && !isVisible(shell);
-    if(loginMode){
+    var actions=document.querySelector('.top-actions');
+    var appMode=!!actions && isVisible(actions);
+    if(!appMode){
       badge.classList.remove('rafex-version-badge-top');
       badge.classList.add('rafex-version-badge-login');
       if(badge.parentElement!==document.body) document.body.appendChild(badge);
       return;
     }
-    var actions=document.querySelector('.top-actions');
-    if(!actions) return;
     badge.classList.remove('rafex-version-badge-login');
     badge.classList.add('rafex-version-badge-top');
-    var history=actions.querySelector('.history-top');
-    if(!history){
-      history=Array.from(actions.children).find(function(el){return cleanText(el).includes('proje geçmişi');}) || null;
-    }
+    var history=findHistory(actions);
     if(history){
       if(history.nextElementSibling!==badge) history.insertAdjacentElement('afterend',badge);
     }else if(badge.parentElement!==actions){
@@ -119,4 +122,4 @@ if (!html.includes(marker)) {
   fs.writeFileSync(target, source);
 }
 
-console.log('Version badge position patch v1 applied.');
+console.log('Version badge position patch v2 applied.');
