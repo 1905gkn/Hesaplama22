@@ -51,8 +51,9 @@ function isMekikFront() {
 
   // Sayfa değişiminde global modül kısa süre eski değerde kalabiliyor.
   // Görünen Mekik başlığı ve güncel DOM modülü bu yüzden önceliklidir.
-  if (title === "mekik" || module === "mekik2") return true;
+  if (title === "mekik") return true;
   if (page.classList.contains("b2b-mode") || page.classList.contains("drive-in-mode")) return false;
+  if (module === "mekik2") return true;
   if (title || module) return false;
 
   try {
