@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v9";
+const ASSET_VERSION = "mekik-front-glb-v10";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -10,16 +10,21 @@ const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 let sharedModelsPromise = null;
 
+function liveField(id) {
+  const nodes = Array.from(document.querySelectorAll(`[id="${id}"]`));
+  if (!nodes.length) return null;
+  const visible = nodes.filter((node) => node.isConnected && node.getClientRects().length > 0);
+  return visible.at(-1) || nodes.at(-1);
+}
+
 function numberFrom(id, fallback, min, max) {
-  const node = document.getElementById(id);
-  const value = Number(node?.value);
+  const value = Number(liveField(id)?.value);
   return clamp(Number.isFinite(value) ? value : fallback, min, max);
 }
 
 function numberFromAny(ids, fallback, min, max) {
   for (const id of ids) {
-    const node = document.getElementById(id);
-    const value = Number(node?.value);
+    const value = Number(liveField(id)?.value);
     if (Number.isFinite(value)) return clamp(value, min, max);
   }
   return clamp(Number.isFinite(Number(fallback)) ? Number(fallback) : min, min, max);
@@ -49,7 +54,7 @@ function readConfig() {
   const bays = Math.round(numberFrom("m2Bays", Number(drawing?.bays) || 4, 1, 50));
   const levels = Math.round(numberFrom("m2Levels", Number(drawing?.levels) || 4, 1, 15));
   const palletWidth = numberFrom("m2PalW", Number(drawing?.palW) || 1200, 600, 1800);
-  const palletDepthChoice = document.getElementById("m2PalD")?.value;
+  const palletDepthChoice = liveField("m2PalD")?.value;
   const palletDepth = palletDepthChoice === "other"
     ? numberFrom("m2PalDOther", Number(drawing?.palD) || 800, 1, 3000)
     : clamp(Number(palletDepthChoice) || Number(drawing?.palD) || 800, 1, 3000);
