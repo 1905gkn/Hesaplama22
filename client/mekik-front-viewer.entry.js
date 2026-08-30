@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v18";
+const ASSET_VERSION = "mekik-front-glb-v19";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -327,8 +327,8 @@ class MekikFrontViewer {
     const width = this.lastWidth || Math.max(1, Math.round(rect.width)) || 960;
     const height = this.lastHeight || Math.max(1, Math.round(rect.height)) || 620;
     const aspect = Math.max(0.3, width / Math.max(1, height));
-    let halfWidth = Math.max(700, size.x * 0.58);
-    let halfHeight = Math.max(700, size.z * 0.58);
+    let halfWidth = Math.max(700, size.x * 0.66);
+    let halfHeight = Math.max(700, size.z * 0.64);
     if (halfWidth / halfHeight < aspect) halfWidth = halfHeight * aspect;
     else halfHeight = halfWidth / aspect;
     this.camera.left = -halfWidth;
@@ -371,14 +371,93 @@ class MekikFrontViewer {
     this.render();
   }
 
+  renderDimensionOverlay() {
+    if (!dimensions || !this.models || !this.lastWidth || !this.lastHeight) return;
+    const config = this.config;
+    const width = this.lastWidth;
+    const height = this.lastHeight;
+    dimensions.setAttribute("viewBox", `0 0 ${width} ${height}`);
+    dimensions.setAttribute("width", String(width));
+    dimensions.setAttribute("height", String(height));
+
+    const point = (x, z) => {
+      const projected = new THREE.Vector3(x, 0, z).project(this.camera);
+      return { x: (projected.x + 1) * width / 2, y: (1 - projected.y) * height / 2 };
+    };
+    const fmt = (value) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(Math.round(Number(value) || 0));
+    const rackLeft = point(0, 0).x;
+    const rackRight = point(config.bays * config.bayPitch, 0).x;
+    const floorY = point(0, 0).y;
+    const topY = point(0, config.uprightHeight).y;
+    const leftX = Math.max(62, rackLeft - Math.min(76, width * 0.09));
+    const rightX = Math.min(width - 62, rackRight + Math.min(58, width * 0.07));
+    const centerX = (rackLeft + rackRight) / 2;
+    const sideClearance = Math.max(0, (config.bayPitch - config.palletWidth - config.footType) / 2);
+    const lineParts = [];
+    const labelParts = [];
+
+    const verticalDimension = (x, z1, z2, label, side = "left") => {
+      const a = point(0, z1), b = point(0, z2);
+      lineParts.push(`<line x1="${x}" y1="${a.y}" x2="${x}" y2="${b.y}" class="dim-main" marker-start="url(#mekik-arrow)" marker-end="url(#mekik-arrow)"/>`);
+      lineParts.push(`<line x1="${x}" y1="${a.y}" x2="${side === "left" ? rackLeft : rackRight}" y2="${a.y}" class="dim-guide"/>`);
+      lineParts.push(`<line x1="${x}" y1="${b.y}" x2="${side === "left" ? rackLeft : rackRight}" y2="${b.y}" class="dim-guide"/>`);
+      const textX = side === "left" ? x - 9 : x + 9;
+      const anchor = side === "left" ? "end" : "start";
+      labelParts.push(`<text x="${textX}" y="${(a.y + b.y) / 2 + 4}" text-anchor="${anchor}" class="dim-text">${label}</text>`);
+    };
+
+    verticalDimension(leftX, 0, config.firstLevelHeight, `ZEMİN · ${fmt(config.firstLevelHeight)} mm`);
+    for (let level = 1; level < config.levels; level += 1) {
+      const from = config.firstLevelHeight + (level - 1) * config.levelSpacing;
+      const to = config.firstLevelHeight + level * config.levelSpacing;
+      verticalDimension(leftX, from, to, `K${level} · ${fmt(config.levelSpacing)} mm`);
+    }
+    verticalDimension(rightX, 0, config.uprightHeight, "", "right");
+
+    const cardX = Math.min(width - 128, rightX + 9);
+    const cardY = Math.max(82, Math.min(height - 58, (topY + floorY) / 2 - 24));
+    dimensions.innerHTML = `
+      <defs>
+        <marker id="mekik-arrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto-start-reverse">
+          <path d="M0,4 L8,0 L8,8 Z" fill="#d7a900"/>
+        </marker>
+      </defs>
+      <style>
+        .dim-main{stroke:#d7a900;stroke-width:1.7}
+        .dim-guide{stroke:#d7a900;stroke-width:1;stroke-dasharray:3 3;opacity:.8}
+        .dim-text{fill:#073c30;font:800 11px Arial,sans-serif}
+        .dim-title{fill:#073c30;font:900 13px Arial,sans-serif}
+        .dim-chip{fill:#073c30}
+        .dim-chip-text{fill:#fff;font:900 10px Arial,sans-serif}
+        .dim-warm{fill:#fff1b8;stroke:#d7a900;stroke-width:1}
+        .dim-warm-text{fill:#3e3511;font:900 10px Arial,sans-serif}
+      </style>
+      <text x="18" y="${Math.max(72, topY + 28)}" class="dim-title">KOT ARALIKLARI</text>
+      ${lineParts.join("")}
+      ${labelParts.join("")}
+      <text x="${centerX}" y="18" text-anchor="middle" class="dim-warm-text">YAN BOŞLUK · ${fmt(sideClearance)} + ${fmt(sideClearance)} mm</text>
+      <rect x="${centerX - 96}" y="25" width="192" height="23" rx="12" class="dim-chip"/>
+      <text x="${centerX}" y="40" text-anchor="middle" class="dim-chip-text">KOLON ARALIĞI · ${fmt(config.bayPitch)} mm</text>
+      <rect x="${centerX - 62}" y="53" width="124" height="21" rx="11" class="dim-warm"/>
+      <text x="${centerX}" y="67" text-anchor="middle" class="dim-warm-text">PALET · ${fmt(config.palletWidth)} mm</text>
+      <rect x="${cardX}" y="${cardY}" width="116" height="49" rx="10" class="dim-chip"/>
+      <text x="${cardX + 58}" y="${cardY + 18}" text-anchor="middle" class="dim-chip-text">AYAK UZUNLUĞU</text>
+      <text x="${cardX + 58}" y="${cardY + 37}" text-anchor="middle" style="fill:#fff;font:900 16px Arial,sans-serif">${fmt(config.uprightHeight)} mm</text>
+    `;
+  }
+
   render() {
-    if (!this.destroyed && this.models) this.renderer.render(this.scene, this.camera);
+    if (!this.destroyed && this.models) {
+      this.renderer.render(this.scene, this.camera);
+      this.renderDimensionOverlay();
+    }
   }
 }
 
 let canvas = null;
 let status = null;
 let info = null;
+let dimensions = null;
 let viewer = null;
 let scheduled = 0;
 
@@ -580,6 +659,12 @@ function ensureElements() {
     info = document.createElement("div");
     info.className = "rafex-mekik-front-info-v2";
   }
+  if (!dimensions) {
+    dimensions = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    dimensions.classList.add("rafex-mekik-front-dimensions-v2");
+    dimensions.setAttribute("aria-label", "Mekik ön görünüş kot aralıkları ve ayak uzunluğu ölçüleri");
+    dimensions.style.cssText = "position:absolute;inset:0;z-index:3;width:100%;height:100%;pointer-events:none;overflow:visible";
+  }
 }
 
 function ensureMounted() {
@@ -589,8 +674,8 @@ function ensureMounted() {
   const host = document.getElementById("m2Front");
   if (!host) return;
   ensureElements();
-  if (canvas.parentElement !== host || status.parentElement !== host || info.parentElement !== host || host.childElementCount !== 3) {
-    host.replaceChildren(canvas, status, info);
+  if (canvas.parentElement !== host || status.parentElement !== host || info.parentElement !== host || dimensions.parentElement !== host || host.childElementCount !== 4) {
+    host.replaceChildren(canvas, status, info, dimensions);
     host.dataset.rafexMekikFrontGlb = "v2";
   }
   if (!viewer) viewer = new MekikFrontViewer(canvas, status);
