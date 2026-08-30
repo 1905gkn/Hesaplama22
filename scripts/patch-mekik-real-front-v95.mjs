@@ -17,13 +17,16 @@ if (!fs.existsSync(workerPath)) throw new Error("v95: dist/server/index.js bulun
 if (!fs.existsSync(sourcePath)) throw new Error("v95: Mekik viewer source bulunamadi");
 
 async function buildExactGlb() {
-  const chunks = [];
+  const binaryChunks = [];
   for (const name of ["part-00", "part-01", "part-02"]) {
     const response = await fetch(`${exactAssetRoot}/${name}`, { cache: "no-store" });
     if (!response.ok) throw new Error(`v95: exact GLB parcasi indirilemedi ${name}: ${response.status}`);
-    chunks.push((await response.text()).trim());
+    const encoded = (await response.text()).trim();
+    const chunk = Buffer.from(encoded, "base64");
+    if (!chunk.length) throw new Error(`v95: exact GLB parcasi bos ${name}`);
+    binaryChunks.push(chunk);
   }
-  const compressed = Buffer.from(chunks.join(""), "base64");
+  const compressed = Buffer.concat(binaryChunks);
   const glb = zlib.gunzipSync(compressed);
   if (glb.subarray(0, 4).toString("ascii") !== "glTF") throw new Error("v95: exact GLB glTF imzasi gecersiz");
   fs.writeFileSync(exactGlbPath, glb);
@@ -47,8 +50,8 @@ let html = Buffer.from(htmlMatch[3], "base64").toString("utf8");
 html = html
   .replace(/<script\s+data-rafex-mekik-main-front="v93">[\s\S]*?<\/script>\s*/g, "")
   .replace(/<script\s+data-rafex-mekik-glb-front="v94">[\s\S]*?<\/script>\s*/g, "")
-  .replace(/<meta\s+data-rafex-mekik-real-glb-front="v95"[^>]*>\s*/g, "")
-  .replace(/<script\s+defer\s+src="\/mekik-front-viewer\.js\?v=v95"><\/script>\s*/g, "");
+  .replace(/<meta\s+data-rafex-mekik-real-glb-front="v95(?:-exact-mekikson2)?"[^>]*>\s*/g, "")
+  .replace(/<script\s+defer\s+src="\/mekik-front-viewer\.js\?v=v95(?:-exact)?"><\/script>\s*/g, "");
 
 const headClose = html.indexOf("</head>");
 if (headClose < 0) throw new Error("v95: </head> bulunamadi");
