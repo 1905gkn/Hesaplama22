@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v19";
+const ASSET_VERSION = "mekik-front-glb-v20";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -327,8 +327,8 @@ class MekikFrontViewer {
     const width = this.lastWidth || Math.max(1, Math.round(rect.width)) || 960;
     const height = this.lastHeight || Math.max(1, Math.round(rect.height)) || 620;
     const aspect = Math.max(0.3, width / Math.max(1, height));
-    let halfWidth = Math.max(700, size.x * 0.66);
-    let halfHeight = Math.max(700, size.z * 0.64);
+    let halfWidth = Math.max(700, size.x * 0.82);
+    let halfHeight = Math.max(700, size.z * 0.75);
     if (halfWidth / halfHeight < aspect) halfWidth = halfHeight * aspect;
     else halfHeight = halfWidth / aspect;
     this.camera.left = -halfWidth;
@@ -385,12 +385,14 @@ class MekikFrontViewer {
       return { x: (projected.x + 1) * width / 2, y: (1 - projected.y) * height / 2 };
     };
     const fmt = (value) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(Math.round(Number(value) || 0));
-    const rackLeft = point(0, 0).x;
-    const rackRight = point(config.bays * config.bayPitch, 0).x;
+    const rackEdgeA = point(0, 0).x;
+    const rackEdgeB = point(config.bays * config.bayPitch, 0).x;
+    const rackLeft = Math.min(rackEdgeA, rackEdgeB);
+    const rackRight = Math.max(rackEdgeA, rackEdgeB);
     const floorY = point(0, 0).y;
     const topY = point(0, config.uprightHeight).y;
-    const leftX = Math.max(62, rackLeft - Math.min(76, width * 0.09));
-    const rightX = Math.min(width - 62, rackRight + Math.min(58, width * 0.07));
+    const leftX = Math.max(142, rackLeft - Math.min(62, width * 0.06));
+    const rightX = Math.min(width - 148, rackRight + Math.min(52, width * 0.05));
     const centerX = (rackLeft + rackRight) / 2;
     const sideClearance = Math.max(0, (config.bayPitch - config.palletWidth - config.footType) / 2);
     const lineParts = [];
@@ -414,35 +416,35 @@ class MekikFrontViewer {
     }
     verticalDimension(rightX, 0, config.uprightHeight, "", "right");
 
-    const cardX = Math.min(width - 128, rightX + 9);
-    const cardY = Math.max(82, Math.min(height - 58, (topY + floorY) / 2 - 24));
+    const cardX = rightX + 13;
+    const cardY = Math.max(92, Math.min(height - 58, (topY + floorY) / 2 - 23));
     dimensions.innerHTML = `
       <defs>
-        <marker id="mekik-arrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto-start-reverse">
-          <path d="M0,4 L8,0 L8,8 Z" fill="#d7a900"/>
+        <marker id="mekik-arrow" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto-start-reverse">
+          <path d="M0,2.5 L5,0 L5,5 Z" fill="#d7a900"/>
         </marker>
       </defs>
       <style>
-        .dim-main{stroke:#d7a900;stroke-width:1.7}
-        .dim-guide{stroke:#d7a900;stroke-width:1;stroke-dasharray:3 3;opacity:.8}
-        .dim-text{fill:#073c30;font:800 11px Arial,sans-serif}
-        .dim-title{fill:#073c30;font:900 13px Arial,sans-serif}
+        .dim-main{stroke:#d7a900;stroke-width:1.35}
+        .dim-guide{stroke:#d7a900;stroke-width:.9;stroke-dasharray:3 3;opacity:.8}
+        .dim-text{fill:#073c30;font:800 9px Arial,sans-serif}
+        .dim-title{fill:#073c30;font:900 11px Arial,sans-serif}
         .dim-chip{fill:#073c30}
-        .dim-chip-text{fill:#fff;font:900 10px Arial,sans-serif}
+        .dim-chip-text{fill:#fff;font:900 9px Arial,sans-serif}
         .dim-warm{fill:#fff1b8;stroke:#d7a900;stroke-width:1}
-        .dim-warm-text{fill:#3e3511;font:900 10px Arial,sans-serif}
+        .dim-warm-text{fill:#3e3511;font:900 9px Arial,sans-serif}
       </style>
-      <text x="18" y="${Math.max(72, topY + 28)}" class="dim-title">KOT ARALIKLARI</text>
+      <text x="${Math.max(14, leftX - 128)}" y="${Math.max(92, topY + 18)}" class="dim-title">KOT ARALIKLARI</text>
       ${lineParts.join("")}
       ${labelParts.join("")}
-      <text x="${centerX}" y="18" text-anchor="middle" class="dim-warm-text">YAN BOŞLUK · ${fmt(sideClearance)} + ${fmt(sideClearance)} mm</text>
-      <rect x="${centerX - 96}" y="25" width="192" height="23" rx="12" class="dim-chip"/>
-      <text x="${centerX}" y="40" text-anchor="middle" class="dim-chip-text">KOLON ARALIĞI · ${fmt(config.bayPitch)} mm</text>
-      <rect x="${centerX - 62}" y="53" width="124" height="21" rx="11" class="dim-warm"/>
-      <text x="${centerX}" y="67" text-anchor="middle" class="dim-warm-text">PALET · ${fmt(config.palletWidth)} mm</text>
-      <rect x="${cardX}" y="${cardY}" width="116" height="49" rx="10" class="dim-chip"/>
-      <text x="${cardX + 58}" y="${cardY + 18}" text-anchor="middle" class="dim-chip-text">AYAK UZUNLUĞU</text>
-      <text x="${cardX + 58}" y="${cardY + 37}" text-anchor="middle" style="fill:#fff;font:900 16px Arial,sans-serif">${fmt(config.uprightHeight)} mm</text>
+      <text x="${centerX}" y="21" text-anchor="middle" class="dim-warm-text">YAN BOŞLUK · ${fmt(sideClearance)} + ${fmt(sideClearance)} mm</text>
+      <rect x="${centerX - 88}" y="29" width="176" height="21" rx="11" class="dim-chip"/>
+      <text x="${centerX}" y="43" text-anchor="middle" class="dim-chip-text">KOLON ARALIĞI · ${fmt(config.bayPitch)} mm</text>
+      <rect x="${centerX - 58}" y="57" width="116" height="20" rx="10" class="dim-warm"/>
+      <text x="${centerX}" y="70" text-anchor="middle" class="dim-warm-text">PALET · ${fmt(config.palletWidth)} mm</text>
+      <rect x="${cardX}" y="${cardY}" width="122" height="47" rx="9" class="dim-chip"/>
+      <text x="${cardX + 61}" y="${cardY + 17}" text-anchor="middle" class="dim-chip-text">AYAK UZUNLUĞU</text>
+      <text x="${cardX + 61}" y="${cardY + 35}" text-anchor="middle" style="fill:#fff;font:900 14px Arial,sans-serif">${fmt(config.uprightHeight)} mm</text>
     `;
   }
 
@@ -658,6 +660,7 @@ function ensureElements() {
   if (!info) {
     info = document.createElement("div");
     info.className = "rafex-mekik-front-info-v2";
+    info.style.display = "none";
   }
   if (!dimensions) {
     dimensions = document.createElementNS("http://www.w3.org/2000/svg", "svg");
