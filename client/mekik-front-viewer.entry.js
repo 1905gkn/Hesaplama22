@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v5";
+const ASSET_VERSION = "mekik-front-glb-v6";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -245,7 +245,7 @@ class MekikFrontViewer {
     const palletScaleZ = palletBodyHeight / Math.max(1, this.models.pallet.size.z);
     const boxHeight = Math.max(0, config.palletHeight - palletBodyHeight);
     const boxMaterial = new THREE.MeshStandardMaterial({
-      color: 0x214f3b,
+      color: 0xc58b47,
       metalness: 0.02,
       roughness: 0.86,
     });
