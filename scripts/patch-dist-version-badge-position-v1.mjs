@@ -6,12 +6,24 @@ const match = source.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1\
 if (!match) throw new Error('HTML_BASE64 bulunamadi.');
 
 let html = Buffer.from(match[2], 'base64').toString('utf8');
-const marker = 'data-rafex-version-badge-position="v2"';
+const marker = 'data-rafex-version-badge-position="v3"';
 
 if (!html.includes(marker)) {
   const style = `
 <style ${marker}>
-  .rafex-version-badge-managed{box-sizing:border-box!important;}
+  .top-actions{align-items:center!important;}
+  .rafex-version-badge-source-hidden{
+    position:fixed!important;
+    left:-10000px!important;
+    right:auto!important;
+    top:0!important;
+    bottom:auto!important;
+    opacity:0!important;
+    visibility:hidden!important;
+    pointer-events:none!important;
+    margin:0!important;
+    transform:none!important;
+  }
   .rafex-version-badge-login{
     position:fixed!important;
     right:18px!important;
@@ -20,83 +32,128 @@ if (!html.includes(marker)) {
     left:auto!important;
     margin:0!important;
     transform:none!important;
+    opacity:1!important;
+    visibility:visible!important;
     z-index:9999!important;
   }
-  .top-actions{align-items:center;}
-  .top-actions>.rafex-version-badge-top{
+  .top-actions>.rafex-version-badge-clone{
     position:static!important;
     inset:auto!important;
     right:auto!important;
     bottom:auto!important;
     top:auto!important;
     left:auto!important;
-    margin:0 0 0 8px!important;
+    margin:0 8px 0 0!important;
     transform:none!important;
+    opacity:1!important;
+    visibility:visible!important;
+    display:inline-flex!important;
     z-index:auto!important;
     flex:0 0 auto!important;
+    pointer-events:none!important;
+    box-sizing:border-box!important;
   }
   @media(max-width:760px){
     .rafex-version-badge-login{right:10px!important;bottom:10px!important;}
-    .top-actions>.rafex-version-badge-top{margin-left:4px!important;}
+    .top-actions>.rafex-version-badge-clone{margin-right:4px!important;}
   }
 </style>`;
 
   const script = `
 <script ${marker}>
 (function(){
+  var CLONE_ATTR='data-rafex-version-badge-clone';
   function cleanText(el){
     return String(el && (el.innerText || el.textContent) || '').replace(/\\s+/g,' ').trim().toLocaleLowerCase('tr-TR');
   }
   function isVisible(el){
     if(!el) return false;
-    if(el.classList && el.classList.contains('hidden')) return false;
     var s=getComputedStyle(el);
     return s.display!=='none' && s.visibility!=='hidden';
   }
-  function findBadge(){
-    var direct=document.querySelector('[aria-label="Son surum bilgisi"],[aria-label="Son sürüm bilgisi"],[data-version-badge],[data-rafex-version-badge]');
-    if(direct) return direct;
+  function findSource(){
+    var selectors=[
+      '[aria-label="Son surum bilgisi"]',
+      '[aria-label="Son sürüm bilgisi"]',
+      '[data-version-badge]',
+      '[data-rafex-version-badge]'
+    ];
+    for(var i=0;i<selectors.length;i++){
+      var found=Array.from(document.querySelectorAll(selectors[i])).find(function(el){return !el.hasAttribute(CLONE_ATTR);});
+      if(found) return found;
+    }
     var nodes=Array.from(document.querySelectorAll('body *')).filter(function(el){
+      if(el.hasAttribute(CLONE_ATTR) || el.closest('['+CLONE_ATTR+']')) return false;
       if(['SCRIPT','STYLE','NOSCRIPT'].includes(el.tagName)) return false;
       var text=cleanText(el);
       return text.includes('son sürüm') || text.includes('son surum');
     });
     nodes.sort(function(a,b){
-      var childDiff=a.querySelectorAll('*').length-b.querySelectorAll('*').length;
-      if(childDiff) return childDiff;
+      var ac=a.querySelectorAll('*').length;
+      var bc=b.querySelectorAll('*').length;
+      if(ac!==bc) return ac-bc;
       return cleanText(a).length-cleanText(b).length;
     });
     return nodes[0] || null;
   }
   function findHistory(actions){
     if(!actions) return null;
-    var history=actions.querySelector('.history-top');
-    if(history) return history;
+    var direct=actions.querySelector('.history-top');
+    if(direct) return direct;
     return Array.from(actions.children).find(function(el){
       var text=cleanText(el);
       return text.includes('proje geçmişi') || text.includes('proje gecmisi');
     }) || null;
   }
+  function stripIds(root){
+    if(!root) return;
+    if(root.removeAttribute) root.removeAttribute('id');
+    root.querySelectorAll && root.querySelectorAll('[id]').forEach(function(el){el.removeAttribute('id');});
+  }
+  function removeClone(){
+    document.querySelectorAll('['+CLONE_ATTR+']').forEach(function(el){el.remove();});
+  }
+  function ensureClone(source,actions,history){
+    var clone=document.querySelector('['+CLONE_ATTR+']');
+    if(!clone){
+      clone=source.cloneNode(true);
+      stripIds(clone);
+      clone.setAttribute(CLONE_ATTR,'1');
+      clone.classList.remove('rafex-version-badge-login','rafex-version-badge-source-hidden');
+      clone.classList.add('rafex-version-badge-clone');
+    }
+    if(clone.innerHTML!==source.innerHTML){
+      clone.innerHTML=source.innerHTML;
+      stripIds(clone);
+    }
+    var aria=source.getAttribute('aria-label');
+    if(aria) clone.setAttribute('aria-label',aria);
+    clone.classList.add('rafex-version-badge-clone');
+    clone.style.removeProperty('display');
+    clone.style.removeProperty('visibility');
+    clone.style.removeProperty('opacity');
+    if(history){
+      if(clone.parentElement!==actions || clone.nextElementSibling!==history){
+        history.insertAdjacentElement('beforebegin',clone);
+      }
+    }else if(clone.parentElement!==actions){
+      actions.appendChild(clone);
+    }
+  }
   function placeBadge(){
-    var badge=findBadge();
-    if(!badge) return;
-    badge.classList.add('rafex-version-badge-managed');
+    var source=findSource();
+    if(!source) return;
     var actions=document.querySelector('.top-actions');
     var appMode=!!actions && isVisible(actions);
     if(!appMode){
-      badge.classList.remove('rafex-version-badge-top');
-      badge.classList.add('rafex-version-badge-login');
-      if(badge.parentElement!==document.body) document.body.appendChild(badge);
+      removeClone();
+      source.classList.remove('rafex-version-badge-source-hidden');
+      source.classList.add('rafex-version-badge-login');
       return;
     }
-    badge.classList.remove('rafex-version-badge-login');
-    badge.classList.add('rafex-version-badge-top');
-    var history=findHistory(actions);
-    if(history){
-      if(history.nextElementSibling!==badge) history.insertAdjacentElement('afterend',badge);
-    }else if(badge.parentElement!==actions){
-      actions.appendChild(badge);
-    }
+    source.classList.remove('rafex-version-badge-login');
+    source.classList.add('rafex-version-badge-source-hidden');
+    ensureClone(source,actions,findHistory(actions));
   }
   var queued=false;
   function schedule(){
@@ -104,10 +161,10 @@ if (!html.includes(marker)) {
     queued=true;
     requestAnimationFrame(function(){queued=false;placeBadge();});
   }
-  new MutationObserver(schedule).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style']});
+  new MutationObserver(schedule).observe(document.documentElement,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','style','aria-label']});
   window.addEventListener('load',schedule);
   document.addEventListener('click',function(){setTimeout(schedule,0);},true);
-  setInterval(placeBadge,1200);
+  setInterval(placeBadge,1000);
   schedule();
 })();
 </script>`;
@@ -122,4 +179,4 @@ if (!html.includes(marker)) {
   fs.writeFileSync(target, source);
 }
 
-console.log('Version badge position patch v2 applied.');
+console.log('Version badge position patch v3 applied.');
