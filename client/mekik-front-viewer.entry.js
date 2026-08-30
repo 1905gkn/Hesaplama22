@@ -8,7 +8,7 @@ const SHELL_SELECTOR = ":scope > .m2-glb-front-shell";
 const LEGACY_SELECTOR = ".m2-front-upright,.m2-front-traverse-set";
 const RASTER_UPRIGHT_SELECTOR = ".m2-front-upright--ayak2-glb";
 const RESTORE_MARKER = "native-front-restore-v100";
-const FRONT2_MARKER = "legacy-drive-in-front-v1";
+const FRONT2_MARKER = "legacy-drive-in-front-v2";
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 let restoring = false;
@@ -27,7 +27,6 @@ function svgNode(name, attrs = {}) {
 function replaceRasterUpright(group) {
   const image = group?.querySelector(":scope > image");
   if (!image) return false;
-
   const x = num(image, "x");
   const y = num(image, "y");
   const width = Math.max(1, num(image, "width"));
@@ -41,7 +40,6 @@ function replaceRasterUpright(group) {
   const footLeft = postX - footWidth / 2;
   const holeTop = y + 74;
   const holeBottom = floorY - footHeight - 42;
-
   group.replaceChildren(
     svgNode("rect", { class: "m2-front-post", x: postLeft, y, width: postBodyWidth, height, rx: 8 }),
     svgNode("path", { class: "m2-front-post-edge", d: `M${postLeft + postBodyWidth * 0.22} ${y + 10}V${floorY - footHeight - 8}` }),
@@ -62,7 +60,6 @@ function restoreNativeFront() {
   if (restoring) return;
   const stage = document.getElementById(FRONT_STAGE_ID);
   if (!stage) return;
-
   restoring = true;
   try {
     const shell = stage.querySelector(SHELL_SELECTOR);
@@ -80,7 +77,6 @@ function restoreNativeFront() {
       }
       shell.remove();
     }
-
     const svg = stage.querySelector(":scope > svg");
     if (svg) {
       svg.querySelectorAll("[data-m2-glb-old-visibility]").forEach((node) => {
@@ -94,7 +90,6 @@ function restoreNativeFront() {
       svg.dataset.rafexMekikFront = RESTORE_MARKER;
       svg.dataset.rafexMekikUpright = "native-svg-no-ayak2-raster";
     }
-
     stage.querySelectorAll(":scope > .m2-glb-front-canvas").forEach((node) => node.remove());
     stage.dataset.rafexMekikFront = RESTORE_MARKER;
     stage.dataset.rafexMekikUpright = "native-svg-no-ayak2-raster";
@@ -103,9 +98,18 @@ function restoreNativeFront() {
   }
 }
 
-function currentMekikDrawing() {
+function isMekikModule() {
   try {
-    if (typeof m2ActiveModule !== "undefined" && m2ActiveModule !== "mekik2") return null;
+    if (typeof m2ActiveModule === "undefined") return true;
+    return m2ActiveModule === "mekik" || m2ActiveModule === "mekik2";
+  } catch {
+    return true;
+  }
+}
+
+function currentMekikDrawing() {
+  if (!isMekikModule()) return null;
+  try {
     if (typeof m2LastDrawing !== "undefined" && m2LastDrawing) return m2LastDrawing;
   } catch {}
   return null;
@@ -127,20 +131,14 @@ function legacyFrontSvg(drawing) {
   const visibleLevels = Math.min(levels, 6);
   const totalWidth = Math.max(1, Number(drawing?.totalWidth) || 1);
   const levelH = Math.max(1, Number(drawing?.levelH) || 1);
-  const x0 = 82;
-  const y0 = 55;
-  const w = 610;
-  const h = 385;
+  const x0 = 82, y0 = 55, w = 610, h = 385;
   const colW = w / visibleBays;
   const rowH = h / visibleLevels;
-
   let svg = `<svg viewBox="0 0 760 500" role="img" aria-label="Mekik raf önden görünüşü" data-rafex-front2="${FRONT2_MARKER}"><style>.m2-front2-label{fill:#111827;font:800 12px Arial}.m2-front2-dim{fill:#64748b;font:700 9px Arial}.m2-front2-upright{stroke:#4b5565;stroke-width:9}.m2-front2-beam{stroke:#e73e3e;stroke-width:9}.m2-front2-load{fill:#e9f3ff;stroke:#2587ee;stroke-width:1.2}.m2-front2-pallet-base{fill:#d99b18;stroke:#b77d08;stroke-width:1}.m2-front2-dimension{stroke:#64748b;stroke-width:1}</style><text x="380" y="25" text-anchor="middle" class="m2-front2-label">VUE DE FACE (Önden Görünüş)</text>`;
-
   for (let c = 0; c <= visibleBays; c++) {
     const x = x0 + c * colW;
     svg += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y0 + h}" class="m2-front2-upright"/>`;
   }
-
   for (let level = 0; level < visibleLevels; level++) {
     const beamY = y0 + h - level * rowH;
     svg += `<line x1="${x0}" y1="${beamY}" x2="${x0 + w}" y2="${beamY}" class="m2-front2-beam"/>`;
@@ -150,7 +148,6 @@ function legacyFrontSvg(drawing) {
       svg += `<rect x="${px}" y="${py}" width="${colW * 0.72}" height="${rowH * 0.57}" rx="2" class="m2-front2-load"/><rect x="${px - 3}" y="${beamY - 9}" width="${colW * 0.78}" height="9" class="m2-front2-pallet-base"/>`;
     }
   }
-
   svg += `<line x1="${x0}" y1="${y0}" x2="${x0 + w}" y2="${y0}" class="m2-front2-beam"/>${legacyDimLine(48, y0, 48, y0 + h)}<text x="36" y="${y0 + h / 2}" transform="rotate(-90 36 ${y0 + h / 2})" text-anchor="middle" class="m2-front2-dim">${fmtLegacy(levels * levelH)} mm</text>${legacyDimLine(x0, 466, x0 + w, 466)}<text x="${x0 + w / 2}" y="486" text-anchor="middle" class="m2-front2-dim">${fmtLegacy(totalWidth)} mm · ${fmtLegacy(bays)} göz</text></svg>`;
   return svg;
 }
@@ -182,17 +179,13 @@ function removeFront2() {
 }
 
 function ensureFront2() {
-  let active = false;
-  try { active = typeof m2ActiveModule === "undefined" || m2ActiveModule === "mekik2"; } catch { active = true; }
-  if (!active) {
+  if (!isMekikModule()) {
     removeFront2();
     return;
   }
-
   const frontButton = document.querySelector('[data-m2-tab="front"]');
   const frontView = document.querySelector('[data-m2-view="front"]');
   if (!frontButton || !frontView) return;
-
   let button = document.querySelector('[data-m2-tab="front2"][data-rafex-front2-tab]');
   if (!button) {
     button = document.createElement("button");
@@ -203,7 +196,6 @@ function ensureFront2() {
     button.addEventListener("click", showFront2);
     frontButton.insertAdjacentElement("afterend", button);
   }
-
   let view = document.querySelector('[data-m2-view="front2"][data-rafex-front2-view]');
   if (!view) {
     view = document.createElement("div");
