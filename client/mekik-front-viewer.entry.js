@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v27";
+const ASSET_VERSION = "mekik-front-glb-v28";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -154,10 +154,14 @@ function prepareTemplate(scene, type) {
   root.add(source);
   root.updateMatrixWorld(true);
   const normalizedBounds = new THREE.Box3().setFromObject(root);
+  const normalizedProfileBounds = type === "traverse" && profile
+    ? new THREE.Box3().setFromObject(profile)
+    : normalizedBounds;
   return {
     root,
     size: normalizedBounds.getSize(new THREE.Vector3()),
     topOffset: normalizedBounds.max.z,
+    profileBottomOffset: normalizedProfileBounds.min.z,
     source: type === "upright" ? "mekik 3ayak(2).glb" : "mekik 3travers(2).glb",
   };
 }
@@ -457,12 +461,16 @@ class MekikFrontViewer {
       const supportZ = config.firstLevelHeight + level * config.levelSpacing;
       return boundsFor(`Mekik Travers G1 K${level + 1}`, supportZ - config.traverseHeight, supportZ);
     });
-    const topSupportZ = config.firstLevelHeight + (config.levels - 1) * config.levelSpacing;
-    const topPalletBounds = boundsFor(
-      `Mekik Paletli Yük G1 K${config.levels}`,
-      topSupportZ + this.models.traverse.topOffset,
-      topSupportZ + this.models.traverse.topOffset + EURO_PALLET_VISUAL_HEIGHT,
-    );
+    const palletBounds = Array.from({ length: config.levels }, (_, level) => {
+      const supportZ = config.firstLevelHeight + level * config.levelSpacing;
+      const palletBottomZ = supportZ + this.models.traverse.topOffset;
+      return boundsFor(
+        `Mekik Paletli Yük G1 K${level + 1}`,
+        palletBottomZ,
+        palletBottomZ + EURO_PALLET_VISUAL_HEIGHT,
+      );
+    });
+    const topPalletBounds = palletBounds.at(-1);
     const floorY = point(0, groundZ).y;
     const topY = point(0, uprightTopZ).y;
     const leftX = Math.max(108, rackLeft - Math.min(34, width * 0.035));
@@ -488,12 +496,13 @@ class MekikFrontViewer {
       }
     };
 
-    const firstTraverseTop = traverseBounds[0].max.z;
-    const groundHeight = Math.max(0, firstTraverseTop - groundZ);
-    verticalDimension(leftX, groundZ, firstTraverseTop, `ZEMİN · ${fmt(groundHeight)} mm`);
+    const firstPalletBottom = palletBounds[0].min.z;
+    const groundHeight = Math.max(0, firstPalletBottom - groundZ);
+    verticalDimension(leftX, groundZ, firstPalletBottom, `ZEMİN · ${fmt(groundHeight)} mm`);
     for (let level = 1; level < config.levels; level += 1) {
-      const from = traverseBounds[level - 1].max.z;
-      const to = traverseBounds[level].min.z;
+      const from = palletBounds[level - 1].min.z;
+      const supportZ = config.firstLevelHeight + level * config.levelSpacing;
+      const to = supportZ + this.models.traverse.profileBottomOffset;
       const clearLevelHeight = Math.max(0, to - from);
       verticalDimension(leftX, from, to, `K${level} · ${fmt(clearLevelHeight)} mm`);
     }
