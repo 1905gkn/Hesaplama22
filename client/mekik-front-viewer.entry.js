@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v8";
+const ASSET_VERSION = "mekik-front-glb-v9";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -66,7 +66,7 @@ function readConfig() {
   const requestedSpacing = numberFrom("m2LevelSpacing", Number(drawing?.levelH) || calculatedSpacing, 380, 5000);
   const levelSpacing = Math.max(calculatedSpacing, requestedSpacing);
   const footType = clamp(Number(drawing?.footType) || numberFrom("m2FootType", 100, 60, 200), 60, 200);
-  const uprightHeight = Math.max(150, Number(drawing?.sideUprightHeight) || firstLevelHeight + (levels - 1) * levelSpacing + palletHeight / 2);
+  const uprightHeight = Math.max(150, firstLevelHeight + (levels - 1) * levelSpacing + palletHeight / 2);
   const bayPitch = palletWidth + 150 + footType;
   return {
     bays,
