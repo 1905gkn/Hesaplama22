@@ -16,12 +16,15 @@ assert.equal(hash(traverse), "9f19efef6cc435ee4ebf55df059b3ecbcdea4dc98b0a44ce47
 
 const source = text("client/mekik-front-viewer.entry.js");
 assert.match(source, /const MAIN_URL = "\/mekik-son-hali\.glb"/);
-assert.match(source, /const TRAVERSE_URL = "\/mekik-travers\.glb"/);
 assert.match(source, /function isMekikScreen\(\)/);
-assert.match(source, /m2ActiveModule === "mekik2"/);
-assert.match(source, /for \(let bay = 0; bay < values\.bays; bay \+= 1\)/);
-assert.match(source, /for \(let level = 0; level < values\.levels; level \+= 1\)/);
+assert.match(source, /m2ActiveModule === "mekik" \|\| m2ActiveModule === "mekik2"/);
+assert.match(source, /usableWidth = Math\.max\(1, width \* 0\.86\)/);
+assert.match(source, /usableHeight = Math\.max\(1, height \* 0\.86\)/);
+assert.match(source, /camera\.up\.set\(0, 0, -1\)/);
+assert.match(source, /dataset\.glbLayout = "clean-upload-front-v96"/);
 assert.match(source, /dataset\.glbReady = "true"/);
+assert.doesNotMatch(source, /overlayBounds\(/);
+assert.doesNotMatch(source, /unionClientRect\(/);
 
 assert.equal(main.length, 2_006_944);
 assert.equal(hash(read("dist/mekik-son-hali.glb")), hash(main));
@@ -29,7 +32,9 @@ assert.equal(hash(read("dist/mekik-travers.glb")), hash(traverse));
 assert.ok(read("dist/mekik-front-viewer.js").length > 100_000);
 const server = text("dist/server/index.js");
 const encodedPortal = server.match(/^const HTML_BASE64\s*=\s*"([^"]+)";/m)?.[1];
-assert.ok(encodedPortal, "Build içindeki portal bulunamadı");
-assert.match(Buffer.from(encodedPortal, "base64").toString("utf8"), /mekik-front-viewer\.js/);
+assert.ok(encodedPortal, "Build icindeki portal bulunamadi");
+const portal = Buffer.from(encodedPortal, "base64").toString("utf8");
+assert.match(portal, /mekik-front-viewer\.js/);
+assert.doesNotMatch(portal, /data-rafex-mekik-glb-front="v94"/);
 
-console.log("Mekik ön görünümü mekikson2.glb ana modeline bağlı ve build çıktısı doğrulandı");
+console.log("Mekik on gorunumu verilen ana GLB'ye bagli, kamera GLB sinirlarina gore sifirlandi ve eski v94 override yok");
