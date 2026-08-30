@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v28";
+const ASSET_VERSION = "mekik-front-glb-v29";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -461,16 +461,13 @@ class MekikFrontViewer {
       const supportZ = config.firstLevelHeight + level * config.levelSpacing;
       return boundsFor(`Mekik Travers G1 K${level + 1}`, supportZ - config.traverseHeight, supportZ);
     });
-    const palletBounds = Array.from({ length: config.levels }, (_, level) => {
-      const supportZ = config.firstLevelHeight + level * config.levelSpacing;
-      const palletBottomZ = supportZ + this.models.traverse.topOffset;
-      return boundsFor(
-        `Mekik Paletli Yük G1 K${level + 1}`,
-        palletBottomZ,
-        palletBottomZ + EURO_PALLET_VISUAL_HEIGHT,
-      );
-    });
-    const topPalletBounds = palletBounds.at(-1);
+    // Ölçü referansı GLB'nin ters çevrilmiş sınır kutusu değil,
+    // paletin travers/braket üzerine yerleştirildiği gerçek temas kotudur.
+    const palletContactZ = (level) => (
+      config.firstLevelHeight
+      + level * config.levelSpacing
+      + this.models.traverse.topOffset
+    );
     const floorY = point(0, groundZ).y;
     const topY = point(0, uprightTopZ).y;
     const leftX = Math.max(108, rackLeft - Math.min(34, width * 0.035));
@@ -496,17 +493,17 @@ class MekikFrontViewer {
       }
     };
 
-    const firstPalletBottom = palletBounds[0].min.z;
+    const firstPalletBottom = palletContactZ(0);
     const groundHeight = Math.max(0, firstPalletBottom - groundZ);
     verticalDimension(leftX, groundZ, firstPalletBottom, `ZEMİN · ${fmt(groundHeight)} mm`);
     for (let level = 1; level < config.levels; level += 1) {
-      const from = palletBounds[level - 1].min.z;
+      const from = palletContactZ(level - 1);
       const supportZ = config.firstLevelHeight + level * config.levelSpacing;
       const to = supportZ + this.models.traverse.profileBottomOffset;
       const clearLevelHeight = Math.max(0, to - from);
       verticalDimension(leftX, from, to, `K${level} · ${fmt(clearLevelHeight)} mm`);
     }
-    const topPalletBottom = topPalletBounds.min.z;
+    const topPalletBottom = palletContactZ(config.levels - 1);
     verticalDimension(innerRightX, groundZ, topPalletBottom, `SON PALET YÜKSEKLİĞİ · ${fmt(topPalletBottom - groundZ)} mm`, "inside");
     verticalDimension(rightX, groundZ, uprightTopZ, `AYAK UZUNLUĞU · ${fmt(uprightTopZ - groundZ)} mm`, "outside");
     dimensions.innerHTML = `
