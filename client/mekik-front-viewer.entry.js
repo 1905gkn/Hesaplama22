@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v25";
+const ASSET_VERSION = "mekik-front-glb-v26";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -41,14 +41,25 @@ function activeDrawing() {
 }
 
 function isMekikFront() {
-  try {
-    if (typeof m2ActiveModule !== "undefined") return String(m2ActiveModule) === "mekik2";
-  } catch (_) {}
   const page = document.getElementById("page");
-  if (!page || page.classList.contains("b2b-mode") || page.classList.contains("drive-in-mode")) return false;
+  if (!page) return false;
+
+  const title = String(document.getElementById("pageTitle")?.textContent || "")
+    .trim()
+    .toLocaleLowerCase("tr-TR");
   const module = String(page.dataset?.m2Module || "");
-  if (module) return module === "mekik2";
-  return String(document.getElementById("pageTitle")?.textContent || "").trim().toLocaleLowerCase("tr-TR") === "mekik";
+
+  // Sayfa değişiminde global modül kısa süre eski değerde kalabiliyor.
+  // Görünen Mekik başlığı ve güncel DOM modülü bu yüzden önceliklidir.
+  if (title === "mekik" || module === "mekik2") return true;
+  if (page.classList.contains("b2b-mode") || page.classList.contains("drive-in-mode")) return false;
+  if (title || module) return false;
+
+  try {
+    return typeof m2ActiveModule !== "undefined" && String(m2ActiveModule) === "mekik2";
+  } catch (_) {
+    return false;
+  }
 }
 
 function readConfig() {
