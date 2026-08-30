@@ -13,17 +13,9 @@ html = html
 
 // Mekik ana ekraninda AYAK2 PNG/raster ayak katmanini kaldir.
 // Yalnizca front projection icindeki upright dongusu degisir; side/top/B2B dokunulmaz.
-const rasterMarker = 'm2-front-upright--ayak2-glb';
-const rasterIndex = html.indexOf(rasterMarker);
-if (rasterIndex < 0) throw new Error("Mekik native front/details v13: AYAK2 raster upright bulunamadi.");
-const uprightLoopStartMarker = '          for (let upright = 0; upright <= bays; upright++) {';
-const uprightLoopStart = html.lastIndexOf(uprightLoopStartMarker, rasterIndex);
-const uprightLoopEndMarker = '          [...new Set((Array.isArray(drawing?.topVBraceBays) ? drawing.topVBraceBays : []).map(Number))]';
-const uprightLoopEnd = html.indexOf(uprightLoopEndMarker, rasterIndex);
-if (uprightLoopStart < 0 || uprightLoopEnd < 0 || uprightLoopEnd <= uprightLoopStart) {
-  throw new Error("Mekik native front/details v13: front upright dongusu sinirlari bulunamadi.");
-}
-const nativeUprightLoop = String.raw`          for (let upright = 0; upright <= bays; upright++) {
+const rasterUprightLoop = /for\s*\(let\s+upright\s*=\s*0;\s*upright\s*<=\s*bays;\s*upright\+\+\)\s*\{[\s\S]{0,5000}?m2-front-upright--ayak2-glb[\s\S]{0,5000}?\}\s*(?=\[\.\.\.new Set\(\(Array\.isArray\(drawing\?\.topVBraceBays\))/;
+if (!rasterUprightLoop.test(html)) throw new Error("Mekik native front/details v13: AYAK2 raster upright dongusu bulunamadi.");
+const nativeUprightLoop = String.raw`for (let upright = 0; upright <= bays; upright++) {
             const postX = marginX + upright * bayPitch + uprightWidth / 2,
               postTopY = floorY - rackHeight,
               postBodyWidth = Math.max(86, uprightWidth),
@@ -35,8 +27,8 @@ const nativeUprightLoop = String.raw`          for (let upright = 0; upright <= 
               holeBottom = floorY - footHeight - 42;
             posts += \`<g class=\"m2-front-upright m2-front-upright--native\" data-projection=\"front\" data-upright-source=\"native-svg\" data-upright-finish=\"galvanized\"><rect class=\"m2-front-post\" x=\"\${postLeft}\" y=\"\${postTopY}\" width=\"\${postBodyWidth}\" height=\"\${rackHeight}\" rx=\"8\"/><path class=\"m2-front-post-edge\" d=\"M\${postLeft + postBodyWidth * .22} \${postTopY + 10}V\${floorY - footHeight - 8}\"/><line class=\"m2-front-post-holes\" x1=\"\${postX}\" y1=\"\${holeTop}\" x2=\"\${postX}\" y2=\"\${holeBottom}\"/><rect class=\"m2-front-base\" x=\"\${footLeft}\" y=\"\${floorY - footHeight}\" width=\"\${footWidth}\" height=\"\${footHeight}\" rx=\"8\"/><circle class=\"m2-front-bolt\" cx=\"\${postX - footWidth * .28}\" cy=\"\${floorY - footHeight * .42}\" r=\"10\"/><circle class=\"m2-front-bolt\" cx=\"\${postX + footWidth * .28}\" cy=\"\${floorY - footHeight * .42}\" r=\"10\"/></g>\`;
           }
-`;
-html = html.slice(0, uprightLoopStart) + nativeUprightLoop + html.slice(uprightLoopEnd);
+          `;
+html = html.replace(rasterUprightLoop, nativeUprightLoop);
 
 html = html.replace(
   'data-glb-assembly="ayak2-ray-travers-palet" data-front-layout="ayak2-glb-front-projection" data-upright-source="AYAK2.glb"',
