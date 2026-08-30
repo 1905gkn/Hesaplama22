@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v24";
+const ASSET_VERSION = "mekik-front-glb-v25";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -60,6 +60,9 @@ function readConfig() {
   };
   const footColor = colorValue("rafex-mekik-foot-color", drawing?.mekikFootColor || mekikFootColorChoice);
   const traverseColor = colorValue("rafex-mekik-traverse-color", drawing?.mekikTraverseColor || mekikTraverseColorChoice);
+  const traverseChoice = colorValue("rafex-mekik-traverse-select", "ST37|50×50×1,5");
+  const traverseMatch = traverseChoice.match(/(\d+)\s*[×xX]\s*(\d+)/);
+  const traverseHeight = Math.max(1, Number(traverseMatch?.[2]) || 50);
   const sideClearance = numberFromAny([], colorValue("rafex-mekik-side-clearance", drawing?.mekikSideClearance ?? mekikSideClearanceChoice), 0, 1000);
   const bays = Math.round(numberFrom("m2Bays", Number(drawing?.bays) || 4, 1, 50));
   const levels = Math.round(numberFrom("m2Levels", Number(drawing?.levels) || 4, 1, 15));
@@ -86,6 +89,7 @@ function readConfig() {
     footType,
     footColor,
     traverseColor,
+    traverseHeight,
     sideClearance,
     uprightHeight,
     bayPitch,
@@ -256,7 +260,7 @@ class MekikFrontViewer {
   }
 
   configKey(config = this.config) {
-    return [config.bays, config.levels, config.palletWidth, config.palletDepth, config.palletHeight, config.firstLevelHeight, config.levelSpacing, config.footType, config.footColor, config.traverseColor, config.sideClearance, config.uprightHeight].join("|");
+    return [config.bays, config.levels, config.palletWidth, config.palletDepth, config.palletHeight, config.firstLevelHeight, config.levelSpacing, config.footType, config.footColor, config.traverseColor, config.traverseHeight, config.sideClearance, config.uprightHeight].join("|");
   }
 
   update() {
@@ -429,8 +433,10 @@ class MekikFrontViewer {
     const floorY = point(0, 0).y;
     const topY = point(0, config.uprightHeight).y;
     const leftX = Math.max(142, rackLeft - Math.min(62, width * 0.06));
-    const rightX = Math.min(width - 148, rackRight + Math.min(52, width * 0.05));
+    const rightX = Math.min(width - 148, rackRight + Math.min(58, width * 0.055));
+    const innerRightX = rackRight + Math.max(16, Math.min(27, (rightX - rackRight) * 0.48));
     const centerX = (rackLeft + rackRight) / 2;
+    const firstBayCenterX = point(config.bayPitch / 2, 0).x;
     const sideClearance = config.sideClearance;
     const lineParts = [];
     const labelParts = [];
@@ -438,19 +444,28 @@ class MekikFrontViewer {
     const verticalDimension = (x, z1, z2, label, side = "left") => {
       const a = point(0, z1), b = point(0, z2);
       lineParts.push(`<line x1="${x}" y1="${a.y}" x2="${x}" y2="${b.y}" class="dim-main" marker-start="url(#mekik-arrow)" marker-end="url(#mekik-arrow)"/>`);
-      lineParts.push(`<line x1="${x}" y1="${a.y}" x2="${side === "left" ? rackLeft : rackRight}" y2="${a.y}" class="dim-guide"/>`);
-      lineParts.push(`<line x1="${x}" y1="${b.y}" x2="${side === "left" ? rackLeft : rackRight}" y2="${b.y}" class="dim-guide"/>`);
-      const textX = side === "left" ? x - 9 : x + 9;
-      const anchor = side === "left" ? "end" : "start";
-      labelParts.push(`<text x="${textX}" y="${(a.y + b.y) / 2 + 4}" text-anchor="${anchor}" class="dim-text">${label}</text>`);
+      const guideTarget = side === "left" ? rackLeft : rackRight;
+      lineParts.push(`<line x1="${x}" y1="${a.y}" x2="${guideTarget}" y2="${a.y}" class="dim-guide"/>`);
+      lineParts.push(`<line x1="${x}" y1="${b.y}" x2="${guideTarget}" y2="${b.y}" class="dim-guide"/>`);
+      const middleY = (a.y + b.y) / 2;
+      if (side === "inside") {
+        labelParts.push(`<text x="${x - 8}" y="${middleY}" text-anchor="middle" class="dim-text dim-vertical-text" transform="rotate(-90 ${x - 8} ${middleY})">${label}</text>`);
+      } else {
+        const textX = side === "left" ? x - 9 : x + 9;
+        const anchor = side === "left" ? "end" : "start";
+        labelParts.push(`<text x="${textX}" y="${middleY + 4}" text-anchor="${anchor}" class="dim-text">${label}</text>`);
+      }
     };
 
     verticalDimension(leftX, 0, config.firstLevelHeight, `ZEMİN · ${fmt(config.firstLevelHeight)} mm`);
     for (let level = 1; level < config.levels; level += 1) {
       const from = config.firstLevelHeight + (level - 1) * config.levelSpacing;
-      const to = config.firstLevelHeight + level * config.levelSpacing;
-      verticalDimension(leftX, from, to, `K${level} · ${fmt(config.levelSpacing)} mm`);
+      const to = config.firstLevelHeight + level * config.levelSpacing - config.traverseHeight;
+      const clearLevelHeight = Math.max(0, to - from);
+      verticalDimension(leftX, from, to, `K${level} · ${fmt(clearLevelHeight)} mm`);
     }
+    const topPalletBottom = config.firstLevelHeight + (config.levels - 1) * config.levelSpacing + this.models.traverse.topOffset;
+    verticalDimension(innerRightX, 0, topPalletBottom, `SON PALET YÜKSEKLİĞİ · ${fmt(topPalletBottom)} mm`, "inside");
     verticalDimension(rightX, 0, config.uprightHeight, "", "right");
 
     const cardX = rightX + 13;
@@ -465,6 +480,8 @@ class MekikFrontViewer {
         .dim-main{stroke:#d7a900;stroke-width:1.35}
         .dim-guide{stroke:#d7a900;stroke-width:.9;stroke-dasharray:3 3;opacity:.8}
         .dim-text{fill:#073c30;font:800 9px Arial,sans-serif}
+        .dim-vertical-text{font-size:8px;letter-spacing:.15px}
+        .dim-column-text{fill:#fff;font:900 7.5px Arial,sans-serif}
         .dim-title{fill:#073c30;font:900 11px Arial,sans-serif}
         .dim-chip{fill:#073c30}
         .dim-chip-text{fill:#fff;font:900 9px Arial,sans-serif}
@@ -475,8 +492,8 @@ class MekikFrontViewer {
       ${lineParts.join("")}
       ${labelParts.join("")}
       <text x="${centerX}" y="21" text-anchor="middle" class="dim-warm-text">YAN BOŞLUK · ${fmt(sideClearance)} + ${fmt(sideClearance)} mm</text>
-      <rect x="${centerX - 88}" y="29" width="176" height="21" rx="11" class="dim-chip"/>
-      <text x="${centerX}" y="43" text-anchor="middle" class="dim-chip-text">KOLON ARALIĞI · ${fmt(config.bayPitch)} mm</text>
+      <rect x="${firstBayCenterX - 72}" y="30" width="144" height="18" rx="9" class="dim-chip"/>
+      <text x="${firstBayCenterX}" y="42" text-anchor="middle" class="dim-column-text">KOLON ARALIĞI · ${fmt(config.bayPitch)} mm</text>
       <rect x="${centerX - 58}" y="57" width="116" height="20" rx="10" class="dim-warm"/>
       <text x="${centerX}" y="70" text-anchor="middle" class="dim-warm-text">PALET · ${fmt(config.palletWidth)} mm</text>
       <rect x="${cardX}" y="${cardY}" width="122" height="47" rx="9" class="dim-chip"/>
