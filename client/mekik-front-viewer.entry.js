@@ -430,11 +430,11 @@ function updateTraverseChoice(panel, keepSelection = false) {
   const manualButton = panel.querySelector(".rafex-mekik-traverse-manual");
   if (!select || !summary || !formula || !manualButton) return;
 
-  const bays = Math.max(1, Math.round(numberFrom("m2Bays", 4, 1, 50)));
   const levels = Math.max(1, Math.round(numberFrom("m2Levels", 4, 1, 15)));
   const depth = Math.max(1, Math.round(numberFrom("m2Depth", 5, 1, 60)));
   const palletWeight = numberFrom("m2PalletWeight", 1000, 0, 10000);
-  const footCount = bays + 1;
+  const drawing = activeDrawing();
+  const footCount = Math.max(1, Math.round(Number(drawing?.plan?.feet?.length) || Number(drawing?.footCount) || 1));
   const system = String(liveField("m2System")?.value || "fifo").toLowerCase() === "filo" ? "filo" : "fifo";
   const hasExtra = String(liveField("m2Extra")?.value || "0") === "1";
   const divisor = Math.max(1,
