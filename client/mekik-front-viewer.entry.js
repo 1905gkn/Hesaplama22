@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v11";
+const ASSET_VERSION = "mekik-front-glb-v12";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -419,24 +419,47 @@ function bestTraverseFor(load, grade) {
     .sort((a, b) => a.capacity - b.capacity)[0] || null;
 }
 
-function updateTraverseCalculator(panel) {
+function traverseValue(item) {
+  return item ? `${item.grade}|${item.profile}` : "";
+}
+
+function updateTraverseChoice(panel, keepSelection = false) {
   const input = panel.querySelector(".rafex-mekik-traverse-load");
-  const load = Math.max(0, Number(input?.value) || 0);
-  for (const grade of ["ST37", "ST52"]) {
-    const output = panel.querySelector(`[data-grade="${grade}"]`);
-    const recommendation = bestTraverseFor(load, grade);
-    if (!output) continue;
-    if (!load) {
-      output.innerHTML = `<b>${grade}</b><span>Yük girin</span>`;
-      output.dataset.state = "empty";
-    } else if (recommendation) {
-      output.innerHTML = `<b>${grade}</b><span>${recommendation.profile} ${grade}</span><small>${new Intl.NumberFormat("tr-TR").format(recommendation.capacity)} kg kapasite · ${String(recommendation.kgPerMeter).replace(".", ",")} kg/m</small>`;
-      output.dataset.state = "ready";
-    } else {
-      output.innerHTML = `<b>${grade}</b><span>Uygun profil yok</span><small>Tablo üst sınırı aşıldı.</small>`;
-      output.dataset.state = "over";
-    }
+  const select = panel.querySelector(".rafex-mekik-traverse-select");
+  const summary = panel.querySelector(".rafex-mekik-traverse-summary");
+  const manualButton = panel.querySelector(".rafex-mekik-traverse-manual");
+  if (!input || !select || !summary || !manualButton) return;
+
+  const load = Math.max(0, Number(input.value) || 0);
+  const manual = manualButton.getAttribute("aria-pressed") === "true";
+  const previous = keepSelection ? select.value : "";
+  const recommendations = ["ST37", "ST52"].map((grade) => bestTraverseFor(load, grade)).filter(Boolean);
+  const choices = manual ? MEKIK_TRAVERSE_CAPACITIES : recommendations;
+
+  select.replaceChildren();
+  if (!load) {
+    select.add(new Option("Yük girin", ""));
+    select.disabled = true;
+    summary.textContent = "Travers yükünü girin.";
+    return;
   }
+  if (!choices.length) {
+    select.add(new Option("Uygun profil yok", ""));
+    select.disabled = true;
+    summary.textContent = "Girilen yük Excel tablosundaki kapasite sınırını aşıyor.";
+    return;
+  }
+
+  select.disabled = false;
+  choices.forEach((item, index) => {
+    const prefix = manual ? "" : `${index + 1}. ÖNERİ · `;
+    select.add(new Option(`${prefix}${item.profile} ${item.grade}`, traverseValue(item)));
+  });
+  if (previous && choices.some((item) => traverseValue(item) === previous)) select.value = previous;
+
+  const selected = choices.find((item) => traverseValue(item) === select.value) || choices[0];
+  select.value = traverseValue(selected);
+  summary.textContent = `${selected.profile} ${selected.grade} · ${new Intl.NumberFormat("tr-TR").format(selected.capacity)} kg kapasite · ${String(selected.kgPerMeter).replace(".", ",")} kg/m`;
 }
 
 function ensureTraverseCalculator() {
@@ -445,39 +468,45 @@ function ensureTraverseCalculator() {
     const style = document.createElement("style");
     style.id = "rafex-mekik-traverse-style";
     style.textContent = `
-      .rafex-mekik-traverse-calc{grid-column:1/-1;padding:13px;border:1px solid #b8cfc3;border-radius:12px;background:#f7fbf8;box-shadow:0 3px 10px rgba(23,60,45,.06)}
-      .rafex-mekik-traverse-calc>strong{display:block;margin-bottom:10px;color:#173c2d;font:900 14px/1.2 Arial,sans-serif}
-      .rafex-mekik-traverse-calc label{display:block;color:#486056;font:700 11px/1.2 Arial,sans-serif}
-      .rafex-mekik-traverse-load{width:100%;box-sizing:border-box;margin-top:5px;padding:10px 11px;border:1px solid #d8c86f;border-radius:9px;background:#fff9d8;color:#14261f;font:800 14px/1 Arial,sans-serif}
-      .rafex-mekik-traverse-results{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-      .rafex-mekik-traverse-result{min-width:0;padding:10px;border:1px solid #cfe0d6;border-radius:9px;background:#fff}
-      .rafex-mekik-traverse-result b,.rafex-mekik-traverse-result span,.rafex-mekik-traverse-result small{display:block}
-      .rafex-mekik-traverse-result b{color:#286244;font:900 11px/1.1 Arial,sans-serif}
-      .rafex-mekik-traverse-result span{margin-top:4px;color:#173c2d;font:900 13px/1.25 Arial,sans-serif}
-      .rafex-mekik-traverse-result small{margin-top:4px;color:#60736a;font:700 10px/1.3 Arial,sans-serif}
-      .rafex-mekik-traverse-result[data-state="over"]{border-color:#e4b3ad;background:#fff5f3}
-      @media(max-width:420px){.rafex-mekik-traverse-results{grid-template-columns:1fr}}
+      .m2-traverse-placeholder.rafex-mekik-traverse-choice{display:block;padding:0;border:0;background:transparent}
+      .rafex-mekik-traverse-choice>span{display:block;margin-bottom:6px}
+      .rafex-mekik-traverse-choice .m2-foot-choice-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+      .rafex-mekik-traverse-select{min-width:0}
+      .rafex-mekik-traverse-load-row{display:flex;align-items:center;gap:8px;margin-top:8px;color:#486056;font:700 11px/1.2 Arial,sans-serif}
+      .rafex-mekik-traverse-load{min-width:0;flex:1;padding:8px 9px;border:1px solid #d8c86f;border-radius:8px;background:#fff9d8;color:#14261f;font:800 13px/1 Arial,sans-serif}
+      .rafex-mekik-traverse-summary{display:block;margin-top:7px;color:#286244;font:800 10px/1.35 Arial,sans-serif}
     `;
     document.head.appendChild(style);
   }
+
+  document.querySelectorAll(".rafex-mekik-traverse-calc").forEach((node) => node.remove());
   for (const placeholder of document.querySelectorAll(".m2-traverse-placeholder")) {
-    if (placeholder.nextElementSibling?.classList.contains("rafex-mekik-traverse-calc")) continue;
-    const panel = document.createElement("section");
-    panel.className = "rafex-mekik-traverse-calc";
-    panel.setAttribute("aria-label", "Mekik Travers Hesaplama");
-    panel.innerHTML = `
-      <strong>Mekik Travers Hesaplama</strong>
-      <label>Travers yükü (kg)
+    if (placeholder.dataset.rafexTraverseChoice === "ready") continue;
+    placeholder.dataset.rafexTraverseChoice = "ready";
+    placeholder.classList.add("rafex-mekik-traverse-choice");
+    placeholder.innerHTML = `
+      <span>Önerilen Travers</span>
+      <div class="m2-foot-choice-row">
+        <select class="classic-choice rafex-mekik-traverse-select" aria-label="Önerilen Mekik traversi"></select>
+        <button class="m2-foot-manual-button rafex-mekik-traverse-manual" type="button" aria-pressed="false">Manuel Seç</button>
+      </div>
+      <label class="rafex-mekik-traverse-load-row">Travers yükü (kg)
         <input class="rafex-mekik-traverse-load" type="number" min="0" max="100000" step="10" value="1600" inputmode="decimal">
       </label>
-      <div class="rafex-mekik-traverse-results">
-        <div class="rafex-mekik-traverse-result" data-grade="ST37"></div>
-        <div class="rafex-mekik-traverse-result" data-grade="ST52"></div>
-      </div>
+      <small class="m2-foot-recommendation rafex-mekik-traverse-summary"></small>
     `;
-    panel.querySelector(".rafex-mekik-traverse-load")?.addEventListener("input", () => updateTraverseCalculator(panel));
-    placeholder.insertAdjacentElement("afterend", panel);
-    updateTraverseCalculator(panel);
+    const select = placeholder.querySelector(".rafex-mekik-traverse-select");
+    const input = placeholder.querySelector(".rafex-mekik-traverse-load");
+    const manualButton = placeholder.querySelector(".rafex-mekik-traverse-manual");
+    input?.addEventListener("input", () => updateTraverseChoice(placeholder));
+    select?.addEventListener("change", () => updateTraverseChoice(placeholder, true));
+    manualButton?.addEventListener("click", () => {
+      const manual = manualButton.getAttribute("aria-pressed") !== "true";
+      manualButton.setAttribute("aria-pressed", String(manual));
+      manualButton.textContent = manual ? "Öneriye Dön" : "Manuel Seç";
+      updateTraverseChoice(placeholder, true);
+    });
+    updateTraverseChoice(placeholder);
   }
 }
 
