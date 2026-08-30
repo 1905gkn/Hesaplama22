@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v16";
+const ASSET_VERSION = "mekik-front-glb-v17";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -425,10 +425,9 @@ function traverseValue(item) {
 
 function updateTraverseChoice(panel, keepSelection = false) {
   const select = panel.querySelector(".rafex-mekik-traverse-select");
-  const summary = panel.querySelector(".rafex-mekik-traverse-summary");
   const formula = panel.querySelector(".rafex-mekik-traverse-formula");
   const manualButton = panel.querySelector(".rafex-mekik-traverse-manual");
-  if (!select || !summary || !formula || !manualButton) return;
+  if (!select || !formula || !manualButton) return;
 
   const levels = Math.max(1, Math.round(numberFrom("m2Levels", 4, 1, 15)));
   const depth = Math.max(1, Math.round(numberFrom("m2Depth", 5, 1, 60)));
@@ -461,13 +460,11 @@ function updateTraverseChoice(panel, keepSelection = false) {
   if (!load) {
     select.add(new Option("Yük girin", ""));
     select.disabled = true;
-    summary.textContent = "Palet yükü girin.";
     return;
   }
   if (!choices.length) {
     select.add(new Option("Uygun profil yok", ""));
     select.disabled = true;
-    summary.textContent = "Girilen yük Excel tablosundaki kapasite sınırını aşıyor.";
     return;
   }
 
@@ -480,7 +477,6 @@ function updateTraverseChoice(panel, keepSelection = false) {
 
   const selected = choices.find((item) => traverseValue(item) === select.value) || choices[0];
   select.value = traverseValue(selected);
-  summary.textContent = `${selected.profile} ${selected.grade} · ${new Intl.NumberFormat("tr-TR").format(selected.capacity)} kg kapasite · ${String(selected.kgPerMeter).replace(".", ",")} kg/m`;
 }
 
 function ensureTraverseCalculator() {
@@ -494,7 +490,6 @@ function ensureTraverseCalculator() {
       .rafex-mekik-traverse-choice .m2-foot-choice-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
       .rafex-mekik-traverse-select{min-width:0}
       .rafex-mekik-traverse-formula{display:block;margin-top:8px;padding:7px 8px;border-radius:7px;background:#fff9d8;color:#5d5120;font:800 10px/1.35 Arial,sans-serif}
-      .rafex-mekik-traverse-summary{display:block;margin-top:7px;color:#286244;font:800 10px/1.35 Arial,sans-serif}
     `;
     document.head.appendChild(style);
   }
@@ -527,7 +522,6 @@ function ensureTraverseCalculator() {
         <button class="m2-foot-manual-button rafex-mekik-traverse-manual" type="button" aria-pressed="false">Manuel Seç</button>
       </div>
       <small class="rafex-mekik-traverse-formula"></small>
-      <small class="m2-foot-recommendation rafex-mekik-traverse-summary"></small>
     `;
     const select = placeholder.querySelector(".rafex-mekik-traverse-select");
     const manualButton = placeholder.querySelector(".rafex-mekik-traverse-manual");
