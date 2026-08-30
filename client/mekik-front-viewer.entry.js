@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v10";
+const ASSET_VERSION = "mekik-front-glb-v11";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -404,6 +404,83 @@ function updateInfo(config) {
   if (info.textContent !== text) info.textContent = text;
 }
 
+const MEKIK_TRAVERSE_CAPACITIES = [
+  { grade: "ST37", profile: "50×50×1,5", capacity: 1047, kgPerMeter: 2.27 },
+  { grade: "ST37", profile: "50×60×1,5", capacity: 1338, kgPerMeter: 2.5 },
+  { grade: "ST37", profile: "50×70×1,5", capacity: 1652, kgPerMeter: 2.75 },
+  { grade: "ST52", profile: "50×50×1,5", capacity: 1072, kgPerMeter: 2.27 },
+  { grade: "ST52", profile: "50×60×1,5", capacity: 1643, kgPerMeter: 2.5 },
+  { grade: "ST52", profile: "50×70×1,5", capacity: 2366, kgPerMeter: 2.75 },
+];
+
+function bestTraverseFor(load, grade) {
+  return MEKIK_TRAVERSE_CAPACITIES
+    .filter((item) => item.grade === grade && item.capacity >= load)
+    .sort((a, b) => a.capacity - b.capacity)[0] || null;
+}
+
+function updateTraverseCalculator(panel) {
+  const input = panel.querySelector(".rafex-mekik-traverse-load");
+  const load = Math.max(0, Number(input?.value) || 0);
+  for (const grade of ["ST37", "ST52"]) {
+    const output = panel.querySelector(`[data-grade="${grade}"]`);
+    const recommendation = bestTraverseFor(load, grade);
+    if (!output) continue;
+    if (!load) {
+      output.innerHTML = `<b>${grade}</b><span>Yük girin</span>`;
+      output.dataset.state = "empty";
+    } else if (recommendation) {
+      output.innerHTML = `<b>${grade}</b><span>${recommendation.profile} ${grade}</span><small>${new Intl.NumberFormat("tr-TR").format(recommendation.capacity)} kg kapasite · ${String(recommendation.kgPerMeter).replace(".", ",")} kg/m</small>`;
+      output.dataset.state = "ready";
+    } else {
+      output.innerHTML = `<b>${grade}</b><span>Uygun profil yok</span><small>Tablo üst sınırı aşıldı.</small>`;
+      output.dataset.state = "over";
+    }
+  }
+}
+
+function ensureTraverseCalculator() {
+  if (!isMekikFront()) return;
+  if (!document.getElementById("rafex-mekik-traverse-style")) {
+    const style = document.createElement("style");
+    style.id = "rafex-mekik-traverse-style";
+    style.textContent = `
+      .rafex-mekik-traverse-calc{grid-column:1/-1;padding:13px;border:1px solid #b8cfc3;border-radius:12px;background:#f7fbf8;box-shadow:0 3px 10px rgba(23,60,45,.06)}
+      .rafex-mekik-traverse-calc>strong{display:block;margin-bottom:10px;color:#173c2d;font:900 14px/1.2 Arial,sans-serif}
+      .rafex-mekik-traverse-calc label{display:block;color:#486056;font:700 11px/1.2 Arial,sans-serif}
+      .rafex-mekik-traverse-load{width:100%;box-sizing:border-box;margin-top:5px;padding:10px 11px;border:1px solid #d8c86f;border-radius:9px;background:#fff9d8;color:#14261f;font:800 14px/1 Arial,sans-serif}
+      .rafex-mekik-traverse-results{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+      .rafex-mekik-traverse-result{min-width:0;padding:10px;border:1px solid #cfe0d6;border-radius:9px;background:#fff}
+      .rafex-mekik-traverse-result b,.rafex-mekik-traverse-result span,.rafex-mekik-traverse-result small{display:block}
+      .rafex-mekik-traverse-result b{color:#286244;font:900 11px/1.1 Arial,sans-serif}
+      .rafex-mekik-traverse-result span{margin-top:4px;color:#173c2d;font:900 13px/1.25 Arial,sans-serif}
+      .rafex-mekik-traverse-result small{margin-top:4px;color:#60736a;font:700 10px/1.3 Arial,sans-serif}
+      .rafex-mekik-traverse-result[data-state="over"]{border-color:#e4b3ad;background:#fff5f3}
+      @media(max-width:420px){.rafex-mekik-traverse-results{grid-template-columns:1fr}}
+    `;
+    document.head.appendChild(style);
+  }
+  for (const placeholder of document.querySelectorAll(".m2-traverse-placeholder")) {
+    if (placeholder.nextElementSibling?.classList.contains("rafex-mekik-traverse-calc")) continue;
+    const panel = document.createElement("section");
+    panel.className = "rafex-mekik-traverse-calc";
+    panel.setAttribute("aria-label", "Mekik Travers Hesaplama");
+    panel.innerHTML = `
+      <strong>Mekik Travers Hesaplama</strong>
+      <label>Travers yükü (kg)
+        <input class="rafex-mekik-traverse-load" type="number" min="0" max="100000" step="10" value="1600" inputmode="decimal">
+      </label>
+      <div class="rafex-mekik-traverse-results">
+        <div class="rafex-mekik-traverse-result" data-grade="ST37"></div>
+        <div class="rafex-mekik-traverse-result" data-grade="ST52"></div>
+      </div>
+    `;
+    panel.querySelector(".rafex-mekik-traverse-load")?.addEventListener("input", () => updateTraverseCalculator(panel));
+    placeholder.insertAdjacentElement("afterend", panel);
+    updateTraverseCalculator(panel);
+  }
+}
+
 function ensureElements() {
   if (!canvas) {
     canvas = document.createElement("canvas");
@@ -424,6 +501,7 @@ function ensureElements() {
 function ensureMounted() {
   scheduled = 0;
   if (!isMekikFront()) return;
+  ensureTraverseCalculator();
   const host = document.getElementById("m2Front");
   if (!host) return;
   ensureElements();
