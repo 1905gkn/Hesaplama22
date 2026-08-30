@@ -1,13 +1,15 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v21";
+const ASSET_VERSION = "mekik-front-glb-v22";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 let sharedModelsPromise = null;
+let mekikFootColorChoice = "ral5010";
+let mekikTraverseColorChoice = "ral1007";
 
 function liveField(id) {
   const nodes = Array.from(document.querySelectorAll(`[id="${id}"]`));
@@ -50,6 +52,13 @@ function isMekikFront() {
 
 function readConfig() {
   const drawing = activeDrawing();
+  const colorValue = (className, fallback) => {
+    const nodes = Array.from(document.querySelectorAll(`.${className}`));
+    const visible = nodes.filter((node) => node.isConnected && node.getClientRects().length > 0);
+    return String((visible.at(-1) || nodes.at(-1))?.value || fallback);
+  };
+  const footColor = colorValue("rafex-mekik-foot-color", drawing?.mekikFootColor || mekikFootColorChoice);
+  const traverseColor = colorValue("rafex-mekik-traverse-color", drawing?.mekikTraverseColor || mekikTraverseColorChoice);
   const bays = Math.round(numberFrom("m2Bays", Number(drawing?.bays) || 4, 1, 50));
   const levels = Math.round(numberFrom("m2Levels", Number(drawing?.levels) || 4, 1, 15));
   const palletWidth = numberFrom("m2PalW", Number(drawing?.palW) || 1200, 600, 1800);
@@ -73,10 +82,28 @@ function readConfig() {
     firstLevelHeight,
     levelSpacing,
     footType,
+    footColor,
+    traverseColor,
     uprightHeight,
     bayPitch,
     totalWidth: bays * bayPitch + footType,
   };
+}
+
+const MEKIK_FINISH_COLORS = {
+  ral5010: 0x004f7c,
+  pgv: 0xa8b0b3,
+  ral1007: 0xe5be01,
+  ral2004: 0xf44611,
+};
+
+function finishMaterial(key, type) {
+  const galvanized = key === "pgv";
+  return new THREE.MeshStandardMaterial({
+    color: MEKIK_FINISH_COLORS[key] ?? (type === "foot" ? MEKIK_FINISH_COLORS.ral5010 : MEKIK_FINISH_COLORS.ral1007),
+    metalness: galvanized ? 0.7 : 0.34,
+    roughness: galvanized ? 0.32 : 0.46,
+  });
 }
 
 function materialFor(name) {
@@ -226,7 +253,7 @@ class MekikFrontViewer {
   }
 
   configKey(config = this.config) {
-    return [config.bays, config.levels, config.palletWidth, config.palletDepth, config.palletHeight, config.firstLevelHeight, config.levelSpacing, config.footType, config.uprightHeight].join("|");
+    return [config.bays, config.levels, config.palletWidth, config.palletDepth, config.palletHeight, config.firstLevelHeight, config.levelSpacing, config.footType, config.footColor, config.traverseColor, config.uprightHeight].join("|");
   }
 
   update() {
@@ -245,10 +272,13 @@ class MekikFrontViewer {
     const config = this.config;
     const uprightScaleX = config.footType / REFERENCE_UPRIGHT_WIDTH;
     const uprightScaleZ = config.uprightHeight / Math.max(1, this.models.upright.size.z);
+    const uprightMaterial = finishMaterial(config.footColor, "foot");
+    const traverseMaterial = finishMaterial(config.traverseColor, "traverse");
 
     for (let index = 0; index <= config.bays; index += 1) {
       const upright = this.models.upright.root.clone(true);
       upright.name = `Mekik Ayak ${index + 1}`;
+      upright.traverse((part) => { if (part.isMesh) part.material = uprightMaterial; });
       upright.scale.set(uprightScaleX, 1, uprightScaleZ);
       upright.position.set(index * config.bayPitch, 0, 0);
       this.root.add(upright);
@@ -272,6 +302,7 @@ class MekikFrontViewer {
         const bayCenterX = (bay + 0.5) * config.bayPitch;
         const traverse = this.models.traverse.root.clone(true);
         traverse.name = `Mekik Travers G${bay + 1} K${level + 1}`;
+        traverse.traverse((part) => { if (part.isMesh) part.material = traverseMaterial; });
         traverse.scale.set(traverseScaleX, 1, 1);
         traverse.position.set(bayCenterX, 0, supportZ);
         this.root.add(traverse);
@@ -477,6 +508,71 @@ function updateInfo(config) {
   if (info.textContent !== text) info.textContent = text;
 }
 
+function ensureMekikColorSelectors() {
+  if (!isMekikFront()) return;
+  if (!document.getElementById("rafex-mekik-color-style")) {
+    const style = document.createElement("style");
+    style.id = "rafex-mekik-color-style";
+    style.textContent = `
+      .rafex-mekik-color-row{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+      .rafex-mekik-color-row .input-field{min-width:0}
+      .rafex-mekik-color-row select{width:100%}
+    `;
+    document.head.appendChild(style);
+  }
+
+  const drawing = activeDrawing();
+  if (["ral5010", "pgv"].includes(String(drawing?.mekikFootColor))) mekikFootColorChoice = String(drawing.mekikFootColor);
+  if (["ral1007", "ral2004"].includes(String(drawing?.mekikTraverseColor))) mekikTraverseColorChoice = String(drawing.mekikTraverseColor);
+
+  for (const projectInput of document.querySelectorAll('[id="m2ProjectName"]')) {
+    const projectLabel = projectInput.closest("label");
+    const form = projectInput.closest(".m2-form");
+    if (!projectLabel || !form) continue;
+    let row = form.querySelector(".rafex-mekik-color-row");
+    if (!row) {
+      row = document.createElement("div");
+      row.className = "rafex-mekik-color-row";
+      row.innerHTML = `
+        <label class="input-field">Ayak rengi
+          <select class="classic-choice rafex-mekik-foot-color">
+            <option value="ral5010">RAL 5010</option>
+            <option value="pgv">PGV</option>
+          </select>
+        </label>
+        <label class="input-field">Travers rengi
+          <select class="classic-choice rafex-mekik-traverse-color">
+            <option value="ral1007">RAL 1007</option>
+            <option value="ral2004">RAL 2004</option>
+          </select>
+        </label>
+      `;
+      projectLabel.insertAdjacentElement("afterend", row);
+      row.querySelector(".rafex-mekik-foot-color")?.addEventListener("change", (event) => {
+        mekikFootColorChoice = event.currentTarget.value;
+        const current = activeDrawing();
+        if (current) current.mekikFootColor = mekikFootColorChoice;
+        scheduleMount();
+      });
+      row.querySelector(".rafex-mekik-traverse-color")?.addEventListener("change", (event) => {
+        mekikTraverseColorChoice = event.currentTarget.value;
+        const current = activeDrawing();
+        if (current) current.mekikTraverseColor = mekikTraverseColorChoice;
+        scheduleMount();
+      });
+    }
+    const footSelect = row.querySelector(".rafex-mekik-foot-color");
+    const traverseSelect = row.querySelector(".rafex-mekik-traverse-color");
+    if (footSelect && footSelect.value !== mekikFootColorChoice) footSelect.value = mekikFootColorChoice;
+    if (traverseSelect && traverseSelect.value !== mekikTraverseColorChoice) traverseSelect.value = mekikTraverseColorChoice;
+    const current = activeDrawing();
+    if (current) {
+      current.mekikFootColor = mekikFootColorChoice;
+      current.mekikTraverseColor = mekikTraverseColorChoice;
+    }
+  }
+}
+
 const MEKIK_TRAVERSE_CAPACITIES = [
   { grade: "ST37", profile: "50×50×1,5", capacity: 1047, kgPerMeter: 2.27 },
   { grade: "ST37", profile: "50×60×1,5", capacity: 1338, kgPerMeter: 2.5 },
@@ -675,6 +771,7 @@ function ensureElements() {
 function ensureMounted() {
   scheduled = 0;
   if (!isMekikFront()) return;
+  ensureMekikColorSelectors();
   ensureTraverseCalculator();
   const host = document.getElementById("m2Front");
   if (!host) return;
