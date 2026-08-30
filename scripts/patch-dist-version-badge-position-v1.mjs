@@ -6,13 +6,13 @@ const match = source.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1\
 if (!match) throw new Error('HTML_BASE64 bulunamadi.');
 
 let html = Buffer.from(match[2], 'base64').toString('utf8');
-const marker = 'data-rafex-version-badge-position="v3"';
+const marker = 'data-rafex-version-badge-position="v4"';
 
 if (!html.includes(marker)) {
   const style = `
 <style ${marker}>
   .top-actions{align-items:center!important;}
-  .rafex-version-badge-source-hidden{
+  #rafexVersionBadge.rafex-version-badge-source-hidden{
     position:fixed!important;
     left:-10000px!important;
     right:auto!important;
@@ -24,7 +24,7 @@ if (!html.includes(marker)) {
     margin:0!important;
     transform:none!important;
   }
-  .rafex-version-badge-login{
+  #rafexVersionBadge.rafex-version-badge-login{
     position:fixed!important;
     right:18px!important;
     bottom:18px!important;
@@ -34,7 +34,7 @@ if (!html.includes(marker)) {
     transform:none!important;
     opacity:1!important;
     visibility:visible!important;
-    z-index:9999!important;
+    z-index:99991!important;
   }
   .top-actions>.rafex-version-badge-clone{
     position:static!important;
@@ -48,13 +48,23 @@ if (!html.includes(marker)) {
     opacity:1!important;
     visibility:visible!important;
     display:inline-flex!important;
-    z-index:auto!important;
+    align-items:center!important;
     flex:0 0 auto!important;
     pointer-events:none!important;
+    z-index:auto!important;
     box-sizing:border-box!important;
+    white-space:nowrap!important;
+    padding:6px 9px!important;
+    border:1px solid #d7dfda!important;
+    border-radius:8px!important;
+    background:rgba(255,255,255,.94)!important;
+    box-shadow:0 4px 14px #17201b1a!important;
+    color:#536058!important;
+    font:800 10px/1.15 Arial,sans-serif!important;
+    letter-spacing:.035em!important;
   }
   @media(max-width:760px){
-    .rafex-version-badge-login{right:10px!important;bottom:10px!important;}
+    #rafexVersionBadge.rafex-version-badge-login{right:10px!important;bottom:10px!important;}
     .top-actions>.rafex-version-badge-clone{margin-right:4px!important;}
   }
 </style>`;
@@ -62,6 +72,8 @@ if (!html.includes(marker)) {
   const script = `
 <script ${marker}>
 (function(){
+  if(window.__rafexVersionBadgePositionV4)return;
+  window.__rafexVersionBadgePositionV4=true;
   var CLONE_ATTR='data-rafex-version-badge-clone';
   function cleanText(el){
     return String(el && (el.innerText || el.textContent) || '').replace(/\\s+/g,' ').trim().toLocaleLowerCase('tr-TR');
@@ -72,6 +84,8 @@ if (!html.includes(marker)) {
     return s.display!=='none' && s.visibility!=='hidden';
   }
   function findSource(){
+    var byId=document.getElementById('rafexVersionBadge');
+    if(byId && !byId.hasAttribute(CLONE_ATTR)) return byId;
     var selectors=[
       '[aria-label="Son surum bilgisi"]',
       '[aria-label="Son sürüm bilgisi"]',
@@ -108,7 +122,7 @@ if (!html.includes(marker)) {
   function stripIds(root){
     if(!root) return;
     if(root.removeAttribute) root.removeAttribute('id');
-    root.querySelectorAll && root.querySelectorAll('[id]').forEach(function(el){el.removeAttribute('id');});
+    if(root.querySelectorAll) root.querySelectorAll('[id]').forEach(function(el){el.removeAttribute('id');});
   }
   function removeClone(){
     document.querySelectorAll('['+CLONE_ATTR+']').forEach(function(el){el.remove();});
@@ -129,9 +143,8 @@ if (!html.includes(marker)) {
     var aria=source.getAttribute('aria-label');
     if(aria) clone.setAttribute('aria-label',aria);
     clone.classList.add('rafex-version-badge-clone');
-    clone.style.removeProperty('display');
-    clone.style.removeProperty('visibility');
-    clone.style.removeProperty('opacity');
+    clone.removeAttribute('data-position');
+    clone.removeAttribute('style');
     if(history){
       if(clone.parentElement!==actions || clone.nextElementSibling!==history){
         history.insertAdjacentElement('beforebegin',clone);
@@ -164,8 +177,8 @@ if (!html.includes(marker)) {
   new MutationObserver(schedule).observe(document.documentElement,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','style','aria-label']});
   window.addEventListener('load',schedule);
   document.addEventListener('click',function(){setTimeout(schedule,0);},true);
-  setInterval(placeBadge,1000);
-  schedule();
+  setInterval(placeBadge,700);
+  schedule();setTimeout(schedule,100);setTimeout(schedule,500);
 })();
 </script>`;
 
@@ -179,4 +192,4 @@ if (!html.includes(marker)) {
   fs.writeFileSync(target, source);
 }
 
-console.log('Version badge position patch v3 applied.');
+console.log('Version badge position patch v4 applied.');
