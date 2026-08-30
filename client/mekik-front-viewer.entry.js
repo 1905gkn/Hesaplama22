@@ -6,9 +6,16 @@ const MAIN_URL = "/mekik-son-hali.glb";
 const UPRIGHT_SELECTOR = ".m2-front-upright";
 const TRAVERS_SELECTOR = ".m2-front-traverse-set";
 const LEGACY_GEOMETRY_SELECTOR = [UPRIGHT_SELECTOR, TRAVERS_SELECTOR].join(",");
-const UPRIGHT_NAME = /HR 100 AYAK 5500/i;
-const TRAVERS_ASSEMBLY = /MEKIK TRAVERS MONTA L1500-28/i;
-const TRAVERS_PART = /MEKIK TRAVERS 40X80X2 PROFIL|CC100 KONNEKTÖR/i;
+
+// Kullanıcının 30.08.2026 tarihinde paylaştığı Draco'suz Mekik 3 GLB'lerinden
+// doğrulanan exact node adları. Runtime'da production'da zaten bulunan aynı
+// Mekik GLB geometrisi bu node isimleriyle ayrıştırılır.
+const AYAK_PROFILE_NAME = /HR 100 5500 D1050 MONTAJ - HR 100 AYAK 5500 -12\.001/i;
+const AYAK_FOOT_NAME = /HR 100 5500 D1050 MONTAJ - HRTD100-14\.001/i;
+const TRAVERS_GROUP_NAME = /MEKIK TRAVERS MONTA L1500-14/i;
+const TRAVERS_PROFILE_NAME = /MEKIK TRAVERS 40X80X2 PROFIL-1\.001/i;
+const TRAVERS_CONNECTOR_NAME = /CC100 KONNEKTÖR-[12]\.001/i;
+const TRAVERS_BRACKET_NAME = /AynalamaAynalamaRAFEX MEKİK\s+BRAKET YENİ R3-9\.001|AynalamaRAFEX MEKİK\s+BRAKET YENİ R3-11\.001/i;
 
 let assetsPromise;
 let renderToken = 0;
@@ -44,24 +51,26 @@ function cloneMeshWorld(node) {
   return mesh;
 }
 
-function buildTemplate(scene, predicate, firstOnly = false) {
+function nodeLabel(node) {
+  const lineage = [];
+  let current = node;
+  while (current) {
+    if (current.name) lineage.push(current.name);
+    current = current.parent;
+  }
+  return lineage.join(" | ");
+}
+
+function buildTemplate(scene, predicate, label) {
   scene.updateMatrixWorld(true);
   const group = new THREE.Group();
-  let found = false;
   scene.traverse((node) => {
-    if (!node.isMesh || found && firstOnly) return;
-    const lineage = [];
-    let current = node;
-    while (current) {
-      if (current.name) lineage.push(current.name);
-      current = current.parent;
-    }
-    const label = lineage.join(" | ");
-    if (!predicate(node.name || "", label)) return;
+    if (!node.isMesh) return;
+    const lineage = nodeLabel(node);
+    if (!predicate(node.name || "", lineage)) return;
     group.add(cloneMeshWorld(node));
-    found = true;
   });
-  if (!group.children.length) throw new Error("Mekik exact GLB parca bulunamadi");
+  if (!group.children.length) throw new Error(`Mekik ${label} exact GLB parcalari bulunamadi`);
   group.updateMatrixWorld(true);
   const box = new THREE.Box3().setFromObject(group);
   group.position.x -= box.min.x;
@@ -80,11 +89,22 @@ function loadAssets() {
   const loader = new GLTFLoader();
   loader.setDRACOLoader(draco);
   assetsPromise = loader.loadAsync(MAIN_URL).then((gltf) => {
-    const ayak = buildTemplate(gltf.scene, (name) => UPRIGHT_NAME.test(name), true);
+    // mekik 3ayak.glb = HR100 profil + HRTD100 taban/takim parcasi.
+    const ayak = buildTemplate(
+      gltf.scene,
+      (name) => AYAK_PROFILE_NAME.test(name) || AYAK_FOOT_NAME.test(name),
+      "ayak",
+    );
+
+    // mekik 3travers.glb = 40x80 profil + iki CC100 + iki sari braket.
     const travers = buildTemplate(
       gltf.scene,
-      (name, lineage) => TRAVERS_ASSEMBLY.test(lineage) && TRAVERS_PART.test(name),
-      false,
+      (name, lineage) => {
+        if (TRAVERS_BRACKET_NAME.test(name)) return true;
+        return TRAVERS_GROUP_NAME.test(lineage)
+          && (TRAVERS_PROFILE_NAME.test(name) || TRAVERS_CONNECTOR_NAME.test(name));
+      },
+      "travers",
     );
     return { ayak, travers };
   }).finally(() => draco.dispose());
@@ -130,7 +150,7 @@ function installShell(stage) {
   shell.className = "m2-glb-front-shell";
   const canvas = document.createElement("canvas");
   canvas.className = "m2-glb-front-canvas";
-  canvas.setAttribute("aria-label", "Mekik exact GLB component front view");
+  canvas.setAttribute("aria-label", "Mekik 3 GLB component front view");
   svg.classList.add("m2-glb-front-overlay");
   shell.append(svg, canvas);
   stage.append(shell);
@@ -248,8 +268,8 @@ async function renderFront(stage, force = false) {
   renderer.render(scene, camera);
 
   hideLegacyGeometry(svg);
-  shell.dataset.glbSource = "mekikson2 ayak(1) + travers(1) node mapping / mekik-son-hali.glb";
-  shell.dataset.glbLayout = "uploaded-exact-node-map-v98";
+  shell.dataset.glbSource = "mekik 3ayak.glb + mekik 3travers.glb exact node map";
+  shell.dataset.glbLayout = "mekik3-exact-components-v99";
   shell.dataset.glbReady = "true";
   shell.dataset.glbRenderKey = key;
   delete shell.dataset.glbPending;
@@ -267,7 +287,7 @@ function refresh(force = false) {
   renderFront(stage, force).catch((error) => {
     const shell = stage.querySelector(":scope > .m2-glb-front-shell");
     if (shell) delete shell.dataset.glbPending;
-    console.error("Mekik exact GLB node-map front view failed", error);
+    console.error("Mekik 3 exact component front view failed", error);
   });
 }
 
