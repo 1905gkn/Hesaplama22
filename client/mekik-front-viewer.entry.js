@@ -1,16 +1,23 @@
-// Mekik ana ekraninda eski portalin native SVG on gorunusunu koru.
-// Three.js/GLB render etmez. Eski overlay kalintilarini temizler ve
-// AYAK2 PNG/raster upright katmanini yalniz #m2Front icinde native SVG'ye cevirir.
+// Yalniz ana Mekik modulu icin on gorunus restore katmani.
+// B2B / MR / Drive-In / Konsol / Mekik 2 DOM'una kesinlikle dokunmaz.
 
 const FRONT_STAGE_ID = "m2Front";
 const SHELL_SELECTOR = ":scope > .m2-glb-front-shell";
 const LEGACY_SELECTOR = ".m2-front-upright,.m2-front-traverse-set";
 const RASTER_UPRIGHT_SELECTOR = ".m2-front-upright--ayak2-glb";
-const RESTORE_MARKER = "native-front-restore-v100";
+const RESTORE_MARKER = "native-front-restore-v101-mekik-only";
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 let restoring = false;
 let scheduled = false;
+
+function isMainMekikActive() {
+  try {
+    return typeof m2ActiveModule !== "undefined" && m2ActiveModule === "mekik";
+  } catch {
+    return false;
+  }
+}
 
 function num(node, name) {
   return Number(node?.getAttribute(name)) || 0;
@@ -57,7 +64,8 @@ function replaceRasterUpright(group) {
 }
 
 function restoreNativeFront() {
-  if (restoring) return;
+  if (!isMainMekikActive() || restoring) return;
+
   const stage = document.getElementById(FRONT_STAGE_ID);
   if (!stage) return;
 
@@ -71,9 +79,7 @@ function restoreNativeFront() {
           node.style.visibility = node.getAttribute("data-m2-glb-old-visibility") || "";
           node.removeAttribute("data-m2-glb-old-visibility");
         });
-        svg.querySelectorAll(LEGACY_SELECTOR).forEach((node) => {
-          node.style.removeProperty("visibility");
-        });
+        svg.querySelectorAll(LEGACY_SELECTOR).forEach((node) => node.style.removeProperty("visibility"));
         svg.removeAttribute("data-m2-glb-overlay");
         svg.classList.remove("m2-glb-front-overlay");
         stage.insertBefore(svg, shell);
@@ -87,9 +93,7 @@ function restoreNativeFront() {
         node.style.visibility = node.getAttribute("data-m2-glb-old-visibility") || "";
         node.removeAttribute("data-m2-glb-old-visibility");
       });
-      svg.querySelectorAll(LEGACY_SELECTOR).forEach((node) => {
-        node.style.removeProperty("visibility");
-      });
+      svg.querySelectorAll(LEGACY_SELECTOR).forEach((node) => node.style.removeProperty("visibility"));
       svg.querySelectorAll(RASTER_UPRIGHT_SELECTOR).forEach(replaceRasterUpright);
       svg.removeAttribute("data-m2-glb-overlay");
       svg.classList.remove("m2-glb-front-overlay");
@@ -106,19 +110,25 @@ function restoreNativeFront() {
 }
 
 function scheduleRestore() {
-  if (scheduled) return;
+  // Kritik izolasyon: Mekik disinda rAF dahi planlama.
+  if (!isMainMekikActive() || scheduled) return;
   scheduled = true;
   requestAnimationFrame(() => {
     scheduled = false;
+    if (!isMainMekikActive()) return;
     restoreNativeFront();
   });
 }
 
-const observer = new MutationObserver(scheduleRestore);
-observer.observe(document.documentElement, {
-  childList: true,
-  subtree: true,
+// SPA modul gecislerini yakalamak icin observer kalir; Mekik disinda hicbir DOM yazimi yapmaz.
+const observer = new MutationObserver(() => {
+  if (isMainMekikActive()) scheduleRestore();
 });
+observer.observe(document.documentElement, { childList: true, subtree: true });
 
-window.addEventListener("resize", scheduleRestore);
-queueMicrotask(scheduleRestore);
+window.addEventListener("resize", () => {
+  if (isMainMekikActive()) scheduleRestore();
+});
+queueMicrotask(() => {
+  if (isMainMekikActive()) scheduleRestore();
+});
