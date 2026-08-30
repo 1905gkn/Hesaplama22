@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "bash scripts/vercel-git-build.sh && node scripts/patch-mekik-real-front-v95.mjs",
+  "buildCommand": "bash scripts/vercel-git-build.sh",
   "installCommand": "npm ci",
   "outputDirectory": "dist",
   "framework": null,
