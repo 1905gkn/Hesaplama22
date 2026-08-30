@@ -1,10 +1,12 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v6";
+const ASSET_VERSION = "mekik-front-glb-v7";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
+const TRAVERSE_HEIGHT = 80;
+const MINIMUM_PALLET_CLEARANCE = 300;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 let sharedModelsPromise = null;
@@ -45,8 +47,9 @@ function readConfig() {
     : clamp(Number(palletDepthChoice) || Number(drawing?.palD) || 800, 1, 3000);
   const palletHeight = numberFrom("m2LevelH", Number(drawing?.palletHeight) || 1200, 300, 3000);
   const firstLevelHeight = numberFrom("m2FirstLevelHeight", Number(drawing?.firstRailHeight) || 430, 0, 5000);
-  const requestedSpacing = numberFrom("m2LevelSpacing", Number(drawing?.levelH) || 1580, 380, 5000);
-  const levelSpacing = Math.max(palletHeight + 80, requestedSpacing);
+  const calculatedSpacing = palletHeight + TRAVERSE_HEIGHT + MINIMUM_PALLET_CLEARANCE;
+  const requestedSpacing = numberFrom("m2LevelSpacing", Number(drawing?.levelH) || calculatedSpacing, 380, 5000);
+  const levelSpacing = Math.max(calculatedSpacing, requestedSpacing);
   const footType = clamp(Number(drawing?.footType) || numberFrom("m2FootType", 100, 60, 200), 60, 200);
   const uprightHeight = Math.max(150, Number(drawing?.sideUprightHeight) || firstLevelHeight + (levels - 1) * levelSpacing + palletHeight / 2);
   const bayPitch = palletWidth + 150 + footType;
