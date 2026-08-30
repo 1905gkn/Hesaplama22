@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v30";
+const ASSET_VERSION = "mekik-front-glb-v31";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -455,8 +455,8 @@ class MekikFrontViewer {
       return object ? new THREE.Box3().setFromObject(object) : fallbackBounds(minZ, maxZ);
     };
     const uprightBounds = boundsFor("Mekik Ayak 1", 0, config.uprightHeight);
-    // Bütün düşey ölçülerin sıfırı, ayak GLB sınırı değil gerçek zemin kotudur.
-    const groundZ = 0;
+    // Ölçü zincirinin sıfırı, ilk ayağın sahnede gerçekten başladığı alt noktadır.
+    const groundZ = uprightBounds.min.z;
     const uprightTopZ = uprightBounds.max.z;
     const traverseBounds = Array.from({ length: config.levels }, (_, level) => {
       const supportZ = config.firstLevelHeight + level * config.levelSpacing;
@@ -474,6 +474,7 @@ class MekikFrontViewer {
     const leftX = Math.max(108, rackLeft - Math.min(34, width * 0.035));
     const innerRightX = Math.min(width - 76, rackRight + Math.min(30, width * 0.03));
     const rightX = Math.min(width - 36, rackRight + Math.min(68, width * 0.065));
+    const originPoint = point(0, groundZ);
     const lineParts = [];
     const labelParts = [];
 
@@ -524,7 +525,9 @@ class MekikFrontViewer {
         .dim-chip-text{fill:#fff;font:900 9px Arial,sans-serif}
         .dim-warm{fill:#fff1b8;stroke:#d7a900;stroke-width:1}
         .dim-warm-text{fill:#3e3511;font:900 9px Arial,sans-serif}
+        .dim-origin-dot{fill:#d7a900;stroke:#073c30;stroke-width:1}
       </style>
+      <circle cx="${originPoint.x}" cy="${originPoint.y}" r="3.2" class="dim-origin-dot"/>
       <text x="${Math.max(14, leftX - 112)}" y="${Math.max(92, topY + 18)}" class="dim-title">KOT ARALIKLARI</text>
       ${lineParts.join("")}
       ${labelParts.join("")}
