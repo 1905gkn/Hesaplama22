@@ -6,7 +6,7 @@ const match = source.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1\
 if (!match) throw new Error('HTML_BASE64 bulunamadi.');
 
 let html = Buffer.from(match[2], 'base64').toString('utf8');
-const marker = 'data-rafex-version-badge-position="v5"';
+const marker = 'data-rafex-version-badge-position="v6"';
 const buildSha = String(process.env.VERCEL_GIT_COMMIT_SHA || process.env.GITHUB_SHA || 'local').slice(0, 7);
 
 html = html
@@ -65,9 +65,10 @@ const style = `
 const script = `
 <script ${marker}>
 (function(){
-  if(window.__rafexVersionBadgePositionV5)return;
-  window.__rafexVersionBadgePositionV5=true;
+  if(window.__rafexVersionBadgePositionV6)return;
+  window.__rafexVersionBadgePositionV6=true;
   var BUILD_SHA=${JSON.stringify(buildSha)};
+  var EXPECTED_TEXT='SON SÜRÜM · '+BUILD_SHA;
 
   function cleanText(el){
     return String(el && (el.innerText || el.textContent) || '').replace(/\\s+/g,' ').trim().toLocaleLowerCase('tr-TR');
@@ -96,9 +97,11 @@ const script = `
       badge=document.createElement('div');
       badge.id='rafexVersionBadge';
       badge.setAttribute('aria-label','Son sürüm bilgisi');
+      badge.textContent=EXPECTED_TEXT;
       document.body.appendChild(badge);
+      return badge;
     }
-    badge.textContent='SON SÜRÜM · '+BUILD_SHA;
+    if(badge.textContent!==EXPECTED_TEXT) badge.textContent=EXPECTED_TEXT;
     return badge;
   }
   function placeBadge(){
@@ -106,13 +109,13 @@ const script = `
     var actions=document.querySelector('.top-actions');
     var appMode=!isAuthVisible() && !!actions && isVisible(actions);
     if(!appMode){
-      badge.classList.remove('rafex-version-badge-top');
-      badge.classList.add('rafex-version-badge-login');
+      if(badge.classList.contains('rafex-version-badge-top')) badge.classList.remove('rafex-version-badge-top');
+      if(!badge.classList.contains('rafex-version-badge-login')) badge.classList.add('rafex-version-badge-login');
       if(badge.parentElement!==document.body) document.body.appendChild(badge);
       return;
     }
-    badge.classList.remove('rafex-version-badge-login');
-    badge.classList.add('rafex-version-badge-top');
+    if(badge.classList.contains('rafex-version-badge-login')) badge.classList.remove('rafex-version-badge-login');
+    if(!badge.classList.contains('rafex-version-badge-top')) badge.classList.add('rafex-version-badge-top');
     var history=findHistory(actions);
     if(history){
       if(badge.parentElement!==actions || badge.nextElementSibling!==history){
@@ -128,10 +131,9 @@ const script = `
     queued=true;
     requestAnimationFrame(function(){queued=false;placeBadge();});
   }
-  new MutationObserver(schedule).observe(document.documentElement,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','style']});
+  new MutationObserver(schedule).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style']});
   window.addEventListener('load',schedule);
   document.addEventListener('click',function(){setTimeout(schedule,0);},true);
-  setInterval(placeBadge,1000);
   schedule();
   setTimeout(schedule,120);
   setTimeout(schedule,500);
@@ -147,4 +149,4 @@ const encoded = Buffer.from(html, 'utf8').toString('base64');
 source = source.replace(match[0], `const HTML_BASE64 =\n  "${encoded}";`);
 fs.writeFileSync(target, source);
 
-console.log(`Version badge position patch v5 applied: ${buildSha}`);
+console.log(`Version badge position patch v6 applied: ${buildSha}`);
