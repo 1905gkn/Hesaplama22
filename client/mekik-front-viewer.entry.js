@@ -1,9 +1,10 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v4";
+const ASSET_VERSION = "mekik-front-glb-v5";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
+const EURO_PALLET_VISUAL_HEIGHT = 140;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 let sharedModelsPromise = null;
@@ -240,6 +241,14 @@ class MekikFrontViewer {
     const traverseScaleX = config.bayPitch / REFERENCE_BAY_PITCH;
     const palletScaleX = config.palletWidth / Math.max(1, this.models.pallet.size.x);
     const palletScaleY = config.palletDepth / Math.max(1, this.models.pallet.size.y);
+    const palletBodyHeight = EURO_PALLET_VISUAL_HEIGHT;
+    const palletScaleZ = palletBodyHeight / Math.max(1, this.models.pallet.size.z);
+    const boxHeight = Math.max(0, config.palletHeight - palletBodyHeight);
+    const boxMaterial = new THREE.MeshStandardMaterial({
+      color: 0x214f3b,
+      metalness: 0.02,
+      roughness: 0.86,
+    });
     const bracketTopOffset = this.models.traverse.topOffset;
     for (let level = 0; level < config.levels; level += 1) {
       const supportZ = config.firstLevelHeight + level * config.levelSpacing;
@@ -253,9 +262,18 @@ class MekikFrontViewer {
 
         const pallet = this.models.pallet.root.clone(true);
         pallet.name = `Mekik Paletli Yük G${bay + 1} K${level + 1}`;
-        pallet.scale.set(palletScaleX, palletScaleY, 1);
+        pallet.scale.set(palletScaleX, palletScaleY, palletScaleZ);
         pallet.position.set(bayCenterX, 0, supportZ + bracketTopOffset);
         this.root.add(pallet);
+
+        if (boxHeight > 0) {
+          const box = new THREE.Mesh(new THREE.BoxGeometry(config.palletWidth, config.palletDepth, boxHeight), boxMaterial);
+          box.name = `Mekik Kutu G${bay + 1} K${level + 1}`;
+          box.castShadow = false;
+          box.receiveShadow = false;
+          box.position.set(bayCenterX, 0, supportZ + bracketTopOffset + palletBodyHeight + boxHeight / 2);
+          this.root.add(box);
+        }
       }
     }
 
