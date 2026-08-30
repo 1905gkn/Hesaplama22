@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v22";
+const ASSET_VERSION = "mekik-front-glb-v23";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -285,6 +285,7 @@ class MekikFrontViewer {
     }
 
     const traverseScaleX = config.bayPitch / REFERENCE_BAY_PITCH;
+    const traverseFrontY = Math.max(8, this.models.upright.size.y * 0.5 + 2);
     const palletScaleX = config.palletWidth / Math.max(1, this.models.pallet.size.x);
     const palletScaleY = config.palletDepth / Math.max(1, this.models.pallet.size.y);
     const palletBodyHeight = EURO_PALLET_VISUAL_HEIGHT;
@@ -304,7 +305,7 @@ class MekikFrontViewer {
         traverse.name = `Mekik Travers G${bay + 1} K${level + 1}`;
         traverse.traverse((part) => { if (part.isMesh) part.material = traverseMaterial; });
         traverse.scale.set(traverseScaleX, 1, 1);
-        traverse.position.set(bayCenterX, 0, supportZ);
+        traverse.position.set(bayCenterX, traverseFrontY, supportZ);
         this.root.add(traverse);
 
         const pallet = this.models.pallet.root.clone(true);
