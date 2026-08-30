@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v23";
+const ASSET_VERSION = "mekik-front-glb-v24";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -10,6 +10,7 @@ const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 let sharedModelsPromise = null;
 let mekikFootColorChoice = "ral5010";
 let mekikTraverseColorChoice = "ral1007";
+let mekikSideClearanceChoice = 75;
 
 function liveField(id) {
   const nodes = Array.from(document.querySelectorAll(`[id="${id}"]`));
@@ -59,6 +60,7 @@ function readConfig() {
   };
   const footColor = colorValue("rafex-mekik-foot-color", drawing?.mekikFootColor || mekikFootColorChoice);
   const traverseColor = colorValue("rafex-mekik-traverse-color", drawing?.mekikTraverseColor || mekikTraverseColorChoice);
+  const sideClearance = numberFromAny([], colorValue("rafex-mekik-side-clearance", drawing?.mekikSideClearance ?? mekikSideClearanceChoice), 0, 1000);
   const bays = Math.round(numberFrom("m2Bays", Number(drawing?.bays) || 4, 1, 50));
   const levels = Math.round(numberFrom("m2Levels", Number(drawing?.levels) || 4, 1, 15));
   const palletWidth = numberFrom("m2PalW", Number(drawing?.palW) || 1200, 600, 1800);
@@ -72,7 +74,7 @@ function readConfig() {
   const levelSpacing = requestedSpacing;
   const footType = clamp(Number(drawing?.footType) || numberFrom("m2FootType", 100, 60, 200), 60, 200);
   const uprightHeight = Math.max(150, firstLevelHeight + (levels - 1) * levelSpacing + palletHeight / 2);
-  const bayPitch = palletWidth + 150 + footType;
+  const bayPitch = palletWidth + sideClearance * 2;
   return {
     bays,
     levels,
@@ -84,6 +86,7 @@ function readConfig() {
     footType,
     footColor,
     traverseColor,
+    sideClearance,
     uprightHeight,
     bayPitch,
     totalWidth: bays * bayPitch + footType,
@@ -253,7 +256,7 @@ class MekikFrontViewer {
   }
 
   configKey(config = this.config) {
-    return [config.bays, config.levels, config.palletWidth, config.palletDepth, config.palletHeight, config.firstLevelHeight, config.levelSpacing, config.footType, config.footColor, config.traverseColor, config.uprightHeight].join("|");
+    return [config.bays, config.levels, config.palletWidth, config.palletDepth, config.palletHeight, config.firstLevelHeight, config.levelSpacing, config.footType, config.footColor, config.traverseColor, config.sideClearance, config.uprightHeight].join("|");
   }
 
   update() {
@@ -428,7 +431,7 @@ class MekikFrontViewer {
     const leftX = Math.max(142, rackLeft - Math.min(62, width * 0.06));
     const rightX = Math.min(width - 148, rackRight + Math.min(52, width * 0.05));
     const centerX = (rackLeft + rackRight) / 2;
-    const sideClearance = Math.max(0, (config.bayPitch - config.palletWidth - config.footType) / 2);
+    const sideClearance = config.sideClearance;
     const lineParts = [];
     const labelParts = [];
 
@@ -572,6 +575,63 @@ function ensureMekikColorSelectors() {
       current.mekikTraverseColor = mekikTraverseColorChoice;
     }
   }
+}
+
+
+function ensureMekikSideClearance() {
+  if (!isMekikFront()) return;
+  if (!document.getElementById("rafex-mekik-side-clearance-style")) {
+    const style = document.createElement("style");
+    style.id = "rafex-mekik-side-clearance-style";
+    style.textContent = `
+      .rafex-mekik-side-clearance-section label{display:grid;grid-template-columns:minmax(0,1fr) 110px;align-items:center;gap:12px;margin-top:10px;font-weight:800}
+      .rafex-mekik-side-clearance-section input{width:100%;box-sizing:border-box}
+      .rafex-mekik-side-clearance-formula{display:block;margin-top:8px;color:#5d5120;font-weight:800}
+    `;
+    document.head.appendChild(style);
+  }
+
+  const drawing = activeDrawing();
+  const saved = Number(drawing?.mekikSideClearance);
+  if (Number.isFinite(saved)) mekikSideClearanceChoice = clamp(saved, 0, 1000);
+
+  for (const modal of document.querySelectorAll('[id="m2SpacingModal"]')) {
+    const sections = modal.querySelector(".m2-spacing-sections");
+    if (!sections) continue;
+    let section = sections.querySelector(".rafex-mekik-side-clearance-section");
+    if (!section) {
+      section = document.createElement("section");
+      section.className = "m2-spacing-section rafex-mekik-side-clearance-section";
+      section.innerHTML = `
+        <b>Yan boşluk</b>
+        <small>Paletin solunda ve sağında ayrı ayrı uygulanır.</small>
+        <label>Yan boşluk (mm)
+          <input class="rafex-mekik-side-clearance" type="number" min="0" max="1000" step="5" value="75" inputmode="numeric">
+        </label>
+        <small class="rafex-mekik-side-clearance-formula"></small>
+      `;
+      sections.appendChild(section);
+      section.querySelector(".rafex-mekik-side-clearance")?.addEventListener("input", (event) => {
+        const value = clamp(Number(event.currentTarget.value) || 0, 0, 1000);
+        mekikSideClearanceChoice = value;
+        const current = activeDrawing();
+        if (current) current.mekikSideClearance = value;
+        scheduleMount();
+      });
+    }
+
+    const input = section.querySelector(".rafex-mekik-side-clearance");
+    if (input && document.activeElement !== input && Number(input.value) !== mekikSideClearanceChoice) {
+      input.value = String(mekikSideClearanceChoice);
+    }
+    const palletWidth = numberFrom("m2PalW", Number(drawing?.palW) || 1200, 600, 1800);
+    const columnSpacing = palletWidth + mekikSideClearanceChoice * 2;
+    const formula = `${new Intl.NumberFormat("tr-TR").format(palletWidth)} + (${new Intl.NumberFormat("tr-TR").format(mekikSideClearanceChoice)} × 2) = ${new Intl.NumberFormat("tr-TR").format(columnSpacing)} mm kolon aralığı`;
+    const formulaNode = section.querySelector(".rafex-mekik-side-clearance-formula");
+    if (formulaNode && formulaNode.textContent !== formula) formulaNode.textContent = formula;
+  }
+
+  if (drawing) drawing.mekikSideClearance = mekikSideClearanceChoice;
 }
 
 const MEKIK_TRAVERSE_CAPACITIES = [
@@ -773,6 +833,7 @@ function ensureMounted() {
   scheduled = 0;
   if (!isMekikFront()) return;
   ensureMekikColorSelectors();
+  ensureMekikSideClearance();
   ensureTraverseCalculator();
   const host = document.getElementById("m2Front");
   if (!host) return;
