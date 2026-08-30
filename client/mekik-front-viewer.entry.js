@@ -2,8 +2,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 
-const MAIN_URL = "/mekik-son-hali.glb";
-const TRAVERSE_URL = "/mekik-travers.glb";
+const MAIN_URL = "/mekikson2.glb";
 const LEGACY_GEOMETRY_SELECTOR = [
   ".m2-front-load",
   ".m2-front-traverse-set",
@@ -22,10 +21,7 @@ function loadTemplates() {
   draco.setDecoderPath("/draco/");
   const loader = new GLTFLoader();
   loader.setDRACOLoader(draco);
-  templatesPromise = Promise.all([
-    loader.loadAsync(MAIN_URL),
-    loader.loadAsync(TRAVERSE_URL),
-  ]).finally(() => draco.dispose());
+  templatesPromise = loader.loadAsync(MAIN_URL).finally(() => draco.dispose());
   return templatesPromise;
 }
 
@@ -218,7 +214,7 @@ async function renderFront(stage, force = false) {
   shell.dataset.glbPending = key;
 
   const token = ++renderToken;
-  const [mainGltf] = await loadTemplates();
+  const mainGltf = await loadTemplates();
   if (token !== renderToken || !canvas.isConnected || !isMekikScreen()) return;
 
   const width = Math.max(320, Math.round(shell.getBoundingClientRect().width || shell.clientWidth || 640));
@@ -291,7 +287,7 @@ async function renderFront(stage, force = false) {
 
   hideLegacyGeometry(svg);
   shell.dataset.glbSource = "mekikson2.glb";
-  shell.dataset.glbLayout = "exact-model-no-generated-geometry-v3";
+  shell.dataset.glbLayout = "exact-model-no-generated-geometry-v4";
   shell.dataset.glbReady = "true";
   shell.dataset.glbRenderKey = key;
   delete shell.dataset.glbPending;
