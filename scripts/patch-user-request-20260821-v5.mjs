@@ -101,7 +101,7 @@ const runtime = String.raw`<style data-rafex-user-request-v5="1">
   }
   try{
     const prev=window.m2LayoutProductRows;
-    if(typeof prev==='function'&&!prev.__rafexV5){const wrap=function(){let rows=prev.apply(this,arguments)||[];rows=rows.filter(r=>{const n=low(r?.name);return !(/ayak profili|upright profile|profil de montant/.test(n)||n==='palet dayama'||n==='h travers'||n.startsWith('tava'));});mergeRows(rows,allLayoutAccessories().map(r=>({name:r.name,qty:r.qty})));return stableSort(rows);};wrap.__rafexV5=true;try{m2LayoutProductRows=wrap}catch{}window.m2LayoutProductRows=wrap;}
+    if(typeof prev==='function'&&!prev.__rafexV5){const wrap=function(){let rows=prev.apply(this,arguments)||[];rows=rows.filter(r=>{const n=low(r?.name);return !(n==='palet dayama'||n==='h travers'||n.startsWith('tava'));});mergeRows(rows,allLayoutAccessories().map(r=>({name:r.name,qty:r.qty})));return stableSort(rows);};wrap.__rafexV5=true;try{m2LayoutProductRows=wrap}catch{}window.m2LayoutProductRows=wrap;}
   }catch(e){console.warn('v5 layout BOM',e)}
 
   // Mekik kartlarini native SVG ile tekrar doldur. Eski runtime bos kart biraksa bile PDF oncesi yeniden kurulur.
