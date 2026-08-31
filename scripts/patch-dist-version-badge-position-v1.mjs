@@ -158,15 +158,84 @@ const runtime = `
 if (html.includes('</head>')) html = html.replace('</head>', style + '\n</head>');
 else html = style + html;
 const inventoryRuntime = `
-<script data-rafex-layout-inventory="v43">
+<style data-rafex-layout-inventory-style="v44">
+#page.rafex-free-drawing-page #m2LayoutProductList{
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr))!important;
+  gap:8px!important;
+  align-items:stretch!important;
+}
+#page.rafex-free-drawing-page #m2LayoutProductList>b{grid-column:1/-1!important}
+#page.rafex-free-drawing-page #m2LayoutProductList>.m2-layout-product{
+  box-sizing:border-box!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  justify-content:flex-start!important;
+  gap:7px!important;
+  min-width:0!important;
+  min-height:72px!important;
+  padding:9px 11px!important;
+}
+#page.rafex-free-drawing-page #m2LayoutProductList>.m2-layout-product>.rafex-product-copy{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:3px!important;
+  min-width:0!important;
+  width:100%!important;
+}
+#page.rafex-free-drawing-page #m2LayoutProductList .rafex-product-name{
+  color:#173c2d!important;
+  font-size:10px!important;
+  font-weight:900!important;
+  line-height:1.2!important;
+}
+#page.rafex-free-drawing-page #m2LayoutProductList>.m2-layout-product small{
+  display:block!important;
+  color:#66746c!important;
+  font-size:8px!important;
+  line-height:1.25!important;
+  overflow-wrap:anywhere!important;
+}
+#page.rafex-free-drawing-page #m2LayoutProductList>.m2-layout-product>.rafex-product-qty{
+  display:block!important;
+  grid-column:auto!important;
+  margin-top:auto!important;
+  color:#0d5139!important;
+  font-size:13px!important;
+  font-weight:950!important;
+  line-height:1!important;
+  text-align:left!important;
+  white-space:nowrap!important;
+}
+</style>
+<script data-rafex-layout-inventory="v44">
 (function(){
-  if(window.__rafexLayoutInventoryV43)return;
-  window.__rafexLayoutInventoryV43=true;
+  if(window.__rafexLayoutInventoryV44)return;
+  window.__rafexLayoutInventoryV44=true;
   function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,function(ch){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];});}
   function n(value){return Math.max(0,Math.round(Number(value)||0));}
   function textNumber(value){return n(value).toLocaleString('tr-TR');}
   function racks(){try{return typeof m2LayoutState!=='undefined'&&Array.isArray(m2LayoutState.racks)?m2LayoutState.racks:[];}catch(e){return[];}}
-  function accessories(){try{return typeof m2LayoutAccessoryRows==='function'?(m2LayoutAccessoryRows()||[]):[];}catch(e){return[];}}
+  function symbols(){try{return typeof m2LayoutSymbols!=='undefined'&&Array.isArray(m2LayoutSymbols)?m2LayoutSymbols:[];}catch(e){return[];}}
+  function accessories(){
+    var result=[],all=symbols();
+    function push(name,qty,spec){qty=n(qty);if(qty)result.push({name:name,qty:qty,spec:spec||'',unit:'adet'});}
+    var uaks=all.filter(function(item){return item&&item.type==='uaks';}).length;
+    var uakz=all.filter(function(item){return item&&item.type==='uakz';}).length;
+    push('UAKS ayak koruma',uaks,'');
+    push('UAKZ ayak koruma',uakz,'');
+    push('Klipsli dübel',uaks*4,'12×110 · UAKS');
+    push('Klipsli dübel',uakz*4,'12×110 · UAKZ');
+    var barriers=new Map();
+    all.filter(function(item){return item&&item.type==='barrier';}).forEach(function(item){var length=n(item.widthMm),key=(length?textNumber(length)+' mm':'Özel ölçü');barriers.set(key,(barriers.get(key)||0)+1);});
+    barriers.forEach(function(qty,spec){push('Bariyer koruma',qty,spec);push('Klipsli dübel',qty*8,'12×110 · Bariyer');});
+    var light=0,heavy=0;
+    racks().forEach(function(rack){(Array.isArray(rack&&rack.seismicBraces)?rack.seismicBraces:[]).forEach(function(brace){if(brace&&brace.type==='heavy')heavy++;else if(brace&&brace.type==='light')light++;});});
+    push('Hafif deprem çaprazı',light,'');
+    push('Ağır deprem çaprazı',heavy,'');
+    return result;
+  }
   function rows(){
     var map=new Map();
     function add(name,qty,spec,unit){
@@ -189,7 +258,9 @@ const inventoryRuntime = `
         var profileQty=footTeams*2;
         var height=n(rack.footLy||rack.totalRackHeight||rack.sideUprightHeight);
         var profile=String(rack.footProfile||rack.footProfileKey||(rack.b2b&&rack.b2b.footProfile)||'Ayak');
-        add('Ayak profili',profileQty,profile+(height?' · L '+textNumber(height)+' mm':''));
+        var footSpec=profile+(height?' · L '+textNumber(height)+' mm':'');
+        add('Ayak takımı',footTeams,footSpec);
+        add('Ayak profili',profileQty,footSpec);
         add('Ayak pabucu',profileQty,'Kaynaklı');
         add('Şim',profileQty,'');
         add('Kimyasal dübel',profileQty*2,'KIDM12120');
@@ -224,7 +295,7 @@ const inventoryRuntime = `
       grouped(braces).forEach(function(count,length){add('Düz arabağ',count*columnCount*Math.ceil(levels/2),textNumber(length)+' mm');});
     });
     accessories().forEach(function(row){add(row.name||row.item,row.qty,row.spec,row.unit);});
-    var order=['Ayak profili','Ayak pabucu','Şim','Kimyasal dübel','Travers','Emniyet pimi','Düz arabağ','Ray','Palet yastığı','Arka stoper','Forklift stoperi','Giriş konsolu','Yatay çapraz seti','UAKS ayak koruma','UAKZ ayak koruma'];
+    var order=['Ayak takımı','Ayak profili','Ayak pabucu','Şim','Kimyasal dübel','Travers','Emniyet pimi','Düz arabağ','Ray','Palet yastığı','Arka stoper','Forklift stoperi','Giriş konsolu','Yatay çapraz seti','Hafif deprem çaprazı','Ağır deprem çaprazı','UAKS ayak koruma','UAKZ ayak koruma','Bariyer koruma','Klipsli dübel'];
     return Array.from(map.values()).sort(function(a,b){var ai=order.indexOf(a.name),bi=order.indexOf(b.name);if(ai<0)ai=999;if(bi<0)bi=999;return ai-bi||a.name.localeCompare(b.name,'tr')||a.spec.localeCompare(b.spec,'tr');});
   }
   function cleanup(){
@@ -234,17 +305,17 @@ const inventoryRuntime = `
     var host=document.getElementById('m2LayoutProductList');if(!host)return false;
     var list=rows();
     host.classList.remove('rafex-system-product-lists');
-    host.innerHTML='<b>ÜRÜN LİSTESİ</b>'+(list.length?list.map(function(row){return '<span class="m2-layout-product"><span><span>'+esc(row.name)+'</span>'+(row.spec?'<small>'+esc(row.spec)+'</small>':'')+'</span><strong>'+textNumber(row.qty)+' '+esc(row.unit)+'</strong></span>';}).join(''):'<span class="m2-layout-product"><span>Henüz ürün yok</span><strong>0 adet</strong></span>');
+    host.innerHTML='<b>ÜRÜN LİSTESİ</b>'+(list.length?list.map(function(row){return '<span class="m2-layout-product"><span class="rafex-product-copy"><span class="rafex-product-name">'+esc(row.name)+'</span>'+(row.spec?'<small>'+esc(row.spec)+'</small>':'')+'</span><strong class="rafex-product-qty">'+textNumber(row.qty)+' '+esc(row.unit)+'</strong></span>';}).join(''):'<span class="m2-layout-product"><span class="rafex-product-copy">Henüz ürün yok</span><strong class="rafex-product-qty">0 adet</strong></span>');
     cleanup();return true;
   }
   function schedule(){requestAnimationFrame(function(){render();setTimeout(render,80);});}
   var previousList=null;try{if(typeof m2RenderLayoutProductList==='function')previousList=m2RenderLayoutProductList;}catch(e){}
-  var finalList=function(){return render();};finalList.__rafexLayoutInventoryV43=true;
+  var finalList=function(){return render();};finalList.__rafexLayoutInventoryV44=true;
   try{m2RenderLayoutProductList=finalList;}catch(e){}window.m2RenderLayoutProductList=finalList;
   var previousLayout=null;try{if(typeof m2RenderLayout==='function')previousLayout=m2RenderLayout;}catch(e){}
-  if(typeof previousLayout==='function'&&!previousLayout.__rafexLayoutInventoryV43){
+  if(typeof previousLayout==='function'&&!previousLayout.__rafexLayoutInventoryV44){
     var finalLayout=function(){var result=previousLayout.apply(this,arguments);schedule();return result;};
-    finalLayout.__rafexLayoutInventoryV43=true;try{m2RenderLayout=finalLayout;}catch(e){}window.m2RenderLayout=finalLayout;
+    finalLayout.__rafexLayoutInventoryV44=true;try{m2RenderLayout=finalLayout;}catch(e){}window.m2RenderLayout=finalLayout;
   }
   document.addEventListener('click',schedule,true);
   document.addEventListener('change',schedule,true);
@@ -258,7 +329,7 @@ const inventoryRuntime = `
     }).observe(document.body,{subtree:true,childList:true});
   }
   schedule();setTimeout(schedule,300);setTimeout(schedule,1200);
-  window.rafexLayoutInventoryRowsV43=rows;
+  window.rafexLayoutInventoryRowsV44=rows;
 })();
 </script>`;
 // JavaScript içindeki yazdırma şablonlarında da </body> metni bulunuyor.
