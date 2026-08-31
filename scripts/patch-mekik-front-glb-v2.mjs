@@ -6,16 +6,36 @@ const root = process.cwd();
 const workerPath = path.join(root, "dist/server/index.js");
 const viewerSource = path.join(root, "client/mekik-front-viewer.entry.js");
 const viewerBundle = path.join(root, "dist/mekik-front-viewer.js");
+const viewerTempSource = path.join(root, "dist/mekik-front-viewer.common.entry.js");
 const assetRoot = path.join(root, "assets/mekik-front-src");
 
-execFileSync(path.join(root, "node_modules/.bin/esbuild"), [
-  viewerSource,
-  "--bundle",
-  "--format=iife",
-  "--minify",
-  "--target=es2022",
-  `--outfile=${viewerBundle}`,
-], { stdio: "inherit" });
+let viewerCode = fs.readFileSync(viewerSource, "utf8");
+const constructorNeedle = `  constructor(canvas, status) {\n    this.canvas = canvas;\n    this.status = status;\n    this.config = readConfig();`;
+const constructorReplacement = `  constructor(canvas, status, configOverride = null) {\n    this.canvas = canvas;\n    this.status = status;\n    this.configOverride = configOverride;\n    this.config = configOverride || readConfig();`;
+if (!viewerCode.includes(constructorNeedle)) throw new Error("Mekik front GLB v2: detached constructor noktasi bulunamadi.");
+viewerCode = viewerCode.replace(constructorNeedle, constructorReplacement);
+const updateNeedle = `  update() {\n    const next = readConfig();`;
+const updateReplacement = `  update(configOverride = null) {\n    if (configOverride) this.configOverride = configOverride;\n    const next = this.configOverride || readConfig();`;
+if (!viewerCode.includes(updateNeedle)) throw new Error("Mekik front GLB v2: detached update noktasi bulunamadi.");
+viewerCode = viewerCode.replace(updateNeedle, updateReplacement);
+const apiAnchor = `window.rafexMekikFrontGlbV2 = {`;
+if (!viewerCode.includes(apiAnchor)) throw new Error("Mekik front GLB v2: global API noktasi bulunamadi.");
+const detachedApi = `function configFromDrawing(drawing = {}) {\n  const bays = Math.max(1, Math.round(Number(drawing.bays) || 4));\n  const levels = Math.max(1, Math.round(Number(drawing.levels) || 4));\n  const palletWidth = clamp(Number(drawing.palW || drawing.palletWidth) || 1200, 600, 1800);\n  const palletDepth = clamp(Number(drawing.palD || drawing.palletDepth || drawing.railLength) || 800, 1, 3000);\n  const palletHeight = clamp(Number(drawing.palletHeight) || 1200, 300, 3000);\n  const firstLevelHeight = clamp(Number(drawing.firstRailHeight) || 430, 0, 5000);\n  const levelSpacing = clamp(Number(drawing.levelH || drawing.levelSpacing) || (palletHeight + 380), 380, 5000);\n  const footType = clamp(Number(drawing.footType) || 100, 60, 200);\n  const footColor = String(drawing.mekikFootColor || "ral5010");\n  const traverseColor = String(drawing.mekikTraverseColor || "ral1007");\n  const sideClearance = clamp(Number(drawing.mekikSideClearance ?? 75), 0, 1000);\n  const traverseText = String(drawing.mekikTraverseProfile || drawing.traverseProfile || drawing.traverseType || "50×50×1,5");\n  const traverseMatch = traverseText.match(/(\\d+)\\s*[×xX]\\s*(\\d+)/);\n  const traverseHeight = Math.max(1, Number(traverseMatch?.[2]) || 50);\n  const uprightHeight = Math.max(150, Number(drawing.sideUprightHeight || drawing.totalRackHeight) || (firstLevelHeight + (levels - 1) * levelSpacing + palletHeight / 2));\n  const bayPitch = palletWidth + sideClearance * 2;\n  return { bays, levels, palletWidth, palletDepth, palletHeight, firstLevelHeight, levelSpacing, footType, footColor, traverseColor, traverseHeight, sideClearance, uprightHeight, bayPitch, totalWidth: bays * bayPitch + footType };\n}\n\nwindow.RafexMekikFrontViewer = {\n  createDetached(canvas, drawing, status = null) {\n    if (!canvas) throw new Error("Mekik detached canvas bulunamadi.");\n    const instance = new MekikFrontViewer(canvas, status, configFromDrawing(drawing || {}));\n    requestAnimationFrame(() => instance.scheduleResize?.());\n    return instance;\n  },\n  configFromDrawing,\n};\n\n`;
+viewerCode = viewerCode.replace(apiAnchor, detachedApi + apiAnchor);
+fs.writeFileSync(viewerTempSource, viewerCode);
+
+try {
+  execFileSync(path.join(root, "node_modules/.bin/esbuild"), [
+    viewerTempSource,
+    "--bundle",
+    "--format=iife",
+    "--minify",
+    "--target=es2022",
+    `--outfile=${viewerBundle}`,
+  ], { stdio: "inherit" });
+} finally {
+  try { fs.unlinkSync(viewerTempSource); } catch {}
+}
 
 const readBase64 = (name) => fs.readFileSync(path.join(assetRoot, name)).toString("base64");
 const ayakGzip = readBase64("mekik-front-ayak.glb.gz");
@@ -47,7 +67,7 @@ const frontRuntime = String.raw`<style data-rafex-mekik-front-glb="v2">
 #m2Front[data-rafex-mekik-front-glb="v2"]>.rafex-mekik-front-info-v2{position:absolute;left:12px;bottom:12px;z-index:2;padding:7px 10px;border:1px solid rgba(23,60,45,.22);border-radius:7px;background:rgba(255,255,255,.9);color:#173c2d;font:900 12px/1.2 Arial,sans-serif;box-shadow:0 5px 16px rgba(20,43,34,.1);pointer-events:none}
 @media(max-width:760px){#m2Front[data-rafex-mekik-front-glb="v2"],#m2Front[data-rafex-mekik-front-glb="v2"]>.rafex-mekik-front-glb-canvas-v2{min-height:400px!important}}
 </style>
-<script data-rafex-mekik-front-glb="v2" src="/mekik-front-viewer.js?v=mekik-front-glb-v43"></script>`;
+<script data-rafex-mekik-front-glb="v2" src="/mekik-front-viewer.js?v=mekik-front-glb-v44"></script>`;
 
 const bodyEnd = html.lastIndexOf("</body>");
 if (bodyEnd < 0) throw new Error("Mekik front GLB v2: </body> bulunamadi.");
@@ -80,4 +100,4 @@ for (const marker of [
 }
 
 fs.writeFileSync(workerPath, worker);
-console.log("Mekik front GLB v2: tam montaj referansi + dinamik ayak/travers renderer yalniz Mekik on gorunusune eklendi.");
+console.log("Mekik front GLB v2: ana Mekik + Ortak Cizim detached on gorunus API hazir.");
