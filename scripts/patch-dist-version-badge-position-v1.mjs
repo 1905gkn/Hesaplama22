@@ -211,6 +211,7 @@ const inventoryRuntime = `
 </style>
 <script data-rafex-layout-inventory="v44">
 (function(){
+  window.__rafexLayoutInventoryActive=true;
   if(window.__rafexLayoutInventoryV44)return;
   window.__rafexLayoutInventoryV44=true;
   function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,function(ch){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];});}
