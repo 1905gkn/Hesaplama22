@@ -10,7 +10,7 @@ node scripts/patch-remove-legacy-mekik-front-runtime-v1.mjs
 node scripts/patch-common-system-isolation-v1.mjs
 node scripts/patch-common-mekik-view-colors-v1.mjs
 node scripts/patch-dist-version-badge-position-v1.mjs
-node scripts/patch-login-startup-fast-v1.mjs
+node scripts/patch-mekik-static-assets-v1.mjs
 
 # The worker contains the exact final HTML/PWA shell after all production
 # patches. Export that same shell as real files so Vercel can serve the app,
@@ -68,6 +68,11 @@ for (const file of [
   'dist/rafex-logo.png',
   'dist/app-icon-192.png',
   'dist/app-icon-512.png',
+  'dist/mekik-front-viewer.js',
+  'dist/mekik-front-ayak.glb',
+  'dist/mekik-front-travers.glb',
+  'dist/mekik-front-palet.glb',
+  'dist/mekik-front-reference.glb',
 ]) {
   if (!fs.statSync(file).size) throw new Error(`${file} is empty`);
 }
