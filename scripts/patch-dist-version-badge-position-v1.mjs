@@ -250,6 +250,13 @@ const inventoryRuntime = `
   document.addEventListener('change',schedule,true);
   document.addEventListener('pointerup',schedule,true);
   window.addEventListener('load',schedule);
+  if(document.body){
+    new MutationObserver(function(){
+      var host=document.getElementById('m2LayoutProductList');
+      if(host&&(host.classList.contains('rafex-system-product-lists')||host.querySelector('details.rafex-system-product-disclosure')))setTimeout(render,0);
+      else cleanup();
+    }).observe(document.body,{subtree:true,childList:true});
+  }
   schedule();setTimeout(schedule,300);setTimeout(schedule,1200);
   window.rafexLayoutInventoryRowsV43=rows;
 })();
