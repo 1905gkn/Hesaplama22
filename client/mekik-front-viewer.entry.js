@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v33";
+const ASSET_VERSION = "mekik-front-glb-v34";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -436,6 +436,15 @@ class MekikFrontViewer {
     dimensions.setAttribute("viewBox", `0 0 ${width} ${height}`);
     dimensions.setAttribute("width", String(width));
     dimensions.setAttribute("height", String(height));
+    // SVG, ön görünüş kabının tamamına değil doğrudan WebGL tuvalinin
+    // piksel alanına oturur. Böylece bütün kot çizgilerindeki paralel kayma biter.
+    const canvasRect = this.canvas.getBoundingClientRect();
+    const overlayHostRect = dimensions.parentElement?.getBoundingClientRect() || canvasRect;
+    dimensions.style.inset = "auto";
+    dimensions.style.left = `${canvasRect.left - overlayHostRect.left}px`;
+    dimensions.style.top = `${canvasRect.top - overlayHostRect.top}px`;
+    dimensions.style.width = `${canvasRect.width}px`;
+    dimensions.style.height = `${canvasRect.height}px`;
 
     const point = (x, z) => {
       const projected = new THREE.Vector3(x, 0, z).project(this.camera);
@@ -464,59 +473,12 @@ class MekikFrontViewer {
       config.firstLevelHeight
       + level * config.levelSpacing
     );
-    // Ok uçları mühendislik kotundan değil, ekranda gerçekten çizilen
-    // GLB parçalarının piksel sınırlarından alınır.
-    const screenExtentsForObject = (name, meshFilter = null) => {
-      const object = this.root.getObjectByName(name);
-      if (!object) return null;
-      object.updateMatrixWorld(true);
-      const bounds = new THREE.Box3();
-      let found = false;
-      object.traverse((part) => {
-        if (!part.isMesh || (meshFilter && !meshFilter(part))) return;
-        const partBounds = new THREE.Box3().setFromObject(part);
-        if (partBounds.isEmpty()) return;
-        bounds.union(partBounds);
-        found = true;
-      });
-      if (!found) bounds.setFromObject(object);
-      if (bounds.isEmpty()) return null;
-      const corners = [
-        [bounds.min.x, bounds.min.y, bounds.min.z],
-        [bounds.min.x, bounds.min.y, bounds.max.z],
-        [bounds.min.x, bounds.max.y, bounds.min.z],
-        [bounds.min.x, bounds.max.y, bounds.max.z],
-        [bounds.max.x, bounds.min.y, bounds.min.z],
-        [bounds.max.x, bounds.min.y, bounds.max.z],
-        [bounds.max.x, bounds.max.y, bounds.min.z],
-        [bounds.max.x, bounds.max.y, bounds.max.z],
-      ].map(([x, y, z]) => {
-        const projected = new THREE.Vector3(x, y, z).project(this.camera);
-        return {
-          x: (projected.x + 1) * width / 2,
-          y: (1 - projected.y) * height / 2,
-        };
-      });
-      return {
-        topY: Math.min(...corners.map((corner) => corner.y)),
-        bottomY: Math.max(...corners.map((corner) => corner.y)),
-      };
-    };
-    const uprightScreenBounds = screenExtentsForObject("Mekik Ayak 1");
-    const palletScreenBounds = Array.from({ length: config.levels }, (_, level) => (
-      screenExtentsForObject(`Mekik Paletli Yük G1 K${level + 1}`)
-    ));
-    const traverseProfileScreenBounds = Array.from({ length: config.levels }, (_, level) => (
-      screenExtentsForObject(
-        `Mekik Travers G1 K${level + 1}`,
-        (part) => String(part.name || "").toLocaleUpperCase("tr-TR").includes("PROFIL"),
-      )
-    ));
-    const topY = uprightScreenBounds?.topY ?? point(0, uprightTopZ).y;
+    const topY = point(0, uprightTopZ).y;
     const leftX = Math.max(108, rackLeft - Math.min(34, width * 0.035));
     const innerRightX = Math.min(width - 76, rackRight + Math.min(30, width * 0.03));
     const rightX = Math.min(width - 36, rackRight + Math.min(68, width * 0.065));
     const originPoint = point(0, groundZ);
+    const palletGuideY = (level) => point(0, palletContactZ(level)).y;
     const lineParts = [];
     const labelParts = [];
 
@@ -536,21 +498,20 @@ class MekikFrontViewer {
       }
     };
 
-    const originY = uprightScreenBounds?.bottomY ?? originPoint.y;
+    // Görsel hedefler, kullanıcının işaretlediği kesintisiz kot zinciridir:
+    // zemin -> 1. palet altı -> 2. palet altı -> ... -> son palet altı.
+    const originY = originPoint.y;
     const firstPalletBottom = palletContactZ(0);
-    const firstPalletBottomY = palletScreenBounds[0]?.bottomY ?? point(0, firstPalletBottom).y;
     const groundHeight = Math.max(0, firstPalletBottom - groundZ);
-    verticalDimensionAtY(leftX, originY, firstPalletBottomY, `ZEMİN · ${fmt(groundHeight)} mm`);
+    verticalDimensionAtY(leftX, originY, palletGuideY(0), `ZEMİN · ${fmt(groundHeight)} mm`);
     for (let level = 1; level < config.levels; level += 1) {
       const from = palletContactZ(level - 1);
-      const to = palletContactZ(level) - config.traverseHeight;
-      const fromY = palletScreenBounds[level - 1]?.bottomY ?? point(0, from).y;
-      const toY = traverseProfileScreenBounds[level]?.bottomY ?? point(0, to).y;
-      const clearLevelHeight = Math.max(0, to - from);
-      verticalDimensionAtY(leftX, fromY, toY, `K${level} · ${fmt(clearLevelHeight)} mm`);
+      const clearTop = palletContactZ(level) - config.traverseHeight;
+      const clearLevelHeight = Math.max(0, clearTop - from);
+      verticalDimensionAtY(leftX, palletGuideY(level - 1), palletGuideY(level), `K${level} · ${fmt(clearLevelHeight)} mm`);
     }
     const topPalletBottom = palletContactZ(config.levels - 1);
-    const topPalletBottomY = palletScreenBounds[config.levels - 1]?.bottomY ?? point(0, topPalletBottom).y;
+    const topPalletBottomY = palletGuideY(config.levels - 1);
     verticalDimensionAtY(innerRightX, originY, topPalletBottomY, `SON PALET YÜKSEKLİĞİ · ${fmt(topPalletBottom - groundZ)} mm`, "inside");
     verticalDimensionAtY(rightX, originY, topY, `AYAK UZUNLUĞU · ${fmt(uprightTopZ - groundZ)} mm`, "outside");
     dimensions.innerHTML = `
