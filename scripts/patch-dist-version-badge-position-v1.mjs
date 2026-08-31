@@ -260,7 +260,6 @@ const inventoryRuntime = `
         var profile=String(rack.footProfile||rack.footProfileKey||(rack.b2b&&rack.b2b.footProfile)||'Ayak');
         var footSpec=profile+(height?' · L '+textNumber(height)+' mm':'');
         add('Ayak takımı',footTeams,footSpec);
-        add('Ayak profili',profileQty,footSpec);
         add('Ayak pabucu',profileQty,'Kaynaklı');
         add('Şim',profileQty,'');
         add('Kimyasal dübel',profileQty*2,'KIDM12120');
