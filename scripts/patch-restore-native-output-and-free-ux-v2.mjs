@@ -238,6 +238,7 @@ const runtime = String.raw`<style data-rafex-native-output-free-ux="v2">
   }
 
   function renderSystemProductLists(){
+    if(window.__rafexLayoutInventoryActive)return false;
     if(!freePage())return false;
     var host=document.getElementById('m2LayoutProductList');if(!host)return false;
     var b2bRows=productRows('b2b'),mrRows=productRows('mr'),mekikRows=productRows('mekik2');
@@ -258,11 +259,13 @@ const runtime = String.raw`<style data-rafex-native-output-free-ux="v2">
   }
 
   function refreshProductsIfChanged(force){
+    if(window.__rafexLayoutInventoryActive)return;
     if(!freePage())return;
     var sig=layoutSignature();if(!force&&sig===lastLayoutSignature)return;lastLayoutSignature=sig;renderSystemProductLists();
   }
 
   function installProductHooks(){
+    if(window.__rafexLayoutInventoryActive)return;
     var originalList=null;try{if(typeof m2RenderLayoutProductList==='function')originalList=m2RenderLayoutProductList;}catch(e){}
     if(typeof originalList==='function'&&!originalList.__rafexImmediateSystemProducts){
       var wrappedList=function(){if(freePage())return renderSystemProductLists();return originalList.apply(this,arguments);};wrappedList.__rafexImmediateSystemProducts=true;
