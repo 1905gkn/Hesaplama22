@@ -1500,6 +1500,8 @@
       .m2-layout-products { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:7px; margin:0 0 12px; padding:10px; border:1px solid #dce5df; border-radius:10px; background:#f7faf8; }
       .m2-layout-products b { grid-column:1/-1; color:#173c2d; font-size:10px; letter-spacing:.08em; }
       .m2-layout-product { display:flex; justify-content:space-between; gap:8px; padding:7px 9px; border:1px solid #e3e9e5; border-radius:7px; background:#fff; color:#536058; font-size:9px; font-weight:800; }
+      .m2-layout-product > span { min-width:0; display:flex; flex-direction:column; gap:2px; }
+      .m2-layout-product small { color:#7b8780; font-size:8px; font-weight:700; line-height:1.25; }
       .m2-layout-product strong { color:#173c2d; font-size:11px; }
       .m2-floor-tools .m2-ortho-tools { flex:0 0 100%; margin:2px 0 0; padding:7px; }
       .m2-auto-fill-controls { display:flex; align-items:center; gap:8px; margin:8px 0; padding:10px 12px; border:1px solid #87b9a5; border-radius:10px; background:#edf8f3; color:#164d39; }
@@ -4267,12 +4269,38 @@
         for(let index=0;index<baseCount;index++){if(custom[index])height+=Math.max(1,Number(custom[index].interval)||palletHeight+clearance+traverseHeight);else if(index===0&& !ground)height=first+traverseHeight;else height+=palletHeight+clearance+traverseHeight;tops.push(height);}
         return tops.filter((height)=>height>tunnel).length;
       }
-      function m2LayoutProductRows(){
-        const rows=[],add=(name,qty)=>{if(qty>0)rows.push({name,qty});},rackCount=m2LayoutState.racks.length,footTeams=m2LayoutState.racks.reduce((sum,rack)=>sum+(rack.b2bLayout?2*Math.max(1,Number(rack.b2bLayout.rowCount)||1)-(rack.sharedFootWith?Math.max(1,Number(rack.b2bLayout.rowCount)||1):0):0),0),traverses=new Map();
-        m2LayoutState.racks.forEach((rack)=>{if(!rack.b2bLayout)return;const traverseLevels=m2B2BVisibleTraverseLevels(rack),rowCount=Math.max(1,Number(rack.b2bLayout.rowCount)||1),length=Math.round(Number(rack.b2bLayout.sectionWidth)||m2B2BSectionWidth(rack.b2bLayout,rack.b2bLayout.palletCount||1)),type=rack.b2b?.traverseType||rack.traverseRecommendation||"CC140",key=`${type}|${length}`;traverses.set(key,(traverses.get(key)||0)+traverseLevels*2*rowCount);});
-        add("Raf modülü",rackCount);add("Ayak takımı",footTeams);traverses.forEach((qty,key)=>{const [type,length]=key.split("|");add(`Travers · ${fmt(length)} mm · ${type}`,qty);});const straightTies=new Map();m2LayoutState.racks.forEach((rack)=>{const plan=b2bStraightTiePlan(rack),savedRows=Number(rack.b2bLayout?.rowCount),rowCount=savedRows>0?Math.round(savedRows):(rack.b2b?.rowType==="double"?2:1);if(!plan.count||rowCount!==2)return;const stationFactor=rack.sharedFootWith?1:2,qty=plan.count*stationFactor,key=`${fmt(plan.length)} × ${fmt(plan.width)} mm · galvaniz`;straightTies.set(key,(straightTies.get(key)||0)+qty);});straightTies.forEach((qty,spec)=>add(`Düz arabağ · ${spec}`,qty));const seismic=m2LayoutState.racks.flatMap((rack)=>rack.seismicBraces||[]);add("Hafif deprem çaprazı",seismic.filter((brace)=>brace.type==="light").length);add("Ağır deprem çaprazı",seismic.filter((brace)=>brace.type==="heavy").length);const names={uaks:"UAKS ayak koruma",uakz:"UAKZ ayak koruma",column:"Kolon",door:"Kapı",forklift:"Forklift",person:"İnsan"};Object.entries(names).forEach(([type,name])=>add(name,m2LayoutSymbols.filter((symbol)=>symbol.type===type).length));const barriers=new Map();m2LayoutSymbols.filter((symbol)=>symbol.type==="barrier").forEach((symbol)=>{const length=Math.round(Number(symbol.widthMm)||0),key=`${fmt(length)} mm`;barriers.set(key,(barriers.get(key)||0)+1);});barriers.forEach((qty,length)=>add(`Bariyer koruma · ${length}`,qty));return rows;
+      function m2LayoutAccessoryRows(){
+        const rows=[],add=(name,qty,spec="",unit="adet")=>{qty=Math.max(0,Math.round(Number(qty)||0));if(qty)rows.push({name,spec,qty,unit});};
+        const seismic=m2LayoutState.racks.flatMap((rack)=>rack.seismicBraces||[]);
+        add("Hafif deprem çaprazı",seismic.filter((brace)=>brace.type==="light").length);
+        add("Ağır deprem çaprazı",seismic.filter((brace)=>brace.type==="heavy").length);
+        const names={uaks:"UAKS ayak koruma",uakz:"UAKZ ayak koruma",column:"Kolon",door:"Kapı",forklift:"Forklift",person:"İnsan"};
+        Object.entries(names).forEach(([type,name])=>add(name,m2LayoutSymbols.filter((symbol)=>symbol.type===type).length));
+        const barriers=new Map();
+        m2LayoutSymbols.filter((symbol)=>symbol.type==="barrier").forEach((symbol)=>{const length=Math.round(Number(symbol.widthMm)||0),key=`${fmt(length)} mm`;barriers.set(key,(barriers.get(key)||0)+1);});
+        barriers.forEach((qty,spec)=>add("Bariyer koruma",qty,spec));
+        return rows;
       }
-      function m2RenderLayoutProductList(){const host=$("m2LayoutProductList");if(!host)return;const rows=m2LayoutProductRows();host.innerHTML=`<b>ÜRÜN LİSTESİ</b>${rows.length?rows.map((row)=>`<span class="m2-layout-product"><span>${esc(row.name)}</span><strong>${fmt(row.qty)}</strong></span>`).join(""):`<span class="m2-layout-product"><span>Henüz ürün yok</span><strong>0</strong></span>`}`;}
+      function m2LayoutProductRows(){
+        const labels=m2ReportDictionary("tr"),products=new Map();
+        const add=(name,qty,spec="",unit=labels.unitEach||"adet")=>{qty=Math.max(0,Math.round(Number(qty)||0));if(!qty)return;const key=`${name}|${spec}|${unit}`,row=products.get(key)||{name,spec,unit,qty:0};row.qty+=qty;products.set(key,row);};
+        m2LayoutState.racks.forEach((rack)=>{
+          const rowCount=Math.max(1,Number(rack.b2bLayout?.rowCount)||(rack.b2b?.rowType==="double"?2:1)),footTeamCount=rack.b2bLayout?Math.max(1,2*rowCount-(rack.sharedFootWith?rowCount:0)):undefined;
+          const bom=m2CorporateBomRows({name:rack.typeName||rack.name||"Raf",drawing:rack,rackCount:1,rackIds:[rack.id],footTeamCount},labels);
+          bom.forEach((row)=>{
+            if(row.item==="UAKS ayak koruma"||row.item==="UAKZ ayak koruma")return;
+            if(rack.b2bLayout&&row.item===labels.items.footTeam){add(labels.items.foot,row.qty*2,row.spec,row.unit);return;}
+            add(row.item,row.qty,row.spec,row.unit);
+          });
+        });
+        m2LayoutAccessoryRows().forEach((row)=>add(row.name,row.qty,row.spec,row.unit));
+        return [...products.values()].sort((a,b)=>a.name.localeCompare(b.name,"tr")||String(a.spec).localeCompare(String(b.spec),"tr"));
+      }
+      function m2RenderLayoutProductList(){
+        const host=$("m2LayoutProductList");if(!host)return;
+        const rows=m2LayoutProductRows();
+        host.innerHTML=`<b>ÜRÜN LİSTESİ</b>${rows.length?rows.map((row)=>`<span class="m2-layout-product"><span><span>${esc(row.name)}</span>${row.spec?`<small>${esc(row.spec)}</small>`:""}</span><strong>${fmt(row.qty)} ${esc(row.unit||"adet")}</strong></span>`).join(""):`<span class="m2-layout-product"><span>Henüz ürün yok</span><strong>0 adet</strong></span>`}`;
+      }
       function m2ReportElevationSvg(drawing, mode) {
         const front = mode === "front";
         const note = front ? "GLB koridor giriş görünüşü" : `${m2PalletGapSummary(drawing.palletGaps)} · yük üstü 300 mm net`;
@@ -4477,7 +4505,7 @@
           for(let start=0;start<types.length;start+=6){const slice=types.slice(start,start+6),cards=slice.map(entry=>{const d=entry.drawing||entry,count=Number(d?.b2bLayout?.palletCount)||Number(d?.b2b?.palletCount)||Number(d?.bays)||0,clear=Math.round(Number(d?.b2bLayout?.sectionWidth)||Number(d?.totalWidth)||0),prefix=entry.blockName?`${entry.blockName} · `:"",title=d?.b2bLayout?`${prefix}${entry.name} · ${count}’lü - ${clear}`:`${prefix}${entry.name}`;return m2CorporateBomTable(title,m2CorporateBomRows(entry,labels),labels,`${labels.rackCount}: ${fmt(entry.rackCount||1)}`);}).join("");pages.push(`<section class="m2-corporate-page">${m2CorporateHeader(`${labels.bom} · ${Math.floor(start/6)+1}`)}<div class="m2-corporate-bom-grid count-${slice.length}">${cards}</div></section>`);}
         }
         const attachedGuards={uaks:m2LayoutSymbols.filter((symbol)=>symbol.type==="uaks"&&symbol.rackId!=null).length,uakz:m2LayoutSymbols.filter((symbol)=>symbol.type==="uakz"&&symbol.rackId!=null).length};
-        const placementRows=m2LayoutProductRows().filter((row)=>!/^(Raf modülü|Ayak takımı|Travers(?: ·|$))/.test(row.name)).map((row)=>{let qty=row.qty;if(row.name==="UAKS ayak koruma")qty-=attachedGuards.uaks;if(row.name==="UAKZ ayak koruma")qty-=attachedGuards.uakz;return{item:row.name,spec:"Serbest yerleşim",qty:Math.max(0,qty),unit:labels.unitEach};}).filter((row)=>row.qty>0);
+        const placementRows=m2LayoutAccessoryRows().map((row)=>{let qty=row.qty;if(row.name==="UAKS ayak koruma")qty-=attachedGuards.uaks;if(row.name==="UAKZ ayak koruma")qty-=attachedGuards.uakz;return{item:row.name,spec:row.spec||"Serbest yerleşim",qty:Math.max(0,qty),unit:row.unit||labels.unitEach};}).filter((row)=>row.qty>0);
         if(placementRows.length)pages.push(`<section class="m2-corporate-page">${m2CorporateHeader("KORUMA VE YERLEŞİM ÜRÜNLERİ")}<div class="m2-corporate-bom-grid combined">${m2CorporateBomTable("Ayak koruma, bariyer ve semboller",placementRows,labels,"Serbest yerleşim toplamı")}</div></section>`);
         return pages;
       }
