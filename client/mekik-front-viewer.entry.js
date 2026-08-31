@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v38";
+const ASSET_VERSION = "mekik-front-glb-v39";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -498,10 +498,10 @@ class MekikFrontViewer {
       lineParts.push(`<line x1="${x}" y1="${y2}" x2="${guideTarget}" y2="${y2}" class="dim-guide"/>`);
       const middleY = (y1 + y2) / 2;
       if (side === "inside" || side === "outside") {
-        const labelX = side === "inside" ? x - 8 : x + 8;
+        const labelX = side === "inside" ? x - 14 : x + 14;
         labelParts.push(`<text x="${labelX}" y="${middleY}" text-anchor="middle" class="dim-text dim-vertical-text" transform="rotate(-90 ${labelX} ${middleY})">${label}</text>`);
       } else {
-        const textX = side === "left" ? x - 9 : x + 9;
+        const textX = side === "left" ? x - 16 : x + 16;
         const anchor = side === "left" ? "end" : "start";
         labelParts.push(`<text x="${textX}" y="${middleY + 4}" text-anchor="${anchor}" class="dim-text">${label}</text>`);
       }
@@ -520,6 +520,16 @@ class MekikFrontViewer {
     }
     const topPalletBottom = palletContactZ(config.levels - 1);
     const topPalletBottomY = palletGuideY(config.levels - 1);
+    // Kolon aralığı ilk gözün iki ayağı arasına ve ilk palet grubunun üstüne bağlanır.
+    const firstBayEdgeA = point(0, groundZ).x;
+    const firstBayEdgeB = point(config.bayPitch, groundZ).x;
+    const firstBayCenterX = (firstBayEdgeA + firstBayEdgeB) / 2;
+    const firstBayWidthPx = Math.abs(firstBayEdgeB - firstBayEdgeA);
+    const columnChipWidth = Math.max(150, Math.min(230, firstBayWidthPx - 12));
+    const columnChipHeight = 30;
+    const columnChipX = firstBayCenterX - columnChipWidth / 2;
+    const topLoadZ = visualPalletBottomZ(config.levels - 1) + config.palletHeight;
+    const columnChipY = Math.max(8, point(0, topLoadZ).y - 40);
     verticalDimensionAtY(innerRightX, originY, topPalletBottomY, `SON PALET YÜKSEKLİĞİ · ${fmt(topPalletBottom - groundZ)} mm`, "inside");
     verticalDimensionAtY(rightX, originY, topY, `AYAK UZUNLUĞU · ${fmt(uprightTopZ - groundZ)} mm`, "outside");
     dimensions.innerHTML = `
@@ -531,22 +541,22 @@ class MekikFrontViewer {
       <style>
         .dim-main{stroke:#d7a900;stroke-width:1.35}
         .dim-guide{stroke:#d7a900;stroke-width:.9;stroke-dasharray:3 3;opacity:.8}
-        .dim-text{fill:#073c30;font:800 9px Arial,sans-serif}
-        .dim-vertical-text{font-size:8px;letter-spacing:.15px}
-        .dim-column-text{fill:#fff;font:900 7.5px Arial,sans-serif}
-        .dim-title{fill:#073c30;font:900 11px Arial,sans-serif}
+        .dim-text{fill:#073c30;font:800 18px Arial,sans-serif}
+        .dim-vertical-text{font-size:16px;letter-spacing:.3px}
+        .dim-column-text{fill:#fff;font:900 15px Arial,sans-serif}
+        .dim-title{fill:#073c30;font:900 22px Arial,sans-serif}
         .dim-chip{fill:#073c30}
-        .dim-chip-text{fill:#fff;font:900 9px Arial,sans-serif}
+        .dim-chip-text{fill:#fff;font:900 18px Arial,sans-serif}
         .dim-warm{fill:#fff1b8;stroke:#d7a900;stroke-width:1}
-        .dim-warm-text{fill:#3e3511;font:900 9px Arial,sans-serif}
+        .dim-warm-text{fill:#3e3511;font:900 18px Arial,sans-serif}
         .dim-origin-dot{fill:#d7a900;stroke:#073c30;stroke-width:1}
       </style>
       <circle cx="${originPoint.x}" cy="${originPoint.y}" r="3.2" class="dim-origin-dot"/>
       <text x="${Math.max(14, leftX - 112)}" y="${Math.max(92, topY + 18)}" class="dim-title">KOT ARALIKLARI</text>
       ${lineParts.join("")}
       ${labelParts.join("")}
-      <rect x="${rackLeft}" y="25" width="144" height="18" rx="9" class="dim-chip"/>
-      <text x="${rackLeft + 72}" y="37" text-anchor="middle" class="dim-column-text">KOLON ARALIĞI · ${fmt(config.bayPitch)} mm</text>
+      <rect x="${columnChipX}" y="${columnChipY}" width="${columnChipWidth}" height="${columnChipHeight}" rx="${columnChipHeight / 2}" class="dim-chip"/>
+      <text x="${firstBayCenterX}" y="${columnChipY + 20}" text-anchor="middle" class="dim-column-text">KOLON ARALIĞI · ${fmt(config.bayPitch)} mm</text>
     `;
   }
 
