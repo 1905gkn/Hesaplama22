@@ -84,6 +84,48 @@ if (!html.includes(speedGuardMarker)) {
   html = html.slice(0, bodyEnd) + speedRuntime + html.slice(bodyEnd);
 }
 
-if (!html.includes(marker) || !html.includes(guardMarker) || !html.includes(speedMarker) || !html.includes(speedGuardMarker)) throw new Error("Giriş/yan menü performans düzeltmesi eklenemedi.");
+// Backend oturumu başarılı olduğu halde eski görünürlük guard'ları giriş katmanını
+// ekranda tutarsa, yalnızca doğrulanmış /api/me oturumunda uygulama görünümünü geri aç.
+const sessionRecoveryMarker = 'data-rafex-login-session-recovery="v1"';
+if (!html.includes(sessionRecoveryMarker)) {
+  const sessionRecoveryRuntime = `<script ${sessionRecoveryMarker}>
+(function(){
+  const auth=document.getElementById('auth');
+  const app=document.getElementById('app');
+  const shell=document.querySelector('.shell');
+  if(!auth||!app)return;
+  const forceAppVisible=()=>{
+    auth.classList.add('hidden');
+    app.classList.remove('hidden');
+    if(shell){
+      shell.style.removeProperty('display');
+      shell.inert=false;
+      shell.removeAttribute('aria-hidden');
+      delete shell.dataset.rafexLoginSuppressed;
+    }
+  };
+  const verifySession=async()=>{
+    try{
+      const response=await fetch('/api/me',{cache:'no-store',headers:{'content-type':'application/json'}});
+      if(response.ok)forceAppVisible();
+    }catch{}
+  };
+  const form=document.getElementById('loginForm');
+  if(form){
+    form.addEventListener('submit',()=>{
+      setTimeout(verifySession,120);
+      setTimeout(verifySession,650);
+      setTimeout(verifySession,1600);
+    },true);
+  }
+  window.addEventListener('pageshow',()=>setTimeout(verifySession,50),{once:true});
+})();
+</script>`;
+  const bodyEnd = html.lastIndexOf("</body>");
+  if (bodyEnd < 0) throw new Error("Portal </body> bulunamadı.");
+  html = html.slice(0, bodyEnd) + sessionRecoveryRuntime + html.slice(bodyEnd);
+}
+
+if (!html.includes(marker) || !html.includes(guardMarker) || !html.includes(speedMarker) || !html.includes(speedGuardMarker) || !html.includes(sessionRecoveryMarker)) throw new Error("Giriş/yan menü performans düzeltmesi eklenemedi.");
 fs.writeFileSync(portalPath, html);
-console.log("Giriş alanları genel uygulama olaylarından ayrıldı; pahalı :has seçicisi kaldırıldı.");
+console.log("Giriş alanları genel uygulama olaylarından ayrıldı; doğrulanmış oturum için görünürlük kurtarma eklendi.");
