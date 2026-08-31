@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v32";
+const ASSET_VERSION = "mekik-front-glb-v33";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -458,18 +458,61 @@ class MekikFrontViewer {
     // Ölçü zincirinin sıfırı, ilk ayağın sahnede gerçekten başladığı alt noktadır.
     const groundZ = uprightBounds.min.z;
     const uprightTopZ = uprightBounds.max.z;
-    const traverseBounds = Array.from({ length: config.levels }, (_, level) => {
-      const supportZ = config.firstLevelHeight + level * config.levelSpacing;
-      return boundsFor(`Mekik Travers G1 K${level + 1}`, supportZ - config.traverseHeight, supportZ);
-    });
     // Teknik kotlar yalnız formdaki mühendislik ölçülerinden üretilir.
     // GLB montaj/ofset değerleri ölçü zincirine kesinlikle eklenmez.
     const palletContactZ = (level) => (
       config.firstLevelHeight
       + level * config.levelSpacing
     );
-    const floorY = point(0, groundZ).y;
-    const topY = point(0, uprightTopZ).y;
+    // Ok uçları mühendislik kotundan değil, ekranda gerçekten çizilen
+    // GLB parçalarının piksel sınırlarından alınır.
+    const screenExtentsForObject = (name, meshFilter = null) => {
+      const object = this.root.getObjectByName(name);
+      if (!object) return null;
+      object.updateMatrixWorld(true);
+      const bounds = new THREE.Box3();
+      let found = false;
+      object.traverse((part) => {
+        if (!part.isMesh || (meshFilter && !meshFilter(part))) return;
+        const partBounds = new THREE.Box3().setFromObject(part);
+        if (partBounds.isEmpty()) return;
+        bounds.union(partBounds);
+        found = true;
+      });
+      if (!found) bounds.setFromObject(object);
+      if (bounds.isEmpty()) return null;
+      const corners = [
+        [bounds.min.x, bounds.min.y, bounds.min.z],
+        [bounds.min.x, bounds.min.y, bounds.max.z],
+        [bounds.min.x, bounds.max.y, bounds.min.z],
+        [bounds.min.x, bounds.max.y, bounds.max.z],
+        [bounds.max.x, bounds.min.y, bounds.min.z],
+        [bounds.max.x, bounds.min.y, bounds.max.z],
+        [bounds.max.x, bounds.max.y, bounds.min.z],
+        [bounds.max.x, bounds.max.y, bounds.max.z],
+      ].map(([x, y, z]) => {
+        const projected = new THREE.Vector3(x, y, z).project(this.camera);
+        return {
+          x: (projected.x + 1) * width / 2,
+          y: (1 - projected.y) * height / 2,
+        };
+      });
+      return {
+        topY: Math.min(...corners.map((corner) => corner.y)),
+        bottomY: Math.max(...corners.map((corner) => corner.y)),
+      };
+    };
+    const uprightScreenBounds = screenExtentsForObject("Mekik Ayak 1");
+    const palletScreenBounds = Array.from({ length: config.levels }, (_, level) => (
+      screenExtentsForObject(`Mekik Paletli Yük G1 K${level + 1}`)
+    ));
+    const traverseProfileScreenBounds = Array.from({ length: config.levels }, (_, level) => (
+      screenExtentsForObject(
+        `Mekik Travers G1 K${level + 1}`,
+        (part) => String(part.name || "").toLocaleUpperCase("tr-TR").includes("PROFIL"),
+      )
+    ));
+    const topY = uprightScreenBounds?.topY ?? point(0, uprightTopZ).y;
     const leftX = Math.max(108, rackLeft - Math.min(34, width * 0.035));
     const innerRightX = Math.min(width - 76, rackRight + Math.min(30, width * 0.03));
     const rightX = Math.min(width - 36, rackRight + Math.min(68, width * 0.065));
@@ -477,13 +520,12 @@ class MekikFrontViewer {
     const lineParts = [];
     const labelParts = [];
 
-    const verticalDimension = (x, z1, z2, label, side = "left") => {
-      const a = point(0, z1), b = point(0, z2);
-      lineParts.push(`<line x1="${x}" y1="${a.y}" x2="${x}" y2="${b.y}" class="dim-main" marker-start="url(#mekik-arrow)" marker-end="url(#mekik-arrow)"/>`);
+    const verticalDimensionAtY = (x, y1, y2, label, side = "left") => {
+      lineParts.push(`<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" class="dim-main" marker-start="url(#mekik-arrow)" marker-end="url(#mekik-arrow)"/>`);
       const guideTarget = side === "left" ? rackLeft : rackRight;
-      lineParts.push(`<line x1="${x}" y1="${a.y}" x2="${guideTarget}" y2="${a.y}" class="dim-guide"/>`);
-      lineParts.push(`<line x1="${x}" y1="${b.y}" x2="${guideTarget}" y2="${b.y}" class="dim-guide"/>`);
-      const middleY = (a.y + b.y) / 2;
+      lineParts.push(`<line x1="${x}" y1="${y1}" x2="${guideTarget}" y2="${y1}" class="dim-guide"/>`);
+      lineParts.push(`<line x1="${x}" y1="${y2}" x2="${guideTarget}" y2="${y2}" class="dim-guide"/>`);
+      const middleY = (y1 + y2) / 2;
       if (side === "inside" || side === "outside") {
         const labelX = side === "inside" ? x - 8 : x + 8;
         labelParts.push(`<text x="${labelX}" y="${middleY}" text-anchor="middle" class="dim-text dim-vertical-text" transform="rotate(-90 ${labelX} ${middleY})">${label}</text>`);
@@ -494,18 +536,23 @@ class MekikFrontViewer {
       }
     };
 
+    const originY = uprightScreenBounds?.bottomY ?? originPoint.y;
     const firstPalletBottom = palletContactZ(0);
+    const firstPalletBottomY = palletScreenBounds[0]?.bottomY ?? point(0, firstPalletBottom).y;
     const groundHeight = Math.max(0, firstPalletBottom - groundZ);
-    verticalDimension(leftX, groundZ, firstPalletBottom, `ZEMİN · ${fmt(groundHeight)} mm`);
+    verticalDimensionAtY(leftX, originY, firstPalletBottomY, `ZEMİN · ${fmt(groundHeight)} mm`);
     for (let level = 1; level < config.levels; level += 1) {
       const from = palletContactZ(level - 1);
       const to = palletContactZ(level) - config.traverseHeight;
+      const fromY = palletScreenBounds[level - 1]?.bottomY ?? point(0, from).y;
+      const toY = traverseProfileScreenBounds[level]?.bottomY ?? point(0, to).y;
       const clearLevelHeight = Math.max(0, to - from);
-      verticalDimension(leftX, from, to, `K${level} · ${fmt(clearLevelHeight)} mm`);
+      verticalDimensionAtY(leftX, fromY, toY, `K${level} · ${fmt(clearLevelHeight)} mm`);
     }
     const topPalletBottom = palletContactZ(config.levels - 1);
-    verticalDimension(innerRightX, groundZ, topPalletBottom, `SON PALET YÜKSEKLİĞİ · ${fmt(topPalletBottom - groundZ)} mm`, "inside");
-    verticalDimension(rightX, groundZ, uprightTopZ, `AYAK UZUNLUĞU · ${fmt(uprightTopZ - groundZ)} mm`, "outside");
+    const topPalletBottomY = palletScreenBounds[config.levels - 1]?.bottomY ?? point(0, topPalletBottom).y;
+    verticalDimensionAtY(innerRightX, originY, topPalletBottomY, `SON PALET YÜKSEKLİĞİ · ${fmt(topPalletBottom - groundZ)} mm`, "inside");
+    verticalDimensionAtY(rightX, originY, topY, `AYAK UZUNLUĞU · ${fmt(uprightTopZ - groundZ)} mm`, "outside");
     dimensions.innerHTML = `
       <defs>
         <marker id="mekik-arrow" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto-start-reverse">
