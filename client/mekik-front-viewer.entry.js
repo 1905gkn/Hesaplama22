@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v39";
+const ASSET_VERSION = "mekik-front-glb-v40";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -477,8 +477,9 @@ class MekikFrontViewer {
     );
     const topY = point(0, uprightTopZ).y;
     const leftX = Math.max(108, rackLeft - Math.min(34, width * 0.035));
-    const innerRightX = Math.min(width - 76, rackRight + Math.min(30, width * 0.03));
-    const rightX = Math.min(width - 36, rackRight + Math.min(68, width * 0.065));
+    // Sağdaki iki ölçü çizgisi rafın dışındadır; yazılar birbirine ve ayağa binmez.
+    const innerRightX = Math.min(width - 150, rackRight + Math.max(52, width * 0.045));
+    const rightX = Math.min(width - 72, rackRight + Math.max(125, width * 0.1));
     const originPoint = point(0, groundZ);
     // Yazılan ölçü mühendislik kotudur; çizginin görsel hedefi ise gerçekten
     // render edilen paletin alt yüzüdür (travers/braket üstündeki nokta).
@@ -498,7 +499,7 @@ class MekikFrontViewer {
       lineParts.push(`<line x1="${x}" y1="${y2}" x2="${guideTarget}" y2="${y2}" class="dim-guide"/>`);
       const middleY = (y1 + y2) / 2;
       if (side === "inside" || side === "outside") {
-        const labelX = side === "inside" ? x - 14 : x + 14;
+        const labelX = side === "inside" ? x + 20 : x + 22;
         labelParts.push(`<text x="${labelX}" y="${middleY}" text-anchor="middle" class="dim-text dim-vertical-text" transform="rotate(-90 ${labelX} ${middleY})">${label}</text>`);
       } else {
         const textX = side === "left" ? x - 16 : x + 16;
@@ -521,8 +522,14 @@ class MekikFrontViewer {
     const topPalletBottom = palletContactZ(config.levels - 1);
     const topPalletBottomY = palletGuideY(config.levels - 1);
     // Kolon aralığı ilk gözün iki ayağı arasına ve ilk palet grubunun üstüne bağlanır.
-    const firstBayEdgeA = point(0, groundZ).x;
-    const firstBayEdgeB = point(config.bayPitch, groundZ).x;
+    // Kamera X eksenini ters çevirebildiği için "ilk göz"ü model sırasından değil,
+    // ekranda görünen en soldaki iki kolon merkezinden belirle.
+    const projectedColumnEdges = Array.from(
+      { length: config.bays + 1 },
+      (_, index) => point(index * config.bayPitch, groundZ).x,
+    ).sort((a, b) => a - b);
+    const firstBayEdgeA = projectedColumnEdges[0];
+    const firstBayEdgeB = projectedColumnEdges[1] ?? projectedColumnEdges[0];
     const firstBayCenterX = (firstBayEdgeA + firstBayEdgeB) / 2;
     const firstBayWidthPx = Math.abs(firstBayEdgeB - firstBayEdgeA);
     const columnChipWidth = Math.max(150, Math.min(230, firstBayWidthPx - 12));
@@ -552,7 +559,7 @@ class MekikFrontViewer {
         .dim-origin-dot{fill:#d7a900;stroke:#073c30;stroke-width:1}
       </style>
       <circle cx="${originPoint.x}" cy="${originPoint.y}" r="3.2" class="dim-origin-dot"/>
-      <text x="${Math.max(14, leftX - 112)}" y="${Math.max(92, topY + 18)}" class="dim-title">KOT ARALIKLARI</text>
+      <text x="${Math.max(18, rackLeft - Math.min(250, width * 0.22))}" y="${Math.max(92, topY + 18)}" class="dim-title">KOT ARALIKLARI</text>
       ${lineParts.join("")}
       ${labelParts.join("")}
       <rect x="${columnChipX}" y="${columnChipY}" width="${columnChipWidth}" height="${columnChipHeight}" rx="${columnChipHeight / 2}" class="dim-chip"/>
