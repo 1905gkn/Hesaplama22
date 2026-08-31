@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v34";
+const ASSET_VERSION = "mekik-front-glb-v35";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -728,7 +728,9 @@ function syncMekikLevelSpacing(panel, selectedTraverse) {
   const palletHeight = numberFrom("m2LevelH", 1200, 300, 3000);
   const railHeight = numberFrom("m2RailHeight", 170, 150, 170);
   const traverseHeight = traverseProfileHeight(selectedTraverse);
-  const palletGap = railHeight + 70 + traverseHeight + 100;
+  // İki paletin aynı kot referansı arasındaki standart mesafe:
+  // palet yüksekliği + 100 mm + travers yüksekliği + 60 mm + ray yüksekliği.
+  const palletGap = 100 + traverseHeight + 60 + railHeight;
   const automaticSpacing = palletHeight + palletGap;
   const previousAutomatic = Number(levelInput.dataset.rafexAutomaticSpacing);
   const current = Number(levelInput.value);
@@ -744,7 +746,7 @@ function syncMekikLevelSpacing(panel, selectedTraverse) {
   const modal = levelInput.closest(".m2-spacing-modal");
   const footer = modal?.querySelector(".m2-spacing-dialog-foot span");
   if (footer) {
-    footer.textContent = `Standart: ${palletHeight} + (${railHeight} ray + 70 + ${traverseHeight} travers + 100) = ${automaticSpacing} mm. Elle değiştirilebilir.`;
+    footer.textContent = `Standart: ${palletHeight} palet + 100 + ${traverseHeight} travers + 60 + ${railHeight} ray = ${automaticSpacing} mm. Elle değiştirilebilir.`;
   }
 }
 
