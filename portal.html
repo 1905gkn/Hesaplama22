@@ -4282,16 +4282,35 @@
         return rows;
       }
       function m2LayoutProductRows(){
-        const labels=m2ReportDictionary("tr"),products=new Map();
-        const add=(name,qty,spec="",unit=labels.unitEach||"adet")=>{qty=Math.max(0,Math.round(Number(qty)||0));if(!qty)return;const key=`${name}|${spec}|${unit}`,row=products.get(key)||{name,spec,unit,qty:0};row.qty+=qty;products.set(key,row);};
+        const labels=m2ReportDictionary("tr"),products=new Map(),each=labels.unitEach||"adet";
+        const add=(name,qty,spec="",unit=each)=>{qty=Math.max(0,Math.round(Number(qty)||0));if(!qty)return;const key=`${name}|${spec}|${unit}`,row=products.get(key)||{name,spec,unit,qty:0};row.qty+=qty;products.set(key,row);};
+        const grouped=(values)=>values.reduce((map,value)=>{const key=String(Math.round(Number(value)||0));if(Number(key)>0)map.set(key,(map.get(key)||0)+1);return map;},new Map());
         m2LayoutState.racks.forEach((rack)=>{
-          const rowCount=Math.max(1,Number(rack.b2bLayout?.rowCount)||(rack.b2b?.rowType==="double"?2:1)),footTeamCount=rack.b2bLayout?Math.max(1,2*rowCount-(rack.sharedFootWith?rowCount:0)):undefined;
-          const bom=m2CorporateBomRows({name:rack.typeName||rack.name||"Raf",drawing:rack,rackCount:1,rackIds:[rack.id],footTeamCount},labels);
-          bom.forEach((row)=>{
-            if(row.item==="UAKS ayak koruma"||row.item==="UAKZ ayak koruma")return;
-            if(rack.b2bLayout&&row.item===labels.items.footTeam){add(labels.items.foot,row.qty*2,row.spec,row.unit);return;}
-            add(row.item,row.qty,row.spec,row.unit);
-          });
+          const mr=Boolean(rack?.b2b?.mr||rack?.rafexSystem==="mr"||rack?.systemType==="mr"||rack?.b2bLayout?.palletType==="mr"||rack?.plan?.mr);
+          if(mr&&typeof window.rafexMrQuantitySummaryV42==="function"){
+            (window.rafexMrQuantitySummaryV42([rack])||[]).forEach((row)=>add(row.item,row.qty,row.spec,row.unit||each));
+            return;
+          }
+          if(rack.b2bLayout){
+            const rowCount=Math.max(1,Number(rack.b2bLayout.rowCount)||(rack.b2b?.rowType==="double"?2:1)),footTeams=Math.max(1,2*rowCount-(rack.sharedFootWith?rowCount:0)),profileQty=footTeams*2,product=m2B2BFootProductData(rack),traverseLevels=m2B2BVisibleTraverseLevels(rack),traverseQty=traverseLevels*2*rowCount,traverseType=rack.b2b?.traverseType||rack.traverseRecommendation||"CC140",traverseLength=Math.round(Number(rack.b2bLayout.sectionWidth)||m2B2BSectionWidth(rack.b2bLayout,rack.b2bLayout.palletCount||1));
+            add(labels.items.foot,product?`${product.code} · ${product.profile} · L ${fmt(product.height)} × D ${fmt(product.depth)} mm · ${String(product.thickness).replace(".",",")} mm`:`${rack.footProfile||"Ayak"} · L ${fmt(rack.footLy||rack.totalRackHeight||0)} mm`,profileQty);
+            add(labels.items.footShoe,product?`${product.shoeCode} · kaynaklı`:"Kaynaklı",profileQty);
+            add(labels.items.shim,product?.shimCode||"",profileQty);
+            add(labels.items.anchor,"KIDM12120",profileQty*2);
+            add(labels.items.traverse,`${fmt(traverseLength)} mm · ${traverseType}`,traverseQty);
+            add(labels.items.safetyPin,"",traverseQty*2);
+            const straightTie=b2bStraightTiePlan(rack),tieStations=rowCount===2?footTeams/rowCount:0;
+            add(labels.items.straightBrace,`${fmt(straightTie.length)} × ${fmt(straightTie.width)} mm · galvaniz`,straightTie.count*tieStations);
+            return;
+          }
+          const bays=Math.max(0,Number(rack.bays)||0),levels=Math.max(0,Number(rack.levels)||0),rows=bays+1,feet=Array.isArray(rack.plan?.feet)?rack.plan.feet:[],braces=Array.isArray(rack.plan?.braces)?rack.plan.braces:[];
+          grouped(feet).forEach((count,length)=>add(labels.items.foot,`${rack.footProfile?`${rack.footProfile} · `:""}${fmt(length)} mm`,count*rows));
+          if(rack.hasExtra)add(labels.items.extra,`${fmt(Number(rack.straightProfileLength)||Number(rack.sideUprightHeight)||0)} mm`,1);
+          add(labels.items.traverse,"",Math.max(0,(feet.length*2+(rack.hasExtra?1:0)-1)*bays*levels));
+          const railCount=bays*2*levels;
+          add(labels.items.rail,`${fmt(Number(rack.railLength)||0)} mm · H ${fmt(Number(rack.railHeight)||150)} mm · ${String(Number(rack.railThickness)||m2RecommendedRailThickness(rack.palletWeight)).replace(".",",")} mm`,railCount);
+          add(labels.items.pad,"",railCount);add(labels.items.rearStop,"",railCount);add(labels.items.forkStop,"",rows);add(labels.items.entryConsole,"",rows*levels);add(labels.items.horizontalBrace,"",bays*Math.floor(levels/2));
+          grouped(braces).forEach((count,length)=>add(labels.items.straightBrace,`${fmt(length)} mm`,count*rows*Math.ceil(levels/2)));
         });
         m2LayoutAccessoryRows().forEach((row)=>add(row.name,row.qty,row.spec,row.unit));
         return [...products.values()].sort((a,b)=>a.name.localeCompare(b.name,"tr")||String(a.spec).localeCompare(String(b.spec),"tr"));
