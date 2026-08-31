@@ -4282,7 +4282,7 @@
         return rows;
       }
       function m2LayoutProductRows(){
-        const labels=m2ReportDictionary("tr"),products=new Map(),each=labels.unitEach||"adet";
+        const labels={unitEach:"adet",items:{foot:"Ayak profili",footShoe:"Ayak pabucu",shim:"Şim",anchor:"Kimyasal dübel",safetyPin:"Emniyet pimi",extra:"Ekstra düz profil",traverse:"Travers",rail:"Ray",pad:"Palet yastığı",rearStop:"Arka stoper",forkStop:"Forklift stoperi",entryConsole:"Giriş konsolu",horizontalBrace:"Yatay çapraz seti",straightBrace:"Düz arabağ"}},products=new Map(),each=labels.unitEach;
         const add=(name,qty,spec="",unit=each)=>{qty=Math.max(0,Math.round(Number(qty)||0));if(!qty)return;const key=`${name}|${spec}|${unit}`,row=products.get(key)||{name,spec,unit,qty:0};row.qty+=qty;products.set(key,row);};
         const grouped=(values)=>values.reduce((map,value)=>{const key=String(Math.round(Number(value)||0));if(Number(key)>0)map.set(key,(map.get(key)||0)+1);return map;},new Map());
         m2LayoutState.racks.forEach((rack)=>{
