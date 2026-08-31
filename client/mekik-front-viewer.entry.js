@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v31";
+const ASSET_VERSION = "mekik-front-glb-v32";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -462,12 +462,11 @@ class MekikFrontViewer {
       const supportZ = config.firstLevelHeight + level * config.levelSpacing;
       return boundsFor(`Mekik Travers G1 K${level + 1}`, supportZ - config.traverseHeight, supportZ);
     });
-    // Ölçü referansı GLB'nin ters çevrilmiş sınır kutusu değil,
-    // paletin travers/braket üzerine yerleştirildiği gerçek temas kotudur.
+    // Teknik kotlar yalnız formdaki mühendislik ölçülerinden üretilir.
+    // GLB montaj/ofset değerleri ölçü zincirine kesinlikle eklenmez.
     const palletContactZ = (level) => (
       config.firstLevelHeight
       + level * config.levelSpacing
-      + this.models.traverse.topOffset
     );
     const floorY = point(0, groundZ).y;
     const topY = point(0, uprightTopZ).y;
@@ -500,8 +499,7 @@ class MekikFrontViewer {
     verticalDimension(leftX, groundZ, firstPalletBottom, `ZEMİN · ${fmt(groundHeight)} mm`);
     for (let level = 1; level < config.levels; level += 1) {
       const from = palletContactZ(level - 1);
-      const supportZ = config.firstLevelHeight + level * config.levelSpacing;
-      const to = supportZ + this.models.traverse.profileBottomOffset;
+      const to = palletContactZ(level) - config.traverseHeight;
       const clearLevelHeight = Math.max(0, to - from);
       verticalDimension(leftX, from, to, `K${level} · ${fmt(clearLevelHeight)} mm`);
     }
