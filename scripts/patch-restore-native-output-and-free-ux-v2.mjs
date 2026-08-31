@@ -194,6 +194,7 @@ const runtime = String.raw`<style data-rafex-native-output-free-ux="v2">
   }
 
   function enhanceSavedControls(){
+    if(window.__rafexSavedTypesAuthoritative)return;
     var list=document.getElementById('m2SavedTypeList');if(!list)return;
     qsa(list,'.m2-saved-type-row').forEach(function(row,index){
       var preview=row.querySelector('.m2-saved-type-preview');
@@ -279,6 +280,7 @@ const runtime = String.raw`<style data-rafex-native-output-free-ux="v2">
   }
 
   function installSavedHook(){
+    if(window.__rafexSavedTypesAuthoritative)return;
     var original=null;try{if(typeof m2RenderSavedRackTypes==='function')original=m2RenderSavedRackTypes;}catch(e){}
     if(typeof original==='function'&&!original.__rafexGlobalSavedActions){
       var wrapped=function(){var result=original.apply(this,arguments);setTimeout(enhanceSavedControls,0);return result;};wrapped.__rafexGlobalSavedActions=true;
