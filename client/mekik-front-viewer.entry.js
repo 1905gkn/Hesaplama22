@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v35";
+const ASSET_VERSION = "mekik-front-glb-v36";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -506,9 +506,8 @@ class MekikFrontViewer {
     verticalDimensionAtY(leftX, originY, palletGuideY(0), `ZEMİN · ${fmt(groundHeight)} mm`);
     for (let level = 1; level < config.levels; level += 1) {
       const from = palletContactZ(level - 1);
-      const clearTop = palletContactZ(level) - config.traverseHeight;
-      const clearLevelHeight = Math.max(0, clearTop - from);
-      verticalDimensionAtY(leftX, palletGuideY(level - 1), palletGuideY(level), `K${level} · ${fmt(clearLevelHeight)} mm`);
+      const palletInterval = Math.max(0, palletContactZ(level) - from);
+      verticalDimensionAtY(leftX, palletGuideY(level - 1), palletGuideY(level), `K${level} · ${fmt(palletInterval)} mm`);
     }
     const topPalletBottom = palletContactZ(config.levels - 1);
     const topPalletBottomY = palletGuideY(config.levels - 1);
