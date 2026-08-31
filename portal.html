@@ -4293,24 +4293,24 @@
           }
           if(rack.b2bLayout){
             const rowCount=Math.max(1,Number(rack.b2bLayout.rowCount)||(rack.b2b?.rowType==="double"?2:1)),footTeams=Math.max(1,2*rowCount-(rack.sharedFootWith?rowCount:0)),profileQty=footTeams*2,product=m2B2BFootProductData(rack),traverseLevels=m2B2BVisibleTraverseLevels(rack),traverseQty=traverseLevels*2*rowCount,traverseType=rack.b2b?.traverseType||rack.traverseRecommendation||"CC140",traverseLength=Math.round(Number(rack.b2bLayout.sectionWidth)||m2B2BSectionWidth(rack.b2bLayout,rack.b2bLayout.palletCount||1));
-            add(labels.items.foot,product?`${product.code} · ${product.profile} · L ${fmt(product.height)} × D ${fmt(product.depth)} mm · ${String(product.thickness).replace(".",",")} mm`:`${rack.footProfile||"Ayak"} · L ${fmt(rack.footLy||rack.totalRackHeight||0)} mm`,profileQty);
-            add(labels.items.footShoe,product?`${product.shoeCode} · kaynaklı`:"Kaynaklı",profileQty);
-            add(labels.items.shim,product?.shimCode||"",profileQty);
-            add(labels.items.anchor,"KIDM12120",profileQty*2);
-            add(labels.items.traverse,`${fmt(traverseLength)} mm · ${traverseType}`,traverseQty);
+            add(labels.items.foot,profileQty,product?`${product.code} · ${product.profile} · L ${fmt(product.height)} × D ${fmt(product.depth)} mm · ${String(product.thickness).replace(".",",")} mm`:`${rack.footProfile||"Ayak"} · L ${fmt(rack.footLy||rack.totalRackHeight||0)} mm`);
+            add(labels.items.footShoe,profileQty,product?`${product.shoeCode} · kaynaklı`:"Kaynaklı");
+            add(labels.items.shim,profileQty,product?.shimCode||"");
+            add(labels.items.anchor,profileQty*2,"KIDM12120");
+            add(labels.items.traverse,traverseQty,`${fmt(traverseLength)} mm · ${traverseType}`);
             add(labels.items.safetyPin,"",traverseQty*2);
             const straightTie=b2bStraightTiePlan(rack),tieStations=rowCount===2?footTeams/rowCount:0;
-            add(labels.items.straightBrace,`${fmt(straightTie.length)} × ${fmt(straightTie.width)} mm · galvaniz`,straightTie.count*tieStations);
+            add(labels.items.straightBrace,straightTie.count*tieStations,`${fmt(straightTie.length)} × ${fmt(straightTie.width)} mm · galvaniz`);
             return;
           }
           const bays=Math.max(0,Number(rack.bays)||0),levels=Math.max(0,Number(rack.levels)||0),rows=bays+1,feet=Array.isArray(rack.plan?.feet)?rack.plan.feet:[],braces=Array.isArray(rack.plan?.braces)?rack.plan.braces:[];
-          grouped(feet).forEach((count,length)=>add(labels.items.foot,`${rack.footProfile?`${rack.footProfile} · `:""}${fmt(length)} mm`,count*rows));
-          if(rack.hasExtra)add(labels.items.extra,`${fmt(Number(rack.straightProfileLength)||Number(rack.sideUprightHeight)||0)} mm`,1);
-          add(labels.items.traverse,"",Math.max(0,(feet.length*2+(rack.hasExtra?1:0)-1)*bays*levels));
+          grouped(feet).forEach((count,length)=>add(labels.items.foot,count*rows,`${rack.footProfile?`${rack.footProfile} · `:""}${fmt(length)} mm`));
+          if(rack.hasExtra)add(labels.items.extra,1,`${fmt(Number(rack.straightProfileLength)||Number(rack.sideUprightHeight)||0)} mm`);
+          add(labels.items.traverse,Math.max(0,(feet.length*2+(rack.hasExtra?1:0)-1)*bays*levels));
           const railCount=bays*2*levels;
-          add(labels.items.rail,`${fmt(Number(rack.railLength)||0)} mm · H ${fmt(Number(rack.railHeight)||150)} mm · ${String(Number(rack.railThickness)||m2RecommendedRailThickness(rack.palletWeight)).replace(".",",")} mm`,railCount);
-          add(labels.items.pad,"",railCount);add(labels.items.rearStop,"",railCount);add(labels.items.forkStop,"",rows);add(labels.items.entryConsole,"",rows*levels);add(labels.items.horizontalBrace,"",bays*Math.floor(levels/2));
-          grouped(braces).forEach((count,length)=>add(labels.items.straightBrace,`${fmt(length)} mm`,count*rows*Math.ceil(levels/2)));
+          add(labels.items.rail,railCount,`${fmt(Number(rack.railLength)||0)} mm · H ${fmt(Number(rack.railHeight)||150)} mm · ${String(Number(rack.railThickness)||m2RecommendedRailThickness(rack.palletWeight)).replace(".",",")} mm`);
+          add(labels.items.pad,railCount);add(labels.items.rearStop,railCount);add(labels.items.forkStop,rows);add(labels.items.entryConsole,rows*levels);add(labels.items.horizontalBrace,bays*Math.floor(levels/2));
+          grouped(braces).forEach((count,length)=>add(labels.items.straightBrace,count*rows*Math.ceil(levels/2),`${fmt(length)} mm`));
         });
         m2LayoutAccessoryRows().forEach((row)=>add(row.name,row.qty,row.spec,row.unit));
         return [...products.values()].sort((a,b)=>a.name.localeCompare(b.name,"tr")||String(a.spec).localeCompare(String(b.spec),"tr"));
