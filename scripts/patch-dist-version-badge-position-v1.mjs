@@ -315,6 +315,34 @@ const inventoryRuntime = `
     try{if(typeof m2RecommendedRailThickness==='function')return Number(String(m2RecommendedRailThickness(Number(rack&&rack.palletWeight)||0)).replace(',','.'))||0;}catch(e){}
     return 0;
   }
+  function copyValue(value){
+    try{if(typeof structuredClone==='function')return structuredClone(value);}catch(e){}
+    try{return JSON.parse(JSON.stringify(value));}catch(e){return value;}
+  }
+  function trayPieceCount(clearWidth,trayWidth){
+    clearWidth=Math.max(0,n(clearWidth));
+    trayWidth=[200,250,300].includes(n(trayWidth))?n(trayWidth):300;
+    var full=Math.floor(clearWidth/trayWidth),remainder=clearWidth-full*trayWidth;
+    return full+(remainder>=50?1:0);
+  }
+  function b2bAccessoryRows(rack){
+    var out=[],state=rack&&rack.b2b||{},layout=rack&&rack.b2bLayout||{};
+    var rowCount=Math.max(1,n(layout.rowCount)||(state.rowType==='double'?2:1));
+    var clearWidth=Math.max(0,n(layout.sectionWidth||rack&&rack.widthMm));
+    var levelCount=Math.max(1,n(rack&&rack.levels||state.levels));
+    (Array.isArray(state.accessories)?state.accessories:[]).forEach(function(item){
+      var levels=new Set((Array.isArray(item&&item.levels)?item.levels:[]).map(function(value){return n(value);}).filter(function(value){return value>=1&&value<=levelCount;})).size;
+      if(!levels)return;
+      var qty=levels*rowCount,name='',spec='Aksesuar';
+      if(item.type==='tray'){
+        qty*=Math.max(1,trayPieceCount(clearWidth,item.width));
+        name='Tava';spec=textNumber(n(item.width)||300)+' mm';
+      }else if(item.type==='hTraverse')name='H Travers';
+      else if(item.type==='palletStop')name='Palet Dayama';
+      if(name&&qty>0)out.push({name:name,qty:qty,spec:spec,unit:'adet'});
+    });
+    return out;
+  }
   function rows(targetSystem){
     var map=new Map();
     function add(name,qty,spec,unit){
@@ -357,6 +385,7 @@ const inventoryRuntime = `
             add('Düz arabağ',n(tie&&tie.count)*stations,textNumber(tie&&tie.length)+' × '+textNumber(tie&&tie.width)+' mm · galvaniz');
           }
         }catch(e){}
+        b2bAccessoryRows(rack).forEach(function(row){add(row.name,row.qty,row.spec,row.unit);});
         return;
       }
       var bays=n(rack&&rack.bays),levels=n(rack&&rack.levels),columnCount=bays+1;
@@ -386,7 +415,7 @@ const inventoryRuntime = `
       grouped(braces).forEach(function(count,length){add('Düz arabağ',count*columnCount*Math.ceil(levels/2),textNumber(length)+' mm');});
     });
     if(!targetSystem||targetSystem==='common')accessories().forEach(function(row){add(row.name||row.item,row.qty,row.spec,row.unit);});
-    var order=['Ayak takımı','Ayak Profili','Ayak profili','Ayak pabucu','Şim','Kimyasal dübel','Travers','Emniyet pimi','Düz arabağ','Ray','Palet yastığı','Arka stoper','Forklift stoperi','Giriş konsolu','Yatay çapraz seti','Hafif deprem çaprazı','Ağır deprem çaprazı','UAKS ayak koruma','UAKZ ayak koruma','Bariyer koruma','Klipsli dübel'];
+    var order=['Ayak takımı','Ayak Profili','Ayak profili','Ayak pabucu','Şim','Kimyasal dübel','Travers','Emniyet pimi','Düz arabağ','Tava','H Travers','Palet Dayama','Ray','Palet yastığı','Arka stoper','Forklift stoperi','Giriş konsolu','Yatay çapraz seti','Hafif deprem çaprazı','Ağır deprem çaprazı','UAKS ayak koruma','UAKZ ayak koruma','Bariyer koruma','Klipsli dübel'];
     return Array.from(map.values()).sort(function(a,b){var ai=order.indexOf(a.name),bi=order.indexOf(b.name);if(ai<0)ai=999;if(bi<0)bi=999;return ai-bi||a.name.localeCompare(b.name,'tr')||a.spec.localeCompare(b.spec,'tr');});
   }
   function cleanup(){
@@ -412,6 +441,59 @@ const inventoryRuntime = `
     cleanup();return true;
   }
   function schedule(){requestAnimationFrame(function(){render();setTimeout(render,80);});}
+  function byId(id){return document.getElementById(id);}
+  function activeCustomizeRack(){
+    try{return racks().find(function(item){return Number(item&&item.id)===Number(m2CustomizeRackId);})||null;}catch(e){return null;}
+  }
+  function savedTypes(){try{return typeof m2SavedRackTypes!=='undefined'&&Array.isArray(m2SavedRackTypes)?m2SavedRackTypes:[];}catch(e){return[];}}
+  function customizeState(rack){
+    if(!rack||!rack.b2bLayout)return null;
+    var customLevels=[],selectedAccessories=[],showPallets;
+    try{if(byId('m2CustomizeManualLevels')&&byId('m2CustomizeManualLevels').checked&&typeof m2CustomizeLevelData==='function')customLevels=copyValue(m2CustomizeLevelData()||[]);}catch(e){}
+    try{if(typeof m2CollectCustomizeRackAccessories==='function')selectedAccessories=copyValue(m2CollectCustomizeRackAccessories()||[]);}catch(e){}
+    try{if(typeof m2CustomizePalletsVisible==='function')showPallets=m2CustomizePalletsVisible()!==false;}catch(e){}
+    return {
+      rackId:Number(rack.id),
+      name:String(byId('m2CustomizeName')&&byId('m2CustomizeName').value||rack.typeName||'Özel Raf').trim()||'Özel Raf',
+      count:Math.max(1,Math.min(4,n(byId('m2CustomizePalletCount')&&byId('m2CustomizePalletCount').value)||1)),
+      levels:Math.max(1,Math.min(15,n(byId('m2CustomizeLevels')&&byId('m2CustomizeLevels').value)||1)),
+      palletHeight:Math.max(300,n(byId('m2CustomizePalletHeight')&&byId('m2CustomizePalletHeight').value)||1200),
+      rowCount:byId('m2CustomizeRowType')&&byId('m2CustomizeRowType').value==='double'?2:1,
+      rowGap:Math.max(0,n(byId('m2CustomizeRowGap')&&byId('m2CustomizeRowGap').value)),
+      customLevels:customLevels,
+      tunnelHeight:byId('m2CustomizeTunnel')&&byId('m2CustomizeTunnel').checked?Math.max(500,n(byId('m2CustomizeTunnelHeight')&&byId('m2CustomizeTunnelHeight').value)||3600):0,
+      accessories:selectedAccessories,
+      showPallets:showPallets
+    };
+  }
+  function persistCustomizeState(target,state){
+    if(!target||!state)return;
+    var oldCount=Math.max(1,n(target.b2bLayout&&target.b2bLayout.palletCount||target.bays)||1);
+    target.bays=state.count;target.levels=state.levels;target.palletHeight=state.palletHeight;
+    target.b2bLayout=Object.assign({},target.b2bLayout||{},{palletCount:state.count,rowCount:state.rowCount,rowGap:state.rowGap});
+    target.b2b=Object.assign({},target.b2b||{},{palletCount:state.count,levels:state.levels,palletHeight:state.palletHeight,rowType:state.rowCount===2?'double':'single',rowGap:state.rowGap,customLevels:copyValue(state.customLevels),tunnelHeight:state.tunnelHeight,accessories:copyValue(state.accessories)});
+    if(state.showPallets!==undefined)target.b2b.showPallets=state.showPallets;
+    try{if(oldCount!==state.count&&typeof m2B2BResizeRack==='function')m2B2BResizeRack(target,state.count);}catch(e){}
+  }
+  var previousCustomizeApply=null;try{if(typeof m2ApplyRackCustomization==='function')previousCustomizeApply=m2ApplyRackCustomization;}catch(e){}
+  if(typeof previousCustomizeApply==='function'&&!previousCustomizeApply.__rafexInventoryCustomizeV45){
+    var inventoryCustomizeApply=function(){
+      var rack=activeCustomizeRack(),state=customizeState(rack);
+      var result=previousCustomizeApply.apply(this,arguments);
+      if(!state)return result;
+      var live=racks().find(function(item){return Number(item&&item.id)===state.rackId;})||rack;
+      persistCustomizeState(live,state);
+      savedTypes().forEach(function(entry){
+        if(entry&&entry.source==='custom'&&entry.drawing&&String(entry.name||'').toLocaleLowerCase('tr-TR')===state.name.toLocaleLowerCase('tr-TR'))persistCustomizeState(entry.drawing,state);
+      });
+      try{if(typeof m2RenderSavedRackTypes==='function')m2RenderSavedRackTypes();}catch(e){}
+      try{if(typeof m2ScheduleReportRefresh==='function')m2ScheduleReportRefresh(0);}catch(e){}
+      schedule();setTimeout(schedule,180);
+      return result;
+    };
+    inventoryCustomizeApply.__rafexInventoryCustomizeV45=true;
+    try{m2ApplyRackCustomization=inventoryCustomizeApply;}catch(e){}window.m2ApplyRackCustomization=inventoryCustomizeApply;
+  }
   var previousList=null;try{if(typeof m2RenderLayoutProductList==='function')previousList=m2RenderLayoutProductList;}catch(e){}
   var finalList=function(){return render();};finalList.__rafexLayoutInventoryV44=true;
   try{m2RenderLayoutProductList=finalList;}catch(e){}window.m2RenderLayoutProductList=finalList;
