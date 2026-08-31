@@ -157,7 +157,7 @@ const runtime = `
 
 if (html.includes('</head>')) html = html.replace('</head>', style + '\n</head>');
 else html = style + html;
-const inventoryRuntime = \`
+const inventoryRuntime = `
 <script data-rafex-layout-inventory="v43">
 (function(){
   if(window.__rafexLayoutInventoryV43)return;
@@ -253,7 +253,7 @@ const inventoryRuntime = \`
   schedule();setTimeout(schedule,300);setTimeout(schedule,1200);
   window.rafexLayoutInventoryRowsV43=rows;
 })();
-</script>\`;
+</script>`;
 // JavaScript içindeki yazdırma şablonlarında da </body> metni bulunuyor.
  // İlk eşleşmeye replace uygulamak dış <script> etiketini erken kapatıp kaynak
  // kodunu sayfanın altında düz metin olarak gösterir. Yalnız gerçek, son body
