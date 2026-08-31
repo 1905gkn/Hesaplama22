@@ -126,16 +126,11 @@
     try {
       if (typeof m2ActiveModule === "undefined" || m2ActiveModule !== "b2b" || typeof m2LastDrawing === "undefined" || !m2LastDrawing) return;
       const sideHost = document.getElementById("m2Side");
-      const frontHost = document.getElementById("m2Front");
       if (sideHost) {
         sideHost.innerHTML = rafexB2BSideElevationSvg(m2LastDrawing);
         sideHost.dataset.rafexReferenceView = "sac-arabag-hole-face-mounted";
       }
-      if (frontHost) {
-        frontHost.innerHTML = rafexB2BFrontElevationSvg(m2LastDrawing);
-        frontHost.dataset.rafexReferenceView = "sac-arabag-end-plates-on-uprights";
-      }
-      requestAnimationFrame(() => { try { if (typeof m2ApplyViewZoom === "function") { m2ApplyViewZoom("side"); m2ApplyViewZoom("front"); } } catch {} });
+      requestAnimationFrame(() => { try { if (typeof m2ApplyViewZoom === "function") m2ApplyViewZoom("side"); } catch {} });
     } catch (error) { console.error("B2B referans yan görünüşü oluşturulamadı", error); }
   }
 
@@ -165,7 +160,7 @@
     const originalShowView = m2ShowView;
     m2ShowView = function (name, ...args) {
       const result = originalShowView.call(this, name, ...args);
-      if (name === "side" || name === "front") queueMicrotask(refreshLiveSide);
+      if (name === "side") queueMicrotask(refreshLiveSide);
       return result;
     };
   } catch {}
