@@ -428,8 +428,20 @@ const inventoryRuntime = `
     if(!list.length)return '';
     return '<section class="rafex-product-system-section rafex-product-system-'+esc(key)+'"><b class="rafex-product-system-title">'+esc(label)+'</b>'+list.map(renderRow).join('')+'</section>';
   }
-  function render(){
+  var inventoryPending=0,lastInventorySignature='';
+  function inventorySignature(){
+    var rackRows=racks().map(function(rack){
+      var layout=rack&&rack.b2bLayout||{},state=rack&&rack.b2b||{},plan=rack&&rack.plan||{};
+      return [rack&&rack.id,rackSystem(rack),rack&&rack.bays,rack&&rack.levels,rack&&rack.depth,rack&&rack.loadedLevels,rack&&rack.footProfile,rack&&rack.footProfileKey,rack&&rack.footLy,rack&&rack.totalRackHeight,rack&&rack.sideUprightHeight,rack&&rack.hasExtra?1:0,rack&&rack.straightProfileLength,rack&&rack.systemType,recommendationText(rack&&(rack.traverseRecommendation||rack.traverseType)),mekikColumnSpacing(rack),rack&&rack.railThickness,rack&&rack.railHeight,rack&&(rack.railLength||rack.depthMm),rack&&rack.palletWeight,layout.rowCount,layout.sectionWidth,layout.palletCount,layout.frameDepth,state.rowType,state.levels,state.tunnelHeight,JSON.stringify(state.accessories||[]),JSON.stringify(state.customLevels||[]),JSON.stringify(plan.feet||[]),JSON.stringify(plan.braces||[]),JSON.stringify(rack&&rack.seismicBraces||[])].join('~');
+    }).join('|');
+    var symbolRows=symbols().map(function(item){return [item&&item.id,item&&item.type,item&&item.rackId,item&&item.widthMm].join('~');}).join('|');
+    return rackRows+'#'+symbolRows;
+  }
+  function render(force){
     var host=document.getElementById('m2LayoutProductList');if(!host)return false;
+    var signature=inventorySignature();
+    if(force!==true&&signature===lastInventorySignature&&host.dataset.rafexInventoryStable==='v46'){cleanup();return true;}
+    lastInventorySignature=signature;
     var sections=[
       renderSection('b2b','B2B ÜRÜNLERİ',rows('b2b')),
       renderSection('mekik2','MEKİK ÜRÜNLERİ',rows('mekik2')),
@@ -437,10 +449,11 @@ const inventoryRuntime = `
       renderSection('common','SERBEST ALAN AKSESUARLARI',rows('common'))
     ].filter(Boolean);
     host.classList.remove('rafex-system-product-lists');
+    host.dataset.rafexInventoryStable='v46';
     host.innerHTML='<b>ÜRÜN LİSTESİ</b>'+(sections.length?sections.join(''):'<span class="m2-layout-product"><span class="rafex-product-copy">Henüz ürün yok</span><strong class="rafex-product-qty">0 adet</strong></span>');
     cleanup();return true;
   }
-  function schedule(){requestAnimationFrame(function(){render();setTimeout(render,80);});}
+  function schedule(force){if(inventoryPending)return;inventoryPending=requestAnimationFrame(function(){inventoryPending=0;render(force===true);});}
   function byId(id){return document.getElementById(id);}
   function activeCustomizeRack(){
     try{return racks().find(function(item){return Number(item&&item.id)===Number(m2CustomizeRackId);})||null;}catch(e){return null;}
@@ -488,7 +501,7 @@ const inventoryRuntime = `
       });
       try{if(typeof m2RenderSavedRackTypes==='function')m2RenderSavedRackTypes();}catch(e){}
       try{if(typeof m2ScheduleReportRefresh==='function')m2ScheduleReportRefresh(0);}catch(e){}
-      schedule();setTimeout(schedule,180);
+      schedule(true);
       return result;
     };
     inventoryCustomizeApply.__rafexInventoryCustomizeV45=true;
