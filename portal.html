@@ -5795,7 +5795,7 @@
           return svg;
         };
         if (renderAuxiliaryViews) $("m2Side").innerHTML = elevation("side");
-        $("m2Front").innerHTML = elevation("front");
+        window.rafexMekikFrontGlbV2?.refresh?.();
         if (typeof m2AutoFitAllViews === "function") m2AutoFitAllViews();
         if (event?.target?.closest?.(".m2-form, .m2-spacing-modal")) m2SyncLayoutRackMeasurements(m2LastDrawing);
         if (m2ActiveModule === "b2b") b2bRefreshSummary();
