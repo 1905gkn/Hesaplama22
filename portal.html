@@ -4281,12 +4281,13 @@
         barriers.forEach((qty,spec)=>add("Bariyer koruma",qty,spec));
         return rows;
       }
-      function m2LayoutProductRows(){
+      function m2DirectLayoutProductRows(systemFilter=null){
         const labels={unitEach:"adet",items:{foot:"Ayak profili",footShoe:"Ayak pabucu",shim:"Şim",anchor:"Kimyasal dübel",safetyPin:"Emniyet pimi",extra:"Ekstra düz profil",traverse:"Travers",rail:"Ray",pad:"Palet yastığı",rearStop:"Arka stoper",forkStop:"Forklift stoperi",entryConsole:"Giriş konsolu",horizontalBrace:"Yatay çapraz seti",straightBrace:"Düz arabağ"}},products=new Map(),each=labels.unitEach;
         const add=(name,qty,spec="",unit=each)=>{qty=Math.max(0,Math.round(Number(qty)||0));if(!qty)return;const key=`${name}|${spec}|${unit}`,row=products.get(key)||{name,spec,unit,qty:0};row.qty+=qty;products.set(key,row);};
         const grouped=(values)=>values.reduce((map,value)=>{const key=String(Math.round(Number(value)||0));if(Number(key)>0)map.set(key,(map.get(key)||0)+1);return map;},new Map());
         m2LayoutState.racks.forEach((rack)=>{
-          const mr=Boolean(rack?.b2b?.mr||rack?.rafexSystem==="mr"||rack?.systemType==="mr"||rack?.b2bLayout?.palletType==="mr"||rack?.plan?.mr);
+          const mr=Boolean(rack?.b2b?.mr||rack?.rafexSystem==="mr"||rack?.systemType==="mr"||rack?.b2bLayout?.palletType==="mr"||rack?.plan?.mr),rackSystem=mr?"mr":rack.b2bLayout?"b2b":"mekik2";
+          if(systemFilter&&rackSystem!==systemFilter)return;
           if(mr&&typeof window.rafexMrQuantitySummaryV42==="function"){
             (window.rafexMrQuantitySummaryV42([rack])||[]).forEach((row)=>add(row.item,row.qty,row.spec,row.unit||each));
             return;
@@ -4312,12 +4313,13 @@
           add(labels.items.pad,railCount);add(labels.items.rearStop,railCount);add(labels.items.forkStop,rows);add(labels.items.entryConsole,rows*levels);add(labels.items.horizontalBrace,bays*Math.floor(levels/2));
           grouped(braces).forEach((count,length)=>add(labels.items.straightBrace,count*rows*Math.ceil(levels/2),`${fmt(length)} mm`));
         });
-        m2LayoutAccessoryRows().forEach((row)=>add(row.name,row.qty,row.spec,row.unit));
+        if(!systemFilter||systemFilter==="b2b")m2LayoutAccessoryRows().forEach((row)=>add(row.name,row.qty,row.spec,row.unit));
         return [...products.values()].sort((a,b)=>a.name.localeCompare(b.name,"tr")||String(a.spec).localeCompare(String(b.spec),"tr"));
       }
+      function m2LayoutProductRows(){return m2DirectLayoutProductRows();}
       function m2RenderLayoutProductList(){
         const host=$("m2LayoutProductList");if(!host)return;
-        const rows=m2LayoutProductRows();
+        const rows=m2DirectLayoutProductRows();
         host.innerHTML=`<b>ÜRÜN LİSTESİ</b>${rows.length?rows.map((row)=>`<span class="m2-layout-product"><span><span>${esc(row.name)}</span>${row.spec?`<small>${esc(row.spec)}</small>`:""}</span><strong>${fmt(row.qty)} ${esc(row.unit||"adet")}</strong></span>`).join(""):`<span class="m2-layout-product"><span>Henüz ürün yok</span><strong>0 adet</strong></span>`}`;
       }
       function m2ReportElevationSvg(drawing, mode) {
