@@ -1311,7 +1311,7 @@ ${fitFunctionV49}`;
     var rows=[];uprights.forEach(function(qty,spec){rows.push({item:'MR Ayak Toplama',spec:spec,qty:qty});});traverses.forEach(function(qty,spec){rows.push({item:'ZS Travers',spec:spec,qty:qty});});trays.forEach(function(qty,spec){rows.push({item:'Tava',spec:spec,qty:qty});});return rows;
   }
   window.rafexMrQuantitySummaryV42=mrQuantitySummary;
-  var originalLayoutProductsV42=window.m2LayoutProductRows,originalCorporateBomV42=window.m2CorporateBomRows;
+  var originalLayoutProductsV42=typeof m2LayoutProductRows==='function'?m2LayoutProductRows:window.m2LayoutProductRows,originalCorporateBomV42=typeof m2CorporateBomRows==='function'?m2CorporateBomRows:window.m2CorporateBomRows;
   var exactLayoutProductsV42=function(){
     var withoutColumns=function(rows){return(rows||[]).filter(function(row){return !/^Kolon(?:\b|\s*·)/i.test(String(row?.name||''));});};
     if(typeof m2ActiveModule==='undefined'||m2ActiveModule!=='mr')return withoutColumns(originalLayoutProductsV42?.apply(this,arguments)||[]);
