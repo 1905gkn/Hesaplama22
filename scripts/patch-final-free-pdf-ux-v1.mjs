@@ -217,6 +217,7 @@ const runtime = String.raw`<style data-rafex-final-free-pdf-ux="v1">
   }
 
   function renderSystemProductLists(){
+    if(window.__rafexLayoutInventoryV43)return false;
     if(!freePage())return false;
     var host=document.getElementById('m2LayoutProductList');if(!host)return false;
     var b2bRows=productRows('b2b'),mrRows=productRows('mr'),mekikRows=productRows('mekik2');
@@ -286,7 +287,7 @@ const runtime = String.raw`<style data-rafex-final-free-pdf-ux="v1">
   }
 
   function scheduleFinal(delay){
-    setTimeout(function(){normalizeOutputSelectors();enhanceB2BSavedControls();if(freePage())renderSystemProductLists();finalizeMekikCards();},delay||0);
+    setTimeout(function(){normalizeOutputSelectors();enhanceB2BSavedControls();if(freePage()&&!window.__rafexLayoutInventoryV43)renderSystemProductLists();finalizeMekikCards();},delay||0);
   }
 
   function installReportHook(){
