@@ -11,33 +11,31 @@ html = html
   .replace(/<script\s+data-rafex-common-mekik-view-colors="v1">[\s\S]*?<\/script>\s*/g, '');
 
 const runtime = String.raw`<style data-rafex-common-mekik-view-colors="v1">
-#page.rafex-free-drawing-page[data-rafex-free-context-system="mekik2"]{
+#page[data-rafex-common-active="1"][data-rafex-common-system="mekik2"]{
   --rafex-mekik-common-foot:#004f7c;
   --rafex-mekik-common-traverse:#e5be01;
 }
-#page.rafex-free-drawing-page[data-rafex-free-context-system="mekik2"] #m2Top .m2-top-foot rect{
-  fill:var(--rafex-mekik-common-foot)!important;
-  stroke:#26313b!important;
+#page[data-rafex-common-active="1"][data-rafex-common-system="mekik2"] #m2Top .m2-top-foot rect{
+  fill:var(--rafex-mekik-common-foot)!important;stroke:#26313b!important;
 }
-#page.rafex-free-drawing-page[data-rafex-free-context-system="mekik2"] #m2Top .m2-top-foot line,
-#page.rafex-free-drawing-page[data-rafex-free-context-system="mekik2"] #m2Top .m2-top-foot path{
+#page[data-rafex-common-active="1"][data-rafex-common-system="mekik2"] #m2Top .m2-top-foot line,
+#page[data-rafex-common-active="1"][data-rafex-common-system="mekik2"] #m2Top .m2-top-foot path{
   stroke:var(--rafex-mekik-common-foot)!important;
 }
-#page.rafex-free-drawing-page[data-rafex-free-context-system="mekik2"] #m2Top .m2-top-leg{
+#page[data-rafex-common-active="1"][data-rafex-common-system="mekik2"] #m2Top .m2-top-leg{
   stroke:var(--rafex-mekik-common-traverse)!important;
 }
-#page.rafex-free-drawing-page[data-rafex-free-context-system="mekik2"] #m2Top .m2-top-joint{
-  fill:var(--rafex-mekik-common-traverse)!important;
-  stroke:var(--rafex-mekik-common-traverse)!important;
+#page[data-rafex-common-active="1"][data-rafex-common-system="mekik2"] #m2Top .m2-top-joint{
+  fill:var(--rafex-mekik-common-traverse)!important;stroke:var(--rafex-mekik-common-traverse)!important;
 }
-#page.rafex-free-drawing-page[data-rafex-free-context-system="mekik2"] #m2Side .m2-side-upright-body,
-#page.rafex-free-drawing-page[data-rafex-free-context-system="mekik2"] #m2Side .m2-side-base{
+#page[data-rafex-common-active="1"][data-rafex-common-system="mekik2"] #m2Side .m2-side-upright-body,
+#page[data-rafex-common-active="1"][data-rafex-common-system="mekik2"] #m2Side .m2-side-base{
   fill:var(--rafex-mekik-common-foot)!important;
 }
-#page.rafex-free-drawing-page[data-rafex-free-context-system="mekik2"] #m2Side .m2-side-upright-highlight{
+#page[data-rafex-common-active="1"][data-rafex-common-system="mekik2"] #m2Side .m2-side-upright-highlight{
   stroke:var(--rafex-mekik-common-foot)!important;
 }
-#page.rafex-free-drawing-page[data-rafex-free-context-system="mekik2"] #m2Side .m2-side-horizontal-brace{
+#page[data-rafex-common-active="1"][data-rafex-common-system="mekik2"] #m2Side .m2-side-horizontal-brace{
   stroke:var(--rafex-mekik-common-traverse)!important;
 }
 </style>
@@ -52,8 +50,14 @@ const runtime = String.raw`<style data-rafex-common-mekik-view-colors="v1">
     return String((visible[visible.length-1]||nodes[nodes.length-1])?.value||fallback);
   }
   function apply(){
+    try{window.rafexSyncCommonIsolationV1?.()}catch{}
     var page=document.getElementById('page');
-    if(!page||!page.classList.contains('rafex-free-drawing-page')||String(page.dataset.rafexFreeContextSystem||'')!=='mekik2')return;
+    var active=page&&page.getAttribute('data-rafex-common-active')==='1'&&page.getAttribute('data-rafex-common-system')==='mekik2';
+    if(!active){
+      page?.style.removeProperty('--rafex-mekik-common-foot');
+      page?.style.removeProperty('--rafex-mekik-common-traverse');
+      return;
+    }
     var footKey=visibleValue('.rafex-mekik-foot-color','ral5010');
     var traverseKey=visibleValue('.rafex-mekik-traverse-color','ral1007');
     page.style.setProperty('--rafex-mekik-common-foot',foot[footKey]||foot.ral5010);
@@ -61,9 +65,10 @@ const runtime = String.raw`<style data-rafex-common-mekik-view-colors="v1">
   }
   document.addEventListener('input',function(event){if(event.target?.matches?.('.rafex-mekik-foot-color,.rafex-mekik-traverse-color'))requestAnimationFrame(apply)},true);
   document.addEventListener('change',function(event){if(event.target?.matches?.('.rafex-mekik-foot-color,.rafex-mekik-traverse-color'))requestAnimationFrame(apply)},true);
+  document.addEventListener('click',function(){requestAnimationFrame(apply)},true);
   new MutationObserver(function(mutations){
-    if(mutations.some(function(m){return m.type==='attributes'&&m.target?.id==='page'}))requestAnimationFrame(apply);
-  }).observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['class','data-rafex-free-context-system']});
+    if(mutations.some(function(m){return m.target?.id==='page'||m.target?.id==='pageTitle'}))requestAnimationFrame(apply);
+  }).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class','data-rafex-common-active','data-rafex-common-system']});
   window.addEventListener('load',apply);
   requestAnimationFrame(apply);
 })();</script>`;
@@ -75,4 +80,4 @@ html = html.slice(0, bodyEnd) + runtime + '\n' + html.slice(bodyEnd);
 const encoded = Buffer.from(html, 'utf8').toString('base64');
 source = source.slice(0, match.index) + match[0].replace(match[2], encoded) + source.slice(match.index + match[0].length);
 fs.writeFileSync(file, source);
-console.log('Common Mekik view colors v1: üst/yan ayaklar seçili ayak rengine, düz arabağlar travers rengine bağlandı.');
+console.log('Common Mekik view colors v1: renkler yalniz izole Ortak Cizim > Mekik baglaminda uygulanir.');
