@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v36";
+const ASSET_VERSION = "mekik-front-glb-v37";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -455,18 +455,10 @@ class MekikFrontViewer {
     const rackEdgeB = point(config.bays * config.bayPitch, 0).x;
     const rackLeft = Math.min(rackEdgeA, rackEdgeB);
     const rackRight = Math.max(rackEdgeA, rackEdgeB);
-    const fallbackBounds = (minZ, maxZ) => new THREE.Box3(
-      new THREE.Vector3(0, 0, minZ),
-      new THREE.Vector3(0, 0, maxZ),
-    );
-    const boundsFor = (name, minZ, maxZ) => {
-      const object = this.root.getObjectByName(name);
-      return object ? new THREE.Box3().setFromObject(object) : fallbackBounds(minZ, maxZ);
-    };
-    const uprightBounds = boundsFor("Mekik Ayak 1", 0, config.uprightHeight);
-    // Ölçü zincirinin sıfırı, ilk ayağın sahnede gerçekten başladığı alt noktadır.
-    const groundZ = uprightBounds.min.z;
-    const uprightTopZ = uprightBounds.max.z;
+    // Ölçü sıfırı GLB sınır kutusundan alınmaz. Gri zemin çizgisi ve
+    // normalize edilmiş mavi ayak tabanı sahnede kesin olarak z = 0'dadır.
+    const groundZ = 0;
+    const uprightTopZ = config.uprightHeight;
     // Teknik kotlar yalnız formdaki mühendislik ölçülerinden üretilir.
     // GLB montaj/ofset değerleri ölçü zincirine kesinlikle eklenmez.
     const palletContactZ = (level) => (
