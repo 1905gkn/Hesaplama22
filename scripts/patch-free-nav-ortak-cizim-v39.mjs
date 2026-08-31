@@ -17,8 +17,10 @@ html = html
 
 const staticFrontWrite = '$("m2Front").innerHTML = elevation("front");';
 const b2b3DOnlyWrite = 'if (m2ActiveModule !== "b2b") $("m2Front").innerHTML = elevation("front");';
-if (html.includes(staticFrontWrite)) html = html.replace(staticFrontWrite, b2b3DOnlyWrite);
-if (!html.includes(b2b3DOnlyWrite)) throw new Error("B2B 3D-only: statik on gorunus yazimi devre disi birakilamadi");
+const glbOnlyWrite = 'window.rafexMekikFrontGlbV2?.refresh?.();';
+if (html.includes(staticFrontWrite)) html = html.replace(staticFrontWrite, glbOnlyWrite);
+if (html.includes(b2b3DOnlyWrite)) html = html.replace(b2b3DOnlyWrite, glbOnlyWrite);
+if (!html.includes(glbOnlyWrite)) throw new Error("Mekik GLB-only: eski statik on gorunus yazimi devre disi birakilamadi");
 
 html = html.replace(
   'if (frontTab) frontTab.textContent = "3D / Önden Görünüş";',
