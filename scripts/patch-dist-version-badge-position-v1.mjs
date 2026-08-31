@@ -286,6 +286,35 @@ const inventoryRuntime = `
     if(rack&&rack.b2bLayout)return 'b2b';
     return 'mekik2';
   }
+  function decimalText(value){
+    var parsed=Number(String(value==null?'':value).replace(',','.'));
+    if(!Number.isFinite(parsed)||parsed<=0)return '';
+    return parsed.toLocaleString('tr-TR',{maximumFractionDigits:2});
+  }
+  function recommendationText(value){
+    if(Array.isArray(value))value=value[0];
+    if(value&&typeof value==='object')value=value.profile||value.type||value.name||value.label||value.recommendation||value.st37||value.st52||'';
+    var text=String(value||'').replace(/^\\s*\\d+[.]?\\s*(?:ÖNERİ|ONERI)\\s*[·:\-]?\\s*/i,'').trim();
+    var profile=text.match(/\\d+\\s*[x×]\\s*\\d+\\s*[x×]\\s*\\d+(?:[,.]\\d+)?(?:\\s*mm)?(?:\\s*ST\\s*(?:37|52))?/i);
+    if(profile)return profile[0].replace(/\\s*[x×]\\s*/g,'×').replace(/ST\\s+/i,'ST').replace(/\\s+/g,' ').trim();
+    return text.split(/\\s*[·|]\\s*/)[0].replace(/\\s*[-–]?\\s*\\d[\\d.]*\\s*kg.*$/i,'').trim();
+  }
+  function mekikColumnSpacing(rack){
+    var direct=['columnSpacing','columnPitch','bayPitch','bayWidth','traverseWidth','traverseLength','kolonAraligi'];
+    for(var i=0;i<direct.length;i++){var value=n(rack&&rack[direct[i]]);if(value)return value;}
+    var pallet=n(rack&&rack.palW);
+    var sideRaw=rack&&(rack.sideClearance??rack.sideGap??rack.palletSideGap??rack.baySideGap);
+    var side=Number(sideRaw);
+    if(!Number.isFinite(side)||side<0)side=75;
+    if(pallet)return pallet+Math.round(side*2);
+    return 0;
+  }
+  function recommendedRailThickness(rack){
+    var thickness=Number(String(rack&&rack.railThickness||'').replace(',','.'));
+    if(Number.isFinite(thickness)&&thickness>0)return thickness;
+    try{if(typeof m2RecommendedRailThickness==='function')return Number(String(m2RecommendedRailThickness(Number(rack&&rack.palletWeight)||0)).replace(',','.'))||0;}catch(e){}
+    return 0;
+  }
   function rows(targetSystem){
     var map=new Map();
     function add(name,qty,spec,unit){
@@ -333,11 +362,22 @@ const inventoryRuntime = `
       var bays=n(rack&&rack.bays),levels=n(rack&&rack.levels),columnCount=bays+1;
       var feet=rack&&rack.plan&&Array.isArray(rack.plan.feet)?rack.plan.feet:[];
       var braces=rack&&rack.plan&&Array.isArray(rack.plan.braces)?rack.plan.braces:[];
-      grouped(feet).forEach(function(count,length){add('Ayak profili',count*columnCount,(rack.footProfile?String(rack.footProfile)+' · ':'')+textNumber(length)+' mm');});
-      if(rack&&rack.hasExtra)add('Ekstra düz profil',1,textNumber(rack.straightProfileLength||rack.sideUprightHeight)+' mm');
-      add('Travers',Math.max(0,(feet.length*2+(rack&&rack.hasExtra?1:0)-1)*bays*levels),'');
+      grouped(feet).forEach(function(count,length){add('Ayak takımı',count*columnCount,(rack.footProfile?String(rack.footProfile)+' · ':'')+'L '+textNumber(length)+' mm');});
+      if(rack&&rack.hasExtra)add('Ayak Profili',columnCount,'L '+textNumber(rack.straightProfileLength||rack.sideUprightHeight)+' mm');
+      var systemType=String(rack&&rack.systemType||'fifo').toLocaleLowerCase('tr-TR');
+      var channelTraverseCount=Math.max(0,feet.length*2+(rack&&rack.hasExtra?1:0)-(systemType==='fifo'?2:1));
+      var traverseType=recommendationText(rack&&(rack.traverseRecommendation||rack.traverseType));
+      var traverseWidth=mekikColumnSpacing(rack);
+      var traverseSpec=(traverseType?traverseType+(traverseWidth?' · ':''):'')+(traverseWidth?textNumber(traverseWidth)+' mm':'');
+      add('Travers',channelTraverseCount*bays*levels,traverseSpec);
       var railQty=bays*2*levels;
-      add('Ray',railQty,textNumber(rack&&rack.railLength)+' mm · H '+textNumber((rack&&rack.railHeight)||150)+' mm');
+      var railThickness=recommendedRailThickness(rack),railHeight=n(rack&&rack.railHeight)||150,railLength=n(rack&&(rack.railLength||rack.depthMm)),depthCount=n(rack&&rack.depth);
+      var railParts=[];
+      if(railThickness)railParts.push(decimalText(railThickness)+' mm kalınlık');
+      railParts.push('H '+textNumber(railHeight)+' mm');
+      if(railLength)railParts.push('L '+textNumber(railLength)+' mm');
+      if(depthCount)railParts.push(textNumber(depthCount)+' derinlik');
+      add('Ray',railQty,railParts.join(' · '));
       add('Palet yastığı',railQty,'');
       add('Arka stoper',railQty,'');
       add('Forklift stoperi',columnCount,'');
@@ -346,7 +386,7 @@ const inventoryRuntime = `
       grouped(braces).forEach(function(count,length){add('Düz arabağ',count*columnCount*Math.ceil(levels/2),textNumber(length)+' mm');});
     });
     if(!targetSystem||targetSystem==='common')accessories().forEach(function(row){add(row.name||row.item,row.qty,row.spec,row.unit);});
-    var order=['Ayak takımı','Ayak profili','Ayak pabucu','Şim','Kimyasal dübel','Travers','Emniyet pimi','Düz arabağ','Ray','Palet yastığı','Arka stoper','Forklift stoperi','Giriş konsolu','Yatay çapraz seti','Hafif deprem çaprazı','Ağır deprem çaprazı','UAKS ayak koruma','UAKZ ayak koruma','Bariyer koruma','Klipsli dübel'];
+    var order=['Ayak takımı','Ayak Profili','Ayak profili','Ayak pabucu','Şim','Kimyasal dübel','Travers','Emniyet pimi','Düz arabağ','Ray','Palet yastığı','Arka stoper','Forklift stoperi','Giriş konsolu','Yatay çapraz seti','Hafif deprem çaprazı','Ağır deprem çaprazı','UAKS ayak koruma','UAKZ ayak koruma','Bariyer koruma','Klipsli dübel'];
     return Array.from(map.values()).sort(function(a,b){var ai=order.indexOf(a.name),bi=order.indexOf(b.name);if(ai<0)ai=999;if(bi<0)bi=999;return ai-bi||a.name.localeCompare(b.name,'tr')||a.spec.localeCompare(b.spec,'tr');});
   }
   function cleanup(){
