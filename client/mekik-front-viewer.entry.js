@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v37";
+const ASSET_VERSION = "mekik-front-glb-v38";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -227,6 +227,7 @@ class MekikFrontViewer {
     this.pendingResize = 0;
     this.lastWidth = 0;
     this.lastHeight = 0;
+    this.visualPalletBottomZ = [];
 
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: "high-performance" });
     const displayScale = Number(window.devicePixelRatio) || 1;
@@ -292,6 +293,7 @@ class MekikFrontViewer {
 
   rebuild() {
     this.clearRoot();
+    this.visualPalletBottomZ = [];
     const config = this.config;
     const uprightScaleX = config.footType / REFERENCE_UPRIGHT_WIDTH;
     const uprightScaleZ = config.uprightHeight / Math.max(1, this.models.upright.size.z);
@@ -336,6 +338,7 @@ class MekikFrontViewer {
         pallet.scale.set(palletScaleX, palletScaleY, palletScaleZ);
         pallet.position.set(bayCenterX, 0, supportZ + bracketTopOffset);
         this.root.add(pallet);
+        if (bay === 0) this.visualPalletBottomZ[level] = pallet.position.z;
 
         if (boxHeight > 0) {
           const box = new THREE.Mesh(new THREE.BoxGeometry(config.palletWidth, config.palletDepth, boxHeight), boxMaterial);
@@ -431,24 +434,31 @@ class MekikFrontViewer {
   renderDimensionOverlay() {
     if (!dimensions || !this.models || !this.lastWidth || !this.lastHeight) return;
     const config = this.config;
-    const width = this.lastWidth;
-    const height = this.lastHeight;
+    // Canvas, #m2Front'un 8 px iç dolgusundaki içerik kutusunda; SVG ise
+    // mutlak konum nedeniyle ana kutudadır. Bütün noktaları tek bir ana-kutu
+    // koordinatına dönüştürerek ekran üzerindeki sabit/paralel kaymayı kaldır.
+    const canvasRect = this.canvas.getBoundingClientRect();
+    const overlayHostRect = dimensions.parentElement?.getBoundingClientRect() || canvasRect;
+    const width = Math.max(1, overlayHostRect.width);
+    const height = Math.max(1, overlayHostRect.height);
+    const canvasOffsetX = canvasRect.left - overlayHostRect.left;
+    const canvasOffsetY = canvasRect.top - overlayHostRect.top;
     dimensions.setAttribute("viewBox", `0 0 ${width} ${height}`);
     dimensions.setAttribute("width", String(width));
     dimensions.setAttribute("height", String(height));
-    // SVG, ön görünüş kabının tamamına değil doğrudan WebGL tuvalinin
-    // piksel alanına oturur. Böylece bütün kot çizgilerindeki paralel kayma biter.
-    const canvasRect = this.canvas.getBoundingClientRect();
-    const overlayHostRect = dimensions.parentElement?.getBoundingClientRect() || canvasRect;
-    dimensions.style.inset = "auto";
-    dimensions.style.left = `${canvasRect.left - overlayHostRect.left}px`;
-    dimensions.style.top = `${canvasRect.top - overlayHostRect.top}px`;
-    dimensions.style.width = `${canvasRect.width}px`;
-    dimensions.style.height = `${canvasRect.height}px`;
+    dimensions.style.inset = "0";
+    dimensions.style.left = "0";
+    dimensions.style.top = "0";
+    dimensions.style.width = "100%";
+    dimensions.style.height = "100%";
+    dimensions.style.margin = "0";
 
     const point = (x, z) => {
       const projected = new THREE.Vector3(x, 0, z).project(this.camera);
-      return { x: (projected.x + 1) * width / 2, y: (1 - projected.y) * height / 2 };
+      return {
+        x: canvasOffsetX + (projected.x + 1) * canvasRect.width / 2,
+        y: canvasOffsetY + (1 - projected.y) * canvasRect.height / 2,
+      };
     };
     const fmt = (value) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(Math.round(Number(value) || 0));
     const rackEdgeA = point(0, 0).x;
@@ -470,7 +480,14 @@ class MekikFrontViewer {
     const innerRightX = Math.min(width - 76, rackRight + Math.min(30, width * 0.03));
     const rightX = Math.min(width - 36, rackRight + Math.min(68, width * 0.065));
     const originPoint = point(0, groundZ);
-    const palletGuideY = (level) => point(0, palletContactZ(level)).y;
+    // Yazılan ölçü mühendislik kotudur; çizginin görsel hedefi ise gerçekten
+    // render edilen paletin alt yüzüdür (travers/braket üstündeki nokta).
+    const visualPalletBottomZ = (level) => (
+      Number.isFinite(this.visualPalletBottomZ?.[level])
+        ? this.visualPalletBottomZ[level]
+        : palletContactZ(level)
+    );
+    const palletGuideY = (level) => point(0, visualPalletBottomZ(level)).y;
     const lineParts = [];
     const labelParts = [];
 
