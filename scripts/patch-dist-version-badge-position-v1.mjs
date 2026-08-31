@@ -159,6 +159,27 @@ if (html.includes('</head>')) html = html.replace('</head>', style + '\n</head>'
 else html = style + html;
 const inventoryRuntime = `
 <style data-rafex-layout-inventory-style="v44">
+/* Kayitli tip kartlarinin renkli govdesi A tipi ile ayni sabit boydadir. */
+#page.rafex-free-drawing-page .m2-saved-type{
+  box-sizing:border-box!important;
+  flex:0 0 445px!important;
+  width:445px!important;
+  min-width:445px!important;
+  max-width:445px!important;
+  overflow:hidden!important;
+}
+#page.rafex-free-drawing-page .m2-saved-type small{
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+@media(max-width:760px){
+  #page.rafex-free-drawing-page .m2-saved-type-row{width:100%!important;min-width:0!important}
+  #page.rafex-free-drawing-page .m2-saved-type{
+    flex:1 1 auto!important;width:auto!important;min-width:0!important;max-width:none!important;
+  }
+}
+
 #page.rafex-free-drawing-page #m2LayoutProductList{
   display:grid!important;
   grid-template-columns:repeat(auto-fit,minmax(190px,1fr))!important;
@@ -166,7 +187,7 @@ const inventoryRuntime = `
   align-items:stretch!important;
 }
 #page.rafex-free-drawing-page #m2LayoutProductList>b{grid-column:1/-1!important}
-#page.rafex-free-drawing-page #m2LayoutProductList>.m2-layout-product{
+#page.rafex-free-drawing-page #m2LayoutProductList .m2-layout-product{
   box-sizing:border-box!important;
   display:flex!important;
   flex-direction:column!important;
@@ -177,7 +198,7 @@ const inventoryRuntime = `
   min-height:72px!important;
   padding:9px 11px!important;
 }
-#page.rafex-free-drawing-page #m2LayoutProductList>.m2-layout-product>.rafex-product-copy{
+#page.rafex-free-drawing-page #m2LayoutProductList .m2-layout-product>.rafex-product-copy{
   display:flex!important;
   flex-direction:column!important;
   gap:3px!important;
@@ -190,14 +211,14 @@ const inventoryRuntime = `
   font-weight:900!important;
   line-height:1.2!important;
 }
-#page.rafex-free-drawing-page #m2LayoutProductList>.m2-layout-product small{
+#page.rafex-free-drawing-page #m2LayoutProductList .m2-layout-product small{
   display:block!important;
   color:#66746c!important;
   font-size:8px!important;
   line-height:1.25!important;
   overflow-wrap:anywhere!important;
 }
-#page.rafex-free-drawing-page #m2LayoutProductList>.m2-layout-product>.rafex-product-qty{
+#page.rafex-free-drawing-page #m2LayoutProductList .m2-layout-product>.rafex-product-qty{
   display:block!important;
   grid-column:auto!important;
   margin-top:auto!important;
@@ -207,6 +228,28 @@ const inventoryRuntime = `
   line-height:1!important;
   text-align:left!important;
   white-space:nowrap!important;
+}
+#page.rafex-free-drawing-page #m2LayoutProductList>.rafex-product-system-section{
+  grid-column:1/-1!important;
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr))!important;
+  gap:8px!important;
+  padding:10px!important;
+  border:1px solid #d8e2db!important;
+  border-radius:10px!important;
+  background:#f7faf8!important;
+}
+#page.rafex-free-drawing-page #m2LayoutProductList .rafex-product-system-title{
+  grid-column:1/-1!important;
+  display:block!important;
+  padding:7px 10px!important;
+  border-radius:7px!important;
+  background:#173c2d!important;
+  color:#fff!important;
+  font-size:11px!important;
+  font-weight:950!important;
+  line-height:1.1!important;
+  letter-spacing:.03em!important;
 }
 </style>
 <script data-rafex-layout-inventory="v44">
@@ -237,7 +280,13 @@ const inventoryRuntime = `
     push('Ağır deprem çaprazı',heavy,'');
     return result;
   }
-  function rows(){
+  function rackSystem(rack){
+    var isMr=!!(rack&&((rack.b2b&&rack.b2b.mr)||rack.rafexSystem==='mr'||rack.systemType==='mr'||(rack.b2bLayout&&rack.b2bLayout.palletType==='mr')||(rack.plan&&rack.plan.mr)));
+    if(isMr)return 'mr';
+    if(rack&&rack.b2bLayout)return 'b2b';
+    return 'mekik2';
+  }
+  function rows(targetSystem){
     var map=new Map();
     function add(name,qty,spec,unit){
       qty=n(qty);if(!qty||!name)return;
@@ -249,7 +298,9 @@ const inventoryRuntime = `
       var out=new Map();(Array.isArray(values)?values:[]).forEach(function(value){var key=String(n(value));if(Number(key)>0)out.set(key,(out.get(key)||0)+1);});return out;
     }
     racks().forEach(function(rack){
-      var isMr=!!(rack&&((rack.b2b&&rack.b2b.mr)||rack.rafexSystem==='mr'||rack.systemType==='mr'||(rack.b2bLayout&&rack.b2bLayout.palletType==='mr')||(rack.plan&&rack.plan.mr)));
+      var system=rackSystem(rack);
+      if(targetSystem&&system!==targetSystem)return;
+      var isMr=system==='mr';
       if(isMr&&typeof window.rafexMrQuantitySummaryV42==='function'){
         try{(window.rafexMrQuantitySummaryV42([rack])||[]).forEach(function(row){add(row.item,row.qty,row.spec,row.unit);});return;}catch(e){}
       }
@@ -294,18 +345,30 @@ const inventoryRuntime = `
       add('Yatay çapraz seti',bays*Math.floor(levels/2),'');
       grouped(braces).forEach(function(count,length){add('Düz arabağ',count*columnCount*Math.ceil(levels/2),textNumber(length)+' mm');});
     });
-    accessories().forEach(function(row){add(row.name||row.item,row.qty,row.spec,row.unit);});
+    if(!targetSystem||targetSystem==='common')accessories().forEach(function(row){add(row.name||row.item,row.qty,row.spec,row.unit);});
     var order=['Ayak takımı','Ayak profili','Ayak pabucu','Şim','Kimyasal dübel','Travers','Emniyet pimi','Düz arabağ','Ray','Palet yastığı','Arka stoper','Forklift stoperi','Giriş konsolu','Yatay çapraz seti','Hafif deprem çaprazı','Ağır deprem çaprazı','UAKS ayak koruma','UAKZ ayak koruma','Bariyer koruma','Klipsli dübel'];
     return Array.from(map.values()).sort(function(a,b){var ai=order.indexOf(a.name),bi=order.indexOf(b.name);if(ai<0)ai=999;if(bi<0)bi=999;return ai-bi||a.name.localeCompare(b.name,'tr')||a.spec.localeCompare(b.spec,'tr');});
   }
   function cleanup(){
     document.querySelectorAll('.m2-selected-rack-main b').forEach(function(node){if(/YERLEŞİM AYAK TOPLAMI/i.test(String(node.textContent||'')))node.remove();});
   }
+  function renderRow(row){
+    return '<span class="m2-layout-product"><span class="rafex-product-copy"><span class="rafex-product-name">'+esc(row.name)+'</span>'+(row.spec?'<small>'+esc(row.spec)+'</small>':'')+'</span><strong class="rafex-product-qty">'+textNumber(row.qty)+' '+esc(row.unit)+'</strong></span>';
+  }
+  function renderSection(key,label,list){
+    if(!list.length)return '';
+    return '<section class="rafex-product-system-section rafex-product-system-'+esc(key)+'"><b class="rafex-product-system-title">'+esc(label)+'</b>'+list.map(renderRow).join('')+'</section>';
+  }
   function render(){
     var host=document.getElementById('m2LayoutProductList');if(!host)return false;
-    var list=rows();
+    var sections=[
+      renderSection('b2b','B2B ÜRÜNLERİ',rows('b2b')),
+      renderSection('mekik2','MEKİK ÜRÜNLERİ',rows('mekik2')),
+      renderSection('mr','MR ÜRÜNLERİ',rows('mr')),
+      renderSection('common','SERBEST ALAN AKSESUARLARI',rows('common'))
+    ].filter(Boolean);
     host.classList.remove('rafex-system-product-lists');
-    host.innerHTML='<b>ÜRÜN LİSTESİ</b>'+(list.length?list.map(function(row){return '<span class="m2-layout-product"><span class="rafex-product-copy"><span class="rafex-product-name">'+esc(row.name)+'</span>'+(row.spec?'<small>'+esc(row.spec)+'</small>':'')+'</span><strong class="rafex-product-qty">'+textNumber(row.qty)+' '+esc(row.unit)+'</strong></span>';}).join(''):'<span class="m2-layout-product"><span class="rafex-product-copy">Henüz ürün yok</span><strong class="rafex-product-qty">0 adet</strong></span>');
+    host.innerHTML='<b>ÜRÜN LİSTESİ</b>'+(sections.length?sections.join(''):'<span class="m2-layout-product"><span class="rafex-product-copy">Henüz ürün yok</span><strong class="rafex-product-qty">0 adet</strong></span>');
     cleanup();return true;
   }
   function schedule(){requestAnimationFrame(function(){render();setTimeout(render,80);});}
