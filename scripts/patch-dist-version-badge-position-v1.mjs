@@ -157,13 +157,110 @@ const runtime = `
 
 if (html.includes('</head>')) html = html.replace('</head>', style + '\n</head>');
 else html = style + html;
+const inventoryRuntime = \`
+<script data-rafex-layout-inventory="v43">
+(function(){
+  if(window.__rafexLayoutInventoryV43)return;
+  window.__rafexLayoutInventoryV43=true;
+  function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,function(ch){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];});}
+  function n(value){return Math.max(0,Math.round(Number(value)||0));}
+  function textNumber(value){return n(value).toLocaleString('tr-TR');}
+  function racks(){try{return typeof m2LayoutState!=='undefined'&&Array.isArray(m2LayoutState.racks)?m2LayoutState.racks:[];}catch(e){return[];}}
+  function accessories(){try{return typeof m2LayoutAccessoryRows==='function'?(m2LayoutAccessoryRows()||[]):[];}catch(e){return[];}}
+  function rows(){
+    var map=new Map();
+    function add(name,qty,spec,unit){
+      qty=n(qty);if(!qty||!name)return;
+      name=String(name);spec=String(spec||'');unit=String(unit||'adet');
+      var key=name+'|'+spec+'|'+unit,current=map.get(key)||{name:name,spec:spec,unit:unit,qty:0};
+      current.qty+=qty;map.set(key,current);
+    }
+    function grouped(values){
+      var out=new Map();(Array.isArray(values)?values:[]).forEach(function(value){var key=String(n(value));if(Number(key)>0)out.set(key,(out.get(key)||0)+1);});return out;
+    }
+    racks().forEach(function(rack){
+      var isMr=!!(rack&&((rack.b2b&&rack.b2b.mr)||rack.rafexSystem==='mr'||rack.systemType==='mr'||(rack.b2bLayout&&rack.b2bLayout.palletType==='mr')||(rack.plan&&rack.plan.mr)));
+      if(isMr&&typeof window.rafexMrQuantitySummaryV42==='function'){
+        try{(window.rafexMrQuantitySummaryV42([rack])||[]).forEach(function(row){add(row.item,row.qty,row.spec,row.unit);});return;}catch(e){}
+      }
+      if(rack&&rack.b2bLayout){
+        var rowCount=Math.max(1,n(rack.b2bLayout.rowCount)||((rack.b2b&&rack.b2b.rowType==='double')?2:1));
+        var footTeams=Math.max(1,2*rowCount-(rack.sharedFootWith?rowCount:0));
+        var profileQty=footTeams*2;
+        var height=n(rack.footLy||rack.totalRackHeight||rack.sideUprightHeight);
+        var profile=String(rack.footProfile||rack.footProfileKey||(rack.b2b&&rack.b2b.footProfile)||'Ayak');
+        add('Ayak profili',profileQty,profile+(height?' · L '+textNumber(height)+' mm':''));
+        add('Ayak pabucu',profileQty,'Kaynaklı');
+        add('Şim',profileQty,'');
+        add('Kimyasal dübel',profileQty*2,'KIDM12120');
+        var levelCount=Math.max(1,n(rack.levels));
+        try{if(typeof m2B2BVisibleTraverseLevels==='function')levelCount=Math.max(1,n(m2B2BVisibleTraverseLevels(rack)));}catch(e){}
+        var traverseQty=levelCount*2*rowCount;
+        var traverseLength=n(rack.b2bLayout.sectionWidth||rack.widthMm);
+        var traverseType=String((rack.b2b&&rack.b2b.traverseType)||rack.traverseRecommendation||'CC140');
+        add('Travers',traverseQty,(traverseLength?textNumber(traverseLength)+' mm · ':'')+traverseType);
+        add('Emniyet pimi',traverseQty*2,'');
+        try{
+          if(typeof b2bStraightTiePlan==='function'){
+            var tie=b2bStraightTiePlan(rack),stations=rowCount===2?footTeams/rowCount:0;
+            add('Düz arabağ',n(tie&&tie.count)*stations,textNumber(tie&&tie.length)+' × '+textNumber(tie&&tie.width)+' mm · galvaniz');
+          }
+        }catch(e){}
+        return;
+      }
+      var bays=n(rack&&rack.bays),levels=n(rack&&rack.levels),columnCount=bays+1;
+      var feet=rack&&rack.plan&&Array.isArray(rack.plan.feet)?rack.plan.feet:[];
+      var braces=rack&&rack.plan&&Array.isArray(rack.plan.braces)?rack.plan.braces:[];
+      grouped(feet).forEach(function(count,length){add('Ayak profili',count*columnCount,(rack.footProfile?String(rack.footProfile)+' · ':'')+textNumber(length)+' mm');});
+      if(rack&&rack.hasExtra)add('Ekstra düz profil',1,textNumber(rack.straightProfileLength||rack.sideUprightHeight)+' mm');
+      add('Travers',Math.max(0,(feet.length*2+(rack&&rack.hasExtra?1:0)-1)*bays*levels),'');
+      var railQty=bays*2*levels;
+      add('Ray',railQty,textNumber(rack&&rack.railLength)+' mm · H '+textNumber((rack&&rack.railHeight)||150)+' mm');
+      add('Palet yastığı',railQty,'');
+      add('Arka stoper',railQty,'');
+      add('Forklift stoperi',columnCount,'');
+      add('Giriş konsolu',columnCount*levels,'');
+      add('Yatay çapraz seti',bays*Math.floor(levels/2),'');
+      grouped(braces).forEach(function(count,length){add('Düz arabağ',count*columnCount*Math.ceil(levels/2),textNumber(length)+' mm');});
+    });
+    accessories().forEach(function(row){add(row.name||row.item,row.qty,row.spec,row.unit);});
+    var order=['Ayak profili','Ayak pabucu','Şim','Kimyasal dübel','Travers','Emniyet pimi','Düz arabağ','Ray','Palet yastığı','Arka stoper','Forklift stoperi','Giriş konsolu','Yatay çapraz seti','UAKS ayak koruma','UAKZ ayak koruma'];
+    return Array.from(map.values()).sort(function(a,b){var ai=order.indexOf(a.name),bi=order.indexOf(b.name);if(ai<0)ai=999;if(bi<0)bi=999;return ai-bi||a.name.localeCompare(b.name,'tr')||a.spec.localeCompare(b.spec,'tr');});
+  }
+  function cleanup(){
+    document.querySelectorAll('.m2-selected-rack-main b').forEach(function(node){if(/YERLEŞİM AYAK TOPLAMI/i.test(String(node.textContent||'')))node.remove();});
+  }
+  function render(){
+    var host=document.getElementById('m2LayoutProductList');if(!host)return false;
+    var list=rows();
+    host.classList.remove('rafex-system-product-lists');
+    host.innerHTML='<b>ÜRÜN LİSTESİ</b>'+(list.length?list.map(function(row){return '<span class="m2-layout-product"><span><span>'+esc(row.name)+'</span>'+(row.spec?'<small>'+esc(row.spec)+'</small>':'')+'</span><strong>'+textNumber(row.qty)+' '+esc(row.unit)+'</strong></span>';}).join(''):'<span class="m2-layout-product"><span>Henüz ürün yok</span><strong>0 adet</strong></span>');
+    cleanup();return true;
+  }
+  function schedule(){requestAnimationFrame(function(){render();setTimeout(render,80);});}
+  var previousList=null;try{if(typeof m2RenderLayoutProductList==='function')previousList=m2RenderLayoutProductList;}catch(e){}
+  var finalList=function(){return render();};finalList.__rafexLayoutInventoryV43=true;
+  try{m2RenderLayoutProductList=finalList;}catch(e){}window.m2RenderLayoutProductList=finalList;
+  var previousLayout=null;try{if(typeof m2RenderLayout==='function')previousLayout=m2RenderLayout;}catch(e){}
+  if(typeof previousLayout==='function'&&!previousLayout.__rafexLayoutInventoryV43){
+    var finalLayout=function(){var result=previousLayout.apply(this,arguments);schedule();return result;};
+    finalLayout.__rafexLayoutInventoryV43=true;try{m2RenderLayout=finalLayout;}catch(e){}window.m2RenderLayout=finalLayout;
+  }
+  document.addEventListener('click',schedule,true);
+  document.addEventListener('change',schedule,true);
+  document.addEventListener('pointerup',schedule,true);
+  window.addEventListener('load',schedule);
+  schedule();setTimeout(schedule,300);setTimeout(schedule,1200);
+  window.rafexLayoutInventoryRowsV43=rows;
+})();
+</script>\`;
 // JavaScript içindeki yazdırma şablonlarında da </body> metni bulunuyor.
  // İlk eşleşmeye replace uygulamak dış <script> etiketini erken kapatıp kaynak
  // kodunu sayfanın altında düz metin olarak gösterir. Yalnız gerçek, son body
  // kapanışına ekle.
 const finalBodyClose = html.lastIndexOf('</body>');
 if (finalBodyClose >= 0) {
-  html = html.slice(0, finalBodyClose) + runtime + '\n' + html.slice(finalBodyClose);
+  html = html.slice(0, finalBodyClose) + inventoryRuntime + '\n' + runtime + '\n' + html.slice(finalBodyClose);
 } else {
   html += runtime;
 }
