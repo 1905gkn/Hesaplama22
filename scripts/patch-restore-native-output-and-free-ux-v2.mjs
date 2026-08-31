@@ -213,7 +213,12 @@ const runtime = String.raw`<style data-rafex-native-output-free-ux="v2">
   }
 
   function productRows(system){
-    var labels={unitEach:'adet'};
+    try{
+      if(typeof m2DirectLayoutProductRows==='function'){
+        return (m2DirectLayoutProductRows(system)||[]).map(function(row){return{item:String(row.name||'Ürün'),spec:String(row.spec||''),unit:String(row.unit||'adet'),qty:Math.max(0,Number(row.qty)||0)};}).filter(function(row){return row.qty>0;}).sort(function(a,b){return a.item.localeCompare(b.item,'tr');});
+      }
+    }catch(e){console.warn('Doğrudan yerleşim ürün sayımı kullanılamadı',e);}
+    var labels={unitEach:'adet',items:{foot:'Ayak profili',footTeam:'Ayak takımı',footShoe:'Ayak pabucu',shim:'Şim',anchor:'Kimyasal dübel',safetyPin:'Emniyet pimi',extra:'Ekstra düz profil',traverse:'Travers',rail:'Ray',pad:'Palet yastığı',rearStop:'Arka stoper',forkStop:'Forklift stoperi',entryConsole:'Giriş konsolu',horizontalBrace:'Yatay çapraz seti',straightBrace:'Düz arabağ'}};
     try{if(typeof m2ReportDictionary==='function')labels=m2ReportDictionary('tr')||labels;}catch(e){}
     var rows=new Map();
     usedTypes().filter(function(entry){return systemOfEntry(entry)===system;}).forEach(function(entry){
