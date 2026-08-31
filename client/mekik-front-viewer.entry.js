@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const ASSET_VERSION = "mekik-front-glb-v40";
+const ASSET_VERSION = "mekik-front-glb-v41";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
 const EURO_PALLET_VISUAL_HEIGHT = 140;
@@ -48,10 +48,14 @@ function isMekikFront() {
     .trim()
     .toLocaleLowerCase("tr-TR");
   const module = String(page.dataset?.m2Module || "");
+  const activeDesktopPage = document.querySelector("#nav button[data-page].active")?.dataset?.page;
+  const activeMobilePage = document.querySelector("#mobileTabs button[data-mobile-page].active")?.dataset?.mobilePage;
+  const activePage = String(activeDesktopPage || activeMobilePage || "");
 
-  // Sayfa değişiminde global modül kısa süre eski değerde kalabiliyor.
-  // Görünen Mekik başlığı ve güncel DOM modülü bu yüzden önceliklidir.
-  if (title === "mekik") return true;
+  // B2B'den dönüşte page sınıfı/global modül kısa süre eski kalabiliyor.
+  // Kullanıcının gerçekten açtığı menü öğesi bu yüzden tek yetkili sayfa işaretidir.
+  if (activePage) return activePage === "mekik2" || activePage === "mekik";
+  if (title === "mekik" || title.includes("mekik")) return true;
   if (page.classList.contains("b2b-mode") || page.classList.contains("drive-in-mode")) return false;
   if (module === "mekik2") return true;
   if (title || module) return false;
@@ -937,6 +941,13 @@ function scheduleMount() {
   scheduled = requestAnimationFrame(ensureMounted);
 }
 
+function scheduleMountBurst() {
+  scheduleMount();
+  requestAnimationFrame(() => requestAnimationFrame(scheduleMount));
+  setTimeout(scheduleMount, 60);
+  setTimeout(scheduleMount, 260);
+}
+
 const originalZoomView = window.m2ZoomView;
 window.m2ZoomView = function rafexMekikFrontZoom(name, delta) {
   if (name === "front" && isMekikFront() && viewer) {
@@ -956,11 +967,18 @@ window.m2FitView = function rafexMekikFrontFit(name) {
   return typeof originalFitView === "function" ? originalFitView.apply(this, arguments) : undefined;
 };
 
-document.addEventListener("input", () => setTimeout(scheduleMount, 0), true);
-document.addEventListener("change", () => setTimeout(scheduleMount, 0), true);
-document.addEventListener("click", () => setTimeout(scheduleMount, 0), true);
-window.addEventListener("hashchange", scheduleMount);
-window.addEventListener("load", scheduleMount);
+const originalShowView = window.m2ShowView;
+window.m2ShowView = function rafexMekikFrontShowView(name) {
+  const result = typeof originalShowView === "function" ? originalShowView.apply(this, arguments) : undefined;
+  if (name === "front" && isMekikFront()) scheduleMountBurst();
+  return result;
+};
+
+document.addEventListener("input", () => setTimeout(scheduleMountBurst, 0), true);
+document.addEventListener("change", () => setTimeout(scheduleMountBurst, 0), true);
+document.addEventListener("click", () => setTimeout(scheduleMountBurst, 0), true);
+window.addEventListener("hashchange", scheduleMountBurst);
+window.addEventListener("load", scheduleMountBurst);
 
 new MutationObserver(scheduleMount).observe(document.documentElement, {
   childList: true,
@@ -976,4 +994,4 @@ window.rafexMekikFrontGlbV2 = {
   sourceFiles: ["mekik 3tam(3).glb", "mekik 3travers(2).glb", "mekik 3ayak(2).glb"],
 };
 
-scheduleMount();
+scheduleMountBurst();
