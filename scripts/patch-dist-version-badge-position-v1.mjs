@@ -157,8 +157,22 @@ const runtime = `
 
 if (html.includes('</head>')) html = html.replace('</head>', style + '\n</head>');
 else html = style + html;
-if (html.includes('</body>')) html = html.replace('</body>', runtime + '\n</body>');
-else html += runtime;
+// JavaScript içindeki yazdırma şablonlarında da </body> metni bulunuyor.
+ // İlk eşleşmeye replace uygulamak dış <script> etiketini erken kapatıp kaynak
+ // kodunu sayfanın altında düz metin olarak gösterir. Yalnız gerçek, son body
+ // kapanışına ekle.
+const finalBodyClose = html.lastIndexOf('</body>');
+if (finalBodyClose >= 0) {
+  html = html.slice(0, finalBodyClose) + runtime + '\n' + html.slice(finalBodyClose);
+} else {
+  html += runtime;
+}
+
+const runtimeIndex = html.lastIndexOf(`<script ${marker}>`);
+const verifiedBodyClose = html.lastIndexOf('</body>');
+if (runtimeIndex < 0 || verifiedBodyClose < 0 || runtimeIndex > verifiedBodyClose) {
+  throw new Error('Version badge runtime gercek body kapanisina eklenemedi.');
+}
 
 const count = (needle) => html.split(needle).length - 1;
 if (count('id="rafexVersionInfoCard"') !== 1) throw new Error('Tek fiziksel version card sayisi 1 degil.');
