@@ -217,9 +217,9 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
     var best=candidates[0];if(!best)return null;
     best.a=a;best.b=b;best.clearanceMm=m2RackClearanceMm(a,b,best.direction);return best;
   }
-  function roughPair(a,b){
-    if(!a||!b||Number(a.id)===Number(b.id)||a.joinGroup&&b.joinGroup===a.joinGroup)return null;
-    var A=m2CombinedRackBounds(a),B=m2RackBounds(b),y1=Math.max(A.top,B.top),y2=Math.min(A.bottom,B.bottom),x1=Math.max(A.left,B.left),x2=Math.min(A.right,B.right);
+  function roughPairBounds(a,b,A,B){
+    if(!a||!b||!A||!B||Number(a.id)===Number(b.id)||a.joinGroup&&b.joinGroup===a.joinGroup)return null;
+    var y1=Math.max(A.top,B.top),y2=Math.min(A.bottom,B.bottom),x1=Math.max(A.left,B.left),x2=Math.min(A.right,B.right);
     if(A.right<=B.left&&y1<=y2)return {direction:'right',distance:B.left-A.right};
     if(B.right<=A.left&&y1<=y2)return {direction:'left',distance:A.left-B.right};
     if(A.bottom<=B.top&&x1<=x2)return {direction:'bottom',distance:B.top-A.bottom};
@@ -227,12 +227,16 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
     return null;
   }
   function allPairs(){
-    var racks=Array.isArray(m2LayoutState&&m2LayoutState.racks)?m2LayoutState.racks:[],unique=new Map();
-    racks.forEach(function(a){
+    var racks=Array.isArray(m2LayoutState&&m2LayoutState.racks)?m2LayoutState.racks:[],unique=new Map(),byId=new Map(),combinedBounds=new Map(),rackBounds=new Map(),focusIds=new Set();
+    racks.forEach(function(rack){var id=Number(rack&&rack.id);if(!Number.isFinite(id))return;byId.set(id,rack);combinedBounds.set(id,m2CombinedRackBounds(rack));rackBounds.set(id,m2RackBounds(rack));});
+    var selectedId=Number(m2LayoutState&&m2LayoutState.selected);if(Number.isFinite(selectedId)&&byId.has(selectedId))focusIds.add(selectedId);
+    pinnedPairGaps.forEach(function(key){String(key).split(':').map(Number).filter(Number.isFinite).forEach(function(id){if(byId.has(id))focusIds.add(id);});});
+    Array.from(focusIds).forEach(function(id){var a=byId.get(id);if(!a)return;
       var nearest={};
-      racks.forEach(function(b){var rough=roughPair(a,b),current=rough&&nearest[rough.direction];if(rough&&(!current||rough.distance<current.distance))nearest[rough.direction]={distance:rough.distance,b:b};});
+      racks.forEach(function(b){var bId=Number(b&&b.id),rough=roughPairBounds(a,b,combinedBounds.get(id),rackBounds.get(bId)),current=rough&&nearest[rough.direction];if(rough&&(!current||rough.distance<current.distance))nearest[rough.direction]={distance:rough.distance,b:b};});
       Object.keys(nearest).forEach(function(direction){var target=nearest[direction].b,pair=pairCandidate(a,target);if(!pair)return;var first=Math.min(Number(a.id),Number(target.id)),second=Math.max(Number(a.id),Number(target.id)),key=first+':'+second;if(!unique.has(key))unique.set(key,pair);});
     });
+    pinnedPairGaps.forEach(function(key){var ids=String(key).split(':').map(Number),a=byId.get(ids[0]),b=byId.get(ids[1]),pair=pairCandidate(a,b);if(pair&&!unique.has(key))unique.set(key,pair);});
     return Array.from(unique.values());
   }
   function pairKey(pair){var first=Math.min(Number(pair.a.id),Number(pair.b.id)),second=Math.max(Number(pair.a.id),Number(pair.b.id));return first+':'+second;}
