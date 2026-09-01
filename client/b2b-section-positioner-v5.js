@@ -56,7 +56,6 @@
     const api = system === "mr" ? "RafexMRViewer" : "RafexB2BViewer";
     if (window[api]) return Promise.resolve(true);
     if (viewerLoads[system]) return viewerLoads[system];
-    try { window.rafexLoadViewerOnDemandV3?.(system); } catch {}
     viewerLoads[system] = new Promise((resolve, reject) => {
       let timer = 0;
       const readyEvent = system === "mr" ? "rafex-mr-viewer-ready" : "rafex-b2b-viewer-ready";
