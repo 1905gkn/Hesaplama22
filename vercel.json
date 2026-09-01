@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "bash scripts/vercel-git-build.sh && node scripts/patch-mekik-front-glb-v2.mjs && node scripts/patch-dist-version-badge-position-v1.mjs",
+  "buildCommand": "bash scripts/vercel-git-build.sh && bash scripts/vercel-post-build.sh",
   "installCommand": "npm ci",
   "outputDirectory": "dist",
   "framework": null,
