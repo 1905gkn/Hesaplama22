@@ -550,6 +550,8 @@
   }
 
   function openEditor() {
+    ensureViewer("b2b").catch((error) => console.warn("B2B kesit 3D motoru hazırlanamadı", error));
+    ensureViewer("mr").catch((error) => console.warn("MR kesit 3D motoru hazırlanamadı", error));
     const modal = ensureModal();
     if (!modal) return;
     modal.hidden = false;
@@ -646,7 +648,6 @@
       actions.insertBefore(button, reportTypeHost?.closest("label") || actions.firstChild);
     } else old.replaceWith(button);
     button.addEventListener("click", openEditor);
-    button.addEventListener("click", () => { ensureViewer("b2b").catch(()=>{}); ensureViewer("mr").catch(()=>{}); }, { once:false });
     button.dataset.rafexPerSectionPlacement = "v5";
     return true;
   }
