@@ -25,13 +25,12 @@ await import(`./build-drive-in-assets-v1.mjs?build=${Date.now()}`);
 await import(`./patch-drive-in-mekik-v1.mjs?build=${Date.now()}`);
 
 // Konsol viewer: deliksiz IPE/INP görünümü, taban, çapraz düzeni, üst kol devamı ve temiz plan görünüşü.
+// Kutu profil urun yuku ve ona bagli v13 yuk secici geri alindi.
 await import(`./patch-konsol-viewer-foot-v4.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-viewer-fields-v5.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-viewer-brace-v7.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-viewer-top-arm-v8.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-viewer-top-v8.mjs?build=${Date.now()}`);
-await import(`./patch-konsol-viewer-product-support-v12.mjs?build=${Date.now()}`);
-await import(`./patch-konsol-viewer-loads-v13.mjs?build=${Date.now()}`);
 
 // Konsol ana ekranı: exact SSI SCHÄFER KRS + kullanıcı akışı + FEM 10.2.09 ön kontrol katmanı.
 await import(`./patch-konsol-cantilever-v2.mjs?build=${Date.now()}`);
@@ -41,8 +40,6 @@ await import(`./patch-konsol-fem-10209-v10.mjs?build=${Date.now()}`);
 await import(`./patch-free-konsol-plan-v38.mjs?build=${Date.now()}`);
 await import(`./patch-free-nav-ortak-cizim-v39.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-input-redesign-v11.mjs?build=${Date.now()}`);
-await import(`./patch-konsol-product-support-v12.mjs?build=${Date.now()}`);
-await import(`./patch-konsol-load-switch-v13.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-ortak-cizim-ui-v43.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-bottom-workspace-v44.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-section-positioner-v45.mjs?build=${Date.now()}`);
@@ -94,8 +91,6 @@ if (!html.includes('data-rafex-konsol-request="v3"')) throw new Error("Konsol so
 if (!html.includes('data-rafex-konsol-fem="v10"')) throw new Error("FEM 10.2.09 Konsol ön kontrol katmanı canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-free-plan="v38"')) throw new Error("Konsol Serbest Cizim temiz 2D plan katmanı canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-input-redesign="v11"')) throw new Error("Konsol Excel girdi ve FEM ön seçim v11 canlı HTML içinde bulunamadı");
-if (!html.includes('data-rafex-konsol-product-support="v12"')) throw new Error("Konsol ürün taşıma ve yarım aralık taşma v12 canlı HTML içinde bulunamadı");
-if (!html.includes('data-rafex-konsol-load-switch="v13"')) throw new Error("Konsol ürün görünümü seçimi v13 canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-ortak-ui="v43"')) throw new Error("Konsol Ortak Cizim uyumlu Serbest Yerlesim ve PDF arayuzu canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-bottom-workspace="v44"')) throw new Error("Konsol Serbest Cizim ve PDF alt ekran yerlesimi canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-section-positioner="v45"')) throw new Error("Konsol B2B uyumlu Kesit Yer Belirleme canlı HTML içinde bulunamadı");
@@ -187,8 +182,12 @@ for (const required of [
 
 const konsolViewerPath = path.join(process.cwd(), "dist/konsol-viewer.js");
 const konsolViewer = fs.readFileSync(konsolViewerPath, "utf8");
-for (const required of ["ipe180", "ipe300", "npi80", "npi140", "RAFEX_KONSOL_TOP_V8", "productLength", "productHeight", "liftClearance", "loadKonsolArmModel", "loadType", "RAFEX_KONSOL_DIMENSIONS_V13"]) {
+for (const required of ["ipe180", "ipe300", "npi80", "npi140", "RAFEX_KONSOL_TOP_V8"]) {
   if (!konsolViewer.includes(required)) throw new Error(`Konsol viewer bundle içinde bulunamadı: ${required}`);
+}
+for (const removed of ["Kutu profil bağı · galvaniz profil demeti", "Kutu profil bağı · paketleme şeridi", "RAFEX_KONSOL_DIMENSIONS_V13"]) {
+  if (konsolViewer.includes(removed)) throw new Error(`Kaldirilan Konsol kutu profil guncellemesi bundle icinde kaldi: ${removed}`);
 }
 if (konsolViewer.includes('konsol-glb-professional-v7')) throw new Error("Konsol eski delikli GLB katmanı viewer bundle içinde kalmış");
 console.log(`Final response runtime syntax verified: ${scripts.length} script blocks.`);
+
