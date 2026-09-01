@@ -4,28 +4,42 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-const ASSET_VERSION = "drive-in-front-v3";
+const ASSET_VERSION = "drive-in-front-v4";
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 let sharedModelsPromise = null;
+const sourceMetrics = new WeakMap();
+const technicalMaterials = {
+  ayak: new THREE.MeshStandardMaterial({ color: 0x68757f, metalness: 0.62, roughness: 0.38 }),
+  ray: new THREE.MeshStandardMaterial({ color: 0xd6a11f, metalness: 0.42, roughness: 0.34 }),
+  konsol: new THREE.MeshStandardMaterial({ color: 0xb96e18, metalness: 0.38, roughness: 0.4 }),
+  arabag: new THREE.MeshStandardMaterial({ color: 0x465963, metalness: 0.58, roughness: 0.4 }),
+  palet: new THREE.MeshStandardMaterial({ color: 0xb87942, metalness: 0.04, roughness: 0.62 }),
+};
 
-function cloneAndFit(source, target) {
+function metricsOf(source) {
+  let metrics = sourceMetrics.get(source);
+  if (metrics) return metrics;
+  source.updateMatrixWorld(true);
+  const bounds = new THREE.Box3().setFromObject(source);
+  metrics = {
+    center: bounds.getCenter(new THREE.Vector3()),
+    size: bounds.getSize(new THREE.Vector3()),
+  };
+  sourceMetrics.set(source, metrics);
+  return metrics;
+}
+
+function cloneAtPhysicalScale(source, scale, material) {
   const clone = source.clone(true);
   clone.traverse((part) => {
     if (!part.isMesh) return;
     part.castShadow = false;
     part.receiveShadow = false;
+    part.material = material;
   });
-  clone.updateMatrixWorld(true);
-  let bounds = new THREE.Box3().setFromObject(clone);
-  const size = bounds.getSize(new THREE.Vector3());
-  clone.scale.multiply(new THREE.Vector3(
-    target.x / Math.max(1, size.x),
-    target.y / Math.max(1, size.y),
-    target.z / Math.max(1, size.z),
-  ));
-  clone.updateMatrixWorld(true);
-  bounds = new THREE.Box3().setFromObject(clone);
-  clone.position.sub(bounds.getCenter(new THREE.Vector3()));
+  const center = metricsOf(source).center;
+  clone.scale.copy(scale);
+  clone.position.set(-center.x * scale.x, -center.y * scale.y, -center.z * scale.z);
   return clone;
 }
 
@@ -80,19 +94,32 @@ class DriveInFrontViewer {
   normalize(next = {}) {
     const palletHeight = clamp(Number(next.palletHeight) || 1200, 300, 3000);
     const firstLevelHeight = clamp(Number(next.firstLevelHeight) || 430, 0, 5000);
+    const palletDepth = clamp(Number(next.palletDepth) || 800, 300, 3000);
+    const depthPallets = clamp(Math.round(Number(next.depthPallets) || 5), 1, 60);
+    const systemType = String(next.systemType || "fifo").toLowerCase() === "filo" ? "filo" : "fifo";
+    const firstPalletGap = clamp(Number(next.firstPalletGap) || 200, 0, 2000);
+    const palletGap = clamp(Number(next.palletGap) || 50, 0, 2000);
+    const gapCount = Math.max(0, depthPallets - 1);
+    const specialGapCount = systemType === "filo" ? Math.min(1, gapCount) : Math.min(2, gapCount);
+    const railLength = depthPallets * palletDepth + specialGapCount * firstPalletGap + (gapCount - specialGapCount) * palletGap;
     return {
       bays: clamp(Math.round(Number(next.bays) || 1), 1, 50),
       levels: clamp(Math.round(Number(next.levels) || 4), 1, 15),
-      palletWidth: clamp(Number(next.palletWidth) || 800, 300, 3000),
-      palletDepth: clamp(Number(next.palletDepth) || 1200, 300, 3000),
+      palletWidth: clamp(Number(next.palletWidth) || 1200, 300, 3000),
+      palletDepth,
       palletHeight,
+      depthPallets,
+      systemType,
+      firstPalletGap,
+      palletGap,
+      railLength,
       firstLevelHeight,
       levelSpacing: clamp(Number(next.levelSpacing) || Math.max(1580, palletHeight + 380), palletHeight + 80, 5000),
     };
   }
 
   configKey(value = this.config) {
-    return [value.bays, value.levels, value.palletWidth, value.palletDepth, value.palletHeight, value.firstLevelHeight, value.levelSpacing].join("|");
+    return [value.bays, value.levels, value.depthPallets, value.palletWidth, value.palletDepth, value.palletHeight, value.firstLevelHeight, value.levelSpacing, value.systemType, value.firstPalletGap, value.palletGap].join("|");
   }
 
   emit(name, detail = {}) { this.canvas.dispatchEvent(new CustomEvent(name, { detail })); }
@@ -135,40 +162,56 @@ class DriveInFrontViewer {
     if (this.models) this.rebuild();
   }
 
-  addPart(source, target, position) {
-    const part = cloneAndFit(source, target);
-    part.position.copy(position);
-    this.root.add(part);
-    return part;
+  addPart(source, scale, position, material) {
+    const holder = new THREE.Group();
+    holder.position.copy(position);
+    holder.add(cloneAtPhysicalScale(source, scale, material));
+    this.root.add(holder);
+    return holder;
   }
 
   rebuild() {
     this.root.clear();
     const c = this.config;
-    const uprightWidth = 100;
-    const bayClear = Math.max(950, c.palletWidth + 150);
+    const uprightWidth = 90;
+    const bayClear = c.palletWidth;
     const bayPitch = bayClear + uprightWidth;
-    const rackWidth = c.bays * bayPitch + uprightWidth;
+    const rackWidth = c.bays * bayClear + (c.bays + 1) * uprightWidth;
     const rackHeight = c.firstLevelHeight + Math.max(0, c.levels - 1) * c.levelSpacing + c.palletHeight + 220;
-    const depth = Math.max(900, c.palletDepth);
+    const depth = Math.max(c.palletDepth, c.railLength);
+    const ayakSize = metricsOf(this.models.ayak).size;
+    const raySize = metricsOf(this.models.ray).size;
+    const konsolSize = metricsOf(this.models.konsol).size;
+    const arabagSize = metricsOf(this.models.arabag).size;
+    const paletSize = metricsOf(this.models.palet).size;
+    const ayakScale = new THREE.Vector3(uprightWidth / ayakSize.x, 1, rackHeight / ayakSize.z);
+    const rayScale = new THREE.Vector3(1, depth / raySize.y, 150 / raySize.z);
+    const konsolUniform = Math.min((bayClear + uprightWidth) / konsolSize.x, 1.05);
+    const konsolScale = new THREE.Vector3(konsolUniform, konsolUniform, konsolUniform);
+    const arabagScale = new THREE.Vector3(uprightWidth / arabagSize.x, 1, 1);
+    const paletScale = new THREE.Vector3(c.palletWidth / paletSize.x, c.palletDepth / paletSize.y, c.palletHeight / paletSize.z);
+    const frontY = depth / 2;
 
     for (let i = 0; i <= c.bays; i += 1) {
-      this.addPart(this.models.ayak, new THREE.Vector3(uprightWidth, depth, rackHeight), new THREE.Vector3(i * bayPitch, 0, rackHeight / 2));
+      const x = uprightWidth / 2 + i * bayPitch;
+      this.addPart(this.models.ayak, ayakScale, new THREE.Vector3(x, frontY - ayakSize.y / 2, rackHeight / 2), technicalMaterials.ayak);
     }
 
     for (let level = 0; level < c.levels; level += 1) {
       const supportZ = c.firstLevelHeight + level * c.levelSpacing;
       for (let bay = 0; bay < c.bays; bay += 1) {
-        const left = bay * bayPitch + uprightWidth;
+        const left = uprightWidth + bay * bayPitch;
         const right = left + bayClear;
         const centerX = (left + right) / 2;
-        this.addPart(this.models.ray, new THREE.Vector3(135, depth, 145), new THREE.Vector3(left + 75, 0, supportZ));
-        this.addPart(this.models.ray, new THREE.Vector3(135, depth, 145), new THREE.Vector3(right - 75, 0, supportZ));
-        this.addPart(this.models.konsol, new THREE.Vector3(150, 220, 170), new THREE.Vector3(left + 75, -depth / 2 + 120, supportZ));
-        this.addPart(this.models.konsol, new THREE.Vector3(150, 220, 170), new THREE.Vector3(right - 75, -depth / 2 + 120, supportZ));
-        this.addPart(this.models.palet, new THREE.Vector3(Math.min(c.palletWidth, bayClear - 180), Math.min(c.palletDepth, depth - 80), c.palletHeight), new THREE.Vector3(centerX, 0, supportZ + c.palletHeight / 2 + 90));
+        this.addPart(this.models.ray, rayScale, new THREE.Vector3(left + raySize.x / 2, 0, supportZ + 75), technicalMaterials.ray);
+        this.addPart(this.models.ray, rayScale, new THREE.Vector3(right - raySize.x / 2, 0, supportZ + 75), technicalMaterials.ray);
+        this.addPart(this.models.konsol, konsolScale, new THREE.Vector3(centerX, frontY - konsolSize.y * konsolUniform / 2, supportZ + konsolSize.z * konsolUniform / 2), technicalMaterials.konsol);
+        this.addPart(this.models.palet, paletScale, new THREE.Vector3(centerX, frontY - c.palletDepth / 2 - 40, supportZ + c.palletHeight / 2 + 150), technicalMaterials.palet);
       }
-      this.addPart(this.models.arabag, new THREE.Vector3(rackWidth - uprightWidth, depth, 110), new THREE.Vector3(rackWidth / 2, 0, supportZ + 80));
+      for (let i = 0; i <= c.bays; i += 1) {
+        const x = uprightWidth / 2 + i * bayPitch;
+        this.addPart(this.models.arabag, arabagScale, new THREE.Vector3(x, frontY - ayakSize.y - arabagSize.y / 2, supportZ + arabagSize.z / 2), technicalMaterials.arabag);
+      }
     }
     this.fitCamera();
     this.renderScene();

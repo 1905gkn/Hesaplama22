@@ -47,6 +47,10 @@ const runtime = String.raw`
     palletWidth:Math.max(300,number('m2PalW',800)),
     palletDepth:Math.max(300,palletDepth()),
     palletHeight:Math.max(300,number('m2LevelH',1200)),
+    depthPallets:Math.max(1,number('m2Depth',5)),
+    systemType:document.getElementById('m2System')?.value||'fifo',
+    firstPalletGap:Math.max(0,number('m2FirstPalletGap',200)),
+    palletGap:Math.max(0,number('m2PalletGap',50)),
     firstLevelHeight:Math.max(0,number('m2FirstLevelHeight',430)),
     levelSpacing:Math.max(380,number('m2LevelSpacing',1580)),
   });
@@ -101,7 +105,7 @@ const runtime = String.raw`
     viewerLoading=new Promise((resolve,reject)=>{
       const ready=()=>resolve(window.RafexDriveInViewer);
       window.addEventListener('rafex-drive-in-viewer-ready',ready,{once:true});
-      const script=document.createElement('script');script.src='/drive-in-viewer.js?v=drive-in-front-v3';script.defer=true;script.dataset.rafexDriveInViewerLoader='v3';
+      const script=document.createElement('script');script.src='/drive-in-viewer.js?v=drive-in-front-v4';script.defer=true;script.dataset.rafexDriveInViewerLoader='v4';
       script.onerror=()=>reject(new Error('Drive In 3D motoru yüklenemedi.'));
       document.head.appendChild(script);
     }).catch((error)=>{viewerLoading=null;throw error});
@@ -109,12 +113,12 @@ const runtime = String.raw`
   }
 
   function dimensionMarkup(c){
-    const bayClear=Math.max(950,c.palletWidth+150),total=c.bays*(bayClear+100)+100,totalH=c.firstLevelHeight+Math.max(0,c.levels-1)*c.levelSpacing+c.palletHeight+220;
+    const bayClear=c.palletWidth,total=c.bays*bayClear+(c.bays+1)*90,totalH=c.firstLevelHeight+Math.max(0,c.levels-1)*c.levelSpacing+c.palletHeight+220;
     return '<span class="rafex-drive-dim rafex-drive-dim-width">TOPLAM '+Math.round(total)+' mm</span><span class="rafex-drive-dim rafex-drive-dim-height">YÜKSEKLİK '+Math.round(totalH)+' mm</span><span class="rafex-drive-dim rafex-drive-dim-bay">GÖZ '+Math.round(bayClear)+' mm</span><span class="rafex-drive-dim rafex-drive-dim-level">İLK KAT '+Math.round(c.firstLevelHeight)+' · ARA '+Math.round(c.levelSpacing)+' mm</span><span class="rafex-drive-dim rafex-drive-dim-pallet">PALET '+Math.round(c.palletWidth)+' × '+Math.round(c.palletDepth)+' × '+Math.round(c.palletHeight)+' mm</span>';
   }
 
   function updateDimensions(host,c){
-    const bayClear=Math.max(950,c.palletWidth+150),total=c.bays*(bayClear+100)+100,totalH=c.firstLevelHeight+Math.max(0,c.levels-1)*c.levelSpacing+c.palletHeight+220;
+    const bayClear=c.palletWidth,total=c.bays*bayClear+(c.bays+1)*90,totalH=c.firstLevelHeight+Math.max(0,c.levels-1)*c.levelSpacing+c.palletHeight+220;
     const set=(name,value)=>{const node=host.querySelector('.rafex-drive-dim-'+name);if(node)node.textContent=value};
     set('width','TOPLAM '+Math.round(total)+' mm');set('height','YÜKSEKLİK '+Math.round(totalH)+' mm');set('bay','GÖZ '+Math.round(bayClear)+' mm');set('level','İLK KAT '+Math.round(c.firstLevelHeight)+' · ARA '+Math.round(c.levelSpacing)+' mm');set('pallet','PALET '+Math.round(c.palletWidth)+' × '+Math.round(c.palletDepth)+' × '+Math.round(c.palletHeight)+' mm');
   }
@@ -212,7 +216,7 @@ const runtime = String.raw`
 html = html.replace("</body>", runtime + "</body>");
 for (const required of [
   'data-rafex-drive-in-mekik="v1"',
-  '/drive-in-viewer.js?v=drive-in-front-v3',
+  '/drive-in-viewer.js?v=drive-in-front-v4',
   "İlk kat yüksekliği (mm)",
   "m2ActivateModule('drive')",
   "rafexSystem='drive'",
