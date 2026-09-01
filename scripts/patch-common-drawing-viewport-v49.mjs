@@ -103,7 +103,7 @@ const runtime = String.raw`
   m2ZoomLayout=function(change,reset){if(reset)return fitAll();zoomAt(change>0?.82:change<0?1.22:1);return true};
   m2SvgPoint=function(event){return point(event)};
   window.rafexCommonDrawingFocusSelectedV49=focusSelected;window.rafexCommonDrawingFitAllV49=fitAll;window.rafexCommonDrawingViewportV49={focusSelected:focusSelected,fitAll:fitAll,setNavigation:setNavMode,apply:apply};
-  document.addEventListener("click",function(event){if(event.target.closest('[data-page="mekik2"],[data-page="b2b"],[data-page="mr"],[data-page="free"]'))[40,160,420,900].forEach(function(ms){setTimeout(function(){scheduleAfterRender(0)},ms)})},true);
+  document.addEventListener("click",function(event){if(event.target.closest('button[data-page="mekik2"],button[data-page="b2b"],button[data-page="mr"],button[data-page="free"]'))[40,160,420,900].forEach(function(ms){setTimeout(function(){scheduleAfterRender(0)},ms)})},true);
   // Yenileme m2RenderLayout sarmalayıcısından ve modül tıklamalarından gelir.
   // Genel DOM observer, kendi apply/decorate işlemlerini yeniden tetikleyerek
   // ana iş parçacığını sürekli meşgul ediyordu.

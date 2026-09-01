@@ -78,7 +78,7 @@ const runtime = String.raw`
   }
   function schedule(delay){clearTimeout(pending);pending=setTimeout(decorate,Math.max(0,Number(delay)||0))}
   if(baseRender)m2RenderLayout=function(){var result=baseRender.apply(this,arguments);decorate();return result};
-  document.addEventListener("click",function(event){if(event.target.closest('[data-page="free"],[data-page="b2b"],[data-page="mr"],[data-rack]'))schedule(35)},true);
+  document.addEventListener("click",function(event){if(event.target.closest('button[data-page="free"],button[data-page="b2b"],button[data-page="mr"]'))schedule(35)},true);
   [0,80,240,700].forEach(function(ms){setTimeout(decorate,ms)});
   window.rafexCommonUpright5010V57={decorate:decorate};
 })();

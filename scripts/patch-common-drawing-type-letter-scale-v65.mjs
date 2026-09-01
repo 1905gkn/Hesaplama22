@@ -47,7 +47,7 @@ const runtime = String.raw`
   window.rafexStepTypeLetterScaleV65=function(step){return setScale(value+(Number(step)||0))};
   window.rafexStepTypeLetterContrastV65=function(step){return setContrast(contrast+(Number(step)||0))};
   function schedule(){clearTimeout(pending);pending=setTimeout(function(){pending=0;install()},25)}
-  document.addEventListener("click",function(event){schedule();if(event.target&&event.target.closest&&event.target.closest('[data-page="free"],#rafexUnifiedContinue,input[name="rafexUnifiedSystem"],.rafex-system-option'))[80,240,600,1200].forEach(function(ms){setTimeout(install,ms)})},true);
+  document.addEventListener("click",function(event){if(event.target&&event.target.closest&&event.target.closest('button[data-page="free"],#rafexUnifiedContinue,input[name="rafexUnifiedSystem"],.rafex-system-option')){schedule();[80,240,600,1200].forEach(function(ms){setTimeout(install,ms)})}},true);
   new MutationObserver(schedule).observe(document.documentElement,{childList:true,subtree:true});
   var page=document.getElementById("page");if(page)new MutationObserver(schedule).observe(page,{attributes:true,attributeFilter:["class","data-rafex-free-drawing"]});
   window.rafexTypeLetterScaleV65={install:install,setScale:setScale,setContrast:setContrast};[0,80,260,700].forEach(function(ms){setTimeout(function(){install();refreshLetters()},ms)});

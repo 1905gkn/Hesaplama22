@@ -45,8 +45,8 @@ const runtime = String.raw`
   function decorate(){var node=svg();if(!node)return;node.querySelectorAll("[data-rack]").forEach(decorateGroup)}
   function schedule(){clearTimeout(pending);pending=setTimeout(function(){pending=0;decorate()},20)}
   if(baseRender)m2RenderLayout=function(){var result=baseRender.apply(this,arguments);decorate();return result};
-  var observer=new MutationObserver(schedule);observer.observe(document.documentElement,{childList:true,subtree:true});
-  document.addEventListener("click",function(event){if(event.target.closest('[data-page="free"],[data-page="b2b"],[data-page="mr"],[data-page="mekik2"],[data-rack]'))[0,80,240].forEach(function(ms){setTimeout(decorate,ms)})},true);
+  var layoutContent=document.getElementById("m2LayoutContent"),observer=new MutationObserver(schedule);if(layoutContent)observer.observe(layoutContent,{childList:true});
+  document.addEventListener("click",function(event){if(event.target.closest('button[data-page="free"],button[data-page="b2b"],button[data-page="mr"],button[data-page="mekik2"]'))[0,80,240].forEach(function(ms){setTimeout(decorate,ms)})},true);
   window.rafexCommonSingleLineLetterV58={decorate:decorate,glyphs:GLYPHS};[0,80,260,700].forEach(function(ms){setTimeout(decorate,ms)});
 })();
 </script>`;

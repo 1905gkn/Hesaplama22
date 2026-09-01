@@ -126,7 +126,7 @@ const runtime = String.raw`
   if(baseRender)m2RenderLayout=function(){var result=baseRender.apply(this,arguments);afterRender();return result};
   m2SvgPoint=fixedPoint;m2ZoomLayout=function(){resetCanvas();return true};
   window.rafexCommonDrawingMoveSelectedV50=moveSelected;window.rafexCommonDrawingFixedCanvasV50={moveSelected:moveSelected,reset:resetCanvas};
-  document.addEventListener("click",function(event){var rack=event.target.closest('[data-rack]');if(rack){var id=rack.getAttribute("data-rack");requestAnimationFrame(function(){var current=svg()&&svg().querySelector('[data-rack="'+id+'"]');decorateRack(current||rack);renderDetail()});return}if(event.target.closest('[data-page="mekik2"],[data-page="b2b"],[data-page="mr"],[data-page="free"]'))[40,160,500].forEach(function(ms){setTimeout(function(){scheduleAfterRender(0)},ms)})},true);
+  document.addEventListener("click",function(event){var rack=event.target.closest('[data-rack]');if(rack){var id=rack.getAttribute("data-rack");requestAnimationFrame(function(){var current=svg()&&svg().querySelector('[data-rack="'+id+'"]');decorateRack(current||rack);renderDetail()});return}if(event.target.closest('button[data-page="mekik2"],button[data-page="b2b"],button[data-page="mr"],button[data-page="free"]'))[40,160,500].forEach(function(ms){setTimeout(function(){scheduleAfterRender(0)},ms)})},true);
   // m2RenderLayout sarmalayıcısı ve modül tıklamaları gerekli yenilemeyi zaten
   // yapıyor. Tüm belgeyi izlemek, afterRender içindeki DOM değişikliklerini tekrar
   // yakalayıp sonsuz ölçüm/çizim döngüsü oluşturuyordu.
