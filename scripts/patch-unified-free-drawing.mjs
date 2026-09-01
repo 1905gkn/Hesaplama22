@@ -259,10 +259,10 @@ worker = worker.replace(match[0], `${match[1]}${match[2]}${encoded}${match[2]}`)
 fs.writeFileSync(workerPath, worker);
 
 const finalHtml = Buffer.from(encoded, "base64").toString("utf8");
-for (const required of [marker, "Serbest Çizim", "Raf Sistemi Araçları", "rafexEnterUnifiedFreeDrawing", "+ Modülü Ortak Alana Ekle", "['b2b','mekik2','mr']", "else if(target==='mr')renderMR()", "page.classList.remove('b2b-mode','mr-mode')"] ) {
+for (const required of [marker, "Serbest Çizim", "Raf Sistemi Araçları", "rafexEnterUnifiedFreeDrawing", "+ Modülü Ortak Alana Ekle", "['b2b','mekik2','drive','mr']", "else if(target==='drive')renderDrive()", "page.classList.remove('b2b-mode','mr-mode','drive-in-mode')"] ) {
   if (!finalHtml.includes(required)) throw new Error(`Unified free drawing dogrulama hatasi: ${required}`);
 }
 if (finalHtml.includes("setTimeout(()=>document.querySelector('.m2-layout')?.scrollIntoView({behavior:'smooth',block:'start'}),60)")) {
   throw new Error("Unified free drawing: sistem gecisindeki otomatik kaydirma kaldirilamadi.");
 }
-console.log("FINAL: Ortak B2B/Mekik sistem gecisi ekran kaydirilmadan yapilir (v1).");
+console.log("FINAL: Ortak B2B/Mekik/Drive-In/MR sistem gecisi ekran kaydirilmadan yapilir (v1).");
