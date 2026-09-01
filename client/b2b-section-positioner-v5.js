@@ -95,7 +95,8 @@
         const drawing = entry?.drawing || entry;
         if (!drawing) return;
         const label = safeKey(entry?.name || entry?.typeName || entry?.label || `Raf Tipi ${index + 1}`);
-        const system = drawing?.rafexSystem === "mr" || drawing?.b2b?.mr || drawing?.systemType === "mr" || drawing?.b2bLayout?.palletType === "mr" || /(^|[ ·_-])MR([ ·_-]|$)/i.test(label) ? "mr" : "b2b";
+        const rackNode = drawing?.id != null ? document.querySelector(`#m2LayoutSvg [data-rack="${drawing.id}"]`) : null;
+        const system = drawing?.rafexSystem === "mr" || drawing?.b2b?.mr || drawing?.systemType === "mr" || drawing?.b2bLayout?.palletType === "mr" || rackNode?.classList.contains("rafex-mr-extension-ready") || rackNode?.querySelector(".m2-mr-plan-tray") || /(^|[ ·_-])MR([ ·_-]|$)/i.test(label) ? "mr" : "b2b";
         if (!groups.has(label)) groups.set(label, { key: label, label, system, entries: new Map(), cards: [] });
         const count = palletCountOf(drawing);
         if (!groups.get(label).entries.has(count)) groups.get(label).entries.set(count, { count, drawing });
