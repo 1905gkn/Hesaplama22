@@ -40,7 +40,10 @@ function cloneAtPhysicalScale(source, scale, material) {
   const center = metricsOf(source).center;
   clone.scale.copy(scale);
   clone.position.set(-center.x * scale.x, -center.y * scale.y, -center.z * scale.z);
-  return clone;
+  const oriented = new THREE.Group();
+  oriented.rotation.y = Math.PI;
+  oriented.add(clone);
+  return oriented;
 }
 
 class DriveInFrontViewer {
@@ -174,7 +177,7 @@ class DriveInFrontViewer {
     this.root.clear();
     const c = this.config;
     const uprightWidth = 90;
-    const bayClear = c.palletWidth;
+    const bayClear = c.palletWidth + 150;
     const bayPitch = bayClear + uprightWidth;
     const rackWidth = c.bays * bayClear + (c.bays + 1) * uprightWidth;
     const rackHeight = c.firstLevelHeight + Math.max(0, c.levels - 1) * c.levelSpacing + c.palletHeight + 220;
@@ -188,6 +191,7 @@ class DriveInFrontViewer {
     const rayScale = new THREE.Vector3(1, depth / raySize.y, 150 / raySize.z);
     const konsolUniform = Math.min((bayClear + uprightWidth) / konsolSize.x, 1.05);
     const konsolScale = new THREE.Vector3(konsolUniform, konsolUniform, konsolUniform);
+    const konsolHeight = konsolSize.z * konsolUniform;
     const arabagScale = new THREE.Vector3(uprightWidth / arabagSize.x, 1, 1);
     const paletScale = new THREE.Vector3(c.palletWidth / paletSize.x, c.palletDepth / paletSize.y, c.palletHeight / paletSize.z);
     const frontY = depth / 2;
@@ -205,8 +209,8 @@ class DriveInFrontViewer {
         const centerX = (left + right) / 2;
         this.addPart(this.models.ray, rayScale, new THREE.Vector3(left + raySize.x / 2, 0, supportZ + 75), technicalMaterials.ray);
         this.addPart(this.models.ray, rayScale, new THREE.Vector3(right - raySize.x / 2, 0, supportZ + 75), technicalMaterials.ray);
-        this.addPart(this.models.konsol, konsolScale, new THREE.Vector3(centerX, frontY - konsolSize.y * konsolUniform / 2, supportZ + konsolSize.z * konsolUniform / 2), technicalMaterials.konsol);
-        this.addPart(this.models.palet, paletScale, new THREE.Vector3(centerX, frontY - c.palletDepth / 2 - 40, supportZ + c.palletHeight / 2 + 150), technicalMaterials.palet);
+        this.addPart(this.models.konsol, konsolScale, new THREE.Vector3(centerX, frontY - konsolSize.y * konsolUniform / 2, supportZ + konsolHeight / 2), technicalMaterials.konsol);
+        this.addPart(this.models.palet, paletScale, new THREE.Vector3(centerX, frontY - c.palletDepth / 2 - 40, supportZ + konsolHeight + c.palletHeight / 2), technicalMaterials.palet);
       }
       for (let i = 0; i <= c.bays; i += 1) {
         const x = uprightWidth / 2 + i * bayPitch;
