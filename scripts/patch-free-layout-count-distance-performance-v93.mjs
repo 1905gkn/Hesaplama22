@@ -61,11 +61,11 @@ replaceRequired(
       }
       function m2CanFastFinishStaticClick(drag){
         const saved=drag?.rafexFastUndo,origin=saved?.racks?.[0];
-        return saved?.racks?.length===1&&!saved.symbols.length&&!drag.selectionGroup&&Number(drag.groupMembers?.length||1)===1&&!origin.freePlacement&&!origin.staged&&m2FastDragUnchanged(drag);
+        return saved?.racks?.length===1&&!saved.symbols.length&&!drag.selectionGroup&&Number(drag.groupMembers?.length||1)===1&&!origin.freePlacement&&m2FastDragUnchanged(drag);
       }
       function m2PerfRefreshStaticSelectionUi(rackId){
         const layer=$("m2LayoutContent");
-        if(layer)layer.querySelectorAll("g[data-rack]").forEach((group)=>{const selected=Number(group.dataset.rack)===Number(rackId)||m2MultiSelect.rackIds.has(Number(group.dataset.rack)),rect=group.querySelector(".m2-layout-rack"),color=group.dataset.typeColor||"#2878d0";if(rect){rect.classList.toggle("selected",selected);rect.style.fill=selected?color+"24":"transparent";rect.style.stroke=selected?color:"transparent";}});
+        if(layer){const paint=(group,selected)=>{const rect=group?.querySelector(".m2-layout-rack"),color=group?.dataset.typeColor||"#2878d0";if(!rect)return;rect.classList.toggle("selected",selected);rect.style.stroke=color;rect.style.strokeOpacity=selected?"1":".96";rect.style.fill=color;rect.style.fillOpacity=selected?".22":".14";group.querySelectorAll(".m2-rack-pallet-count").forEach((label)=>{label.style.display=selected?"":"none";});};layer.querySelectorAll(".m2-layout-rack.selected").forEach((rect)=>paint(rect.closest("[data-rack]"),false));paint(layer.querySelector('[data-rack="'+rackId+'"]'),true);}
         const activeRack=m2SelectedRack();
         [["m2ShowTotalLength","length"],["m2ShowTotalDepth","depth"]].forEach(([id,kind])=>{const button=$(id),active=Boolean(activeRack&&m2VisibleRackDimensions[kind].has(activeRack.id));if(button){button.classList.toggle("active",active);button.setAttribute("aria-pressed",String(active));}});
         const wallEditor=$("m2WallEditor"),measurementRack=m2MeasurementRack();

@@ -115,17 +115,18 @@ const runtime = String.raw`
     if(group&&host){var markup=group.outerHTML,signature=rack.id+"|"+bounds.left+"|"+bounds.top+"|"+bounds.width+"|"+bounds.height+"|"+markup;if(signature!==detailSignature){detailSignature=signature;var clone=group.cloneNode(true);clone.querySelectorAll("[id]").forEach(function(child){child.removeAttribute("id")});host.replaceChildren(clone)}}
     if(preview)preview.setAttribute("viewBox",(bounds.left-pad)+" "+(bounds.top-pad)+" "+(bounds.width+pad*2)+" "+(bounds.height+pad*2));
   }
-  function decorateRacks(){
-    var node=svg();if(!node)return;node.querySelectorAll("[data-rack]").forEach(function(group){var frame=group.querySelector(":scope > .m2-layout-rack"),color=group.getAttribute("data-type-color")||"#2878d0",rack=rackById(group.getAttribute("data-rack")),selected=frame&&frame.classList.contains("selected");if(frame){frame.style.stroke=color;frame.style.strokeOpacity=selected?"1":".96";frame.style.fill=color;frame.style.fillOpacity=selected?".22":".14";frame.setAttribute("vector-effect","non-scaling-stroke");frame.setAttribute("pointer-events","all")}
-      var rect=frame&&frame.getBoundingClientRect(),shortPx=rect?Math.min(rect.width,rect.height):0,shortSide=rack?Math.max(1,Math.min(Number(rack.w)||1,Number(rack.h)||1)):12,fontSize=Math.max(7,Math.min(14,shortSide*.64)),labels=Array.from(group.querySelectorAll(".m2-b2b-plan-label,.m2-rack-name"));labels.forEach(function(label,index){label.style.fontSize=fontSize+"px";label.style.display=index===0?"":"none";label.style.opacity=".92";label.style.fill="none";label.style.stroke=color;label.style.strokeWidth=Math.max(.8,fontSize*.09)+"px";label.style.paintOrder="stroke";label.style.strokeLinejoin="round";label.style.fontWeight="800";label.style.letterSpacing=".02em";label.style.pointerEvents="none"});group.querySelectorAll(".m2-rack-pallet-count").forEach(function(label){label.style.display=selected&&shortPx>=78?"":"none"})});
+  function decorateRack(group){
+    if(!group||!group.isConnected)return;var frame=group.querySelector(":scope > .m2-layout-rack"),color=group.getAttribute("data-type-color")||"#2878d0",rack=rackById(group.getAttribute("data-rack")),selected=frame&&frame.classList.contains("selected");if(frame){frame.style.stroke=color;frame.style.strokeOpacity=selected?"1":".96";frame.style.fill=color;frame.style.fillOpacity=selected?".22":".14";frame.setAttribute("vector-effect","non-scaling-stroke");frame.setAttribute("pointer-events","all")}
+    var rect=frame&&frame.getBoundingClientRect(),shortPx=rect?Math.min(rect.width,rect.height):0,shortSide=rack?Math.max(1,Math.min(Number(rack.w)||1,Number(rack.h)||1)):12,fontSize=Math.max(7,Math.min(14,shortSide*.64)),labels=Array.from(group.querySelectorAll(".m2-b2b-plan-label,.m2-rack-name"));labels.forEach(function(label,index){label.style.fontSize=fontSize+"px";label.style.display=index===0?"":"none";label.style.opacity=".92";label.style.fill="none";label.style.stroke=color;label.style.strokeWidth=Math.max(.8,fontSize*.09)+"px";label.style.paintOrder="stroke";label.style.strokeLinejoin="round";label.style.fontWeight="800";label.style.letterSpacing=".02em";label.style.pointerEvents="none"});group.querySelectorAll(".m2-rack-pallet-count").forEach(function(label){label.style.display=selected&&shortPx>=78?"":"none"});
   }
+  function decorateRacks(){var node=svg();if(!node)return;node.querySelectorAll("[data-rack]").forEach(decorateRack)}
   function afterRender(){
     if(rendering||!isActive())return;rendering=true;try{resetCanvas();removeCameraControls();decorateRacks();renderDetail()}finally{rendering=false}
   }
   if(baseRender)m2RenderLayout=function(){var result=baseRender.apply(this,arguments);afterRender();return result};
   m2SvgPoint=fixedPoint;m2ZoomLayout=function(){resetCanvas();return true};
   window.rafexCommonDrawingMoveSelectedV50=moveSelected;window.rafexCommonDrawingFixedCanvasV50={moveSelected:moveSelected,reset:resetCanvas};
-  document.addEventListener("click",function(event){if(event.target.closest('[data-page="mekik2"],[data-page="b2b"],[data-page="mr"],[data-page="free"],[data-rack]'))[0,40,160,500].forEach(function(ms){setTimeout(function(){scheduleAfterRender(0)},ms)})},true);
+  document.addEventListener("click",function(event){var rack=event.target.closest('[data-rack]');if(rack){var id=rack.getAttribute("data-rack");requestAnimationFrame(function(){var current=svg()&&svg().querySelector('[data-rack="'+id+'"]');decorateRack(current||rack);renderDetail()});return}if(event.target.closest('[data-page="mekik2"],[data-page="b2b"],[data-page="mr"],[data-page="free"]'))[40,160,500].forEach(function(ms){setTimeout(function(){scheduleAfterRender(0)},ms)})},true);
   // m2RenderLayout sarmalayıcısı ve modül tıklamaları gerekli yenilemeyi zaten
   // yapıyor. Tüm belgeyi izlemek, afterRender içindeki DOM değişikliklerini tekrar
   // yakalayıp sonsuz ölçüm/çizim döngüsü oluşturuyordu.
@@ -146,6 +147,8 @@ for (const required of [
   'node.setAttribute("viewBox","0 0 "+BASE_W+" "+BASE_H)',
   "m2SvgPoint=fixedPoint",
   "removeCameraControls",
+  "function decorateRack(group)",
+  "decorateRack(current||rack);renderDetail()",
   'label.style.fill="none"',
   "label.style.stroke=color",
   'label.style.strokeLinejoin="round"',
