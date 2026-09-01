@@ -126,7 +126,9 @@ const runtime = String.raw`
   m2SvgPoint=fixedPoint;m2ZoomLayout=function(){resetCanvas();return true};
   window.rafexCommonDrawingMoveSelectedV50=moveSelected;window.rafexCommonDrawingFixedCanvasV50={moveSelected:moveSelected,reset:resetCanvas};
   document.addEventListener("click",function(event){if(event.target.closest('[data-page="mekik2"],[data-page="b2b"],[data-page="mr"],[data-page="free"],[data-rack]'))[0,40,160,500].forEach(function(ms){setTimeout(function(){scheduleAfterRender(0)},ms)})},true);
-  var observer=new MutationObserver(function(){scheduleAfterRender(45)});observer.observe(document.documentElement,{childList:true,subtree:true});
+  // m2RenderLayout sarmalayıcısı ve modül tıklamaları gerekli yenilemeyi zaten
+  // yapıyor. Tüm belgeyi izlemek, afterRender içindeki DOM değişikliklerini tekrar
+  // yakalayıp sonsuz ölçüm/çizim döngüsü oluşturuyordu.
   [0,80,250,700,1400].forEach(function(ms){setTimeout(function(){scheduleAfterRender(0)},ms)});
 })();
 </script>`;
@@ -153,3 +155,4 @@ const encoded = Buffer.from(html).toString("base64");
 source = source.slice(0, match.index) + match[0].replace(match[2], encoded) + source.slice(match.index + match[0].length);
 fs.writeFileSync(file, source);
 console.log("v50: Ortak Çizim zoom ve pan olmadan sabit planda; raf sürükleme, bağımsız detay ve hassas taşıma aktif.");
+
