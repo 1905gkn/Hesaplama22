@@ -7,7 +7,30 @@ let html = fs.readFileSync(portalPath, "utf8");
 // Giris formunda her tus vurusunda tum uygulama agacini yeniden taratan pahali :has secicisini kaldir.
 html = html.replace(/\s*body:has\(\.auth:not\(\.hidden\)\) \.shell\{display:none!important\}\s*/g, "\n");
 
-const speedMarker = 'data-rafex-login-speed="v5"';
+// Turkce zaten aktifken buyuk uygulama DOM'unu giriste yeniden cevirme.
+const languageNeedle = 'await changeProgramLanguage(user.default_language || appLanguage, false);';
+const languageFastPath = `const targetLanguage = user.default_language || appLanguage;
+        if (!(targetLanguage === "tr" && appLanguage === "tr")) {
+          await changeProgramLanguage(targetLanguage, false);
+        }`;
+if (html.includes(languageNeedle)) html = html.replace(languageNeedle, languageFastPath);
+else if (!html.includes('const targetLanguage = user.default_language || appLanguage;')) throw new Error("Giris dil hizli yolu eklenemedi.");
+
+// Proje gecmisi ana ekranin acilmasini bloklamasin; veri arka planda hazirlanir.
+const projectLoadNeedle = /await loadProjects\(\);\r?\n\s*showPage\("home"\);/;
+const projectLoadFastPath = `showPage("home");
+        loadProjects().catch((error) => console.warn("Proje gecmisi arka planda yuklenemedi:", error));`;
+if (projectLoadNeedle.test(html)) html = html.replace(projectLoadNeedle, projectLoadFastPath);
+else if (!html.includes('Proje gecmisi arka planda yuklenemedi:')) throw new Error("Proje gecmisi hizli yolu eklenemedi.");
+
+// Varsayilan Turkce dilde MutationObserver'in her SVG/Ortak Cizim eklemesinde
+// tum alt agaci tekrar taramasini engelle. Diger dillerin cevirisi aynen korunur.
+const i18nNeedle = /const i18nObserver = new MutationObserver\(\(mutations\) => \{\r?\n\s*i18nObserver\.disconnect\(\);/;
+const i18nFastPath = 'const i18nObserver = new MutationObserver((mutations) => {\n        if (appLanguage === "tr") return;\n        i18nObserver.disconnect();';
+if (i18nNeedle.test(html)) html = html.replace(i18nNeedle, i18nFastPath);
+else if (!html.includes('if (appLanguage === "tr") return;\n        i18nObserver.disconnect();')) throw new Error("Turkce i18n hizli yolu eklenemedi.");
+
+const speedMarker = 'data-rafex-login-speed="v8"';
 if (!html.includes(speedMarker)) {
   const speedStyle = `<style ${speedMarker}>
 .auth:not(.hidden){contain:layout style paint;isolation:isolate}
@@ -18,11 +41,10 @@ if (!html.includes(speedMarker)) {
   html = html.slice(0, headEnd) + speedStyle + html.slice(headEnd);
 }
 
-const marker = 'data-rafex-login-home-sidebar="v4"';
+const marker = 'data-rafex-login-home-sidebar="v7"';
 if (!html.includes(marker)) {
   const style = `<style ${marker}>
-/* Giriş ekranının eski/orijinal görünümünü koru. Şifre girilirken uygulama menüsü asla görünmesin. */
-body:has(.auth:not(.hidden)) .shell{display:none!important}
+/* Giris gorunurken yalniz ucuz kardes secicisi kullanilir; global :has yoktur. */
 .auth:not(.hidden) ~ .shell{display:none!important}
 
 /* Giriş tamamlandıktan sonra sol uygulama menüsü Ana Sayfa dahil sabit/tam boy kalsın. */
@@ -39,7 +61,7 @@ body:has(.auth:not(.hidden)) .shell{display:none!important}
   html = html.slice(0, headEnd) + style + html.slice(headEnd);
 }
 
-const guardMarker = 'data-rafex-login-sidebar-guard="v1"';
+const guardMarker = 'data-rafex-login-sidebar-guard="v4"';
 if (!html.includes(guardMarker)) {
   const runtime = `<script ${guardMarker}>
 (function(){
@@ -47,7 +69,7 @@ if (!html.includes(guardMarker)) {
   const shell=document.querySelector('.shell');
   if(!auth||!shell)return;
   const sync=()=>{
-    const loginVisible=!auth.classList.contains('hidden')&&auth.hidden!==true&&getComputedStyle(auth).display!=='none';
+    const loginVisible=!auth.classList.contains('hidden')&&auth.hidden!==true;
     if(loginVisible){
       shell.style.setProperty('display','none','important');
       shell.dataset.rafexLoginSuppressed='1';
@@ -56,7 +78,7 @@ if (!html.includes(guardMarker)) {
       delete shell.dataset.rafexLoginSuppressed;
     }
   };
-  new MutationObserver(sync).observe(auth,{attributes:true,attributeFilter:['class','hidden','style']});
+  new MutationObserver(sync).observe(auth,{attributes:true,attributeFilter:['class','hidden']});
   sync();
 })();
 </script>`;
@@ -65,7 +87,7 @@ if (!html.includes(guardMarker)) {
   html = html.slice(0, bodyEnd) + runtime + html.slice(bodyEnd);
 }
 
-const speedGuardMarker = 'data-rafex-login-input-isolation="v2"';
+const speedGuardMarker = 'data-rafex-login-input-isolation="v5"';
 if (!html.includes(speedGuardMarker)) {
   const speedRuntime = `<script ${speedGuardMarker}>
 (function(){
@@ -75,7 +97,7 @@ if (!html.includes(speedGuardMarker)) {
   const isolate=(event)=>{if(loginVisible())event.stopPropagation();};
   ['input','change','keydown','keyup'].forEach((type)=>form.addEventListener(type,isolate));
   const sync=()=>{const visible=loginVisible();shell.inert=visible;if(visible)shell.setAttribute('aria-hidden','true');else shell.removeAttribute('aria-hidden');};
-  new MutationObserver(sync).observe(auth,{attributes:true,attributeFilter:['class','hidden','style']});
+  new MutationObserver(sync).observe(auth,{attributes:true,attributeFilter:['class','hidden']});
   sync();
 })();
 </script>`;
@@ -84,6 +106,39 @@ if (!html.includes(speedGuardMarker)) {
   html = html.slice(0, bodyEnd) + speedRuntime + html.slice(bodyEnd);
 }
 
-if (!html.includes(marker) || !html.includes(guardMarker) || !html.includes(speedMarker) || !html.includes(speedGuardMarker)) throw new Error("Giriş/yan menü performans düzeltmesi eklenemedi.");
+const sessionRecoveryMarker = 'data-rafex-login-session-recovery="v4"';
+if (!html.includes(sessionRecoveryMarker)) {
+  const sessionRecoveryRuntime = `<script ${sessionRecoveryMarker}>
+(function(){
+  const auth=document.getElementById('auth');
+  const app=document.getElementById('app');
+  const shell=document.querySelector('.shell');
+  const form=document.getElementById('loginForm');
+  if(!auth||!app||!form)return;
+  const verifySession=async()=>{
+    if(auth.classList.contains('hidden'))return;
+    try{
+      const response=await fetch('/api/me',{cache:'no-store'});
+      if(!response.ok||auth.classList.contains('hidden'))return;
+      auth.classList.add('hidden');
+      app.classList.remove('hidden');
+      if(shell){
+        shell.style.removeProperty('display');
+        shell.inert=false;
+        shell.removeAttribute('aria-hidden');
+        delete shell.dataset.rafexLoginSuppressed;
+      }
+    }catch{}
+  };
+  form.addEventListener('submit',()=>setTimeout(verifySession,1800),true);
+})();
+</script>`;
+  const bodyEnd = html.lastIndexOf("</body>");
+  if (bodyEnd < 0) throw new Error("Portal </body> bulunamadı.");
+  html = html.slice(0, bodyEnd) + sessionRecoveryRuntime + html.slice(bodyEnd);
+}
+
+if (!html.includes(marker) || !html.includes(guardMarker) || !html.includes(speedMarker) || !html.includes(speedGuardMarker) || !html.includes(sessionRecoveryMarker)) throw new Error("Giriş/yan menü performans düzeltmesi eklenemedi.");
 fs.writeFileSync(portalPath, html);
-console.log("Giriş alanları genel uygulama olaylarından ayrıldı; pahalı :has seçicisi kaldırıldı.");
+console.log("Giris hizli yolu etkin: TR DOM hot-loop kapali ve proje gecmisi acilisi bloklamiyor.");
+
