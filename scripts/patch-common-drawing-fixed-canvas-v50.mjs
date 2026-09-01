@@ -14,7 +14,7 @@ const runtime = String.raw`
 <style data-rafex-common-drawing-fixed-canvas="v50">
 #page .m2-layout-zoom-floating{display:none!important}
 #page #m2LayoutSvg{width:100%!important;height:auto!important;max-width:none!important;margin:0!important;touch-action:none!important;cursor:default!important}
-#page #m2LayoutSvg [data-rack]{cursor:grab}
+#page #m2LayoutSvg [data-rack]{cursor:grab;pointer-events:none}
 #page #m2LayoutSvg [data-rack]:active{cursor:grabbing}
 #page #m2LayoutSvg [data-rack]>.m2-layout-rack{pointer-events:all!important;vector-effect:non-scaling-stroke;stroke-width:3px!important}
 #page .rafex-common-view-help,#page #m2ViewNavigateV49,#page #m2FocusSelectedRackV49,#page #m2FitAllProjectV49{display:none!important}
