@@ -68,8 +68,6 @@ if (!html.includes(viewerWarmMarker)) {
     const target=event.target;
     if(target?.matches?.('input[name="rafexUnifiedSystem"]'))load(target.value);
   },true);
-  const page=document.getElementById('page');
-  if(page)new MutationObserver(()=>load(page.dataset.rafexFreeContextSystem)).observe(page,{attributes:true,attributeFilter:['data-rafex-free-context-system']});
   window.rafexLoadViewerOnDemandV3=load;
 })();
 </script>`;
@@ -187,7 +185,7 @@ if (!html.includes(sessionRecoveryMarker)) {
 }
 
 if (!html.includes(marker) || !html.includes(guardMarker) || !html.includes(speedMarker) || !html.includes(speedGuardMarker) || !html.includes(sessionRecoveryMarker) || !html.includes(viewerWarmMarker)) throw new Error("Giriş/yan menü performans düzeltmesi eklenemedi.");
-for (const required of ['input[name="rafexUnifiedSystem"]', 'data-rafex-free-context-system', 'rafexLoadViewerOnDemandV3']) {
+for (const required of ['input[name="rafexUnifiedSystem"]', 'rafexLoadViewerOnDemandV3']) {
   if (!html.includes(required)) throw new Error(`Ortak Çizim 3D yükleyici bağlantısı eksik: ${required}`);
 }
 fs.writeFileSync(portalPath, html);
