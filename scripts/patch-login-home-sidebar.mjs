@@ -91,7 +91,7 @@ if (!html.includes(marker)) {
 .shell:not(.hidden) .content{margin-left:var(--rafex-side-width,240px)!important;width:calc(100% - var(--rafex-side-width,240px))!important;min-width:0!important}
 @media(max-width:760px){
   .shell:not(.hidden) .side{display:flex!important;position:fixed!important;left:0!important;top:0!important;bottom:0!important;width:var(--rafex-side-width,240px)!important;height:100dvh!important}
-  .shell:not(.hidden) .content{margin-left:var(--rafex-side-width,240px)!important;width:calc(100% - var(--rafex-side-width,240px))!important}
+  .shell:not(.hidden) .content{margin-left:0!important;width:100%!important;min-width:0!important}
 }
 </style>`;
   const headEnd = html.indexOf("</head>");
