@@ -30,6 +30,51 @@ const i18nFastPath = 'const i18nObserver = new MutationObserver((mutations) => {
 if (i18nNeedle.test(html)) html = html.replace(i18nNeedle, i18nFastPath);
 else if (!html.includes('if (appLanguage === "tr") return;\n        i18nObserver.disconnect();')) throw new Error("Turkce i18n hizli yolu eklenemedi.");
 
+// Buyuk 3D bundle'lari login HTML'inin defer zincirinden cikar. Modul kodu
+// degismez; giris tamamlaninca idle zamanda veya ilgili menu tiklaninca yuklenir.
+const deferredViewerSources = [];
+html = html.replace(/\s*<script\s+defer\s+src="(\/(?:b2b|mr)-viewer\.js[^"]*)"\s*><\/script>\s*/g, (match, src) => {
+  deferredViewerSources.push(src);
+  return "\n";
+});
+const viewerWarmMarker = 'data-rafex-viewer-idle-warm="v2"';
+if (!html.includes(viewerWarmMarker)) {
+  if (deferredViewerSources.length !== 2) throw new Error("B2B/MR viewer defer kaynaklari bulunamadi.");
+  const viewerSourcesJson = JSON.stringify(deferredViewerSources);
+  const viewerWarmRuntime = `<script ${viewerWarmMarker}>
+(function(){
+  const auth=document.getElementById('auth');
+  const sources=${viewerSourcesJson};
+  let started=false;
+  const load=()=>{
+    if(started)return;
+    started=true;
+    sources.forEach((src)=>{
+      const path=src.split('?')[0];
+      if(document.querySelector('script[src^="'+path+'"]'))return;
+      const script=document.createElement('script');
+      script.src=src;
+      script.async=true;
+      document.head.appendChild(script);
+    });
+  };
+  const schedule=()=>{
+    if(!auth||!auth.classList.contains('hidden'))return;
+    if('requestIdleCallback' in window)requestIdleCallback(load,{timeout:1200});
+    else setTimeout(load,250);
+  };
+  if(auth)new MutationObserver(schedule).observe(auth,{attributes:true,attributeFilter:['class','hidden']});
+  document.addEventListener('click',(event)=>{
+    if(event.target.closest?.('[data-page="b2b"],[data-page="mr"]'))load();
+  },true);
+  schedule();
+})();
+</script>`;
+  const bodyEnd = html.lastIndexOf("</body>");
+  if (bodyEnd < 0) throw new Error("Portal </body> bulunamadı.");
+  html = html.slice(0, bodyEnd) + viewerWarmRuntime + html.slice(bodyEnd);
+}
+
 const speedMarker = 'data-rafex-login-speed="v8"';
 if (!html.includes(speedMarker)) {
   const speedStyle = `<style ${speedMarker}>
@@ -138,7 +183,7 @@ if (!html.includes(sessionRecoveryMarker)) {
   html = html.slice(0, bodyEnd) + sessionRecoveryRuntime + html.slice(bodyEnd);
 }
 
-if (!html.includes(marker) || !html.includes(guardMarker) || !html.includes(speedMarker) || !html.includes(speedGuardMarker) || !html.includes(sessionRecoveryMarker)) throw new Error("Giriş/yan menü performans düzeltmesi eklenemedi.");
+if (!html.includes(marker) || !html.includes(guardMarker) || !html.includes(speedMarker) || !html.includes(speedGuardMarker) || !html.includes(sessionRecoveryMarker) || !html.includes(viewerWarmMarker)) throw new Error("Giriş/yan menü performans düzeltmesi eklenemedi.");
 fs.writeFileSync(portalPath, html);
 console.log("Giris hizli yolu etkin: TR DOM hot-loop kapali ve proje gecmisi acilisi bloklamiyor.");
 
