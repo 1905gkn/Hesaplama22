@@ -24,7 +24,57 @@ const projectLoadFastPath = `showPage("home");
 if (html.includes(projectLoadNeedle)) html = html.replace(projectLoadNeedle, projectLoadFastPath);
 else if (!html.includes('Proje geçmişi arka planda yüklenemedi:')) throw new Error("Proje geçmişi hızlı yolu eklenemedi.");
 
-const speedMarker = 'data-rafex-login-speed="v6"';
+// Türkçe temel dil olduğunda büyük Serbest Çizim/SVG DOM güncellemelerini i18n gözlemcisiyle
+// tekrar tekrar dolaşma. İngilizce/Fransızca seçildiğinde mevcut çeviri davranışı aynen sürer.
+const i18nNeedle = 'const i18nObserver = new MutationObserver((mutations) => {\n        i18nObserver.disconnect();';
+const i18nFastPath = 'const i18nObserver = new MutationObserver((mutations) => {\n        if (appLanguage === "tr") return;\n        i18nObserver.disconnect();';
+if (html.includes(i18nNeedle)) html = html.replace(i18nNeedle, i18nFastPath);
+else if (!html.includes('if (appLanguage === "tr") return;\n        i18nObserver.disconnect();')) throw new Error("Türkçe i18n hızlı yolu eklenemedi.");
+
+// B2B ve MR Three.js bundle'ları toplamda ~1.26 MB. Login/ana sayfa için gerekmezler.
+// İlk yükleme yolundan çıkar ve kullanıcı oturum açtıktan sonra browser idle iken ısıt.
+html = html.replace(/\s*<script\s+defer\s+src="\/b2b-viewer\.js[^"]*"><\/script>\s*/g, "\n");
+html = html.replace(/\s*<script\s+defer\s+src="\/mr-viewer\.js[^"]*"><\/script>\s*/g, "\n");
+
+const viewerWarmMarker = 'data-rafex-viewer-idle-warm="v1"';
+if (!html.includes(viewerWarmMarker)) {
+  const viewerWarmRuntime = `<script ${viewerWarmMarker}>
+(function(){
+  const auth=document.getElementById('auth');
+  let started=false;
+  const load=()=>{
+    if(started)return;
+    started=true;
+    [
+      '/b2b-viewer.js?v=b2b-double-row-side-ties-367',
+      '/mr-viewer.js?v=mr-system-3'
+    ].forEach((src)=>{
+      const script=document.createElement('script');
+      script.src=src;
+      script.async=true;
+      document.head.appendChild(script);
+    });
+  };
+  const schedule=()=>{
+    if(!auth||!auth.classList.contains('hidden'))return;
+    if('requestIdleCallback' in window) requestIdleCallback(load,{timeout:2200});
+    else setTimeout(load,700);
+  };
+  if(auth){
+    new MutationObserver(schedule).observe(auth,{attributes:true,attributeFilter:['class','hidden']});
+  }
+  document.addEventListener('click',(event)=>{
+    if(auth && !auth.classList.contains('hidden') && event.target.closest?.('[data-page]')) load();
+  },true);
+  schedule();
+})();
+</script>`;
+  const bodyEnd = html.lastIndexOf("</body>");
+  if (bodyEnd < 0) throw new Error("Portal </body> bulunamadı.");
+  html = html.slice(0, bodyEnd) + viewerWarmRuntime + html.slice(bodyEnd);
+}
+
+const speedMarker = 'data-rafex-login-speed="v7"';
 if (!html.includes(speedMarker)) {
   const speedStyle = `<style ${speedMarker}>
 .auth:not(.hidden){contain:layout style paint;isolation:isolate}
@@ -35,7 +85,7 @@ if (!html.includes(speedMarker)) {
   html = html.slice(0, headEnd) + speedStyle + html.slice(headEnd);
 }
 
-const marker = 'data-rafex-login-home-sidebar="v5"';
+const marker = 'data-rafex-login-home-sidebar="v6"';
 if (!html.includes(marker)) {
   const style = `<style ${marker}>
 /* Giriş ekranı görünürken yalnızca ucuz kardeş seçicisi kullanılır; global :has yok. */
@@ -55,7 +105,7 @@ if (!html.includes(marker)) {
   html = html.slice(0, headEnd) + style + html.slice(headEnd);
 }
 
-const guardMarker = 'data-rafex-login-sidebar-guard="v2"';
+const guardMarker = 'data-rafex-login-sidebar-guard="v3"';
 if (!html.includes(guardMarker)) {
   const runtime = `<script ${guardMarker}>
 (function(){
@@ -81,7 +131,7 @@ if (!html.includes(guardMarker)) {
   html = html.slice(0, bodyEnd) + runtime + html.slice(bodyEnd);
 }
 
-const speedGuardMarker = 'data-rafex-login-input-isolation="v3"';
+const speedGuardMarker = 'data-rafex-login-input-isolation="v4"';
 if (!html.includes(speedGuardMarker)) {
   const speedRuntime = `<script ${speedGuardMarker}>
 (function(){
@@ -102,7 +152,7 @@ if (!html.includes(speedGuardMarker)) {
 
 // Normal enter() artık hızlıdır. Yalnızca gerçekten takılırsa, 1.8 sn sonra doğrulanmış
 // /api/me oturumunda görünürlük katmanını kurtar; yarım başlatılmış ekranı erkenden gösterme.
-const sessionRecoveryMarker = 'data-rafex-login-session-recovery="v2"';
+const sessionRecoveryMarker = 'data-rafex-login-session-recovery="v3"';
 if (!html.includes(sessionRecoveryMarker)) {
   const sessionRecoveryRuntime = `<script ${sessionRecoveryMarker}>
 (function(){
@@ -134,6 +184,6 @@ if (!html.includes(sessionRecoveryMarker)) {
   html = html.slice(0, bodyEnd) + sessionRecoveryRuntime + html.slice(bodyEnd);
 }
 
-if (!html.includes(marker) || !html.includes(guardMarker) || !html.includes(speedMarker) || !html.includes(speedGuardMarker) || !html.includes(sessionRecoveryMarker)) throw new Error("Giriş/yan menü performans düzeltmesi eklenemedi.");
+if (!html.includes(marker) || !html.includes(guardMarker) || !html.includes(speedMarker) || !html.includes(speedGuardMarker) || !html.includes(sessionRecoveryMarker) || !html.includes(viewerWarmMarker)) throw new Error("Giriş/yan menü performans düzeltmesi eklenemedi.");
 fs.writeFileSync(portalPath, html);
-console.log("Giriş hızlı yolu etkin: gereksiz TR çeviri taraması ve bloklayan proje geçmişi kaldırıldı.");
+console.log("Giriş hızlı yolu etkin: TR DOM hot-loop kapalı, proje geçmişi bloklamıyor, 3D bundle'lar idle yükleniyor.");
