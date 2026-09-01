@@ -20,7 +20,10 @@ const runtime = String.raw`<style data-rafex-common-system-isolation="v1">
 <script data-rafex-common-system-isolation="v1">(function(){
   if(window.__rafexCommonSystemIsolationV1)return;
   window.__rafexCommonSystemIsolationV1=true;
-  var syncing=false;
+  var syncing=false,frame=0;
+  function setAttr(node,name,value){if(node.getAttribute(name)!==value)node.setAttribute(name,value)}
+  function removeAttr(node,name){if(node.hasAttribute(name))node.removeAttribute(name)}
+  function toggleClass(node,name,active){if(node.classList.contains(name)!==active)node.classList.toggle(name,active)}
   function pageTitle(){return String(document.getElementById('pageTitle')?.textContent||'').trim().toLocaleLowerCase('tr-TR')}
   function isCommonPage(){
     var t=pageTitle();
@@ -41,35 +44,36 @@ const runtime = String.raw`<style data-rafex-common-system-isolation="v1">
       var page=document.getElementById('page');if(!page)return;
       var common=isCommonPage();
       if(!common){
-        page.removeAttribute('data-rafex-common-active');
-        page.removeAttribute('data-rafex-common-system');
-        page.classList.remove('rafex-common-b2b','rafex-common-mekik','rafex-common-mr','rafex-common-drivein','rafex-common-konsol');
+        removeAttr(page,'data-rafex-common-active');
+        removeAttr(page,'data-rafex-common-system');
+        ['rafex-common-b2b','rafex-common-mekik','rafex-common-mr','rafex-common-drivein','rafex-common-konsol'].forEach(function(name){toggleClass(page,name,false)});
         /* Standalone sayfalarda Ortak Cizim'den kalmis isaretleri kesin temizle. */
         if(page.classList.contains('rafex-free-drawing-page')) page.classList.remove('rafex-free-drawing-page');
-        page.removeAttribute('data-rafex-free-context-system');
-        page.removeAttribute('data-free-system');
-        page.style.removeProperty('--rafex-mekik-common-foot');
-        page.style.removeProperty('--rafex-mekik-common-traverse');
+        removeAttr(page,'data-rafex-free-context-system');
+        removeAttr(page,'data-free-system');
+        if(page.style.getPropertyValue('--rafex-mekik-common-foot'))page.style.removeProperty('--rafex-mekik-common-foot');
+        if(page.style.getPropertyValue('--rafex-mekik-common-traverse'))page.style.removeProperty('--rafex-mekik-common-traverse');
         return;
       }
-      page.setAttribute('data-rafex-common-active','1');
+      setAttr(page,'data-rafex-common-active','1');
       var system=normalizeSystem(page.dataset.rafexFreeContextSystem||page.dataset.freeSystem||'');
-      page.setAttribute('data-rafex-common-system',system);
-      page.classList.toggle('rafex-common-b2b',system==='b2b');
-      page.classList.toggle('rafex-common-mekik',system==='mekik2');
-      page.classList.toggle('rafex-common-mr',system==='mr');
-      page.classList.toggle('rafex-common-drivein',system==='drivein');
-      page.classList.toggle('rafex-common-konsol',system==='konsol');
+      setAttr(page,'data-rafex-common-system',system);
+      toggleClass(page,'rafex-common-b2b',system==='b2b');
+      toggleClass(page,'rafex-common-mekik',system==='mekik2');
+      toggleClass(page,'rafex-common-mr',system==='mr');
+      toggleClass(page,'rafex-common-drivein',system==='drivein');
+      toggleClass(page,'rafex-common-konsol',system==='konsol');
     } finally {syncing=false}
   }
+  function queue(){if(frame)return;frame=requestAnimationFrame(function(){frame=0;sync()})}
   window.rafexSyncCommonIsolationV1=sync;
-  document.addEventListener('click',function(){requestAnimationFrame(sync)},true);
-  document.addEventListener('change',function(){requestAnimationFrame(sync)},true);
+  document.addEventListener('click',queue,true);
+  document.addEventListener('change',queue,true);
   new MutationObserver(function(mutations){
-    if(mutations.some(function(m){return m.target?.id==='page'||m.target?.id==='pageTitle'}))requestAnimationFrame(sync);
+    if(mutations.some(function(m){return m.target?.id==='page'||m.target?.id==='pageTitle'}))queue();
   }).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class','data-rafex-free-context-system','data-free-system']});
   window.addEventListener('load',sync);
-  requestAnimationFrame(sync);
+  queue();
 })();</script>`;
 
 const bodyEnd = html.lastIndexOf('</body>');
@@ -79,3 +83,4 @@ const encoded = Buffer.from(html, 'utf8').toString('base64');
 source = source.slice(0, match.index) + match[0].replace(match[2], encoded) + source.slice(match.index + match[0].length);
 fs.writeFileSync(file, source);
 console.log('Common system isolation v1: Ortak Cizim B2B/Mekik/MR baglamlari standalone sayfalardan kesin ayrildi.');
+
