@@ -66,6 +66,7 @@
       if (!document.querySelector(`script[data-rafex-section-viewer="${system}"]`) && !document.querySelector(`script[src^="/${system}-viewer.js"]`)) {
         const script = document.createElement("script");
         script.src = `/${system}-viewer.js`;
+        script.type = "module";
         script.async = true;
         script.dataset.rafexSectionViewer = system;
         script.onerror = () => { cleanup(); delete viewerLoads[system]; reject(new Error(`${system} 3D motoru yüklenemedi`)); };
