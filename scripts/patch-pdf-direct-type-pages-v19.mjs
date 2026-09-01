@@ -94,7 +94,7 @@ const runtime = String.raw`<style data-rafex-pdf-direct-types="v19">
   function systemOf(entry){
     var d=entry&&entry.drawing||entry||{};
     var x=String(entry&&entry.rafexSystem||entry&&entry.__rafexSystem||d&&d.rafexSystem||'').toLowerCase();
-    if(x==='b2b'||x==='mekik2')return x;
+    if(x==='b2b'||x==='mekik2'||x==='drive')return x;
     return d&&((d.b2bLayout)||(d.b2b))?'b2b':'mekik2';
   }
   function typeName(entry,index){return String(entry&&entry.name||entry&&entry.typeName||('Tip '+(index+1))).trim()}
@@ -168,6 +168,19 @@ const runtime = String.raw`<style data-rafex-pdf-direct-types="v19">
       '<div class="rafex-v19-view"><div class="rafex-v19-view-title">ÖNDEN GÖRÜNÜŞ</div><div class="rafex-v19-visual">'+front+'</div></div>'+
       '<div class="rafex-v19-view"><div class="rafex-v19-view-title">YAN GÖRÜNÜŞ</div><div class="rafex-v19-visual">'+side+'</div></div></article>';
   }
+  function driveSvg(d){
+    var bays=Math.max(1,Math.min(20,Number(d&&d.bays)||1)),levels=Math.max(1,Math.min(12,Number(d&&d.levels)||1));
+    var palW=Math.max(300,Number(d&&d.palW)||800),first=Math.max(0,Number(d&&d.firstRailHeight||d&&d.firstLevelHeight)||430),spacing=Math.max(380,Number(d&&d.levelH||d&&d.levelSpacing)||1580),palH=Math.max(300,Number(d&&d.palletHeight)||1200);
+    var bayClear=Math.max(950,palW+150),total=bays*(bayClear+100)+100,totalH=first+(levels-1)*spacing+palH+220;
+    var x0=20,y0=98,w=164,h=78,sx=w/Math.max(1,total),sz=h/Math.max(1,totalH),out=['<svg class="rafex-v19-drive-front" viewBox="0 0 200 112" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Drive-In teknik ön görünüş"><rect width="200" height="112" fill="#fff"/>'];
+    for(var i=0;i<=bays;i++){var x=x0+i*(bayClear+100)*sx;out.push('<rect x="'+(x-1.5).toFixed(2)+'" y="'+(y0-h).toFixed(2)+'" width="3" height="'+h.toFixed(2)+'" rx="1" fill="#8f9893" stroke="#48544d" stroke-width=".5"/>');}
+    for(var level=0;level<levels;level++){var support=first+level*spacing,y=y0-support*sz;for(var bay=0;bay<bays;bay++){var left=x0+(bay*(bayClear+100)+100)*sx,right=x0+(bay*(bayClear+100)+100+bayClear)*sx,cx=(left+right)/2,pw=Math.min(palW,bayClear-180)*sx,ph=Math.max(5,palH*sz);out.push('<rect x="'+left.toFixed(2)+'" y="'+(y-1).toFixed(2)+'" width="'+(right-left).toFixed(2)+'" height="2" fill="#d9aa00" stroke="#8e6d00" stroke-width=".35"/>');out.push('<path d="M'+left.toFixed(2)+' '+(y+1).toFixed(2)+' L'+right.toFixed(2)+' '+(y+1).toFixed(2)+'" stroke="#64716a" stroke-width="1" stroke-dasharray="2 1"/>');out.push('<rect x="'+(cx-pw/2).toFixed(2)+'" y="'+(y-ph-1).toFixed(2)+'" width="'+pw.toFixed(2)+'" height="'+ph.toFixed(2)+'" fill="#c8954b" fill-opacity=".82" stroke="#76501f" stroke-width=".45"/>');}}
+    out.push('<line x1="'+x0+'" y1="102" x2="'+(x0+w)+'" y2="102" stroke="#174d36" stroke-width=".7"/><text x="100" y="109" text-anchor="middle" font-size="4.6" font-weight="800" fill="#174d36">TOPLAM '+fmtN(total)+' mm · GÖZ '+fmtN(bayClear)+' mm</text><text x="5" y="60" transform="rotate(-90 5 60)" text-anchor="middle" font-size="4.4" font-weight="800" fill="#174d36">YÜKSEKLİK '+fmtN(totalH)+' mm</text></svg>');return out.join('');
+  }
+  function buildDriveCard(group,index){
+    var d=group.entry&&group.entry.drawing||group.entry||{};
+    return '<article class="rafex-v19-type-card" data-rafex-system="drive" data-rafex-type-name="'+htmlEsc(group.name)+'" style="--m2-type-color:#7b4d14">'+headHtml(group,index)+'<div class="rafex-v19-view rafex-v19-drive-view"><div class="rafex-v19-view-title">DRIVE-IN · ÖNDEN TEKNİK GÖRÜNÜŞ</div><div class="rafex-v19-visual">'+driveSvg(d)+'</div></div></article>';
+  }
   function b2bFront(d){
     try{
       var labels=typeof m2ReportDictionary==='function'?m2ReportDictionary((document.getElementById('m2ReportLanguage')||{}).value||'tr'):undefined;
@@ -180,7 +193,7 @@ const runtime = String.raw`<style data-rafex-pdf-direct-types="v19">
     return '<article class="rafex-v19-type-card" data-rafex-system="b2b" data-rafex-type-name="'+htmlEsc(group.name)+'" style="--m2-type-color:#1d5f8a">'+headHtml(group,index)+
       '<div class="rafex-v19-view"><div class="rafex-v19-view-title">ÖNDEN GÖRÜNÜŞ · 3D İLE AYNI MODÜL</div><div class="rafex-v19-visual">'+visual+'</div></div></article>';
   }
-  function buildCard(group,index){return group.system==='b2b'?buildB2BCard(group,index):buildMekikCard(group,index)}
+  function buildCard(group,index){return group.system==='b2b'?buildB2BCard(group,index):group.system==='drive'?buildDriveCard(group,index):buildMekikCard(group,index)}
   function makePage(groups,pageIndex){
     var page=document.createElement('section');page.className='m2-corporate-page rafex-v19-type-page';page.id='rafex-type-page-'+(pageIndex+1);
     var header=document.createElement('header');header.className='m2-corporate-page-header';header.innerHTML='<img src="/rafex-logo.png" alt="Rafex"><b>RAF KESİTLERİ · '+(pageIndex+1)+'</b>';page.appendChild(header);

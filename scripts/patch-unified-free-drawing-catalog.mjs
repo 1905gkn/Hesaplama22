@@ -32,6 +32,7 @@ const runtime = `<style ${marker}>
 .rafex-unified-type-row[data-system="b2b"] .rafex-unified-system-badge{background:#173c2d}
 .rafex-unified-type-row[data-system="mekik2"] .rafex-unified-system-badge{background:#315f88}
 .rafex-unified-type-row[data-system="mr"] .rafex-unified-system-badge{background:#8a6300}
+.rafex-unified-type-row[data-system="drive"] .rafex-unified-system-badge{background:#7b4d14}
 </style>
 <script ${marker}>(function(){
   if(window.__rafexUnifiedFreeCatalogV1)return;
@@ -41,6 +42,7 @@ const runtime = `<style ${marker}>
   const SYSTEMS=[
     {key:'b2b',label:'B2B',api:'/api/b2b-types'},
     {key:'mekik2',label:'Mekik',api:'/api/mekik2-types'},
+    {key:'drive',label:'Drive-In',api:'/api/mekik2-types'},
     {key:'mr',label:'MR',api:'/api/b2b-types'}
   ];
   const SYSTEM_MAP=Object.fromEntries(SYSTEMS.map((item)=>[item.key,item]));
@@ -76,7 +78,8 @@ const runtime = `<style ${marker}>
     return types.filter((entry)=>{
       if(!(entry?.id&&entry?.name&&entry?.drawing?.plan))return false;
       const isMr=entry.drawing?.systemType==='mr'||entry.drawing?.b2b?.mr===true||entry.drawing?.plan?.mr===true;
-      return system.key==='mr'?isMr:system.key==='b2b'?!isMr:true;
+      const isDrive=String(entry.drawing?.rafexSystem||'').toLowerCase()==='drive';
+      return system.key==='mr'?isMr:system.key==='b2b'?!isMr:system.key==='drive'?isDrive:!isDrive;
     }).map((entry,index)=>normalizeEntry(system,entry,index));
   }
   function summaryMarkup(){
@@ -99,10 +102,10 @@ const runtime = `<style ${marker}>
       const footLabel=drawing.footProfile?drawing.footProfile+' · Ly '+fmt(drawing.footLy)+' mm':fmt(drawing.footType)+' mm';
       const levelDetail=typeof m2LevelDetail==='function'?m2LevelDetail(drawing):fmt(levels)+' kat';
       return '<div class="m2-saved-type-row rafex-unified-type-row" data-system="'+system+'"><button type="button" class="m2-saved-type'+(index===m2SelectedSavedType?' active':'')+'" style="border-color:'+color+';box-shadow:inset 5px 0 '+color+';background:'+color+'12" onclick="m2HandleSavedRackTypeClick('+index+',event)" title="Seç · çift tıklayarak ortak Serbest Çizim alanına ekle"><b><span class="rafex-unified-system-badge">'+esc(systemLabel)+'</span><i class="m2-type-swatch" style="background:'+color+'"></i>'+esc(entry.name)+'</b><small>'+fmt(drawing.totalWidth)+' × '+fmt(drawing.railLength)+' mm · '+esc(levelDetail)+(palletCount?' · <strong>'+fmt(palletCount)+' palet</strong>':'')+' · Palet '+fmt(drawing.palW)+' × '+fmt(drawing.palD)+' mm · Ayak '+esc(footLabel)+'</small></button><button type="button" class="m2-saved-type-preview rafex-free-info" data-saved-index="'+index+'" aria-label="İçeriğini göster" title="İçeriğini göster">i</button><button type="button" class="m2-saved-type-copy rafex-free-copy" data-saved-index="'+index+'" aria-label="Kopyala" title="Kopyala ve bu sistemin özelliklerini aç"><span class="rafex-free-copy-pages" aria-hidden="true"></span></button><button type="button" class="m2-type-delete" aria-label="'+esc(entry.name)+' kaydını sil" title="'+esc(systemLabel)+' raf tipini sil" onclick="event.stopPropagation();rafexUnifiedDeleteSavedRackType('+index+')">×</button></div>';
-    }).join(''):'<span class="m2-floor-status">B2B, Mekik veya MR altında henüz kayıtlı raf tipi yok.</span>';
+    }).join(''):'<span class="m2-floor-status">B2B, Mekik, Drive-In veya MR altında henüz kayıtlı raf tipi yok.</span>';
     if(typeof m2RenderSelectedRackInfo==='function')m2RenderSelectedRackInfo();
     const note=document.querySelector('.rafex-free-mode-note span');
-    if(note)note.textContent='B2B, Mekik ve MR altında kaydettiğin raf tipleri burada tek listede görünür; aynı Serbest Çizim alanına eklenir ve aynı PDF içinde birlikte raporlanır.';
+    if(note)note.textContent='B2B, Mekik, Drive-In ve MR altında kaydettiğin raf tipleri burada tek listede görünür; aynı Serbest Çizim alanına eklenir ve aynı PDF içinde birlikte raporlanır.';
   }
   function installCache(selectedKey=''){
     m2SavedRackTypes=cache.slice();
@@ -144,7 +147,7 @@ const runtime = `<style ${marker}>
     const previous=m2ActiveModule;
     const before=Array.isArray(m2LayoutState?.racks)?m2LayoutState.racks.length:0;
     try{
-      if(system==='b2b'||system==='mekik2'||system==='mr')m2ActiveModule=system;
+      if(system==='b2b'||system==='mekik2'||system==='drive'||system==='mr')m2ActiveModule=system;
       const result=originalAddRack(drawing,typeName);
       markAddedRacks(before,system,typeName);
       return result;

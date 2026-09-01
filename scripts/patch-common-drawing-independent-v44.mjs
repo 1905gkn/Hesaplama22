@@ -88,7 +88,7 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
     copy.__rafexOriginalName=String(entry&&entry.name||'Raf').trim();
     copy.__rafexSystem=system;
     copy.__rafexSystemLabel=systemLabel(system);
-    copy.__rafexApi=system==='mekik2'?'/api/mekik2-types':'/api/b2b-types';
+    copy.__rafexApi=system==='mekik2'||system==='drive'?'/api/mekik2-types':'/api/b2b-types';
     copy.__rafexUnified=true;
     return copy;
   }
@@ -107,7 +107,7 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
       }
       if(settled[1].status==='fulfilled'){
         var mekikRows=Array.isArray(settled[1].value&&settled[1].value.types)?settled[1].value.types:[];
-        mekikRows.filter(validEntry).forEach(function(entry){merged.push(normalizeCatalogEntry(entry,'mekik2'));});
+        mekikRows.filter(validEntry).forEach(function(entry){merged.push(normalizeCatalogEntry(entry,String(entry&&entry.drawing&&entry.drawing.rafexSystem||'').toLowerCase()==='drive'?'drive':'mekik2'));});
       }
       merged.sort(function(a,b){
         var time=createdTime(a)-createdTime(b);if(time)return time;
@@ -150,7 +150,7 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
   async function deleteAllCommon(){
     if(!isFree()&&typeof previousDeleteAll==='function')return previousDeleteAll.apply(this,arguments);
     if(!catalog.length){status('Silinecek kayıtlı raf tipi yok.');return;}
-    if(!confirm('B2B, Mekik ve MR altındaki TÜM kayıtlı raf tiplerini silmek istediğinizden emin misiniz?'))return;
+    if(!confirm('B2B, Mekik, Drive-In ve MR altındaki TÜM kayıtlı raf tiplerini silmek istediğinizden emin misiniz?'))return;
     try{await Promise.all([req('/api/b2b-types',{method:'DELETE',body:'{}'}),req('/api/mekik2-types',{method:'DELETE',body:'{}'})]);catalog=[];m2SavedRackTypes=[];m2SelectedSavedType=null;if(typeof m2RenderSavedRackTypes==='function')m2RenderSavedRackTypes();status('Tüm sistemlerdeki kayıtlı raf tipleri silindi.');}
     catch(error){status(error&&error.message||'Kayıtlı raf tipleri silinemedi.');}
   }

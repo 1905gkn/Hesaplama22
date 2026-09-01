@@ -2,67 +2,31 @@ import * as THREE from "three";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-const ASSET_VERSION = "drive-in-front-v2";
+const ASSET_VERSION = "drive-in-front-v3";
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 let sharedModelsPromise = null;
 
-function materialFor(name, source) {
-  const upper = String(name || "").toLocaleUpperCase("tr-TR");
-  const material = source?.clone?.() || new THREE.MeshStandardMaterial();
-  if (upper.includes("PALET")) {
-    material.color?.setHex?.(0xc7924a);
-    material.metalness = 0.02;
-    material.roughness = 0.9;
-  } else if (upper.includes("RAY")) {
-    material.color?.setHex?.(0xe5bd00);
-    material.metalness = 0.42;
-    material.roughness = 0.48;
-  } else {
-    material.color?.setHex?.(0xaeb8bd);
-    material.metalness = 0.55;
-    material.roughness = 0.4;
-  }
-  return material;
-}
-
-function prepareClone(source) {
+function cloneAndFit(source, target) {
   const clone = source.clone(true);
   clone.traverse((part) => {
     if (!part.isMesh) return;
-    const materials = Array.isArray(part.material) ? part.material : [part.material];
-    const changed = materials.map((material) => materialFor(part.name || source.name, material));
-    part.material = Array.isArray(part.material) ? changed : changed[0];
-    part.castShadow = true;
-    part.receiveShadow = true;
+    part.castShadow = false;
+    part.receiveShadow = false;
   });
-  return clone;
-}
-
-function fitClone(source, target, center = true) {
-  const clone = prepareClone(source);
   clone.updateMatrixWorld(true);
   let bounds = new THREE.Box3().setFromObject(clone);
   const size = bounds.getSize(new THREE.Vector3());
-  const sx = target.x / Math.max(1, size.x);
-  const sy = target.y / Math.max(1, size.y);
-  const sz = target.z / Math.max(1, size.z);
-  clone.scale.multiply(new THREE.Vector3(sx, sy, sz));
+  clone.scale.multiply(new THREE.Vector3(
+    target.x / Math.max(1, size.x),
+    target.y / Math.max(1, size.y),
+    target.z / Math.max(1, size.z),
+  ));
   clone.updateMatrixWorld(true);
   bounds = new THREE.Box3().setFromObject(clone);
-  const c = bounds.getCenter(new THREE.Vector3());
-  if (center) clone.position.sub(c);
+  clone.position.sub(bounds.getCenter(new THREE.Vector3()));
   return clone;
-}
-
-function firstMesh(root, includes) {
-  let match = null;
-  root.traverse((object) => {
-    if (match || !object.isMesh) return;
-    const name = String(object.name || "").toLocaleUpperCase("tr-TR");
-    if (!includes || includes.some((token) => name.includes(token))) match = object;
-  });
-  return match || root;
 }
 
 class DriveInFrontViewer {
@@ -77,24 +41,35 @@ class DriveInFrontViewer {
     this.resizeFrame = 0;
 
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 0.95;
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.toneMappingExposure = 1.05;
+    this.renderer.shadowMap.enabled = false;
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xffffff);
     this.scene.add(this.root);
-    this.scene.add(new THREE.HemisphereLight(0xffffff, 0x596066, 2.2));
-    const key = new THREE.DirectionalLight(0xffffff, 3.4);
-    key.position.set(-4500, 7000, 9000);
-    key.castShadow = true;
+    this.scene.add(new THREE.HemisphereLight(0xffffff, 0x7d8781, 2.6));
+    const key = new THREE.DirectionalLight(0xffffff, 3.2);
+    key.position.set(-4000, 6500, 9000);
     this.scene.add(key);
+    const fill = new THREE.DirectionalLight(0xffffff, 1.35);
+    fill.position.set(5000, -4500, 3500);
+    this.scene.add(fill);
 
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 100000);
     this.camera.up.set(0, 0, 1);
+    this.controls = new OrbitControls(this.camera, canvas);
+    this.controls.enableRotate = false;
+    this.controls.enablePan = true;
+    this.controls.enableZoom = true;
+    this.controls.screenSpacePanning = true;
+    this.controls.zoomSpeed = 0.75;
+    this.controls.panSpeed = 0.7;
+    this.controls.minZoom = 0.55;
+    this.controls.maxZoom = 6;
+    this.controls.addEventListener("change", () => this.renderScene());
 
     this.resizeObserver = new ResizeObserver(() => this.scheduleResize());
     this.resizeObserver.observe(canvas.parentElement || canvas);
@@ -120,9 +95,7 @@ class DriveInFrontViewer {
     return [value.bays, value.levels, value.palletWidth, value.palletDepth, value.palletHeight, value.firstLevelHeight, value.levelSpacing].join("|");
   }
 
-  emit(name, detail = {}) {
-    this.canvas.dispatchEvent(new CustomEvent(name, { detail }));
-  }
+  emit(name, detail = {}) { this.canvas.dispatchEvent(new CustomEvent(name, { detail })); }
 
   async load() {
     this.emit("drive-in-loading");
@@ -137,19 +110,17 @@ class DriveInFrontViewer {
         const source = (name) => `/drive-in/${name}.glb?v=${ASSET_VERSION}`;
         sharedModelsPromise = Promise.all([
           loader.loadAsync(source("drive-in-ayak-top")),
-          loader.loadAsync(source("drive-in-montaj")),
           loader.loadAsync(source("drive-in-ray")),
+          loader.loadAsync(source("drive-in-konsol")),
+          loader.loadAsync(source("drive-in-arabag")),
+          loader.loadAsync(source("drive-in-palet")),
         ]).finally(() => draco.dispose());
       }
-      const [ayak, montaj, ray] = await sharedModelsPromise;
+      const [ayak, ray, konsol, arabag, palet] = await sharedModelsPromise;
       if (this.destroyed) return;
-      this.models = {
-        ayak: ayak.scene.clone(true),
-        montaj: montaj.scene.clone(true),
-        ray: ray.scene.clone(true),
-      };
+      this.models = { ayak: ayak.scene, ray: ray.scene, konsol: konsol.scene, arabag: arabag.scene, palet: palet.scene };
       this.rebuild();
-      this.emit("drive-in-ready", { sources: ["DRIVE IN AYAK TOP", "DRIVE IN RAF MONTAJ", "DRIVE IN RAY BÜKÜMLÜ"] });
+      this.emit("drive-in-ready", { sources: ["DRIVE IN AYAK TOP", "DRIVE IN RAY BÜKÜMLÜ", "KONSOL", "ARABAĞ DRIVEIN", "DRIVE IN PALET"] });
     } catch (error) {
       sharedModelsPromise = null;
       console.error("Drive In GLB yükleme hatası", error);
@@ -164,64 +135,41 @@ class DriveInFrontViewer {
     if (this.models) this.rebuild();
   }
 
-  addBox(size, position, color, metalness = 0.4, roughness = 0.5) {
-    const mesh = new THREE.Mesh(
-      new THREE.BoxGeometry(size.x, size.y, size.z),
-      new THREE.MeshStandardMaterial({ color, metalness, roughness }),
-    );
-    mesh.position.copy(position);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    this.root.add(mesh);
-    return mesh;
+  addPart(source, target, position) {
+    const part = cloneAndFit(source, target);
+    part.position.copy(position);
+    this.root.add(part);
+    return part;
   }
 
   rebuild() {
-    while (this.root.children.length) this.root.remove(this.root.children[0]);
+    this.root.clear();
     const c = this.config;
     const uprightWidth = 100;
     const bayClear = Math.max(950, c.palletWidth + 150);
     const bayPitch = bayClear + uprightWidth;
     const rackWidth = c.bays * bayPitch + uprightWidth;
-    const rackHeight = c.firstLevelHeight + Math.max(0, c.levels - 1) * c.levelSpacing + c.palletHeight * 0.55;
+    const rackHeight = c.firstLevelHeight + Math.max(0, c.levels - 1) * c.levelSpacing + c.palletHeight + 220;
     const depth = Math.max(900, c.palletDepth);
 
     for (let i = 0; i <= c.bays; i += 1) {
-      const x = i * bayPitch;
-      this.addBox(new THREE.Vector3(uprightWidth, 110, rackHeight), new THREE.Vector3(x, 0, rackHeight / 2), 0xaeb8bd, 0.62, 0.38);
-      const ayakPart = fitClone(firstMesh(this.models.ayak, ["HRTD", "DİAGONEL", "DIAGONEL"]), new THREE.Vector3(150, 150, 170));
-      ayakPart.position.set(x, -10, Math.max(90, rackHeight - 120));
-      this.root.add(ayakPart);
+      this.addPart(this.models.ayak, new THREE.Vector3(uprightWidth, depth, rackHeight), new THREE.Vector3(i * bayPitch, 0, rackHeight / 2));
     }
-
-    const palletSource = firstMesh(this.models.montaj, ["PALET"]);
-    const braceSource = firstMesh(this.models.montaj, ["ARA BAG", "ARA BAĞ"]);
-    const raySource = firstMesh(this.models.ray, ["RAY"]);
 
     for (let level = 0; level < c.levels; level += 1) {
       const supportZ = c.firstLevelHeight + level * c.levelSpacing;
       for (let bay = 0; bay < c.bays; bay += 1) {
         const left = bay * bayPitch + uprightWidth;
-        const centerX = left + bayClear / 2;
-
-        const leftRay = fitClone(raySource, new THREE.Vector3(145, depth, 165));
-        leftRay.position.set(left + 85, 0, supportZ);
-        this.root.add(leftRay);
-        const rightRay = fitClone(raySource, new THREE.Vector3(145, depth, 165));
-        rightRay.position.set(left + bayClear - 85, 0, supportZ);
-        this.root.add(rightRay);
-
-        const pallet = fitClone(palletSource, new THREE.Vector3(Math.min(c.palletWidth, bayClear - 180), Math.min(c.palletDepth, depth - 80), c.palletHeight));
-        pallet.position.set(centerX, 0, supportZ + c.palletHeight / 2 + 90);
-        this.root.add(pallet);
+        const right = left + bayClear;
+        const centerX = (left + right) / 2;
+        this.addPart(this.models.ray, new THREE.Vector3(135, depth, 145), new THREE.Vector3(left + 75, 0, supportZ));
+        this.addPart(this.models.ray, new THREE.Vector3(135, depth, 145), new THREE.Vector3(right - 75, 0, supportZ));
+        this.addPart(this.models.konsol, new THREE.Vector3(150, 220, 170), new THREE.Vector3(left + 75, -depth / 2 + 120, supportZ));
+        this.addPart(this.models.konsol, new THREE.Vector3(150, 220, 170), new THREE.Vector3(right - 75, -depth / 2 + 120, supportZ));
+        this.addPart(this.models.palet, new THREE.Vector3(Math.min(c.palletWidth, bayClear - 180), Math.min(c.palletDepth, depth - 80), c.palletHeight), new THREE.Vector3(centerX, 0, supportZ + c.palletHeight / 2 + 90));
       }
-
-      const tie = fitClone(braceSource, new THREE.Vector3(90, depth, 150));
-      tie.position.set(rackWidth - uprightWidth / 2, 0, supportZ + 75);
-      this.root.add(tie);
+      this.addPart(this.models.arabag, new THREE.Vector3(rackWidth - uprightWidth, depth, 110), new THREE.Vector3(rackWidth / 2, 0, supportZ + 80));
     }
-
-    this.addBox(new THREE.Vector3(rackWidth + 300, 18, 18), new THREE.Vector3(rackWidth / 2, 0, 0), 0x25313a, 0.1, 0.8);
     this.fitCamera();
     this.renderScene();
   }
@@ -234,30 +182,28 @@ class DriveInFrontViewer {
     const width = this.lastWidth || Math.max(1, Math.round(this.canvas.getBoundingClientRect().width));
     const height = this.lastHeight || Math.max(1, Math.round(this.canvas.getBoundingClientRect().height));
     const aspect = Math.max(0.3, width / Math.max(1, height));
-    const pad = 1.16;
-    let halfW = size.x * pad / 2;
-    let halfH = size.z * pad / 2;
-    if (halfW / halfH < aspect) halfW = halfH * aspect;
-    else halfH = halfW / aspect;
+    let halfW = size.x * 0.6;
+    let halfH = size.z * 0.62;
+    if (halfW / halfH < aspect) halfW = halfH * aspect; else halfH = halfW / aspect;
     this.camera.left = -halfW;
     this.camera.right = halfW;
     this.camera.top = halfH;
     this.camera.bottom = -halfH;
+    this.camera.position.set(center.x, center.y + Math.max(10000, size.y * 3), center.z);
     this.camera.near = 1;
     this.camera.far = Math.max(100000, size.y * 10 + 10000);
-    this.camera.position.set(center.x, center.y + Math.max(10000, size.y * 3), center.z);
-    this.camera.lookAt(center.x, center.y, center.z);
+    this.controls.target.copy(center);
+    this.camera.lookAt(center);
+    this.camera.zoom = 1;
     this.camera.updateProjectionMatrix();
+    this.controls.update();
   }
 
   scheduleResize(force = false) {
     if (this.destroyed) return;
     if (force && this.resizeFrame) cancelAnimationFrame(this.resizeFrame);
     if (this.resizeFrame && !force) return;
-    this.resizeFrame = requestAnimationFrame(() => {
-      this.resizeFrame = 0;
-      this.resize(force);
-    });
+    this.resizeFrame = requestAnimationFrame(() => { this.resizeFrame = 0; this.resize(force); });
   }
 
   resize(force = false) {
@@ -273,34 +219,16 @@ class DriveInFrontViewer {
     this.renderScene();
   }
 
-  renderScene() {
-    if (this.destroyed) return;
-    this.renderer.render(this.scene, this.camera);
-  }
-
-  render() {
-    this.renderScene();
-  }
+  renderScene() { if (!this.destroyed) this.renderer.render(this.scene, this.camera); }
+  render() { this.renderScene(); }
 
   destroy() {
     if (this.destroyed) return;
     this.destroyed = true;
     if (this.resizeFrame) cancelAnimationFrame(this.resizeFrame);
-    this.resizeFrame = 0;
     this.resizeObserver?.disconnect?.();
-    const geometries = new Set(), materials = new Set(), textures = new Set();
-    const collect = (material) => {
-      if (!material || materials.has(material)) return;
-      materials.add(material);
-      Object.values(material).forEach((value) => { if (value?.isTexture) textures.add(value); });
-    };
-    this.scene?.traverse?.((object) => {
-      if (object.geometry?.dispose) geometries.add(object.geometry);
-      if (Array.isArray(object.material)) object.material.forEach(collect); else collect(object.material);
-    });
-    textures.forEach((texture) => { try { texture.dispose(); } catch {} });
-    materials.forEach((material) => { try { material.dispose(); } catch {} });
-    geometries.forEach((geometry) => { try { geometry.dispose(); } catch {} });
+    this.controls?.dispose?.();
+    this.root.clear();
     this.renderer?.renderLists?.dispose?.();
     this.renderer?.dispose?.();
   }
@@ -309,10 +237,7 @@ class DriveInFrontViewer {
 let active = null;
 window.RafexDriveInViewer = {
   mount(canvas, config = {}) {
-    if (active && active.canvas === canvas && !active.destroyed) {
-      active.update(config);
-      return active;
-    }
+    if (active && active.canvas === canvas && !active.destroyed) { active.update(config); return active; }
     if (active) active.destroy();
     active = new DriveInFrontViewer(canvas, config);
     return active;

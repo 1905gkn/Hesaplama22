@@ -1152,17 +1152,17 @@ ${fitFunctionV49}`;
 
   // PDF/kesit sayfasi MR'yi ucuncu bagimsiz sistem olarak siniflandirir.
   // Boylece MR kartina once B2B SVG'si, sonra B2B 3D yakalamasi basilmaz.
-  const oldSystemClassifier = "if(x==='b2b'||x==='mekik2')return x;";
-  const newSystemClassifier = "if(x==='b2b'||x==='mekik2'||x==='mr')return x;";
+  const oldSystemClassifier = "if(x==='b2b'||x==='mekik2'||x==='drive')return x;";
+  const newSystemClassifier = "if(x==='b2b'||x==='mekik2'||x==='drive'||x==='mr')return x;";
   if (html.includes(oldSystemClassifier)) html = html.replace(oldSystemClassifier, newSystemClassifier);
   else if (!html.includes(newSystemClassifier)) throw new Error("MR v38: PDF sistem siniflandiricisi bulunamadi.");
 
-  const oldCardRouter = "  function buildCard(group,index){return group.system==='b2b'?buildB2BCard(group,index):buildMekikCard(group,index)}";
+  const oldCardRouter = "  function buildCard(group,index){return group.system==='b2b'?buildB2BCard(group,index):group.system==='drive'?buildDriveCard(group,index):buildMekikCard(group,index)}";
   const newCardRouter = `  function buildMRCard(group,index){
     var count=Math.max(1,Number(group&&group.rackCount)||1),title=String(group&&group.name||('MR Tip '+(index+1)));
     return '<article class="rafex-v19-type-card rafex-v38-mr-type-card" data-rafex-system="mr" data-rafex-type-name="'+htmlEsc(title)+'" style="--m2-type-color:#1d5f8a"><div class="rafex-v19-card-head"><span>'+htmlEsc(title)+'</span><small>MR SİSTEM</small><small>'+fmtN(count)+' ADET</small></div><div class="rafex-v19-view"><div class="rafex-v19-view-title">MR 3D GÖRÜNÜŞ · KAYITLI ÖLÇÜLER</div><div class="rafex-v19-visual"><div class="rafex-mr-output-wait">MR görünüşü hazırlanıyor…</div></div></div></article>';
   }
-  function buildCard(group,index){return group.system==='mr'?buildMRCard(group,index):group.system==='b2b'?buildB2BCard(group,index):buildMekikCard(group,index)}`;
+  function buildCard(group,index){return group.system==='mr'?buildMRCard(group,index):group.system==='b2b'?buildB2BCard(group,index):group.system==='drive'?buildDriveCard(group,index):buildMekikCard(group,index)}`;
   if (html.includes(oldCardRouter)) html = html.replace(oldCardRouter, newCardRouter);
   else if (!html.includes("function buildMRCard(group,index)")) throw new Error("MR v38: PDF kart yonlendiricisi bulunamadi.");
 

@@ -29,7 +29,7 @@ const runtime = String.raw`<style data-rafex-free-copy-info-edge="v3">
   var EDGE_KEY='rafex_free_edge_editor_open_v1';
   function freePage(){var p=document.getElementById('page');return !!(p&&p.classList.contains('rafex-free-drawing-page'));}
   function qsa(root,sel){try{return Array.from((root||document).querySelectorAll(sel));}catch{return[];}}
-  function systemOf(entry){var d=entry&&entry.drawing?entry.drawing:entry||{};var s=String(entry&&entry.__rafexSystem||entry&&entry.rafexSystem||d.rafexSystem||'').toLowerCase();if(s==='b2b'||s==='mekik2')return s;return d.b2b||d.b2bLayout?'b2b':'mekik2';}
+  function systemOf(entry){var d=entry&&entry.drawing?entry.drawing:entry||{};var s=String(entry&&entry.__rafexSystem||entry&&entry.rafexSystem||d.rafexSystem||'').toLowerCase();if(s==='b2b'||s==='mekik2'||s==='drive'||s==='mr')return s;return d.b2b||d.b2bLayout?'b2b':'mekik2';}
   function savedEntries(){try{return Array.isArray(m2SavedRackTypes)?m2SavedRackTypes:[];}catch{return[];}}
   function status(text){var el=document.getElementById('m2FloorStatus');if(el)el.textContent=text;}
   function ensureModal(){var m=document.getElementById('rafexFreeInfoModal');if(m)return m;m=document.createElement('div');m.id='rafexFreeInfoModal';m.className='rafex-free-info-modal';m.hidden=true;m.innerHTML='<div class="rafex-free-info-dialog"><div class="rafex-free-info-head"><b id="rafexFreeInfoTitle">RAF İÇERİĞİ</b><button type="button" aria-label="Kapat">×</button></div><div class="rafex-free-info-body" id="rafexFreeInfoBody"></div></div>';m.addEventListener('click',function(e){if(e.target===m)m.hidden=true;});m.querySelector('button').onclick=function(){m.hidden=true;};document.body.appendChild(m);return m;}

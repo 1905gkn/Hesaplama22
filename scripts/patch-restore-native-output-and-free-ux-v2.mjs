@@ -114,7 +114,7 @@ const runtime = String.raw`<style data-rafex-native-output-free-ux="v2">
   function systemOfEntry(entry){
     var drawing=entry&&entry.drawing?entry.drawing:entry||{};
     var explicit=String(entry&&entry.__rafexSystem||entry&&entry.rafexSystem||drawing.rafexSystem||'').toLowerCase();
-    if(explicit==='b2b'||explicit==='mr'||explicit==='mekik2')return explicit;
+    if(explicit==='b2b'||explicit==='mr'||explicit==='mekik2'||explicit==='drive')return explicit;
     if(drawing.mr||drawing.systemType==='mr')return 'mr';
     if(drawing.b2b||drawing.b2bLayout)return 'b2b';
     var module=activeModule();
@@ -186,7 +186,7 @@ const runtime = String.raw`<style data-rafex-native-output-free-ux="v2">
     if(!entry)return;
     var system=systemOfEntry(entry),previous=activeModule();
     try{
-      if(system==='b2b'||system==='mekik2')m2ActiveModule=system;
+      if(system==='b2b'||system==='mekik2'||system==='drive')m2ActiveModule=system;
       if(typeof window.m2CopySavedRackType==='function')window.m2CopySavedRackType(index);
       else if(typeof window.m2SelectSavedRackType==='function')window.m2SelectSavedRackType(index);
     }catch(e){console.warn('Kayitli raf tipi kopyalanamadi',e);}
@@ -242,9 +242,9 @@ const runtime = String.raw`<style data-rafex-native-output-free-ux="v2">
     if(window.__rafexLayoutInventoryActive)return false;
     if(!freePage())return false;
     var host=document.getElementById('m2LayoutProductList');if(!host)return false;
-    var b2bRows=productRows('b2b'),mrRows=productRows('mr'),mekikRows=productRows('mekik2');
+    var b2bRows=productRows('b2b'),mrRows=productRows('mr'),mekikRows=productRows('mekik2'),driveRows=productRows('drive');
     host.classList.add('rafex-system-product-lists');
-    host.innerHTML='<b class="rafex-product-list-title">ÜRÜN DÖKÜMLERİ</b>'+productSection('b2b','B2B ÜRÜN LİSTESİ',b2bRows)+productSection('mr','MR ÜRÜN LİSTESİ',mrRows)+productSection('mekik2','MEKİK ÜRÜN LİSTESİ',mekikRows);
+    host.innerHTML='<b class="rafex-product-list-title">ÜRÜN DÖKÜMLERİ</b>'+productSection('b2b','B2B ÜRÜN LİSTESİ',b2bRows)+productSection('mr','MR ÜRÜN LİSTESİ',mrRows)+productSection('mekik2','MEKİK ÜRÜN LİSTESİ',mekikRows)+productSection('drive','DRIVE-IN ÜRÜN LİSTESİ',driveRows);
     qsa(host,'details[data-rafex-product-system]').forEach(function(details){details.addEventListener('toggle',function(){var key=details.dataset.rafexProductSystem;if(!key)return;productOpen[key]=details.open;try{localStorage.setItem('rafex_free_product_disclosures_v1',JSON.stringify(productOpen));}catch(e){}});});
     return true;
   }

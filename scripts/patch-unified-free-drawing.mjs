@@ -57,11 +57,11 @@ const runtime = `<style ${marker}>
   if(window.__rafexUnifiedFreeDrawingV1)return;
   window.__rafexUnifiedFreeDrawingV1=true;
 
-  const SUPPORTED=new Set(['b2b','mekik2','mr']);
+  const SUPPORTED=new Set(['b2b','mekik2','drive','mr']);
   const SYSTEMS=[
     {key:'b2b',label:'B2B',desc:'B2B ürün girdilerini aç; mevcut ortak yerleşim korunur.',ready:true},
     {key:'mekik2',label:'Mekik',desc:'Mekik ürün girdilerini aç; aynı alana raf eklemeye devam et.',ready:true},
-    {key:'drive',label:'Drive-In',desc:'Mevcut hesap motoru var; ortak çizim geometrisi bağlanacak.',ready:false},
+    {key:'drive',label:'Drive-In',desc:'Drive-In ürün girdilerini aç; aynı ortak alana raf ekle.',ready:true},
     {key:'mr',label:'MR',desc:'MR ürün girdilerini aç; B2B ve Mekik ile aynı alana ekle.',ready:true},
     {key:'konsol',label:'Konsol Kollu',desc:'Teknik hesap / modül çizim motoru henüz tanımlı değil.',ready:false}
   ];
@@ -154,7 +154,7 @@ const runtime = `<style ${marker}>
     }else if(!document.getElementById('rafexUnifiedSystemPicker'))page.insertAdjacentHTML('afterbegin',pickerMarkup());
 
     const floor=page.querySelector('.m2-floor-editor');
-    if(floor&&!page.querySelector('.rafex-free-mode-note'))floor.insertAdjacentHTML('beforebegin','<div class="rafex-free-mode-note"><b>ORTAK ALAN</b><span>B2B, Mekik ve MR modülleri aynı Serbest Çizim alanında birlikte taşınabilir, döndürülebilir ve PDF yerleşiminde korunur.</span></div>');
+    if(floor&&!page.querySelector('.rafex-free-mode-note'))floor.insertAdjacentHTML('beforebegin','<div class="rafex-free-mode-note"><b>ORTAK ALAN</b><span>B2B, Mekik, Drive-In ve MR modülleri aynı Serbest Çizim alanında birlikte taşınabilir, döndürülebilir ve PDF yerleşiminde korunur.</span></div>');
 
     page.querySelectorAll('input[name="rafexUnifiedSystem"]').forEach((input)=>{
       input.checked=free.pending===input.value;
@@ -174,15 +174,16 @@ const runtime = `<style ${marker}>
 
   function renderEngine(system,continued){
     const target=SUPPORTED.has(system)?system:'mekik2';
+    if(free.currentEngine==='drive'&&target!=='drive')try{window.RafexDriveInViewer?.destroy?.()}catch{}
     if(free.currentEngine&&free.currentEngine!==target)captureEngine();
     restoreEngine(target);
     const page=document.getElementById('page');
     if(page){
-      page.classList.remove('b2b-mode','mr-mode');
+      page.classList.remove('b2b-mode','mr-mode','drive-in-mode');
       delete page.dataset.m2Module;
       page.dataset.rafexFreeContextSystem=target;
     }
-    if(target==='b2b')renderB2B();else if(target==='mr')renderMR();else renderMekik2();
+    if(target==='b2b')renderB2B();else if(target==='mr')renderMR();else if(target==='drive')renderDrive();else renderMekik2();
     free.continued=Boolean(continued);
     decoratePage();
   }

@@ -34,7 +34,7 @@ const runtime = String.raw`<style data-rafex-common-system-isolation="v1">
     if(raw==='mekik'||raw==='mekik2')return 'mekik2';
     if(raw==='b2b')return 'b2b';
     if(raw==='mr')return 'mr';
-    if(raw==='drive-in'||raw==='drivein')return 'drivein';
+    if(raw==='drive'||raw==='drive-in'||raw==='drivein')return 'drivein';
     if(raw==='konsol'||raw==='konsol-kollu')return 'konsol';
     return raw;
   }
