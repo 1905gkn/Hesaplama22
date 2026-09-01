@@ -75,7 +75,7 @@ const style = `<style data-rafex-fixed-sidebar-foot="v2">
   .side .nav button{width:100%!important;min-width:0!important;margin:4px 0!important;padding:11px 12px!important;white-space:normal!important;font-size:inherit!important}
   .side .nav i{width:24px!important}
   .side .userbox{position:static!important;margin-top:auto!important;display:block!important;padding:12px!important}
-  .content{margin-left:var(--rafex-side-width)!important;width:calc(100% - var(--rafex-side-width))!important;min-width:0!important}
+  .content{margin-left:0!important;width:100%!important;min-width:0!important}
 }
 </style>`;
 const headEnd = html.indexOf("</head>");
@@ -88,3 +88,4 @@ if (!html.includes('data-rafex-fixed-sidebar-foot="v2"')) throw new Error("Sabit
 
 fs.writeFileSync(portalPath, html);
 console.log(`Ayak 1,5/2,0 mm sıralaması ve tam boy sabit yan menü eklendi (${recommendationMatches.length} öneri fonksiyonu güncellendi).`);
+
