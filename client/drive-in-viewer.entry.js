@@ -4,7 +4,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-const ASSET_VERSION = "drive-in-front-v6";
+const ASSET_VERSION = "drive-in-front-v7";
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 let sharedModelsPromise = null;
 const sourceMetrics = new WeakMap();
@@ -230,10 +230,11 @@ class DriveInFrontViewer {
         this.addPart(this.models.ray, rayScale, new THREE.Vector3(left + raySize.x / 2, 0, supportTopZ - 75), technicalMaterials.ray);
         this.addPart(this.models.ray, rayScale, new THREE.Vector3(right - raySize.x / 2, 0, supportTopZ - 75), technicalMaterials.ray);
         this.addPart(this.models.konsol, konsolScale, new THREE.Vector3(centerX, frontY - konsolSize.y * konsolUniform / 2, supportTopZ - konsolHeight / 2), technicalMaterials.konsol);
-        this.addPart(this.models.palet, paletScale, new THREE.Vector3(centerX, frontY - c.palletDepth / 2 - 40, supportTopZ + palletThickness / 2), technicalMaterials.palet, { rotateY: false, rotationZ: -Math.PI / 2 });
+        const palletSeatZ = supportTopZ - palletThickness;
+        this.addPart(this.models.palet, paletScale, new THREE.Vector3(centerX, frontY - c.palletDepth / 2 - 40, palletSeatZ + palletThickness / 2), technicalMaterials.palet, { rotateY: false, rotationZ: -Math.PI / 2 });
         this.addLoadBox(
           new THREE.Vector3(c.palletWidth * 0.94, c.palletDepth * 0.94, c.palletHeight),
-          new THREE.Vector3(centerX, frontY - c.palletDepth / 2 - 40, supportTopZ + palletThickness + c.palletHeight / 2),
+          new THREE.Vector3(centerX, frontY - c.palletDepth / 2 - 40, palletSeatZ + palletThickness + c.palletHeight / 2),
         );
       }
       for (let i = 0; i <= c.bays; i += 1) {
