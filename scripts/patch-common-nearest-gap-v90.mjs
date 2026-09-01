@@ -193,7 +193,7 @@ const runtime = String.raw`<script data-rafex-common-save-mekik-front="v92">(fun
     var bayW=totalW/bays,uprightW=Math.max(45,Math.min(110,n(drawing.footType,90)));
     var palletW=Math.min(bayW*.72,Math.max(520,n(drawing.palW,1200)*.88));
     var boxH=Math.max(120,palletH*.72),palletBase=Math.max(90,Math.min(166,palletH*.16));
-    var steel='#aeb5b9',steelDark='#5f686d',yellow='#f0c400',blue='#073a6d',blue2='#0b4e87',wood='#d99a49',woodDark='#8a541f',box='#c98b3d';
+    var steel='#00679d',steelDark='#002f4a',yellow='#f0c400',blue='#073a6d',blue2='#0b4e87',wood='#d99a49',woodDark='#8a541f',box='#c98b3d';
     var parts='';
     for(var i=0;i<=bays;i++){
       var ux=i*bayW-uprightW/2;

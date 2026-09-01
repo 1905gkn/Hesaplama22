@@ -67,7 +67,8 @@
         const drawing = entry?.drawing || entry;
         if (!drawing) return;
         const label = safeKey(entry?.name || entry?.typeName || entry?.label || `Raf Tipi ${index + 1}`);
-        if (!groups.has(label)) groups.set(label, { key: label, label, entries: new Map(), cards: [] });
+        const system = drawing?.b2b?.mr || drawing?.systemType === "mr" || drawing?.b2bLayout?.palletType === "mr" ? "mr" : "b2b";
+        if (!groups.has(label)) groups.set(label, { key: label, label, system, entries: new Map(), cards: [] });
         const count = palletCountOf(drawing);
         if (!groups.get(label).entries.has(count)) groups.get(label).entries.set(count, { count, drawing });
       });
@@ -190,7 +191,19 @@
     const type = rackTypeCache.find((item) => item.key === safeKey(key)) || collectRackTypes().find((item) => item.key === safeKey(key));
     const settings = settingFor(key, source);
     const options = optionsForType(type, settings);
-    if (!options || !window.RafexB2BViewer?.mount) return null;
+    if (!options) return null;
+    const system = type?.system === "mr" ? "mr" : "b2b";
+    if (typeof window.rafexLoadViewerOnDemandV3 === "function") await window.rafexLoadViewerOnDemandV3(system);
+    if (system === "mr") {
+      if (!window.RafexMRViewer?.captureView) return null;
+      const seed = [...type.entries.values()][0]?.drawing;
+      const config = { ...(seed?.b2b || {}), modules:1, levels:Math.max(1, number(seed?.levels ?? seed?.b2b?.levels, 4)), width:Math.max(300, number(seed?.b2b?.width ?? seed?.palW, 2400)), depth:Math.max(300, number(seed?.b2b?.depth ?? seed?.palD, 800)), dimensions:{ ...settings.dimensions } };
+      const signature = JSON.stringify({ key:safeKey(key), system, settings, config });
+      if (!force && previewCache.get(key)?.signature === signature) return previewCache.get(key).src;
+      const src = await window.RafexMRViewer.captureView(config, { view:"perspective", width:1120, height:900 });
+      previewCache.set(key, { signature, src }); trimPreviewCache(); return src;
+    }
+    if (!window.RafexB2BViewer?.mount) return null;
     const signature = JSON.stringify({ key: safeKey(key), counts: settings.counts, azimuth: settings.azimuth, elevation: settings.elevation, showPallets: settings.showPallets, dimensions: settings.dimensions, options });
     if (!force && previewCache.get(key)?.signature === signature) return previewCache.get(key).src;
     if (previewPending.has(key)) return previewPending.get(key);

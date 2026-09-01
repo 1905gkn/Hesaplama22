@@ -141,6 +141,17 @@ const nearestAnchor = "      function m2NearestRackGap(rack) {";
 if (!html.includes(nearestAnchor)) throw new Error("v93: en yakin raf ankraji bulunamadi.");
 html = html.replace(nearestAnchor, distanceRuntime + nearestAnchor);
 
+html = replaceFunction(html, "      function m2SmoothDragPosition(rack, targetX, targetY) {", `      function m2SmoothDragPosition(rack, targetX, targetY) {
+        const valid=(x,y)=>m2RackInsideArea(rack,x,y,rack.angle)&&!m2RackOverlaps(rack,x,y,rack.angle);
+        if(valid(targetX,targetY))return{x:targetX,y:targetY,exact:true};
+        const bounds=m2RackBounds(rack,targetX,targetY,rack.angle);let x=targetX,y=targetY;
+        if(bounds.left<0)x-=bounds.left;else if(bounds.right>1000)x-=bounds.right-1000;
+        if(bounds.top<0)y-=bounds.top;else if(bounds.bottom>650)y-=bounds.bottom-650;
+        if((x!==targetX||y!==targetY)&&valid(x,y))return{x,y,exact:false};
+        const startX=rack.x,startY=rack.y,candidates=[],approach=(endX,endY)=>{let low=0,high=1;for(let i=0;i<10;i++){const mid=(low+high)/2,px=startX+(endX-startX)*mid,py=startY+(endY-startY)*mid;if(valid(px,py))low=mid;else high=mid;}const px=startX+(endX-startX)*low,py=startY+(endY-startY)*low;if(Math.hypot(px-startX,py-startY)>.02)candidates.push({x:px,y:py,exact:false});};
+        approach(x,y);approach(x,startY);approach(startX,y);candidates.sort((a,b)=>Math.hypot(a.x-targetX,a.y-targetY)-Math.hypot(b.x-targetX,b.y-targetY));return candidates[0]||null;
+      }`);
+
 html = replaceFunction(html, "      function m2NearestRackGap(rack) {", `      function m2NearestRackGap(rack) {
         const table=m2PerfDistancePrepare(),a=m2CombinedRackBounds(rack),selectedIds=m2MultiSelect.rackIds.size>1&&m2MultiSelect.rackIds.has(rack?.id)?[...m2MultiSelect.rackIds].map(Number).sort((x,y)=>x-y).join(","):"",key=[rack.id,a.left,a.right,a.top,a.bottom,selectedIds].join(":" );
         if(table.nearest.has(key)){table.stats.nearestHits+=1;return table.nearest.get(key);}

@@ -57,8 +57,8 @@ const runtime = String.raw`
     svg.querySelectorAll(":scope > .rafex-shared-foot-layer-v60").forEach(function(node){node.remove()});
     var layer=document.createElementNS("http://www.w3.org/2000/svg","g");layer.setAttribute("class","rafex-shared-foot-layer-v60");layer.setAttribute("pointer-events","none");
     state.racks.forEach(function(rack){
-      if(!rack||isMrRack(rack)||!rack.sharedFootWith||!rack.sharedFootSide)return;
-      var anchor=state.racks.find(function(item){return Number(item.id)===Number(rack.sharedFootWith)}),anchorGroup=anchor&&!isMrRack(anchor)&&svg.querySelector('[data-rack="'+anchor.id+'"]');if(!anchorGroup)return;
+      if(!rack||!rack.sharedFootWith||!rack.sharedFootSide)return;
+      var anchor=state.racks.find(function(item){return Number(item.id)===Number(rack.sharedFootWith)}),anchorGroup=anchor&&svg.querySelector('[data-rack="'+anchor.id+'"]');if(!anchorGroup)return;
       var uprights=Array.from(anchorGroup.querySelectorAll(".m2-b2b-plan-upright:not(.rafex-profile-merge-source-v61)"));if(!uprights.length)return;
       var commonSide=rack.sharedFootSide==="left"?"right":"left",xs=uprights.map(function(node){return Number(node.getAttribute("x"))||0}),edge=commonSide==="left"?Math.min.apply(null,xs):Math.max.apply(null,xs),shared=uprights.filter(function(node){return Math.abs((Number(node.getAttribute("x"))||0)-edge)<.01});if(!shared.length)return;
       var holder=document.createElementNS("http://www.w3.org/2000/svg","g"),transform=anchorGroup.getAttribute("transform");if(transform)holder.setAttribute("transform",transform);holder.setAttribute("data-shared-foot",anchor.id+":"+rack.id);holder.setAttribute("data-shared-side",commonSide);

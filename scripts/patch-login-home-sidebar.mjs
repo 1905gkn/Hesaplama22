@@ -46,19 +46,26 @@ if (!html.includes(viewerWarmMarker)) {
   const sources=${viewerSourcesJson};
   const sourceByModule=Object.fromEntries(sources.map((src)=>[src.includes('/mr-viewer.js')?'mr':'b2b',src]));
   const started=new Set();
+  const pending={};
   const load=(module)=>{
     module=String(module||'').toLowerCase();
     const src=sourceByModule[module];
-    if(!src||started.has(module))return;
+    if(!src)return Promise.resolve(false);
+    if(window[module==='mr'?'RafexMRViewer':'RafexB2BViewer'])return Promise.resolve(true);
+    if(pending[module])return pending[module];
     started.add(module);
     const path=src.split('?')[0];
-    if(document.querySelector('script[src^="'+path+'"]'))return;
+    if(document.querySelector('script[src^="'+path+'"]'))return Promise.resolve(true);
     const script=document.createElement('script');
     script.src=src;
     script.async=true;
     script.dataset.rafexOnDemandViewer=module;
-    script.onerror=()=>{started.delete(module);console.warn(module+' 3D motoru yuklenemedi');};
+    pending[module]=new Promise((resolve,reject)=>{
+      script.onload=()=>resolve(true);
+      script.onerror=()=>{started.delete(module);delete pending[module];reject(new Error(module+' 3D motoru yuklenemedi'));};
+    });
     document.head.appendChild(script);
+    return pending[module];
   };
   document.addEventListener('click',(event)=>{
     const target=event.target.closest?.('[data-page="b2b"],[data-page="mr"]');
