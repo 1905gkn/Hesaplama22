@@ -95,7 +95,7 @@
         const drawing = entry?.drawing || entry;
         if (!drawing) return;
         const label = safeKey(entry?.name || entry?.typeName || entry?.label || `Raf Tipi ${index + 1}`);
-        const system = drawing?.rafexSystem === "mr" || drawing?.b2b?.mr || drawing?.systemType === "mr" || drawing?.b2bLayout?.palletType === "mr" ? "mr" : "b2b";
+        const system = drawing?.rafexSystem === "mr" || drawing?.b2b?.mr || drawing?.systemType === "mr" || drawing?.b2bLayout?.palletType === "mr" || /(^|[ ·_-])MR([ ·_-]|$)/i.test(label) ? "mr" : "b2b";
         if (!groups.has(label)) groups.set(label, { key: label, label, system, entries: new Map(), cards: [] });
         const count = palletCountOf(drawing);
         if (!groups.get(label).entries.has(count)) groups.get(label).entries.set(count, { count, drawing });
@@ -646,6 +646,7 @@
       actions.insertBefore(button, reportTypeHost?.closest("label") || actions.firstChild);
     } else old.replaceWith(button);
     button.addEventListener("click", openEditor);
+    button.addEventListener("click", () => { ensureViewer("b2b").catch(()=>{}); ensureViewer("mr").catch(()=>{}); }, { once:false });
     button.dataset.rafexPerSectionPlacement = "v5";
     return true;
   }
