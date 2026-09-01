@@ -56,7 +56,8 @@ replaceRequired(
       }
       function m2FastDragUnchanged(drag){
         const saved=drag?.rafexFastUndo;if(!saved)return false;
-        return saved.racks.every((item)=>{const rack=m2LayoutState.racks.find((entry)=>Number(entry.id)===Number(item.id));return rack&&Number(rack.x)===Number(item.x)&&Number(rack.y)===Number(item.y)&&!!rack.freePlacement===item.freePlacement&&!!rack.staged===item.staged&&!!rack.locked===item.locked;})&&saved.symbols.every((item)=>{const symbol=m2LayoutSymbols.find((entry)=>Number(entry.id)===Number(item.id));return symbol&&Number(symbol.x)===Number(item.x)&&Number(symbol.y)===Number(item.y);});
+        const same=(a,b)=>Math.abs(Number(a)-Number(b))<.01;
+        return saved.racks.every((item)=>{const rack=m2LayoutState.racks.find((entry)=>Number(entry.id)===Number(item.id));return rack&&same(rack.x,item.x)&&same(rack.y,item.y)&&!!rack.freePlacement===item.freePlacement&&!!rack.staged===item.staged&&!!rack.locked===item.locked;})&&saved.symbols.every((item)=>{const symbol=m2LayoutSymbols.find((entry)=>Number(entry.id)===Number(item.id));return symbol&&same(symbol.x,item.x)&&same(symbol.y,item.y);});
       }
       function m2CanFastFinishStaticClick(drag){
         const saved=drag?.rafexFastUndo,origin=saved?.racks?.[0];
