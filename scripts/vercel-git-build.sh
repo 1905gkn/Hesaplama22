@@ -32,6 +32,8 @@ node scripts/patch-free-layout-staged-fast-v2.mjs
 node scripts/patch-free-layout-geometry-cache-v27.mjs
 node scripts/patch-free-layout-dom-table-v28.mjs
 node scripts/patch-free-layout-runtime-tables-v29.mjs
+node scripts/patch-free-layout-count-distance-performance-v93.mjs
+node scripts/verify-free-layout-count-distance-performance-v93.mjs
 node scripts/patch-free-layout-live-frame-v31.mjs
 node scripts/patch-mobile-responsive.mjs
 node scripts/patch-mobile-desktop-view-v30.mjs
@@ -67,6 +69,9 @@ grep -q 'm2PerfRenderSingleRackDragFrame()' portal.html
 grep -q 'const m2LayoutRuntimeCache = {' portal.html
 grep -q 'm2PerfWallGeometryTable()' portal.html
 grep -q 'm2PerfBlockingSymbols().some' portal.html
+grep -q 'const m2PerfCountDistanceVersion="v93";' portal.html
+grep -q 'm2PerfDistanceLineCandidates' portal.html
+grep -q 'm2PushFastDragUndo(m2LayoutState.drag)' portal.html
 grep -q 'function m2ScheduleLiveRackDrag(svg,event)' portal.html
 grep -q 'const m2PerfGroupDragVersion="v68";' portal.html
 grep -q 'window.rafexFreeGroupDragV68' portal.html
