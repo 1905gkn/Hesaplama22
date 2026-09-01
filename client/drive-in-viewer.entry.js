@@ -4,7 +4,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-const ASSET_VERSION = "drive-in-front-v4";
+const ASSET_VERSION = "drive-in-front-v6";
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 let sharedModelsPromise = null;
 const sourceMetrics = new WeakMap();
@@ -14,7 +14,9 @@ const technicalMaterials = {
   konsol: new THREE.MeshStandardMaterial({ color: 0xb96e18, metalness: 0.38, roughness: 0.4 }),
   arabag: new THREE.MeshStandardMaterial({ color: 0x465963, metalness: 0.58, roughness: 0.4 }),
   palet: new THREE.MeshStandardMaterial({ color: 0xb87942, metalness: 0.04, roughness: 0.62 }),
+  yuk: new THREE.MeshStandardMaterial({ color: 0xd9b96e, metalness: 0, roughness: 0.78 }),
 };
+const loadBoxGeometry = new THREE.BoxGeometry(1, 1, 1);
 
 function metricsOf(source) {
   let metrics = sourceMetrics.get(source);
@@ -29,7 +31,7 @@ function metricsOf(source) {
   return metrics;
 }
 
-function cloneAtPhysicalScale(source, scale, material) {
+function cloneAtPhysicalScale(source, scale, material, orientation = {}) {
   const clone = source.clone(true);
   clone.traverse((part) => {
     if (!part.isMesh) return;
@@ -41,7 +43,8 @@ function cloneAtPhysicalScale(source, scale, material) {
   clone.scale.copy(scale);
   clone.position.set(-center.x * scale.x, -center.y * scale.y, -center.z * scale.z);
   const oriented = new THREE.Group();
-  oriented.rotation.y = Math.PI;
+  oriented.rotation.y = orientation.rotateY === false ? 0 : Math.PI;
+  oriented.rotation.z = orientation.rotationZ || 0;
   oriented.add(clone);
   return oriented;
 }
@@ -165,12 +168,20 @@ class DriveInFrontViewer {
     if (this.models) this.rebuild();
   }
 
-  addPart(source, scale, position, material) {
+  addPart(source, scale, position, material, orientation) {
     const holder = new THREE.Group();
     holder.position.copy(position);
-    holder.add(cloneAtPhysicalScale(source, scale, material));
+    holder.add(cloneAtPhysicalScale(source, scale, material, orientation));
     this.root.add(holder);
     return holder;
+  }
+
+  addLoadBox(size, position) {
+    const mesh = new THREE.Mesh(loadBoxGeometry, technicalMaterials.yuk);
+    mesh.scale.copy(size);
+    mesh.position.copy(position);
+    this.root.add(mesh);
+    return mesh;
   }
 
   rebuild() {
@@ -193,7 +204,14 @@ class DriveInFrontViewer {
     const konsolScale = new THREE.Vector3(konsolUniform, konsolUniform, konsolUniform);
     const konsolHeight = konsolSize.z * konsolUniform;
     const arabagScale = new THREE.Vector3(uprightWidth / arabagSize.x, 1, 1);
-    const paletScale = new THREE.Vector3(c.palletWidth / paletSize.x, c.palletDepth / paletSize.y, c.palletHeight / paletSize.z);
+    // Yeni palet kaynağının planı 800 × 1200 mm'dir. Kaynağın X ekseni raf
+    // derinliğine, Y ekseni ön görünüş genişliğine çevrilir. Fiziksel palet
+    // kalınlığı 150 mm'de tutulur; formdaki yükseklik üstteki yük kutusudur.
+    const paletDepthScale = c.palletDepth / paletSize.x;
+    const paletWidthScale = c.palletWidth / paletSize.y;
+    const palletThickness = 150;
+    const paletThicknessScale = palletThickness / paletSize.z;
+    const paletScale = new THREE.Vector3(paletDepthScale, paletWidthScale, paletThicknessScale);
     const frontY = depth / 2;
 
     for (let i = 0; i <= c.bays; i += 1) {
@@ -203,14 +221,20 @@ class DriveInFrontViewer {
 
     for (let level = 0; level < c.levels; level += 1) {
       const supportZ = c.firstLevelHeight + level * c.levelSpacing;
+      // Formdaki ilk kat ve kat aralığı değerleri taşıma üst kotunu belirtir.
+      const supportTopZ = supportZ;
       for (let bay = 0; bay < c.bays; bay += 1) {
         const left = uprightWidth + bay * bayPitch;
         const right = left + bayClear;
         const centerX = (left + right) / 2;
-        this.addPart(this.models.ray, rayScale, new THREE.Vector3(left + raySize.x / 2, 0, supportZ + 75), technicalMaterials.ray);
-        this.addPart(this.models.ray, rayScale, new THREE.Vector3(right - raySize.x / 2, 0, supportZ + 75), technicalMaterials.ray);
-        this.addPart(this.models.konsol, konsolScale, new THREE.Vector3(centerX, frontY - konsolSize.y * konsolUniform / 2, supportZ + konsolHeight / 2), technicalMaterials.konsol);
-        this.addPart(this.models.palet, paletScale, new THREE.Vector3(centerX, frontY - c.palletDepth / 2 - 40, supportZ + konsolHeight + c.palletHeight / 2), technicalMaterials.palet);
+        this.addPart(this.models.ray, rayScale, new THREE.Vector3(left + raySize.x / 2, 0, supportTopZ - 75), technicalMaterials.ray);
+        this.addPart(this.models.ray, rayScale, new THREE.Vector3(right - raySize.x / 2, 0, supportTopZ - 75), technicalMaterials.ray);
+        this.addPart(this.models.konsol, konsolScale, new THREE.Vector3(centerX, frontY - konsolSize.y * konsolUniform / 2, supportTopZ - konsolHeight / 2), technicalMaterials.konsol);
+        this.addPart(this.models.palet, paletScale, new THREE.Vector3(centerX, frontY - c.palletDepth / 2 - 40, supportTopZ + palletThickness / 2), technicalMaterials.palet, { rotateY: false, rotationZ: -Math.PI / 2 });
+        this.addLoadBox(
+          new THREE.Vector3(c.palletWidth * 0.94, c.palletDepth * 0.94, c.palletHeight),
+          new THREE.Vector3(centerX, frontY - c.palletDepth / 2 - 40, supportTopZ + palletThickness + c.palletHeight / 2),
+        );
       }
       for (let i = 0; i <= c.bays; i += 1) {
         const x = uprightWidth / 2 + i * bayPitch;
