@@ -50,6 +50,31 @@
   let previewTimer = 0;
   let reportRenderTimer = 0;
   let renderQueued = false;
+  const viewerLoads = {};
+
+  function ensureViewer(system) {
+    const api = system === "mr" ? "RafexMRViewer" : "RafexB2BViewer";
+    if (window[api]) return Promise.resolve(true);
+    if (viewerLoads[system]) return viewerLoads[system];
+    try { window.rafexLoadViewerOnDemandV3?.(system); } catch {}
+    viewerLoads[system] = new Promise((resolve, reject) => {
+      let timer = 0;
+      const readyEvent = system === "mr" ? "rafex-mr-viewer-ready" : "rafex-b2b-viewer-ready";
+      const finish = () => { cleanup(); resolve(true); };
+      const cleanup = () => { clearTimeout(timer); window.removeEventListener(readyEvent, finish); };
+      window.addEventListener(readyEvent, finish, { once:true });
+      if (!document.querySelector(`script[data-rafex-section-viewer="${system}"]`) && !document.querySelector(`script[src^="/${system}-viewer.js"]`)) {
+        const script = document.createElement("script");
+        script.src = `/${system}-viewer.js`;
+        script.async = true;
+        script.dataset.rafexSectionViewer = system;
+        script.onerror = () => { cleanup(); delete viewerLoads[system]; reject(new Error(`${system} 3D motoru yüklenemedi`)); };
+        document.head.appendChild(script);
+      }
+      timer = setTimeout(() => { cleanup(); if (window[api]) resolve(true); else { delete viewerLoads[system]; reject(new Error(`${system} 3D motoru zaman aşımına uğradı`)); } }, 15000);
+    });
+    return viewerLoads[system];
+  }
 
   function trimPreviewCache() {
     while (previewCache.size > 12) previewCache.delete(previewCache.keys().next().value);
@@ -196,7 +221,7 @@
     const options = optionsForType(type, settings);
     if (!options) return null;
     const system = type?.system === "mr" ? "mr" : "b2b";
-    if (typeof window.rafexLoadViewerOnDemandV3 === "function") await window.rafexLoadViewerOnDemandV3(system);
+    await ensureViewer(system);
     if (system === "mr") {
       if (!window.RafexMRViewer?.captureView) return null;
       const seed = [...type.entries.values()][0]?.drawing;
