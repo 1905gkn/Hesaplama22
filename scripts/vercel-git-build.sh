@@ -72,6 +72,8 @@ grep -q 'm2PerfBlockingSymbols().some' portal.html
 grep -q 'const m2PerfCountDistanceVersion="v93";' portal.html
 grep -q 'm2PerfDistanceLineCandidates' portal.html
 grep -q 'm2PushFastDragUndo(m2LayoutState.drag)' portal.html
+grep -q 'm2CanFastFinishStaticClick(finishedDrag)' portal.html
+grep -q 'm2PerfRefreshStaticSelectionUi(finishedDrag.id)' portal.html
 grep -q 'function m2ScheduleLiveRackDrag(svg,event)' portal.html
 grep -q 'const m2PerfGroupDragVersion="v68";' portal.html
 grep -q 'window.rafexFreeGroupDragV68' portal.html

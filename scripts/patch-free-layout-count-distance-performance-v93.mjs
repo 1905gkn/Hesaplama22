@@ -58,6 +58,32 @@ replaceRequired(
         const saved=drag?.rafexFastUndo;if(!saved)return false;
         return saved.racks.every((item)=>{const rack=m2LayoutState.racks.find((entry)=>Number(entry.id)===Number(item.id));return rack&&Number(rack.x)===Number(item.x)&&Number(rack.y)===Number(item.y)&&!!rack.freePlacement===item.freePlacement&&!!rack.staged===item.staged&&!!rack.locked===item.locked;})&&saved.symbols.every((item)=>{const symbol=m2LayoutSymbols.find((entry)=>Number(entry.id)===Number(item.id));return symbol&&Number(symbol.x)===Number(item.x)&&Number(symbol.y)===Number(item.y);});
       }
+      function m2CanFastFinishStaticClick(drag){
+        const saved=drag?.rafexFastUndo,origin=saved?.racks?.[0];
+        return saved?.racks?.length===1&&!saved.symbols.length&&!drag.selectionGroup&&Number(drag.groupMembers?.length||1)===1&&!origin.freePlacement&&!origin.staged&&m2FastDragUnchanged(drag);
+      }
+      function m2PerfRefreshStaticSelectionUi(rackId){
+        const layer=$("m2LayoutContent");
+        if(layer)layer.querySelectorAll("g[data-rack]").forEach((group)=>{const selected=Number(group.dataset.rack)===Number(rackId)||m2MultiSelect.rackIds.has(Number(group.dataset.rack)),rect=group.querySelector(".m2-layout-rack"),color=group.dataset.typeColor||"#2878d0";if(rect){rect.classList.toggle("selected",selected);rect.style.fill=selected?color+"24":"transparent";rect.style.stroke=selected?color:"transparent";}});
+        const activeRack=m2SelectedRack();
+        [["m2ShowTotalLength","length"],["m2ShowTotalDepth","depth"]].forEach(([id,kind])=>{const button=$(id),active=Boolean(activeRack&&m2VisibleRackDimensions[kind].has(activeRack.id));if(button){button.classList.toggle("active",active);button.setAttribute("aria-pressed",String(active));}});
+        const wallEditor=$("m2WallEditor"),measurementRack=m2MeasurementRack();
+        if(wallEditor){
+          wallEditor.hidden=false;wallEditor.style.display=m2ActiveModule==="b2b"?"grid":"";wallEditor.replaceChildren();
+          if(m2ActiveModule==="b2b"){
+            const title=document.createElement("div"),name=document.createElement("small"),caption=document.createElement("span");title.className="m2-wall-editor-title";caption.textContent="RAF / DUVAR UZAKLIKLARI";name.textContent=measurementRack?.blockName||measurementRack?.typeName||"RAF";title.append(caption,name);wallEditor.appendChild(title);
+          }
+          if(!measurementRack){if(m2ActiveModule==="b2b"){const empty=document.createElement("div");empty.className="m2-wall-editor-empty";empty.textContent="Uzaklıkları görmek için yerleşime bir raf bloğu ekle.";wallEditor.appendChild(empty);}}
+          else{
+            const measurements=m2WallMeasurements(measurementRack),labels={left:"Sol duvar",right:"Sağ duvar",top:"Üst duvar",bottom:"Alt duvar"},nearest=m2NearestRackGap(measurementRack),nearestColumn=m2NearestColumnGap(measurementRack),rackPinned=m2PinnedForRack(measurementRack.id);
+            const appendField=(label,value,pinKey,onChange,aria)=>{const row=document.createElement("label"),text=document.createElement("span"),input=document.createElement("input");row.className="m2-edge-field dimension-field";if(pinKey){const pin=document.createElement("input");pin.type="checkbox";pin.checked=!!rackPinned[pinKey];pin.setAttribute("aria-label",label+" ölçüsünü sabitle");pin.addEventListener("change",()=>m2TogglePinnedDimension(pinKey,pin.checked));row.appendChild(pin);}else{const icon=document.createElement("i");icon.setAttribute("aria-hidden","true");icon.textContent="↔";row.appendChild(icon);}text.textContent=label;input.type="number";input.min="0";input.step="1";input.value=String(value);input.setAttribute("aria-label",aria);input.addEventListener("input",(event)=>event.stopPropagation());input.addEventListener("change",()=>onChange(input.value));row.append(text,input);wallEditor.appendChild(row);};
+            Object.entries(measurements).forEach(([direction,item])=>appendField(labels[direction],Math.round(item.px/m2LayoutState.scale),direction,(value)=>m2SetWallDistance(direction,value),labels[direction]+" mesafesi milimetre"));
+            if(nearest)appendField("En yakın raf arası",Math.max(0,Math.round(nearest.distance/m2LayoutState.scale)-nearest.clearanceMm),"gap",(value)=>m2SetRackCenterDistance(value),"En yakın raf arası gösterge ölçüsü milimetre");
+            if(nearestColumn)appendField("Kolon–raf arası",Math.max(0,Math.round(nearestColumn.distance/m2LayoutState.scale)),null,(value)=>m2SetColumnDistance(value),"Kolon ile raf arası mesafe milimetre");
+          }
+        }
+        m2RenderSelectedRackInfo();
+      }
       function m2DiscardUndo(){m2UndoHistory.pop();m2UpdateUndoButton();}`,
   "hafif raf tasima geri alma kaydi",
 );
@@ -170,13 +196,21 @@ html = html.slice(0, wallStart) + wallCached + html.slice(wallEnd);
 // Tiklayip hic tasimadan birakmak geri alma listesine sahte bir hareket eklemesin.
 replaceRequired(
   `          m2LayoutState.drag = null; m2DimensionDrag = null; m2RenderLayout();`,
-  `          const finishedDrag=m2LayoutState.drag;m2LayoutState.drag=null;m2DimensionDrag=null;if(finishedDrag&&m2FastDragUnchanged(finishedDrag))m2DiscardUndo();m2RenderLayout();`,
+  `          const finishedDrag=m2LayoutState.drag;
+          if(finishedDrag&&m2CanFastFinishStaticClick(finishedDrag)){
+            if(m2LayoutRenderFrame!=null){cancelAnimationFrame(m2LayoutRenderFrame);m2LayoutRenderFrame=null;}
+            if(typeof m2PerfRenderSingleRackDragFrame==="function")m2PerfRenderSingleRackDragFrame();
+            m2DiscardUndo();m2LayoutState.drag=null;m2DimensionDrag=null;m2PerfRefreshStaticSelectionUi(finishedDrag.id);return;
+          }
+          m2LayoutState.drag=null;m2DimensionDrag=null;if(finishedDrag&&m2FastDragUnchanged(finishedDrag))m2DiscardUndo();m2RenderLayout();`,
   "hareketsiz tiklama geri alma temizligi",
 );
 
 for (const required of [
   marker,
   "m2PushFastDragUndo(m2LayoutState.drag)",
+  "m2CanFastFinishStaticClick(finishedDrag)",
+  "m2PerfRefreshStaticSelectionUi(finishedDrag.id)",
   "snapshot.fastDrag",
   "m2PerfDistanceLineCandidates",
   "table.nearest.has(key)",
