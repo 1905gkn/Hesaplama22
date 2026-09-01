@@ -218,8 +218,6 @@
   async function capturePerspective(key, source = draft, force = false) {
     const type = rackTypeCache.find((item) => item.key === safeKey(key)) || collectRackTypes().find((item) => item.key === safeKey(key));
     const settings = settingFor(key, source);
-    const options = optionsForType(type, settings);
-    if (!options) return null;
     const system = type?.system === "mr" ? "mr" : "b2b";
     await ensureViewer(system);
     if (system === "mr") {
@@ -231,6 +229,8 @@
       const src = await window.RafexMRViewer.captureView(config, { view:"perspective", width:1120, height:900 });
       previewCache.set(key, { signature, src }); trimPreviewCache(); return src;
     }
+    const options = optionsForType(type, settings);
+    if (!options) return null;
     if (!window.RafexB2BViewer?.mount) return null;
     const signature = JSON.stringify({ key: safeKey(key), counts: settings.counts, azimuth: settings.azimuth, elevation: settings.elevation, showPallets: settings.showPallets, dimensions: settings.dimensions, options });
     if (!force && previewCache.get(key)?.signature === signature) return previewCache.get(key).src;
