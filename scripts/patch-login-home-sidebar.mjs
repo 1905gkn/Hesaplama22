@@ -31,43 +31,36 @@ if (i18nNeedle.test(html)) html = html.replace(i18nNeedle, i18nFastPath);
 else if (!html.includes('if (appLanguage === "tr") return;\n        i18nObserver.disconnect();')) throw new Error("Turkce i18n hizli yolu eklenemedi.");
 
 // Buyuk 3D bundle'lari login HTML'inin defer zincirinden cikar. Modul kodu
-// degismez; giris tamamlaninca idle zamanda veya ilgili menu tiklaninca yuklenir.
+// degismez; her motor yalniz kendi menu ogesi acilinca yuklenir.
 const deferredViewerSources = [];
 html = html.replace(/\s*<script\s+defer\s+src="(\/(?:b2b|mr)-viewer\.js[^"]*)"\s*><\/script>\s*/g, (match, src) => {
   deferredViewerSources.push(src);
   return "\n";
 });
-const viewerWarmMarker = 'data-rafex-viewer-idle-warm="v2"';
+const viewerWarmMarker = 'data-rafex-viewer-on-demand="v3"';
 if (!html.includes(viewerWarmMarker)) {
   if (deferredViewerSources.length !== 2) throw new Error("B2B/MR viewer defer kaynaklari bulunamadi.");
   const viewerSourcesJson = JSON.stringify(deferredViewerSources);
   const viewerWarmRuntime = `<script ${viewerWarmMarker}>
 (function(){
-  const auth=document.getElementById('auth');
   const sources=${viewerSourcesJson};
-  let started=false;
-  const load=()=>{
-    if(started)return;
-    started=true;
-    sources.forEach((src)=>{
-      const path=src.split('?')[0];
-      if(document.querySelector('script[src^="'+path+'"]'))return;
-      const script=document.createElement('script');
-      script.src=src;
-      script.async=true;
-      document.head.appendChild(script);
-    });
+  const sourceByModule=Object.fromEntries(sources.map((src)=>[src.includes('/mr-viewer.js')?'mr':'b2b',src]));
+  const started=new Set();
+  const load=(module)=>{
+    const src=sourceByModule[module];
+    if(!src||started.has(module))return;
+    started.add(module);
+    const path=src.split('?')[0];
+    if(document.querySelector('script[src^="'+path+'"]'))return;
+    const script=document.createElement('script');
+    script.src=src;
+    script.async=true;
+    document.head.appendChild(script);
   };
-  const schedule=()=>{
-    if(!auth||!auth.classList.contains('hidden'))return;
-    if('requestIdleCallback' in window)requestIdleCallback(load,{timeout:1200});
-    else setTimeout(load,250);
-  };
-  if(auth)new MutationObserver(schedule).observe(auth,{attributes:true,attributeFilter:['class','hidden']});
   document.addEventListener('click',(event)=>{
-    if(event.target.closest?.('[data-page="b2b"],[data-page="mr"]'))load();
+    const target=event.target.closest?.('[data-page="b2b"],[data-page="mr"]');
+    if(target)load(target.getAttribute('data-page'));
   },true);
-  schedule();
 })();
 </script>`;
   const bodyEnd = html.lastIndexOf("</body>");
