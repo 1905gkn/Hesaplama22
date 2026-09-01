@@ -85,10 +85,6 @@ const runtime = `
   function normalized(el){
     return String(el && (el.innerText || el.textContent) || '').replace(/\\s+/g,' ').trim().toLocaleLowerCase('tr-TR');
   }
-  function isVersionCopy(el){
-    var txt=normalized(el);
-    return (txt.includes('son sürüm') || txt.includes('son surum')) && (txt.includes('yüklenme') || txt.includes('yuklenme'));
-  }
   function visible(el){
     return !!(el && !el.classList.contains('hidden') && getComputedStyle(el).display !== 'none' && getComputedStyle(el).visibility !== 'hidden');
   }
@@ -100,26 +96,18 @@ const runtime = `
       return t.includes('proje geçmişi') || t.includes('proje gecmisi');
     }) || null;
   }
-  function removeAllOtherVersionCopies(card){
+  function removeKnownVersionCopies(card){
     ['rafexVersionBadge','rafexBuildVersionBadge','rafexVersionInfoTop','rafexVersionInfoLogin'].forEach(function(id){
       var old=document.getElementById(id);if(old)old.remove();
     });
-    Array.from(document.body ? document.body.querySelectorAll('*') : []).forEach(function(el){
-      if(el===card || card.contains(el))return;
-      if(!isVersionCopy(el))return;
-      var r=el.getBoundingClientRect ? el.getBoundingClientRect() : {width:0,height:0};
-      var cardSized=r.width>=110 && r.width<=420 && r.height>=24 && r.height<=120;
-      var labelled=String(el.getAttribute && el.getAttribute('aria-label') || '').toLocaleLowerCase('tr-TR').includes('son sürüm');
-      var known=el.classList && (el.classList.contains('rafex-version-info-card') || el.classList.contains('version-badge') || el.classList.contains('version-info'));
-      if(cardSized || labelled || known)el.remove();
+    document.querySelectorAll('.rafex-version-info-card,.version-badge,.version-info,[aria-label*="Son sürüm"],[aria-label*="Son surum"]').forEach(function(el){
+      if(el!==card && !card.contains(el))el.remove();
     });
   }
   function place(){
     if(!document.body)return;
     var card=document.getElementById('rafexVersionInfoCard');
     if(!card)return;
-    removeAllOtherVersionCopies(card);
-
     var app=document.getElementById('app');
     var auth=document.getElementById('auth');
     var history=findHistoryButton();
@@ -144,7 +132,14 @@ const runtime = `
     if(queued)return;queued=true;
     requestAnimationFrame(function(){queued=false;place();});
   }
-  new MutationObserver(schedule).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style']});
+  var card=document.getElementById('rafexVersionInfoCard');
+  if(card)removeKnownVersionCopies(card);
+  var auth=document.getElementById('auth');
+  if(auth)new MutationObserver(schedule).observe(auth,{attributes:true,attributeFilter:['class','hidden']});
+  var app=document.getElementById('app');
+  if(app)new MutationObserver(schedule).observe(app,{attributes:true,attributeFilter:['class','hidden']});
+  var topActions=document.querySelector('.top-actions');
+  if(topActions)new MutationObserver(schedule).observe(topActions,{childList:true});
   window.addEventListener('load',schedule);
   document.addEventListener('click',function(){setTimeout(schedule,0)},true);
   window.addEventListener('hashchange',schedule);
@@ -556,3 +551,4 @@ source = source.replace(match[0], `const HTML_BASE64 =\n  "${encoded}";`);
 fs.writeFileSync(target, source);
 
 console.log(`Version badge position patch v17: exactly one physical card: ${buildSha} @ ${buildTime}`);
+
