@@ -47,6 +47,7 @@ if (!html.includes(viewerWarmMarker)) {
   const sourceByModule=Object.fromEntries(sources.map((src)=>[src.includes('/mr-viewer.js')?'mr':'b2b',src]));
   const started=new Set();
   const load=(module)=>{
+    module=String(module||'').toLowerCase();
     const src=sourceByModule[module];
     if(!src||started.has(module))return;
     started.add(module);
@@ -55,12 +56,21 @@ if (!html.includes(viewerWarmMarker)) {
     const script=document.createElement('script');
     script.src=src;
     script.async=true;
+    script.dataset.rafexOnDemandViewer=module;
+    script.onerror=()=>{started.delete(module);console.warn(module+' 3D motoru yuklenemedi');};
     document.head.appendChild(script);
   };
   document.addEventListener('click',(event)=>{
     const target=event.target.closest?.('[data-page="b2b"],[data-page="mr"]');
     if(target)load(target.getAttribute('data-page'));
   },true);
+  document.addEventListener('change',(event)=>{
+    const target=event.target;
+    if(target?.matches?.('input[name="rafexUnifiedSystem"]'))load(target.value);
+  },true);
+  const page=document.getElementById('page');
+  if(page)new MutationObserver(()=>load(page.dataset.rafexFreeContextSystem)).observe(page,{attributes:true,attributeFilter:['data-rafex-free-context-system']});
+  window.rafexLoadViewerOnDemandV3=load;
 })();
 </script>`;
   const bodyEnd = html.lastIndexOf("</body>");
@@ -177,6 +187,9 @@ if (!html.includes(sessionRecoveryMarker)) {
 }
 
 if (!html.includes(marker) || !html.includes(guardMarker) || !html.includes(speedMarker) || !html.includes(speedGuardMarker) || !html.includes(sessionRecoveryMarker) || !html.includes(viewerWarmMarker)) throw new Error("Giriş/yan menü performans düzeltmesi eklenemedi.");
+for (const required of ['input[name="rafexUnifiedSystem"]', 'data-rafex-free-context-system', 'rafexLoadViewerOnDemandV3']) {
+  if (!html.includes(required)) throw new Error(`Ortak Çizim 3D yükleyici bağlantısı eksik: ${required}`);
+}
 fs.writeFileSync(portalPath, html);
 console.log("Giris hizli yolu etkin: TR DOM hot-loop kapali ve proje gecmisi acilisi bloklamiyor.");
 
