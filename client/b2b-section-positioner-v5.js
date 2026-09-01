@@ -62,7 +62,10 @@
   function collectRackTypes() {
     const groups = new Map();
     try {
-      const used = typeof m2CorporateUsedTypes === "function" ? m2CorporateUsedTypes() : [];
+      let used = typeof m2CorporateUsedTypes === "function" ? m2CorporateUsedTypes() : [];
+      if ((!Array.isArray(used) || !used.length) && typeof m2LayoutState !== "undefined" && Array.isArray(m2LayoutState?.racks)) {
+        used = m2LayoutState.racks.map((rack, index) => ({ name:rack.typeName || rack.name || `Raf Tipi ${index + 1}`, drawing:rack }));
+      }
       (Array.isArray(used) ? used : []).forEach((entry, index) => {
         const drawing = entry?.drawing || entry;
         if (!drawing) return;
