@@ -104,7 +104,9 @@ const runtime = String.raw`
   m2SvgPoint=function(event){return point(event)};
   window.rafexCommonDrawingFocusSelectedV49=focusSelected;window.rafexCommonDrawingFitAllV49=fitAll;window.rafexCommonDrawingViewportV49={focusSelected:focusSelected,fitAll:fitAll,setNavigation:setNavMode,apply:apply};
   document.addEventListener("click",function(event){if(event.target.closest('[data-page="mekik2"],[data-page="b2b"],[data-page="mr"],[data-page="free"]'))[40,160,420,900].forEach(function(ms){setTimeout(function(){scheduleAfterRender(0)},ms)})},true);
-  var observer=new MutationObserver(function(){scheduleAfterRender(45)});observer.observe(document.documentElement,{childList:true,subtree:true});
+  // Yenileme m2RenderLayout sarmalayıcısından ve modül tıklamalarından gelir.
+  // Genel DOM observer, kendi apply/decorate işlemlerini yeniden tetikleyerek
+  // ana iş parçacığını sürekli meşgul ediyordu.
   [0,80,250,700,1400].forEach(function(ms){setTimeout(function(){scheduleAfterRender(0)},ms)});
 })();
 </script>`;
@@ -134,3 +136,4 @@ const encoded = Buffer.from(html).toString("base64");
 source = source.slice(0, match.index) + match[0].replace(match[2], encoded) + source.slice(match.index + match[0].length);
 fs.writeFileSync(file, source);
 console.log("v49: Ortak Çizim normal çizim ve isteğe bağlı görünüm modu ayrıldı; otomatik kamera kapalı, tip rengi ana ayrım oldu.");
+
