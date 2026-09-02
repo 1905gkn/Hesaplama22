@@ -55,6 +55,25 @@ const runtime = String.raw`
       });
     });
   }
+  function refineB2BPlanSpacing(group,rack){
+    if(!rack||!rack.b2bLayout||isMrRack(rack))return;
+    var columns={};
+    group.querySelectorAll(".rafex-merged-b2b-profile-v61").forEach(function(node){
+      var key=(Number(node.getAttribute("x"))||0).toFixed(2);(columns[key]||(columns[key]=[])).push(node);
+    });
+    Object.keys(columns).forEach(function(key){
+      var nodes=columns[key].sort(function(a,b){return (Number(a.getAttribute("y"))||0)-(Number(b.getAttribute("y"))||0)});if(nodes.length!==2)return;
+      var upper=nodes[0],lower=nodes[1],upperH=Number(upper.getAttribute("height"))||0,lowerY=Number(lower.getAttribute("y"))||0,lowerH=Number(lower.getAttribute("height"))||0,extra=Math.min(1.4,Math.max(.6,Math.min(upperH,lowerH)*.075));
+      upper.setAttribute("height",String(Math.max(0,upperH-extra/2)));lower.setAttribute("y",String(lowerY+extra/2));lower.setAttribute("height",String(Math.max(0,lowerH-extra/2)));
+      upper.dataset.rafexB2BRowGap="v73";lower.dataset.rafexB2BRowGap="v73";
+    });
+    group.querySelectorAll(".m2-b2b-plan-pallet").forEach(function(pallet){
+      var baseX=Number(pallet.dataset.rafexB2BPalletBaseX),baseW=Number(pallet.dataset.rafexB2BPalletBaseWidth);
+      if(!Number.isFinite(baseX)){baseX=Number(pallet.getAttribute("x"))||0;pallet.dataset.rafexB2BPalletBaseX=String(baseX)}
+      if(!Number.isFinite(baseW)||baseW<=0){baseW=Number(pallet.getAttribute("width"))||0;pallet.dataset.rafexB2BPalletBaseWidth=String(baseW)}
+      if(baseW<=0)return;var inset=baseW*.03;pallet.setAttribute("x",String(baseX+inset));pallet.setAttribute("width",String(baseW-inset*2));pallet.dataset.rafexB2BPalletGap="v73";
+    });
+  }
   function renderSharedFeet(state,svg){
     svg.querySelectorAll(":scope > .rafex-shared-foot-layer-v60").forEach(function(node){node.remove()});
     var layer=document.createElementNS("http://www.w3.org/2000/svg","g");layer.setAttribute("class","rafex-shared-foot-layer-v60");layer.setAttribute("pointer-events","none");
@@ -74,13 +93,14 @@ const runtime = String.raw`
     svg.querySelectorAll("[data-rack]").forEach(function(group){
       var id=Number(group.getAttribute("data-rack")),rack=state.racks.find(function(item){return Number(item.id)===id}),finish=rack&&rack.b2b&&rack.b2b.mr?(rack.b2b.uprightFinish||"ral5010"):rack&&rack.b2b&&rack.b2b.footColor,is5010=finish==="ral5010";
       mergeBackToBackProfiles(group,rack);
+      refineB2BPlanSpacing(group,rack);
       group.querySelectorAll(".m2-b2b-plan-upright").forEach(function(upright){upright.classList.toggle("rafex-ral5010-upright",is5010);upright.setAttribute("data-upright-finish",is5010?"RAL 5010":finish||"PGV");upright.style.setProperty("filter","none","important")});
     });
     renderSharedFeet(state,svg);
   }
   function copyPdfUprightPaint(){
     var source=document.getElementById("m2LayoutSvg");if(!source)return;
-    var selector=".m2-b2b-plan-upright,.m2-ayak-glb-shape path,.m2-ayak-glb-shape rect,.m2-ayak-glb-shape circle";
+    var selector=".m2-b2b-plan-upright,.m2-b2b-plan-frame,.m2-b2b-plan-beam,.m2-b2b-plan-pallet,.m2-b2b-plan-pallet-line,.rafex-single-line-letter-v58 path,.m2-ayak-glb-shape path,.m2-ayak-glb-shape rect,.m2-ayak-glb-shape circle";
     var sourceParts=Array.from(source.querySelectorAll(selector));if(!sourceParts.length)return;
     ["m2CorporatePreview","m2CorporatePrint","m2CorporatePrintArea"].forEach(function(id){
       var host=document.getElementById(id);if(!host)return;
@@ -89,7 +109,7 @@ const runtime = String.raw`
         targetParts.forEach(function(target,index){
           var original=sourceParts[index];if(!original)return;
           var paint=getComputedStyle(original);
-          ["fill","stroke","stroke-width","opacity"].forEach(function(name){
+          ["fill","fill-opacity","stroke","stroke-opacity","stroke-width","opacity"].forEach(function(name){
             var value=paint.getPropertyValue(name);if(value)target.style.setProperty(name,value,"important");
           });
           target.style.setProperty("filter","none","important");
@@ -149,6 +169,9 @@ for (const required of [
   'data-merged-profiles',
   'data-b2b-profile-gap',
   'mergeBackToBackProfiles(group,rack)',
+  'refineB2BPlanSpacing(group,rack)',
+  'dataset.rafexB2BRowGap="v73"',
+  'dataset.rafexB2BPalletGap="v73"',
   'nodes.length===2',
   'rack.b2bLayout.palletType==="mr"',
   'merged.style.setProperty("transform","none","important")',
@@ -156,6 +179,7 @@ for (const required of [
   'rack.b2b.uprightFinish||"ral5010"',
   'rack.b2b&&rack.b2b.footColor',
   'copyPdfUprightPaint',
+  '.m2-b2b-plan-pallet-line,.rafex-single-line-letter-v58 path',
   'dataset.rafexUprightPaint="live-svg-v72"',
   'corporateWrapper.__rafexUprightPaintV72=true',
   '#m2CreateOutputButton,#m2PdfButton,.m2-pdf-button',
@@ -165,5 +189,5 @@ for (const required of [
 const encoded = Buffer.from(html).toString("base64");
 source = source.slice(0, match.index) + match[0].replace(match[2], encoded) + source.slice(match.index + match[0].length);
 fs.writeFileSync(file, source);
-console.log("v57/v60/v72: Serbest Cizim ayak renkleri PDF SVG'sine inline kopyalanir; RAL 5010 griye donmez.");
+console.log("v57/v60/v72/v73: B2B bosluklari korunur; Serbest Cizim renk ve kontrasti PDF SVG'sine inline kopyalanir.");
 
