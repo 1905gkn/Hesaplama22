@@ -78,7 +78,9 @@ const runtime = `<script data-rafex-heavy-viewers-on-demand="v1">
   function loadActive(){
     const page=document.getElementById('page');
     const active=document.querySelector('#nav button[data-page].active,#mobileTabs button[data-mobile-page].active');
-    const name=normalized(active?.dataset?.page||active?.dataset?.mobilePage||page?.dataset?.rafexFreeContextSystem||page?.dataset?.freeSystem||page?.dataset?.m2Module);
+    const activeName=normalized(active?.dataset?.page||active?.dataset?.mobilePage);
+    const contextName=normalized(page?.dataset?.rafexFreeContextSystem||page?.dataset?.freeSystem||page?.dataset?.m2Module);
+    const name=activeName==='free'?contextName:(activeName||contextName);
     if(sources[name])load(name).catch((error)=>console.warn(error));
   }
   function scheduleActiveLoad(){
