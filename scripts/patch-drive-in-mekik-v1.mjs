@@ -132,16 +132,17 @@ const runtime = String.raw`
 
   function renderDimensions(host,c,layout){
     const svg=host.querySelector('.rafex-drive-dimensions');if(!svg||!layout)return;
-    const w=Math.max(1,layout.width),h=Math.max(1,layout.height),left=layout.left,right=layout.right,top=layout.top,bottom=layout.bottom;
+    const rect=svg.parentElement?.getBoundingClientRect?.()||svg.getBoundingClientRect(),rawW=Math.max(1,layout.width),rawH=Math.max(1,layout.height),w=Math.max(1,rect.width),h=Math.max(1,rect.height),sx=w/rawW,sy=h/rawH;
+    const left=layout.left*sx,right=layout.right*sx,top=layout.top*sy,bottom=layout.bottom*sy;
     const rackH=c.firstLevelHeight+Math.max(0,c.levels-1)*c.levelSpacing+c.palletHeight+220;
-    const ground=Number.isFinite(layout.groundY)?layout.groundY:bottom,supportYs=Array.isArray(layout.supportYs)?layout.supportYs:[];
+    const ground=Number.isFinite(layout.groundY)?layout.groundY*sy:bottom,supportYs=Array.isArray(layout.supportYs)?layout.supportYs.map((value)=>value*sy):[];
     const lx=Math.max(108,left-Math.min(34,w*.035)),labelX=lx-16,rx=Math.min(w-150,right+Math.max(52,w*.045)),rx2=Math.min(w-72,right+Math.max(125,w*.1));
     const arrow='<defs><marker id="rafexDriveArrow" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto-start-reverse"><path d="M0,0 L5,2.5 L0,5 Z" fill="#d7aa00"/></marker></defs>';
     let out=arrow+'<text class="dim-title" x="'+Math.max(8,labelX-6)+'" y="'+Math.max(18,top+14)+'">KOT ARALIKLARI</text>';
     const first=Number.isFinite(supportYs[0])?supportYs[0]:ground;
     out+='<line class="dim-line dim-main" x1="'+lx+'" y1="'+ground+'" x2="'+lx+'" y2="'+first+'" marker-start="url(#rafexDriveArrow)" marker-end="url(#rafexDriveArrow)"/><line class="dim-line" x1="'+lx+'" y1="'+ground+'" x2="'+left+'" y2="'+ground+'"/><line class="dim-line" x1="'+lx+'" y1="'+first+'" x2="'+left+'" y2="'+first+'"/><text x="'+labelX+'" y="'+(ground-7)+'" text-anchor="end">ZEMİN · '+Math.round(c.firstLevelHeight)+' mm</text>';
     for(let i=1;i<c.levels;i+=1){const y1=supportYs[i-1],y2=supportYs[i];if(!Number.isFinite(y1)||!Number.isFinite(y2))continue;const mid=(y1+y2)/2;out+='<line class="dim-line dim-main" x1="'+lx+'" y1="'+y1+'" x2="'+lx+'" y2="'+y2+'" marker-start="url(#rafexDriveArrow)" marker-end="url(#rafexDriveArrow)"/><line class="dim-line" x1="'+lx+'" y1="'+y2+'" x2="'+left+'" y2="'+y2+'"/><text x="'+labelX+'" y="'+(mid+4)+'" text-anchor="end">K'+i+' · '+Math.round(c.levelSpacing)+' mm</text>'}
-    const lastSupport=c.firstLevelHeight+Math.max(0,c.levels-1)*c.levelSpacing,lastPallet=lastSupport,total=rackH,yp=supportYs[c.levels-1]??first,yt=Number.isFinite(layout.uprightTopY)?layout.uprightTopY:top;
+    const lastSupport=c.firstLevelHeight+Math.max(0,c.levels-1)*c.levelSpacing,lastPallet=lastSupport,total=rackH,yp=supportYs[c.levels-1]??first,yt=Number.isFinite(layout.uprightTopY)?layout.uprightTopY*sy:top;
     out+='<line class="dim-line dim-main" x1="'+rx+'" y1="'+ground+'" x2="'+rx+'" y2="'+yp+'" marker-start="url(#rafexDriveArrow)" marker-end="url(#rafexDriveArrow)"/><line class="dim-line" x1="'+right+'" y1="'+yp+'" x2="'+rx+'" y2="'+yp+'"/><text x="'+(rx+20)+'" y="'+((ground+yp)/2)+'" text-anchor="middle" transform="rotate(-90 '+(rx+20)+' '+((ground+yp)/2)+')">SON PALET YÜKSEKLİĞİ · '+Math.round(lastPallet)+' mm</text>';
     out+='<line class="dim-line dim-main" x1="'+rx2+'" y1="'+ground+'" x2="'+rx2+'" y2="'+yt+'" marker-start="url(#rafexDriveArrow)" marker-end="url(#rafexDriveArrow)"/><line class="dim-line" x1="'+right+'" y1="'+yt+'" x2="'+rx2+'" y2="'+yt+'"/><line class="dim-line" x1="'+right+'" y1="'+ground+'" x2="'+rx2+'" y2="'+ground+'"/><text x="'+(rx2+22)+'" y="'+((ground+yt)/2)+'" text-anchor="middle" transform="rotate(-90 '+(rx2+22)+' '+((ground+yt)/2)+')">AYAK UZUNLUĞU · '+Math.round(total)+' mm</text>';
     svg.setAttribute('viewBox','0 0 '+w+' '+h);svg.innerHTML=out;
