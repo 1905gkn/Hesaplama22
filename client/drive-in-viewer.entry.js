@@ -273,10 +273,10 @@ class DriveInFrontViewer {
     const lowerLeft = project(bounds.min.x, bounds.min.z);
     const upperRight = project(bounds.max.x, bounds.max.z);
     this.emit("drive-in-layout", {
-      left: lowerLeft.x,
-      right: upperRight.x,
-      top: upperRight.y,
-      bottom: lowerLeft.y,
+      left: Math.min(lowerLeft.x, upperRight.x),
+      right: Math.max(lowerLeft.x, upperRight.x),
+      top: Math.min(lowerLeft.y, upperRight.y),
+      bottom: Math.max(lowerLeft.y, upperRight.y),
       width,
       height,
     });
