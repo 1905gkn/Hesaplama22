@@ -94,7 +94,7 @@ const runtime = String.raw`<style data-rafex-pdf-direct-types="v19">
   function systemOf(entry){
     var d=entry&&entry.drawing||entry||{};
     var x=String(entry&&entry.rafexSystem||entry&&entry.__rafexSystem||d&&d.rafexSystem||'').toLowerCase();
-    if(x==='b2b'||x==='mekik2'||x==='drive'||x==='konsol'||x==='konsol-kollu'||x==='cantilever')return x==='konsol-kollu'||x==='cantilever'?'konsol':x;
+    if(x==='b2b'||x==='mekik2'||x==='drive'||x==='mr'||x==='konsol'||x==='konsol-kollu'||x==='cantilever')return x==='konsol-kollu'||x==='cantilever'?'konsol':x;
     return d&&((d.b2bLayout)||(d.b2b))?'b2b':'mekik2';
   }
   function typeName(entry,index){return String(entry&&entry.name||entry&&entry.typeName||('Tip '+(index+1))).trim()}
