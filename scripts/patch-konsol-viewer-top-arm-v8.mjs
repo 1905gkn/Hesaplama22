@@ -6,7 +6,7 @@ let source=fs.readFileSync(file,'utf8');
 // Kat arası kullanıcıdan net olarak gelir. Zemin profilinin üst yüzeyi ilk taşıma
 // kotudur; bütün kollar bu yüzden aynı net kat aralığıyla yerleşir.
 const oldArmLine='        const y = (o.height / (o.levels + 1)) * level;';
-const topArmLine='        const y = uprightSection.h + (o.productHeight + o.liftClearance) * level - armSection.h / 2;';
+const topArmLine='        const y = uprightSection.h + visualLevelGap * level - armSection.h / 2;';
 if(source.includes(oldArmLine)) source=source.replace(oldArmLine,topArmLine);
 else if(!source.includes(topArmLine)) throw new Error('Konsol top-arm hedef satiri bulunamadi.');
 
@@ -14,7 +14,7 @@ const oldGeometry=`    const uprightDepth = uprightSection.h;
     const uprightWidth = uprightSection.b;`;
 const newGeometry=`    const uprightDepth = uprightSection.h;
     const uprightWidth = uprightSection.b;
-    const visualLevelGap = o.productHeight + o.liftClearance;
+    const visualLevelGap = Math.max(100, Number(o.productHeight) || 900) + Math.max(0, Number(o.liftClearance) || 100);
     const visualTopArmSupport = uprightSection.h + visualLevelGap * o.levels;
     const visualTopExtension = Math.max(0, visualLevelGap);
     const visualUprightHeight = visualTopArmSupport + visualTopExtension;`;
@@ -32,7 +32,7 @@ else if(!source.includes('iBeamAlongY(visualUprightHeight, uprightSection, uprig
 
 for(const required of [
   topArmLine.trim(),
-  'const visualLevelGap = o.productHeight + o.liftClearance;',
+  'const visualLevelGap = Math.max(100, Number(o.productHeight) || 900) + Math.max(0, Number(o.liftClearance) || 100);',
   'const visualTopArmSupport = uprightSection.h + visualLevelGap * o.levels;',
   'const visualTopExtension = Math.max(0, visualLevelGap);',
   'iBeamAlongY(visualUprightHeight, uprightSection, uprightMat)',
