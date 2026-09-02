@@ -88,7 +88,7 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
     copy.__rafexOriginalName=String(entry&&entry.name||'Raf').trim();
     copy.__rafexSystem=system;
     copy.__rafexSystemLabel=systemLabel(system);
-    copy.__rafexApi=system==='mekik2'||system==='drive'?'/api/mekik2-types':'/api/b2b-types';
+    copy.__rafexApi=system==='mekik2'||system==='drive'||system==='konsol'?'/api/mekik2-types':'/api/b2b-types';
     copy.__rafexUnified=true;
     return copy;
   }
@@ -107,7 +107,7 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
       }
       if(settled[1].status==='fulfilled'){
         var mekikRows=Array.isArray(settled[1].value&&settled[1].value.types)?settled[1].value.types:[];
-        mekikRows.filter(validEntry).forEach(function(entry){merged.push(normalizeCatalogEntry(entry,String(entry&&entry.drawing&&entry.drawing.rafexSystem||'').toLowerCase()==='drive'?'drive':'mekik2'));});
+        mekikRows.filter(validEntry).forEach(function(entry){var system=String(entry&&entry.drawing&&entry.drawing.rafexSystem||'').toLowerCase();merged.push(normalizeCatalogEntry(entry,system==='drive'?'drive':['konsol','konsol-kollu','cantilever'].includes(system)?'konsol':'mekik2'));});
       }
       merged.sort(function(a,b){
         var time=createdTime(a)-createdTime(b);if(time)return time;
@@ -384,3 +384,4 @@ const encoded = Buffer.from(html, "utf8").toString("base64");
 worker = worker.slice(0, match.index) + match[1] + match[2] + encoded + match[2] + worker.slice(match.index + match[0].length);
 fs.writeFileSync(workerPath, worker);
 console.log("v44: Ortak Cizim bagimsiz; tum raf aralari duzenlenebilir, tipler ve kesitler sistemden bagimsiz alfabetik siradadir.");
+

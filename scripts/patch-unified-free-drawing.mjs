@@ -187,6 +187,20 @@ const runtime = `<style ${marker}>
     m2LastDrawing=konsolDrawing();
     var save=document.getElementById('m2SaveRackButton');if(save)save.disabled=false;
   }
+  async function saveKonsolCommonRack(){
+    if(free.selected!=='konsol')throw new Error('Önce Konsol Kollu sistemini seç.');
+    syncKonsolDrawing();
+    if(!m2LastDrawing?.plan)throw new Error('Kaydetmek için önce uygun bir Konsol Kollu hesabı oluştur.');
+    var drawing=JSON.parse(JSON.stringify(m2LastDrawing));
+    var entry=await req('/api/mekik2-types',{method:'POST',body:JSON.stringify({drawing:drawing})});
+    await m2RefreshSavedRackTypes();
+    m2SelectedSavedType=m2SavedRackTypes.findIndex(function(item){return Number(item.id)===Number(entry.id)&&String(item.__rafexSystem||item.drawing&&item.drawing.rafexSystem||'').toLowerCase()==='konsol'});
+    if(m2SelectedSavedType<0)m2SelectedSavedType=m2SavedRackTypes.findIndex(function(item){return Number(item.id)===Number(entry.id)});
+    if(m2SelectedSavedType<0)m2SelectedSavedType=m2SavedRackTypes.length?m2SavedRackTypes.length-1:null;
+    m2RenderSavedRackTypes();
+    var floor=document.getElementById('m2FloorStatus');if(floor)floor.textContent=(entry.name||'Konsol raf tipi')+' kalıcı olarak kaydedildi.';
+    return entry;
+  }
   function renderKonsolCommon(){
     var page=document.getElementById('page'),floor=page&&page.querySelector('.m2-floor-editor');
     var viewerReady=typeof window.rafexLoadHeavyViewerV1==='function'?window.rafexLoadHeavyViewerV1('konsol'):Promise.resolve(!!window.RafexKonsolViewer);
@@ -268,6 +282,8 @@ const runtime = `<style ${marker}>
 
   window.rafexEnterUnifiedFreeDrawing=enterFreeDrawing;
   window.rafexFreeDrawingContinue=continueSelected;
+  window.rafexSyncKonsolDrawing=syncKonsolDrawing;
+  window.rafexSaveKonsolCommonRack=saveKonsolCommonRack;
   window.rafexFreeAddCurrentModule=addCurrentModule;
 
   const originalShowPage=window.showPage||showPage;

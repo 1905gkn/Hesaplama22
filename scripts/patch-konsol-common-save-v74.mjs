@@ -30,12 +30,13 @@ const runtime = String.raw`
    shell.insertAdjacentElement('afterend',bar);
    bar.querySelector('button').addEventListener('click',async function(){
      var button=this,status=document.getElementById('rafexKonsolCommonSaveStatus'),sync=document.getElementById('konsolSpacing')||document.getElementById('konsolLevels');
-     if(sync)sync.dispatchEvent(new Event('change',{bubbles:true}));
+     if(typeof window.rafexSyncKonsolDrawing==='function')window.rafexSyncKonsolDrawing();
+     else if(sync)sync.dispatchEvent(new Event('change',{bubbles:true}));
      await new Promise(function(resolve){setTimeout(resolve,30)});
-     if(typeof window.m2SaveRackType!=='function'){if(status)status.textContent='Ortak kayıt motoru hazırlanamadı.';return}
+     if(typeof window.rafexSaveKonsolCommonRack!=='function'){if(status)status.textContent='Konsol ortak kayıt motoru hazırlanamadı.';return}
      button.disabled=true;if(status)status.textContent='Konsol raf tipi kaydediliyor…';
      try{
-       await window.m2SaveRackType();
+       await window.rafexSaveKonsolCommonRack();
        var floor=document.getElementById('m2FloorStatus');if(status)status.textContent=floor&&floor.textContent||'Konsol raf tipi kaydedildi.';
      }catch(error){if(status)status.textContent=error&&error.message||'Konsol raf tipi kaydedilemedi.'}
      finally{button.disabled=false}
@@ -57,7 +58,7 @@ for (const required of [
   'data-rafex-konsol-common-save="v74"',
   'id="rafexKonsolCommonSaveRack"',
   'Rafı Kaydet',
-  'window.m2SaveRackType',
+  'window.rafexSaveKonsolCommonRack',
   "page.dataset.rafexFreeContextSystem==='konsol'",
 ]) if (!html.includes(required)) throw new Error('Konsol common save v74 eksik: ' + required);
 
