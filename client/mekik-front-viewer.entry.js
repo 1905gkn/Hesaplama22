@@ -325,6 +325,9 @@ class MekikFrontViewer {
       metalness: 0.02,
       roughness: 0.86,
     });
+    // GLB braket tepesi, travers profil üstünden 208 mm yukarıdadır.
+    // Kullanıcının ilk kat değeri braket tepesi/palet alt kotudur; grup bu kadar aşağı alınır.
+    const bracketTopOffset = this.models.traverse.topOffset;
     for (let level = 0; level < config.levels; level += 1) {
       const supportZ = config.firstLevelHeight + level * config.levelSpacing;
       for (let bay = 0; bay < config.bays; bay += 1) {
@@ -333,7 +336,7 @@ class MekikFrontViewer {
         traverse.name = `Mekik Travers G${bay + 1} K${level + 1}`;
         traverse.traverse((part) => { if (part.isMesh) part.material = traverseMaterial; });
         traverse.scale.set(traverseScaleX, 1, 1);
-        traverse.position.set(bayCenterX, traverseFrontY, supportZ);
+        traverse.position.set(bayCenterX, traverseFrontY, supportZ - bracketTopOffset);
         this.root.add(traverse);
 
         const pallet = this.models.pallet.root.clone(true);
