@@ -58,6 +58,7 @@ await import(`./patch-b2b-tunnel-label-v67.mjs?build=${Date.now()}`);
 await import(`./patch-mr-extension-controls-v70.mjs?build=${Date.now()}`);
 await import(`./patch-mr-extension-activation-v71.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-load-switch-v13.mjs?build=${Date.now()}`);
+await import(`./patch-konsol-common-save-v74.mjs?build=${Date.now()}`);
 
 const workerModule = await import(`${workerPath}?syntax-check=${Date.now()}`);
 const response = await workerModule.default.fetch(
@@ -91,6 +92,7 @@ if (!html.includes('data-rafex-konsol-v2="1"')) throw new Error("Konsol Kollu ek
 if (!html.includes('data-rafex-krs-native="v9"')) throw new Error("Konsol native KRS v9 canlı HTML içinde bulunamadı");
 if (!html.includes('/konsol-viewer.js?v=konsol-krs-v12')) throw new Error("Konsol KRS viewer yükleyicisi canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-load-switch="v13"')) throw new Error("Konsol sağ üst ürün seçicisi canlı HTML içinde bulunamadı");
+if (!html.includes('data-rafex-konsol-common-save="v74"')) throw new Error("Konsol Ortak Çizim Rafı Kaydet düğmesi canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-request="v3"')) throw new Error("Konsol son kullanıcı istekleri canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-fem="v10"')) throw new Error("FEM 10.2.09 Konsol ön kontrol katmanı canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-free-plan="v38"')) throw new Error("Konsol Serbest Cizim temiz 2D plan katmanı canlı HTML içinde bulunamadı");
