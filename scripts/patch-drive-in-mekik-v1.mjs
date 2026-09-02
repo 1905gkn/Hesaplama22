@@ -114,10 +114,10 @@ const runtime = String.raw`
 
   function renderDimensions(host,c,layout){
     const svg=host.querySelector('.rafex-drive-dimensions');if(!svg||!layout)return;
-    const w=Math.max(1,layout.width),h=Math.max(1,layout.height),left=layout.left,right=layout.right,top=layout.top,bottom=layout.bottom;
+    const w=Math.max(1,layout.width),h=Math.max(1,layout.height),left=w*.18,right=w*.82,top=h*.14,bottom=h*.86;
     const rackH=c.firstLevelHeight+Math.max(0,c.levels-1)*c.levelSpacing+c.palletHeight+220;
     const yAt=(z)=>bottom-(bottom-top)*(z/Math.max(1,rackH));
-    const lx=Math.max(112,left-34),labelX=Math.max(8,lx-13),rx=Math.min(w-86,right+28),rx2=Math.min(w-18,right+76);
+    const lx=left-12,labelX=left-22,rx=right+12,rx2=Math.min(w-18,right+58);
     const arrow='<defs><marker id="rafexDriveArrow" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto-start-reverse"><path d="M0,0 L5,2.5 L0,5 Z" fill="#d7aa00"/></marker></defs>';
     let out=arrow+'<text class="dim-title" x="'+Math.max(8,labelX-6)+'" y="'+Math.max(18,top+14)+'">KOT ARALIKLARI</text>';
     const ground=yAt(0),first=yAt(c.firstLevelHeight);

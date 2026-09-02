@@ -253,6 +253,9 @@ class DriveInFrontViewer {
     let halfW = size.x * 0.6;
     let halfH = size.z * 0.62;
     if (halfW / halfH < aspect) halfW = halfH * aspect; else halfH = halfW / aspect;
+    // Teknik kot ve toplam yükseklik ölçülerine iki yanda sabit okuma alanı bırak.
+    halfW *= 1.22;
+    halfH *= 1.22;
     this.camera.left = -halfW;
     this.camera.right = halfW;
     this.camera.top = halfH;
