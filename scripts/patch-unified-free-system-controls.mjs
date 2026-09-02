@@ -75,12 +75,13 @@ const runtime = String.raw`<style data-rafex-unified-free-system-controls="v1">
     return document.querySelector('input[name="rafexUnifiedSystem"]:checked')?.value||'';
   }
   function contextSystem(){
+    // Kullanıcının seçtiği ortak sistem kartı, eski blok/kayıt seçiminden önce gelir.
+    var picker=pickerSystem();
+    if(picker)return picker;
     var rack=selectedRack();
     if(rack)return rackSystem(rack);
     var saved=selectedSavedSystem();
     if(saved)return saved;
-    var picker=pickerSystem();
-    if(picker)return picker;
     try{return m2ActiveModule==='b2b'?'b2b':m2ActiveModule==='mr'?'mr':m2ActiveModule==='drive'?'drive':m2ActiveModule==='konsol'?'konsol':'mekik2';}catch{return 'mekik2';}
   }
   function isB2BRack(rack){return rackSystem(rack)==='b2b'&&!!(rack?.b2bLayout||rack?.b2b);}
