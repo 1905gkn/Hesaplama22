@@ -5592,8 +5592,11 @@
           railThickness = m2ApplyRailThicknessOptions(palletWeight, event),
           railHeight = m2Number("m2RailHeight", 150, 170);
         if (event?.target?.id === "m2RailHeight" && railHeight !== m2LastRailHeightSelection) {
-          const levelSpacingInput = $("m2LevelSpacing"), adjustment = railHeight === 170 ? 20 : -20;
+          const levelSpacingInput = $("m2LevelSpacing"),
+            firstLevelHeightInput = $("m2FirstLevelHeight"),
+            adjustment = railHeight === 170 ? 20 : -20;
           if (levelSpacingInput) levelSpacingInput.value = String(Math.max(380, Math.min(5000, (Number(levelSpacingInput.value) || 1580) + adjustment)));
+          if (firstLevelHeightInput) firstLevelHeightInput.value = String(Math.max(0, Math.min(5000, (Number(firstLevelHeightInput.value) || 430) + adjustment)));
         }
         m2LastRailHeightSelection = railHeight;
         const palletHeight = m2Number("m2LevelH", 300, 3000),
