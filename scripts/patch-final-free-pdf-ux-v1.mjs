@@ -167,6 +167,8 @@ const runtime = String.raw`<style data-rafex-final-free-pdf-ux="v1">
   function systemOf(entry){
     var drawing=entry&&entry.drawing?entry.drawing:entry||{};
     var explicit=String((entry&&entry.rafexSystem)||drawing.rafexSystem||'').toLowerCase();
+    if(explicit==='konsol'||explicit==='konsol-kollu'||explicit==='cantilever')return 'konsol';
+    if(explicit==='drive'||explicit==='drive-in'||explicit==='drivein')return 'drive';
     if(explicit==='b2b'||explicit==='mr'||explicit==='mekik2')return explicit;
     if(drawing.mr||drawing.systemType==='mr')return 'mr';
     return drawing.b2bLayout||drawing.b2b?'b2b':'mekik2';
@@ -195,7 +197,11 @@ const runtime = String.raw`<style data-rafex-final-free-pdf-ux="v1">
     var rows=new Map();
     usedTypes().filter(function(entry){return systemOf(entry)===system;}).forEach(function(entry){
       var bom=[];
-      try{if(typeof m2CorporateBomRows==='function')bom=m2CorporateBomRows(entry,labels)||[];}catch(error){console.warn('Ürün dökümü hazırlanamadı',error);}
+      if(system==='konsol'){
+        var drawing=entry&&entry.drawing||entry||{},k=drawing.konsol||drawing.spec||{},multiplier=Math.max(1,Number(entry&&entry.rackCount)||1),count=Math.max(2,Number(k.count||drawing.plan?.feet?.length)||2),levels=Math.max(1,Number(k.levels||drawing.levels)||1),sides=k.side==='double'?2:1;
+        bom=[{item:'Konsol ayak',spec:Math.round(Number(k.height||drawing.totalRackHeight)||0)+' mm',qty:count*multiplier,unit:'adet'},{item:'Konsol kolu',spec:Math.round(Number(k.arm||drawing.palD)||0)+' mm',qty:count*levels*sides*multiplier,unit:'adet'},{item:'Kutu profil bağı',spec:Math.round(Number(k.spacing||drawing.palW)||0)+' mm',qty:Math.max(1,count-1)*(levels+1)*multiplier,unit:'adet'}];
+      }
+      try{if(system!=='konsol'&&typeof m2CorporateBomRows==='function')bom=m2CorporateBomRows(entry,labels)||[];}catch(error){console.warn('Ürün dökümü hazırlanamadı',error);}
       bom.forEach(function(row){
         var item=String(row.item||row.name||'Ürün'),spec=String(row.spec||''),unit=String(row.unit||labels.unitEach||'adet'),qty=Math.max(0,Number(row.qty)||0);
         if(!qty)return;
@@ -220,9 +226,9 @@ const runtime = String.raw`<style data-rafex-final-free-pdf-ux="v1">
     if(window.__rafexLayoutInventoryActive)return false;
     if(!freePage())return false;
     var host=document.getElementById('m2LayoutProductList');if(!host)return false;
-    var b2bRows=productRows('b2b'),mrRows=productRows('mr'),mekikRows=productRows('mekik2');
+    var b2bRows=productRows('b2b'),mrRows=productRows('mr'),mekikRows=productRows('mekik2'),driveRows=productRows('drive'),konsolRows=productRows('konsol');
     host.classList.add('rafex-system-product-lists');
-    host.innerHTML='<b class="rafex-product-list-title">ÜRÜN DÖKÜMLERİ</b>'+productSection('b2b','B2B ÜRÜN LİSTESİ',b2bRows)+productSection('mr','MR ÜRÜN LİSTESİ',mrRows)+productSection('mekik2','MEKİK ÜRÜN LİSTESİ',mekikRows);
+    host.innerHTML='<b class="rafex-product-list-title">ÜRÜN DÖKÜMLERİ</b>'+productSection('b2b','B2B ÜRÜN LİSTESİ',b2bRows)+productSection('mr','MR ÜRÜN LİSTESİ',mrRows)+productSection('mekik2','MEKİK ÜRÜN LİSTESİ',mekikRows)+productSection('drive','DRIVE-IN ÜRÜN LİSTESİ',driveRows)+productSection('konsol','KONSOL KOLLU ÜRÜN LİSTESİ',konsolRows);
     qsa(host,'details[data-rafex-product-system]').forEach(function(details){
       details.addEventListener('toggle',function(){
         var key=details.dataset.rafexProductSystem;if(!key)return;

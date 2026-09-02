@@ -57,13 +57,13 @@ const runtime = `<style ${marker}>
   if(window.__rafexUnifiedFreeDrawingV1)return;
   window.__rafexUnifiedFreeDrawingV1=true;
 
-  const SUPPORTED=new Set(['b2b','mekik2','drive','mr']);
+  const SUPPORTED=new Set(['b2b','mekik2','drive','mr','konsol']);
   const SYSTEMS=[
     {key:'b2b',label:'B2B',desc:'B2B ürün girdilerini aç; mevcut ortak yerleşim korunur.',ready:true},
     {key:'mekik2',label:'Mekik',desc:'Mekik ürün girdilerini aç; aynı alana raf eklemeye devam et.',ready:true},
     {key:'drive',label:'Drive-In',desc:'Drive-In ürün girdilerini aç; aynı ortak alana raf ekle.',ready:true},
     {key:'mr',label:'MR',desc:'MR ürün girdilerini aç; B2B ve Mekik ile aynı alana ekle.',ready:true},
-    {key:'konsol',label:'Konsol Kollu',desc:'Teknik hesap / modül çizim motoru henüz tanımlı değil.',ready:false}
+    {key:'konsol',label:'Konsol Kollu',desc:'Konsol Kollu girdilerini ve 3D görünüşünü aç; aynı ortak alana raf ekle.',ready:true}
   ];
   const COMMON_KEYS=['layoutState','layoutZoom','pinnedDimensions','pinnedDimensionsByRack','dimensionOffsets','dimensionFontSizes','selectedDimensionKey','userNotes','selectedNoteId','hiddenSummaryDimensions','visibleRackDimensions','showSharedFootLabels','edgeEditorVisible','freeMeasure','layoutSymbols','selectedSymbolId'];
   const free={active:false,pending:null,selected:null,continued:false,currentEngine:null,previousM2Module:null,common:null,systemStates:Object.create(null)};
@@ -130,7 +130,7 @@ const runtime = `<style ${marker}>
     return '<label class="rafex-system-option" data-ready="'+String(system.ready)+'"><input type="radio" name="rafexUnifiedSystem" value="'+system.key+'"'+checked+'><span class="rafex-system-option-body"><strong>'+system.label+'</strong><small>'+system.desc+'</small><em>'+(system.ready?'MODÜL ÇİZİMİ HAZIR':'ALTYAPI BEKLİYOR')+'</em></span></label>';
   }
   function pickerMarkup(){
-    return '<section class="card rafex-system-picker" id="rafexUnifiedSystemPicker"><div class="rafex-system-picker-head"><div><h3>Raf Sistemi Araçları</h3><p>B2B, Mekik ve MR aynı Serbest Çizim projesinde birlikte kullanılır. Sistem kartına tıklayınca kendi ürün girdileri ve görseli doğrudan açılır.</p></div><span class="rafex-system-picker-step">ORTAK YERLEŞİM</span></div><div class="rafex-system-options">'+SYSTEMS.map(optionMarkup).join('')+'</div><div class="rafex-system-picker-actions"><button type="button" class="rafex-system-add-module" id="rafexUnifiedAddModule" disabled>+ Modülü Ortak Alana Ekle</button><span class="rafex-system-picker-message" id="rafexUnifiedMessage"></span></div></section><section class="rafex-system-unavailable" id="rafexUnifiedUnavailable"><h3>Bu sistem için ortak modül geometrisi henüz hazır değil</h3><p id="rafexUnifiedUnavailableText"></p></section>';
+    return '<section class="card rafex-system-picker" id="rafexUnifiedSystemPicker"><div class="rafex-system-picker-head"><div><h3>Raf Sistemi Araçları</h3><p>B2B, Mekik, Drive-In, MR ve Konsol Kollu aynı Serbest Çizim projesinde birlikte kullanılır. Sistem kartına tıklayınca kendi ürün girdileri ve görseli doğrudan açılır.</p></div><span class="rafex-system-picker-step">ORTAK YERLEŞİM</span></div><div class="rafex-system-options">'+SYSTEMS.map(optionMarkup).join('')+'</div><div class="rafex-system-picker-actions"><button type="button" class="rafex-system-add-module" id="rafexUnifiedAddModule" disabled>+ Modülü Ortak Alana Ekle</button><span class="rafex-system-picker-message" id="rafexUnifiedMessage"></span></div></section><section class="rafex-system-unavailable" id="rafexUnifiedUnavailable"><h3>Bu sistem için ortak modül geometrisi henüz hazır değil</h3><p id="rafexUnifiedUnavailableText"></p></section>';
   }
   function setMessage(text,type=''){
     const box=document.getElementById('rafexUnifiedMessage');if(!box)return;
@@ -154,7 +154,7 @@ const runtime = `<style ${marker}>
     }else if(!document.getElementById('rafexUnifiedSystemPicker'))page.insertAdjacentHTML('afterbegin',pickerMarkup());
 
     const floor=page.querySelector('.m2-floor-editor');
-    if(floor&&!page.querySelector('.rafex-free-mode-note'))floor.insertAdjacentHTML('beforebegin','<div class="rafex-free-mode-note"><b>ORTAK ALAN</b><span>B2B, Mekik, Drive-In ve MR modülleri aynı Serbest Çizim alanında birlikte taşınabilir, döndürülebilir ve PDF yerleşiminde korunur.</span></div>');
+    if(floor&&!page.querySelector('.rafex-free-mode-note'))floor.insertAdjacentHTML('beforebegin','<div class="rafex-free-mode-note"><b>ORTAK ALAN</b><span>B2B, Mekik, Drive-In, MR ve Konsol Kollu modülleri aynı Serbest Çizim alanında birlikte taşınabilir, döndürülebilir ve PDF yerleşiminde korunur.</span></div>');
 
     page.querySelectorAll('input[name="rafexUnifiedSystem"]').forEach((input)=>{
       input.checked=free.pending===input.value;
@@ -172,18 +172,46 @@ const runtime = `<style ${marker}>
     if(typeof applyTranslations==='function')try{applyTranslations(page);}catch{}
   }
 
+  function konsolSpec(){
+    try{var api=window.rafexKonsolFreeApiV46;if(api&&typeof api.getCurrentSpec==='function')return api.getCurrentSpec();}catch(_){}
+    var value=function(id,fallback){var node=document.getElementById(id),n=Number(node&&node.value);return Number.isFinite(n)&&n>0?n:fallback};
+    return{count:Math.max(2,Math.round(value('konsolUprightCount',5))),spacing:value('konsolSpacing',1500),height:value('konsolHeight',4500),arm:value('konsolArmLength',1200),levels:Math.max(1,Math.round(value('konsolLevels',4))),side:document.getElementById('konsolSide')?.value==='double'?'double':'single',productLength:value('femProductLength',0),levelLoad:value('konsolLevelLoad',500)};
+  }
+  function konsolDrawing(){
+    var spec=konsolSpec(),count=Math.max(2,Number(spec.count)||5),spacing=Math.max(300,Number(spec.spacing)||1500),arm=Math.max(250,Number(spec.arm)||1200),height=Math.max(1000,Number(spec.height)||4500),levels=Math.max(1,Number(spec.levels)||4),side=spec.side==='double'?'double':'single';
+    var totalWidth=Math.max((count-1)*spacing+130,Number(spec.productLength)||0),totalDepth=(side==='double'?arm*2:arm)+220;
+    return{rafexSystem:'konsol',systemType:'konsol',totalWidth:totalWidth,railLength:totalDepth,widthMm:totalWidth,depthMm:totalDepth,bays:Math.max(1,count-1),levels:levels,depth:1,palW:spacing,palD:arm,palletWeight:Number(spec.levelLoad)||0,palletHeight:0,levelH:levels>1?height/(levels-1):height,traverseHeight:0,totalRackHeight:height,sideUprightHeight:height,footType:130,layoutView:'konsol-top',palletPositions:[0],palletGaps:[],plan:{feet:Array.from({length:count},function(){return totalDepth}),braces:[]},konsol:{...spec,count:count,spacing:spacing,arm:arm,height:height,levels:levels,side:side,totalWidth:totalWidth,totalDepth:totalDepth},spec:{...spec,count:count,spacing:spacing,arm:arm,height:height,levels:levels,side:side}};
+  }
+  function syncKonsolDrawing(){
+    if(free.selected!=='konsol')return;
+    m2LastDrawing=konsolDrawing();
+    var save=document.getElementById('m2SaveRackButton');if(save)save.disabled=false;
+  }
+  function renderKonsolCommon(){
+    var page=document.getElementById('page'),floor=page&&page.querySelector('.m2-floor-editor');
+    if(floor)floor.remove();
+    if(typeof window.renderKonsol==='function')window.renderKonsol();
+    page=document.getElementById('page');if(!page)return;
+    if(floor)page.appendChild(floor);
+    page.classList.add('konsol-common-mode');
+    page.querySelectorAll('.konsol-free-card,.konsol-pdf-card').forEach(function(node){node.hidden=true;node.setAttribute('aria-hidden','true')});
+    if(!page.dataset.rafexKonsolCommonAdapter){page.dataset.rafexKonsolCommonAdapter='1';page.addEventListener('input',function(event){if(event.target?.closest?.('.konsol-panel'))setTimeout(syncKonsolDrawing,0)});page.addEventListener('change',function(event){if(event.target?.closest?.('.konsol-panel'))setTimeout(syncKonsolDrawing,0)})}
+    syncKonsolDrawing();setTimeout(syncKonsolDrawing,80);setTimeout(function(){window.rafexUnifiedCatalogSync?.()},120);
+  }
+
   function renderEngine(system,continued){
     const target=SUPPORTED.has(system)?system:'mekik2';
     if(free.currentEngine==='drive'&&target!=='drive')try{window.RafexDriveInViewer?.destroy?.()}catch{}
     if(free.currentEngine&&free.currentEngine!==target)captureEngine();
-    restoreEngine(target);
+    if(target==='konsol'){ensureUnifiedState();m2ActiveModule='konsol';free.currentEngine='konsol';}
+    else restoreEngine(target);
     const page=document.getElementById('page');
     if(page){
       page.classList.remove('b2b-mode','mr-mode','drive-in-mode');
       delete page.dataset.m2Module;
       page.dataset.rafexFreeContextSystem=target;
     }
-    if(target==='b2b')renderB2B();else if(target==='mr')renderMR();else if(target==='drive')renderDrive();else renderMekik2();
+    if(target==='b2b')renderB2B();else if(target==='mr')renderMR();else if(target==='drive')renderDrive();else if(target==='konsol')renderKonsolCommon();else renderMekik2();
     free.continued=Boolean(continued);
     decoratePage();
   }
@@ -221,6 +249,7 @@ const runtime = `<style ${marker}>
   function addCurrentModule(){
     if(!free.continued||!SUPPORTED.has(free.selected)){setMessage('Önce çizim motoru hazır bir sistem seç.','error');return;}
     try{
+      if(free.selected==='konsol')syncKonsolDrawing();
       if(!m2LastDrawing?.plan){setMessage('Önce hesap girdilerini tamamlayıp modülü oluştur.','error');return;}
       const before=Array.isArray(m2LayoutState?.racks)?m2LayoutState.racks.length:0;
       m2AddRack(m2LastDrawing,null);
@@ -259,7 +288,7 @@ worker = worker.replace(match[0], `${match[1]}${match[2]}${encoded}${match[2]}`)
 fs.writeFileSync(workerPath, worker);
 
 const finalHtml = Buffer.from(encoded, "base64").toString("utf8");
-for (const required of [marker, "Serbest Çizim", "Raf Sistemi Araçları", "rafexEnterUnifiedFreeDrawing", "+ Modülü Ortak Alana Ekle", "['b2b','mekik2','drive','mr']", "else if(target==='drive')renderDrive()", "page.classList.remove('b2b-mode','mr-mode','drive-in-mode')"] ) {
+for (const required of [marker, "Serbest Çizim", "Raf Sistemi Araçları", "rafexEnterUnifiedFreeDrawing", "+ Modülü Ortak Alana Ekle", "['b2b','mekik2','drive','mr','konsol']", "else if(target==='konsol')renderKonsolCommon()", "rafexSystem:'konsol'", "page.classList.remove('b2b-mode','mr-mode','drive-in-mode')"] ) {
   if (!finalHtml.includes(required)) throw new Error(`Unified free drawing dogrulama hatasi: ${required}`);
 }
 if (finalHtml.includes("setTimeout(()=>document.querySelector('.m2-layout')?.scrollIntoView({behavior:'smooth',block:'start'}),60)")) {

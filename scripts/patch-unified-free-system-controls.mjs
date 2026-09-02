@@ -81,7 +81,7 @@ const runtime = String.raw`<style data-rafex-unified-free-system-controls="v1">
     if(saved)return saved;
     var picker=pickerSystem();
     if(picker)return picker;
-    try{return m2ActiveModule==='b2b'?'b2b':m2ActiveModule==='mr'?'mr':'mekik2';}catch{return 'mekik2';}
+    try{return m2ActiveModule==='b2b'?'b2b':m2ActiveModule==='mr'?'mr':m2ActiveModule==='drive'?'drive':m2ActiveModule==='konsol'?'konsol':'mekik2';}catch{return 'mekik2';}
   }
   function isB2BRack(rack){return rackSystem(rack)==='b2b'&&!!(rack?.b2bLayout||rack?.b2b);}
   function isMRRack(rack){return rackSystem(rack)==='mr'&&!!(rack?.plan||rack?.b2bLayout||rack?.b2b);}
@@ -115,7 +115,7 @@ const runtime = String.raw`<style data-rafex-unified-free-system-controls="v1">
       if(!isFree())return;
       ensureShortcutBar();
       var page=document.getElementById('page'),system=contextSystem();
-      page.dataset.rafexFreeContextSystem=system==='b2b'?'b2b':system==='mr'?'mr':'mekik2';
+      page.dataset.rafexFreeContextSystem=system==='b2b'?'b2b':system==='mr'?'mr':system==='drive'?'drive':system==='konsol'?'konsol':'mekik2';
     },0);
   }
 

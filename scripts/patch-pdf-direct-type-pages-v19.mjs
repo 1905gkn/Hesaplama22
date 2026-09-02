@@ -94,7 +94,7 @@ const runtime = String.raw`<style data-rafex-pdf-direct-types="v19">
   function systemOf(entry){
     var d=entry&&entry.drawing||entry||{};
     var x=String(entry&&entry.rafexSystem||entry&&entry.__rafexSystem||d&&d.rafexSystem||'').toLowerCase();
-    if(x==='b2b'||x==='mekik2'||x==='drive')return x;
+    if(x==='b2b'||x==='mekik2'||x==='drive'||x==='konsol'||x==='konsol-kollu'||x==='cantilever')return x==='konsol-kollu'||x==='cantilever'?'konsol':x;
     return d&&((d.b2bLayout)||(d.b2b))?'b2b':'mekik2';
   }
   function typeName(entry,index){return String(entry&&entry.name||entry&&entry.typeName||('Tip '+(index+1))).trim()}
@@ -128,12 +128,14 @@ const runtime = String.raw`<style data-rafex-pdf-direct-types="v19">
   }
   function palletTotal(group){
     var d=group.entry&&group.entry.drawing||group.entry||{},count=Math.max(1,Number(group.rackCount)||1);
+    if(group.system==='konsol')return 0;
     if(group.system==='b2b')return (Number(d&&d.b2bLayout&&d.b2bLayout.palletCount)||0)*Math.max(0,Number(d&&d.levels)||0)*Math.max(1,Number(d&&d.b2bLayout&&d.b2bLayout.rowCount)||1)*count;
     return Math.max(0,Number(d&&d.bays)||0)*Math.max(0,Number(d&&d.levels)||0)*Math.max(0,Number(d&&d.depth)||0)*count;
   }
   function headHtml(group,index){
     var title=group.system==='b2b'&&/^[A-ZÇĞİÖŞÜ]+$/i.test(group.name)?group.name+' TİPİ':group.name;
-    return '<div class="rafex-v19-card-head"><span>'+htmlEsc(title)+'</span><small>'+fmtN(palletTotal(group))+' PALET</small><small>'+fmtN(group.rackCount)+' ADET</small></div>';
+    var quantity=group.system==='konsol'?fmtN((group.entry?.drawing||group.entry||{}).levels)+' KAT':fmtN(palletTotal(group))+' PALET';
+    return '<div class="rafex-v19-card-head"><span>'+htmlEsc(title)+'</span><small>'+quantity+'</small><small>'+fmtN(group.rackCount)+' ADET</small></div>';
   }
   function mekikSvg(d,mode){
     try{
@@ -181,6 +183,11 @@ const runtime = String.raw`<style data-rafex-pdf-direct-types="v19">
     var d=group.entry&&group.entry.drawing||group.entry||{};
     return '<article class="rafex-v19-type-card" data-rafex-system="drive" data-rafex-type-name="'+htmlEsc(group.name)+'" style="--m2-type-color:#7b4d14">'+headHtml(group,index)+'<div class="rafex-v19-view rafex-v19-drive-view"><div class="rafex-v19-view-title">DRIVE-IN · ÖNDEN TEKNİK GÖRÜNÜŞ</div><div class="rafex-v19-visual">'+driveSvg(d)+'</div></div></article>';
   }
+  function konsolSvg(d){
+    var k=d&&d.konsol||d&&d.spec||{},count=Math.max(2,Math.min(30,Math.round(Number(k.count)||5))),levels=Math.max(1,Math.min(12,Math.round(Number(k.levels||d&&d.levels)||4))),width=Math.max(500,Number(d&&d.totalWidth)||((count-1)*(Number(k.spacing)||1500)+130)),height=Math.max(1000,Number(k.height||d&&d.totalRackHeight)||4500),x0=22,y0=96,w=158,h=76,sx=w/width,sz=h/height,out=['<svg class="rafex-v19-konsol-front" viewBox="0 0 200 112" role="img" aria-label="Konsol Kollu teknik ön görünüş"><rect width="200" height="112" fill="#fff"/>'];
+    for(var i=0;i<count;i++){var x=x0+i*w/Math.max(1,count-1);out.push('<rect x="'+(x-1.2).toFixed(2)+'" y="'+(y0-h).toFixed(2)+'" width="2.4" height="'+h.toFixed(2)+'" fill="#005387"/>');for(var l=1;l<=levels;l++){var y=y0-l*h/(levels+0.35);out.push('<rect x="'+x.toFixed(2)+'" y="'+(y-1).toFixed(2)+'" width="'+Math.max(3,(w/Math.max(1,count-1))*.7).toFixed(2)+'" height="2" fill="#e1a100"/>')}}out.push('<line x1="'+x0+'" y1="101" x2="'+(x0+w)+'" y2="101" stroke="#173c2d"/><text x="100" y="109" text-anchor="middle" font-size="4.6" font-weight="800" fill="#173c2d">'+fmtN(width)+' mm · KOL '+fmtN(k.arm||d&&d.palD)+' mm</text></svg>');return out.join('');
+  }
+  function buildKonsolCard(group,index){var d=group.entry&&group.entry.drawing||group.entry||{};return '<article class="rafex-v19-type-card" data-rafex-system="konsol" data-rafex-type-name="'+htmlEsc(group.name)+'" style="--m2-type-color:#8b5317">'+headHtml(group,index)+'<div class="rafex-v19-view"><div class="rafex-v19-view-title">KONSOL KOLLU · ÖNDEN TEKNİK GÖRÜNÜŞ</div><div class="rafex-v19-visual">'+konsolSvg(d)+'</div></div></article>'}
   function b2bFront(d){
     try{
       var labels=typeof m2ReportDictionary==='function'?m2ReportDictionary((document.getElementById('m2ReportLanguage')||{}).value||'tr'):undefined;
@@ -193,7 +200,7 @@ const runtime = String.raw`<style data-rafex-pdf-direct-types="v19">
     return '<article class="rafex-v19-type-card" data-rafex-system="b2b" data-rafex-type-name="'+htmlEsc(group.name)+'" style="--m2-type-color:#1d5f8a">'+headHtml(group,index)+
       '<div class="rafex-v19-view"><div class="rafex-v19-view-title">ÖNDEN GÖRÜNÜŞ · 3D İLE AYNI MODÜL</div><div class="rafex-v19-visual">'+visual+'</div></div></article>';
   }
-  function buildCard(group,index){return group.system==='b2b'?buildB2BCard(group,index):group.system==='drive'?buildDriveCard(group,index):buildMekikCard(group,index)}
+  function buildCard(group,index){return group.system==='b2b'?buildB2BCard(group,index):group.system==='drive'?buildDriveCard(group,index):group.system==='konsol'?buildKonsolCard(group,index):buildMekikCard(group,index)}
   function makePage(groups,pageIndex){
     var page=document.createElement('section');page.className='m2-corporate-page rafex-v19-type-page';page.id='rafex-type-page-'+(pageIndex+1);
     var header=document.createElement('header');header.className='m2-corporate-page-header';header.innerHTML='<img src="/rafex-logo.png" alt="Rafex"><b>RAF KESİTLERİ · '+(pageIndex+1)+'</b>';page.appendChild(header);

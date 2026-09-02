@@ -33,6 +33,7 @@ const runtime = `<style ${marker}>
 .rafex-unified-type-row[data-system="mekik2"] .rafex-unified-system-badge{background:#315f88}
 .rafex-unified-type-row[data-system="mr"] .rafex-unified-system-badge{background:#8a6300}
 .rafex-unified-type-row[data-system="drive"] .rafex-unified-system-badge{background:#7b4d14}
+.rafex-unified-type-row[data-system="konsol"] .rafex-unified-system-badge{background:#8b5317}
 </style>
 <script ${marker}>(function(){
   if(window.__rafexUnifiedFreeCatalogV1)return;
@@ -43,7 +44,8 @@ const runtime = `<style ${marker}>
     {key:'b2b',label:'B2B',api:'/api/b2b-types'},
     {key:'mekik2',label:'Mekik',api:'/api/mekik2-types'},
     {key:'drive',label:'Drive-In',api:'/api/mekik2-types'},
-    {key:'mr',label:'MR',api:'/api/b2b-types'}
+    {key:'mr',label:'MR',api:'/api/b2b-types'},
+    {key:'konsol',label:'Konsol Kollu',api:'/api/mekik2-types'}
   ];
   const SYSTEM_MAP=Object.fromEntries(SYSTEMS.map((item)=>[item.key,item]));
   let cache=[];
@@ -79,7 +81,8 @@ const runtime = `<style ${marker}>
       if(!(entry?.id&&entry?.name&&entry?.drawing?.plan))return false;
       const isMr=entry.drawing?.systemType==='mr'||entry.drawing?.b2b?.mr===true||entry.drawing?.plan?.mr===true;
       const isDrive=String(entry.drawing?.rafexSystem||'').toLowerCase()==='drive';
-      return system.key==='mr'?isMr:system.key==='b2b'?!isMr:system.key==='drive'?isDrive:!isDrive;
+      const isKonsol=['konsol','konsol-kollu','cantilever'].includes(String(entry.drawing?.rafexSystem||'').toLowerCase());
+      return system.key==='mr'?isMr:system.key==='b2b'?!isMr:system.key==='drive'?isDrive:system.key==='konsol'?isKonsol:!isDrive&&!isKonsol;
     }).map((entry,index)=>normalizeEntry(system,entry,index));
   }
   function summaryMarkup(){
@@ -98,14 +101,15 @@ const runtime = `<style ${marker}>
       const systemLabel=labelFor(system);
       const color=typeof m2TypeColor==='function'?m2TypeColor(entry.name):'#173c2d';
       const levels=Math.max(0,Number(drawing.levels)||0);
-      const palletCount=system==='b2b'&&drawing.b2b?Math.max(1,Number(drawing.b2b.palletCount)||Number(drawing.bays)||1)*Math.max(1,levels)*((drawing.b2b.rowType||'single')==='double'?2:1):(Number(drawing.bays)||0)*levels*(Number(drawing.depth)||0);
+      const palletCount=system==='konsol'?0:system==='b2b'&&drawing.b2b?Math.max(1,Number(drawing.b2b.palletCount)||Number(drawing.bays)||1)*Math.max(1,levels)*((drawing.b2b.rowType||'single')==='double'?2:1):(Number(drawing.bays)||0)*levels*(Number(drawing.depth)||0);
       const footLabel=drawing.footProfile?drawing.footProfile+' · Ly '+fmt(drawing.footLy)+' mm':fmt(drawing.footType)+' mm';
       const levelDetail=typeof m2LevelDetail==='function'?m2LevelDetail(drawing):fmt(levels)+' kat';
-      return '<div class="m2-saved-type-row rafex-unified-type-row" data-system="'+system+'"><button type="button" class="m2-saved-type'+(index===m2SelectedSavedType?' active':'')+'" style="border-color:'+color+';box-shadow:inset 5px 0 '+color+';background:'+color+'12" onclick="m2HandleSavedRackTypeClick('+index+',event)" title="Seç · çift tıklayarak ortak Serbest Çizim alanına ekle"><b><span class="rafex-unified-system-badge">'+esc(systemLabel)+'</span><i class="m2-type-swatch" style="background:'+color+'"></i>'+esc(entry.name)+'</b><small>'+fmt(drawing.totalWidth)+' × '+fmt(drawing.railLength)+' mm · '+esc(levelDetail)+(palletCount?' · <strong>'+fmt(palletCount)+' palet</strong>':'')+' · Palet '+fmt(drawing.palW)+' × '+fmt(drawing.palD)+' mm · Ayak '+esc(footLabel)+'</small></button><button type="button" class="m2-saved-type-preview rafex-free-info" data-saved-index="'+index+'" aria-label="İçeriğini göster" title="İçeriğini göster">i</button><button type="button" class="m2-saved-type-copy rafex-free-copy" data-saved-index="'+index+'" aria-label="Kopyala" title="Kopyala ve bu sistemin özelliklerini aç"><span class="rafex-free-copy-pages" aria-hidden="true"></span></button><button type="button" class="m2-type-delete" aria-label="'+esc(entry.name)+' kaydını sil" title="'+esc(systemLabel)+' raf tipini sil" onclick="event.stopPropagation();rafexUnifiedDeleteSavedRackType('+index+')">×</button></div>';
-    }).join(''):'<span class="m2-floor-status">B2B, Mekik, Drive-In veya MR altında henüz kayıtlı raf tipi yok.</span>';
+      const detail=system==='konsol'?fmt(drawing.totalWidth)+' × '+fmt(drawing.railLength)+' mm · '+fmt(drawing.konsol?.count||drawing.plan?.feet?.length)+' ayak · '+fmt(levels)+' kat · '+(drawing.konsol?.side==='double'?'Çift taraflı':'Tek taraflı')+' · Kol '+fmt(drawing.konsol?.arm||drawing.palD)+' mm':fmt(drawing.totalWidth)+' × '+fmt(drawing.railLength)+' mm · '+esc(levelDetail)+(palletCount?' · <strong>'+fmt(palletCount)+' palet</strong>':'')+' · Palet '+fmt(drawing.palW)+' × '+fmt(drawing.palD)+' mm · Ayak '+esc(footLabel);
+      return '<div class="m2-saved-type-row rafex-unified-type-row" data-system="'+system+'"><button type="button" class="m2-saved-type'+(index===m2SelectedSavedType?' active':'')+'" style="border-color:'+color+';box-shadow:inset 5px 0 '+color+';background:'+color+'12" onclick="m2HandleSavedRackTypeClick('+index+',event)" title="Seç · çift tıklayarak ortak Serbest Çizim alanına ekle"><b><span class="rafex-unified-system-badge">'+esc(systemLabel)+'</span><i class="m2-type-swatch" style="background:'+color+'"></i>'+esc(entry.name)+'</b><small>'+detail+'</small></button><button type="button" class="m2-saved-type-preview rafex-free-info" data-saved-index="'+index+'" aria-label="İçeriğini göster" title="İçeriğini göster">i</button><button type="button" class="m2-saved-type-copy rafex-free-copy" data-saved-index="'+index+'" aria-label="Kopyala" title="Kopyala ve bu sistemin özelliklerini aç"><span class="rafex-free-copy-pages" aria-hidden="true"></span></button><button type="button" class="m2-type-delete" aria-label="'+esc(entry.name)+' kaydını sil" title="'+esc(systemLabel)+' raf tipini sil" onclick="event.stopPropagation();rafexUnifiedDeleteSavedRackType('+index+')">×</button></div>';
+    }).join(''):'<span class="m2-floor-status">B2B, Mekik, Drive-In, MR veya Konsol Kollu altında henüz kayıtlı raf tipi yok.</span>';
     if(typeof m2RenderSelectedRackInfo==='function')m2RenderSelectedRackInfo();
     const note=document.querySelector('.rafex-free-mode-note span');
-    if(note)note.textContent='B2B, Mekik, Drive-In ve MR altında kaydettiğin raf tipleri burada tek listede görünür; aynı Serbest Çizim alanına eklenir ve aynı PDF içinde birlikte raporlanır.';
+    if(note)note.textContent='B2B, Mekik, Drive-In, MR ve Konsol Kollu altında kaydettiğin raf tipleri burada tek listede görünür; aynı Serbest Çizim alanına eklenir ve aynı PDF içinde birlikte raporlanır.';
   }
   function installCache(selectedKey=''){
     m2SavedRackTypes=cache.slice();
@@ -134,12 +138,13 @@ const runtime = `<style ${marker}>
     })();
     try{return await loading;}finally{loading=null;}
   }
-  function markAddedRacks(before,system,name){
+  function markAddedRacks(before,system,name,drawing){
     if(!Array.isArray(m2LayoutState?.racks))return;
     m2LayoutState.racks.slice(before).forEach((rack)=>{
       rack.rafexSystem=system;
       rack.rafexSystemLabel=labelFor(system);
       if(name&&!rack.typeName)rack.typeName=name;
+      if(system==='konsol'){rack.konsol={...(drawing?.konsol||{})};rack.spec={...(drawing?.spec||drawing?.konsol||{})};rack.armLength=Number(drawing?.konsol?.arm||drawing?.palD)||0;rack.uprightCount=Number(drawing?.konsol?.count||drawing?.plan?.feet?.length)||0;rack.spacing=Number(drawing?.konsol?.spacing||drawing?.palW)||0;rack.layoutView='konsol-top';}
     });
   }
   function addRackForSystem(system,drawing,typeName){
@@ -147,9 +152,9 @@ const runtime = `<style ${marker}>
     const previous=m2ActiveModule;
     const before=Array.isArray(m2LayoutState?.racks)?m2LayoutState.racks.length:0;
     try{
-      if(system==='b2b'||system==='mekik2'||system==='drive'||system==='mr')m2ActiveModule=system;
+      if(system==='b2b'||system==='mekik2'||system==='drive'||system==='mr'||system==='konsol')m2ActiveModule=system;
       const result=originalAddRack(drawing,typeName);
-      markAddedRacks(before,system,typeName);
+      markAddedRacks(before,system,typeName,drawing);
       return result;
     }finally{
       m2ActiveModule=previous;
@@ -173,7 +178,8 @@ const runtime = `<style ${marker}>
         const entry=m2SavedRackTypes[m2SelectedSavedType];
         if(entry?.__rafexUnified)return addRackForSystem(entry.__rafexSystem,entry.drawing,entry.name);
       }
-      const system=drawing?.systemType==='mr'||drawing?.b2b?.mr===true||drawing?.plan?.mr===true?'mr':drawing?.b2b||drawing?.b2bLayout?'b2b':m2ActiveModule;
+      const explicit=String(drawing?.rafexSystem||'').toLowerCase();
+      const system=['konsol','konsol-kollu','cantilever'].includes(explicit)?'konsol':explicit==='drive'?'drive':drawing?.systemType==='mr'||drawing?.b2b?.mr===true||drawing?.plan?.mr===true?'mr':drawing?.b2b||drawing?.b2bLayout?'b2b':m2ActiveModule;
       return addRackForSystem(system,drawing,typeName);
     };
     try{m2AddRack=wrappedAddRack;}catch{}
@@ -183,7 +189,7 @@ const runtime = `<style ${marker}>
     const wrappedAddSelected=function(){
       if(!isFree())return originalAddSelected();
       const entry=m2SavedRackTypes[m2SelectedSavedType];
-      if(!entry){status('Önce B2B, Mekik veya MR kayıtlı raf tiplerinden birini seç.');return;}
+      if(!entry){status('Önce B2B, Mekik, Drive-In, MR veya Konsol Kollu kayıtlı raf tiplerinden birini seç.');return;}
       const before=Array.isArray(m2LayoutState?.racks)?m2LayoutState.racks.length:0;
       addRackForSystem(entry.__rafexSystem,entry.drawing,entry.name);
       const after=Array.isArray(m2LayoutState?.racks)?m2LayoutState.racks.length:0;
@@ -197,10 +203,10 @@ const runtime = `<style ${marker}>
     const wrappedDeleteAll=async function(){
       if(!isFree())return originalDeleteAll();
       if(!m2SavedRackTypes.length){status('Silinecek kayıtlı raf tipi yok.');return;}
-      if(!confirm('B2B, Mekik ve MR altındaki TÜM kayıtlı raf tiplerini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.'))return;
+      if(!confirm('B2B, Mekik, Drive-In, MR ve Konsol Kollu altındaki TÜM kayıtlı raf tiplerini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.'))return;
       try{
         await Promise.all([...new Set(SYSTEMS.map((system)=>system.api))].map((api)=>req(api,{method:'DELETE',body:'{}'})));
-        cache=[];loadedOnce=true;lastLoadedAt=Date.now();m2SavedRackTypes=[];m2SelectedSavedType=null;renderUnified();status('B2B, Mekik ve MR altındaki tüm kayıtlı raf tipleri silindi.');
+        cache=[];loadedOnce=true;lastLoadedAt=Date.now();m2SavedRackTypes=[];m2SelectedSavedType=null;renderUnified();status('B2B, Mekik, Drive-In, MR ve Konsol Kollu altındaki tüm kayıtlı raf tipleri silindi.');
       }catch(error){status(error?.message||'Kayıtlı raf tipleri silinemedi.');}
     };
     try{m2DeleteAllSavedRackTypes=wrappedDeleteAll;}catch{}
