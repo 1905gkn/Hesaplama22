@@ -637,10 +637,13 @@ assert.equal(palletLayoutContext.m2LastDrawing.railHeight, 150, "Ray yüksekliğ
 portalNodeFor("m2RailHeight").value = 170;
 palletLayoutContext.drawMekik2({ target: portalNodeFor("m2RailHeight") });
 assert.equal(portalNodeFor("m2LevelSpacing").value, "1600", "Ray 170 mm seçilince iki palet arası mesafe bir kez 20 mm artmalı");
-assert.equal(palletLayoutContext.m2LastDrawing.levelH, 1600, "170 mm rayın +20 mm farkı hesap ve çizim verisine uygulanmalı");
+assert.equal(portalNodeFor("m2FirstLevelHeight").value, "450", "Ray 170 mm seçilince ilk kat zemin kotu 430 mm'den 450 mm'ye çıkmalı");
+assert.equal(palletLayoutContext.m2LastDrawing.levelH, 1600, "170 mm rayın +20 mm farkı kat aralığına uygulanmalı");
+assert.equal(palletLayoutContext.m2LastDrawing.firstRailHeight, 450, "170 mm rayın +20 mm farkı hesap ve çizim ilk kat kotuna uygulanmalı");
 portalNodeFor("m2RailHeight").value = 150;
 palletLayoutContext.drawMekik2({ target: portalNodeFor("m2RailHeight") });
-assert.equal(portalNodeFor("m2LevelSpacing").value, "1580", "Ray tekrar 150 mm seçilince eklenen 20 mm geri alınmalı");
+assert.equal(portalNodeFor("m2LevelSpacing").value, "1580", "Ray tekrar 150 mm seçilince kat aralığına eklenen 20 mm geri alınmalı");
+assert.equal(portalNodeFor("m2FirstLevelHeight").value, "430", "Ray tekrar 150 mm seçilince ilk kat kotu 430 mm'ye dönmeli");
 portalNodeFor("m2PalletWeight").value = 800; palletLayoutContext.drawMekik2();
 assert.equal(palletLayoutContext.m2LastDrawing.railThickness, 2, "800 kg palet için 2 mm ray önerilmeli");
 portalNodeFor("m2PalletWeight").value = 1200; palletLayoutContext.drawMekik2();
