@@ -189,6 +189,7 @@ const runtime = `<style ${marker}>
   }
   function renderKonsolCommon(){
     var page=document.getElementById('page'),floor=page&&page.querySelector('.m2-floor-editor');
+    var viewerReady=typeof window.rafexLoadHeavyViewerV1==='function'?window.rafexLoadHeavyViewerV1('konsol'):Promise.resolve(!!window.RafexKonsolViewer);
     if(floor)floor.remove();
     var legacy=document.createElement('div');legacy.hidden=true;legacy.setAttribute('aria-hidden','true');legacy.className='rafex-konsol-common-legacy-engine';
     if(page)Array.from(page.children).filter(function(node){return node.matches?.('.hero,.m2-layout,.rafex-b2b-mekik-savebar,.m2-spacing-modal')}).forEach(function(node){legacy.appendChild(node)});
@@ -201,6 +202,7 @@ const runtime = `<style ${marker}>
     var settle=function(){page.querySelectorAll('.konsol-free-card,.konsol-pdf-card,.konsol-ortak-floor').forEach(function(node){if(node!==floor){node.hidden=true;node.setAttribute('aria-hidden','true')}})};
     settle();[80,220,600,1200].forEach(function(delay){setTimeout(settle,delay)});
     if(!page.dataset.rafexKonsolCommonAdapter){page.dataset.rafexKonsolCommonAdapter='1';page.addEventListener('input',function(event){if(event.target?.closest?.('.konsol-panel'))setTimeout(syncKonsolDrawing,0)});page.addEventListener('change',function(event){if(event.target?.closest?.('.konsol-panel'))setTimeout(syncKonsolDrawing,0)})}
+    Promise.resolve(viewerReady).then(function(){if(free.active&&free.selected==='konsol'&&document.getElementById('konsolCanvas'))window.rafexMountKonsolViewer?.()}).catch(function(error){var status=document.getElementById('konsolViewerStatus');if(status)status.textContent='Konsol 3D motoru yüklenemedi.';console.warn('Konsol Ortak Cizim viewer yukleme hatasi',error)});
     syncKonsolDrawing();setTimeout(syncKonsolDrawing,80);setTimeout(function(){window.rafexUnifiedCatalogSync?.()},120);
   }
 
@@ -293,6 +295,9 @@ worker = worker.replace(match[0], `${match[1]}${match[2]}${encoded}${match[2]}`)
 fs.writeFileSync(workerPath, worker);
 
 const finalHtml = Buffer.from(encoded, "base64").toString("utf8");
+for (const required of ["rafexLoadHeavyViewerV1('konsol')","window.rafexMountKonsolViewer?.()","Konsol Ortak Cizim viewer yukleme hatasi"]) {
+  if (!finalHtml.includes(required)) throw new Error(`Konsol Ortak Cizim 3D baglantisi eksik: ${required}`);
+}
 for (const required of [marker, "Serbest Çizim", "Raf Sistemi Araçları", "rafexEnterUnifiedFreeDrawing", "+ Modülü Ortak Alana Ekle", "['b2b','mekik2','drive','mr','konsol']", "else if(target==='konsol')renderKonsolCommon()", "rafexSystem:'konsol'", "page.classList.remove('b2b-mode','mr-mode','drive-in-mode')"] ) {
   if (!finalHtml.includes(required)) throw new Error(`Unified free drawing dogrulama hatasi: ${required}`);
 }
@@ -300,3 +305,4 @@ if (finalHtml.includes("setTimeout(()=>document.querySelector('.m2-layout')?.scr
   throw new Error("Unified free drawing: sistem gecisindeki otomatik kaydirma kaldirilamadi.");
 }
 console.log("FINAL: Ortak B2B/Mekik/Drive-In/MR sistem gecisi ekran kaydirilmadan yapilir (v1).");
+
