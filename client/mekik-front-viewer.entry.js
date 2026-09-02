@@ -325,7 +325,6 @@ class MekikFrontViewer {
       metalness: 0.02,
       roughness: 0.86,
     });
-    const bracketTopOffset = this.models.traverse.topOffset;
     for (let level = 0; level < config.levels; level += 1) {
       const supportZ = config.firstLevelHeight + level * config.levelSpacing;
       for (let bay = 0; bay < config.bays; bay += 1) {
@@ -340,16 +339,17 @@ class MekikFrontViewer {
         const pallet = this.models.pallet.root.clone(true);
         pallet.name = `Mekik Paletli Yük G${bay + 1} K${level + 1}`;
         pallet.scale.set(palletScaleX, palletScaleY, palletScaleZ);
-        pallet.position.set(bayCenterX, 0, supportZ + bracketTopOffset);
+        // İlk kat kotu doğrudan delik adımına uygulanır: 430 mm, 50 mm adımda 9. deliğin üstüdür.
+        pallet.position.set(bayCenterX, 0, supportZ);
         this.root.add(pallet);
-        if (bay === 0) this.visualPalletBottomZ[level] = pallet.position.z;
+        if (bay === 0) this.visualPalletBottomZ[level] = supportZ;
 
         if (boxHeight > 0) {
           const box = new THREE.Mesh(new THREE.BoxGeometry(config.palletWidth, config.palletDepth, boxHeight), boxMaterial);
           box.name = `Mekik Kutu G${bay + 1} K${level + 1}`;
           box.castShadow = false;
           box.receiveShadow = false;
-          box.position.set(bayCenterX, 0, supportZ + bracketTopOffset + palletBodyHeight + boxHeight / 2);
+          box.position.set(bayCenterX, 0, supportZ + palletBodyHeight + boxHeight / 2);
           this.root.add(box);
         }
       }
