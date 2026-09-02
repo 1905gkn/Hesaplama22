@@ -123,7 +123,7 @@ const runtime = String.raw`
     viewerLoading=new Promise((resolve,reject)=>{
       const ready=()=>resolve(window.RafexDriveInViewer);
       window.addEventListener('rafex-drive-in-viewer-ready',ready,{once:true});
-      const script=document.createElement('script');script.src='/drive-in-viewer.js?v=drive-in-front-v10';script.defer=true;script.dataset.rafexDriveInViewerLoader='v10';
+      const script=document.createElement('script');script.src='/drive-in-viewer.js?v=drive-in-front-v11';script.defer=true;script.dataset.rafexDriveInViewerLoader='v11';
       script.onerror=()=>reject(new Error('Drive In 3D motoru yüklenemedi.'));
       document.head.appendChild(script);
     }).catch((error)=>{viewerLoading=null;throw error});
@@ -241,7 +241,7 @@ const runtime = String.raw`
 html = html.replace("</body>", runtime + "</body>");
 for (const required of [
   'data-rafex-drive-in-mekik="v1"',
-  '/drive-in-viewer.js?v=drive-in-front-v10',
+  '/drive-in-viewer.js?v=drive-in-front-v11',
   "İlk kat yüksekliği (mm)",
   "m2ActivateModule('drive')",
   "rafexSystem='drive'",

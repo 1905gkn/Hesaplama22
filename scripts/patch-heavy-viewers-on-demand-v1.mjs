@@ -23,8 +23,8 @@ for (const [name, pattern] of viewers) {
 }
 
 // Drive-In v3 kendi runtime'i içinde lazy yüklenir; statik script etiketi bilerek yoktur.
-if (!viewerSources.drivein && html.includes('/drive-in-viewer.js?v=drive-in-front-v10')) {
-  viewerSources.drivein = '/drive-in-viewer.js?v=drive-in-front-v10';
+if (!viewerSources.drivein && html.includes('/drive-in-viewer.js?v=drive-in-front-v11')) {
+  viewerSources.drivein = '/drive-in-viewer.js?v=drive-in-front-v11';
 }
 
 for (const [name] of viewers) {
