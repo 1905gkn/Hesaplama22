@@ -105,7 +105,7 @@ const runtime = String.raw`
     viewerLoading=new Promise((resolve,reject)=>{
       const ready=()=>resolve(window.RafexDriveInViewer);
       window.addEventListener('rafex-drive-in-viewer-ready',ready,{once:true});
-      const script=document.createElement('script');script.src='/drive-in-viewer.js?v=drive-in-front-v9';script.defer=true;script.dataset.rafexDriveInViewerLoader='v9';
+      const script=document.createElement('script');script.src='/drive-in-viewer.js?v=drive-in-front-v10';script.defer=true;script.dataset.rafexDriveInViewerLoader='v10';
       script.onerror=()=>reject(new Error('Drive In 3D motoru yüklenemedi.'));
       document.head.appendChild(script);
     }).catch((error)=>{viewerLoading=null;throw error});
@@ -114,18 +114,18 @@ const runtime = String.raw`
 
   function renderDimensions(host,c,layout){
     const svg=host.querySelector('.rafex-drive-dimensions');if(!svg||!layout)return;
-    const w=Math.max(1,layout.width),h=Math.max(1,layout.height),left=w*.18,right=w*.82,top=h*.14,bottom=h*.86;
+    const w=Math.max(1,layout.width),h=Math.max(1,layout.height),left=layout.left,right=layout.right,top=layout.top,bottom=layout.bottom;
     const rackH=c.firstLevelHeight+Math.max(0,c.levels-1)*c.levelSpacing+c.palletHeight+220;
-    const yAt=(z)=>bottom-(bottom-top)*(z/Math.max(1,rackH));
-    const lx=left-12,labelX=left-22,rx=right+12,rx2=Math.min(w-18,right+58);
+    const ground=Number.isFinite(layout.groundY)?layout.groundY:bottom,supportYs=Array.isArray(layout.supportYs)?layout.supportYs:[];
+    const lx=Math.max(108,left-Math.min(34,w*.035)),labelX=lx-16,rx=Math.min(w-150,right+Math.max(52,w*.045)),rx2=Math.min(w-72,right+Math.max(125,w*.1));
     const arrow='<defs><marker id="rafexDriveArrow" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto-start-reverse"><path d="M0,0 L5,2.5 L0,5 Z" fill="#d7aa00"/></marker></defs>';
     let out=arrow+'<text class="dim-title" x="'+Math.max(8,labelX-6)+'" y="'+Math.max(18,top+14)+'">KOT ARALIKLARI</text>';
-    const ground=yAt(0),first=yAt(c.firstLevelHeight);
+    const first=Number.isFinite(supportYs[0])?supportYs[0]:ground;
     out+='<line class="dim-line dim-main" x1="'+lx+'" y1="'+ground+'" x2="'+lx+'" y2="'+first+'" marker-start="url(#rafexDriveArrow)" marker-end="url(#rafexDriveArrow)"/><line class="dim-line" x1="'+lx+'" y1="'+ground+'" x2="'+left+'" y2="'+ground+'"/><line class="dim-line" x1="'+lx+'" y1="'+first+'" x2="'+left+'" y2="'+first+'"/><text x="'+labelX+'" y="'+(ground-7)+'" text-anchor="end">ZEMİN · '+Math.round(c.firstLevelHeight)+' mm</text>';
-    for(let i=1;i<c.levels;i+=1){const y1=yAt(c.firstLevelHeight+(i-1)*c.levelSpacing),y2=yAt(c.firstLevelHeight+i*c.levelSpacing),mid=(y1+y2)/2;out+='<line class="dim-line dim-main" x1="'+lx+'" y1="'+y1+'" x2="'+lx+'" y2="'+y2+'" marker-start="url(#rafexDriveArrow)" marker-end="url(#rafexDriveArrow)"/><line class="dim-line" x1="'+lx+'" y1="'+y2+'" x2="'+left+'" y2="'+y2+'"/><text x="'+labelX+'" y="'+(mid+4)+'" text-anchor="end">K'+i+' · '+Math.round(c.levelSpacing)+' mm</text>'}
-    const lastSupport=c.firstLevelHeight+Math.max(0,c.levels-1)*c.levelSpacing,lastPallet=lastSupport+c.palletHeight,total=rackH,yp=yAt(lastPallet),yt=yAt(total);
-    out+='<line class="dim-line dim-main" x1="'+rx+'" y1="'+ground+'" x2="'+rx+'" y2="'+yp+'" marker-start="url(#rafexDriveArrow)" marker-end="url(#rafexDriveArrow)"/><line class="dim-line" x1="'+right+'" y1="'+yp+'" x2="'+rx+'" y2="'+yp+'"/><text x="'+(rx+15)+'" y="'+((ground+yp)/2)+'" text-anchor="middle" transform="rotate(-90 '+(rx+15)+' '+((ground+yp)/2)+')">SON PALET YÜKSEKLİĞİ · '+Math.round(lastPallet)+' mm</text>';
-    out+='<line class="dim-line dim-main" x1="'+rx2+'" y1="'+ground+'" x2="'+rx2+'" y2="'+yt+'" marker-start="url(#rafexDriveArrow)" marker-end="url(#rafexDriveArrow)"/><line class="dim-line" x1="'+right+'" y1="'+yt+'" x2="'+rx2+'" y2="'+yt+'"/><line class="dim-line" x1="'+right+'" y1="'+ground+'" x2="'+rx2+'" y2="'+ground+'"/><text x="'+(rx2+15)+'" y="'+((ground+yt)/2)+'" text-anchor="middle" transform="rotate(-90 '+(rx2+15)+' '+((ground+yt)/2)+')">AYAK UZUNLUĞU · '+Math.round(total)+' mm</text>';
+    for(let i=1;i<c.levels;i+=1){const y1=supportYs[i-1],y2=supportYs[i];if(!Number.isFinite(y1)||!Number.isFinite(y2))continue;const mid=(y1+y2)/2;out+='<line class="dim-line dim-main" x1="'+lx+'" y1="'+y1+'" x2="'+lx+'" y2="'+y2+'" marker-start="url(#rafexDriveArrow)" marker-end="url(#rafexDriveArrow)"/><line class="dim-line" x1="'+lx+'" y1="'+y2+'" x2="'+left+'" y2="'+y2+'"/><text x="'+labelX+'" y="'+(mid+4)+'" text-anchor="end">K'+i+' · '+Math.round(c.levelSpacing)+' mm</text>'}
+    const lastSupport=c.firstLevelHeight+Math.max(0,c.levels-1)*c.levelSpacing,lastPallet=lastSupport,total=rackH,yp=supportYs[c.levels-1]??first,yt=Number.isFinite(layout.uprightTopY)?layout.uprightTopY:top;
+    out+='<line class="dim-line dim-main" x1="'+rx+'" y1="'+ground+'" x2="'+rx+'" y2="'+yp+'" marker-start="url(#rafexDriveArrow)" marker-end="url(#rafexDriveArrow)"/><line class="dim-line" x1="'+right+'" y1="'+yp+'" x2="'+rx+'" y2="'+yp+'"/><text x="'+(rx+20)+'" y="'+((ground+yp)/2)+'" text-anchor="middle" transform="rotate(-90 '+(rx+20)+' '+((ground+yp)/2)+')">SON PALET YÜKSEKLİĞİ · '+Math.round(lastPallet)+' mm</text>';
+    out+='<line class="dim-line dim-main" x1="'+rx2+'" y1="'+ground+'" x2="'+rx2+'" y2="'+yt+'" marker-start="url(#rafexDriveArrow)" marker-end="url(#rafexDriveArrow)"/><line class="dim-line" x1="'+right+'" y1="'+yt+'" x2="'+rx2+'" y2="'+yt+'"/><line class="dim-line" x1="'+right+'" y1="'+ground+'" x2="'+rx2+'" y2="'+ground+'"/><text x="'+(rx2+22)+'" y="'+((ground+yt)/2)+'" text-anchor="middle" transform="rotate(-90 '+(rx2+22)+' '+((ground+yt)/2)+')">AYAK UZUNLUĞU · '+Math.round(total)+' mm</text>';
     svg.setAttribute('viewBox','0 0 '+w+' '+h);svg.innerHTML=out;
   }
 
@@ -223,7 +223,7 @@ const runtime = String.raw`
 html = html.replace("</body>", runtime + "</body>");
 for (const required of [
   'data-rafex-drive-in-mekik="v1"',
-  '/drive-in-viewer.js?v=drive-in-front-v9',
+  '/drive-in-viewer.js?v=drive-in-front-v10',
   "İlk kat yüksekliği (mm)",
   "m2ActivateModule('drive')",
   "rafexSystem='drive'",

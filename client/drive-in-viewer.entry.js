@@ -4,7 +4,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-const ASSET_VERSION = "drive-in-front-v9";
+const ASSET_VERSION = "drive-in-front-v10";
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 let sharedModelsPromise = null;
 const sourceMetrics = new WeakMap();
@@ -275,11 +275,20 @@ class DriveInFrontViewer {
     };
     const lowerLeft = project(bounds.min.x, bounds.min.z);
     const upperRight = project(bounds.max.x, bounds.max.z);
+    const rackWidth = this.config.bays * (this.config.palletWidth + 150) + (this.config.bays + 1) * 90;
+    const rackEdgeA = project(0, 0).x;
+    const rackEdgeB = project(rackWidth, 0).x;
+    const palletThickness = 150;
     this.emit("drive-in-layout", {
-      left: Math.min(lowerLeft.x, upperRight.x),
-      right: Math.max(lowerLeft.x, upperRight.x),
+      left: Math.min(rackEdgeA, rackEdgeB),
+      right: Math.max(rackEdgeA, rackEdgeB),
       top: Math.min(lowerLeft.y, upperRight.y),
       bottom: Math.max(lowerLeft.y, upperRight.y),
+      groundY: project(0, 0).y,
+      supportYs: Array.from({ length: this.config.levels }, (_, level) => (
+        project(0, this.config.firstLevelHeight + level * this.config.levelSpacing - palletThickness).y
+      )),
+      uprightTopY: project(0, this.config.firstLevelHeight + Math.max(0, this.config.levels - 1) * this.config.levelSpacing + this.config.palletHeight + 220).y,
       width,
       height,
     });
