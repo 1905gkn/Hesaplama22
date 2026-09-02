@@ -23,8 +23,8 @@ for (const [name, pattern] of viewers) {
 }
 
 // Drive-In v3 kendi runtime'i içinde lazy yüklenir; statik script etiketi bilerek yoktur.
-if (!viewerSources.drivein && html.includes('/drive-in-viewer.js?v=drive-in-front-v7')) {
-  viewerSources.drivein = '/drive-in-viewer.js?v=drive-in-front-v7';
+if (!viewerSources.drivein && html.includes('/drive-in-viewer.js?v=drive-in-front-v8')) {
+  viewerSources.drivein = '/drive-in-viewer.js?v=drive-in-front-v8';
 }
 
 for (const [name] of viewers) {
@@ -104,4 +104,5 @@ const encoded = Buffer.from(html, "utf8").toString("base64");
 source = source.slice(0, match.index) + match[0].replace(match[2], encoded) + source.slice(match.index + match[0].length);
 fs.writeFileSync(file, source);
 console.log("Heavy viewer on-demand v1: Konsol/Drive-In/Mekik motorlari yalniz ilgili modul acilinca yuklenir.");
+
 

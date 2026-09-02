@@ -4,7 +4,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-const ASSET_VERSION = "drive-in-front-v7";
+const ASSET_VERSION = "drive-in-front-v8";
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 let sharedModelsPromise = null;
 const sourceMetrics = new WeakMap();
@@ -82,13 +82,9 @@ class DriveInFrontViewer {
     this.camera.up.set(0, 0, 1);
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableRotate = false;
-    this.controls.enablePan = true;
-    this.controls.enableZoom = true;
+    this.controls.enablePan = false;
+    this.controls.enableZoom = false;
     this.controls.screenSpacePanning = true;
-    this.controls.zoomSpeed = 0.75;
-    this.controls.panSpeed = 0.7;
-    this.controls.minZoom = 0.55;
-    this.controls.maxZoom = 6;
     this.controls.addEventListener("change", () => this.renderScene());
 
     this.resizeObserver = new ResizeObserver(() => this.scheduleResize());
@@ -318,3 +314,4 @@ window.RafexDriveInViewer = {
   destroy() { active?.destroy?.(); active = null; },
 };
 window.dispatchEvent(new Event("rafex-drive-in-viewer-ready"));
+

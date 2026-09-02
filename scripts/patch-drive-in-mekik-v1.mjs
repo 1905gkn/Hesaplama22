@@ -24,6 +24,7 @@ const runtime = String.raw`
 #page.drive-in-mode #m2Front .rafex-drive-dim-bay{left:50%;bottom:9px;transform:translateX(-50%)}
 #page.drive-in-mode #m2Front .rafex-drive-dim-level{right:8px;top:42%}
 #page.drive-in-mode #m2Front .rafex-drive-dim-pallet{right:8px;top:52%}
+#page.drive-in-mode .m2-view[data-m2-view="front"] .m2-zoom{display:none!important}
 #page.drive-in-mode .m2-view[data-m2-view="front"] .m2-view-header-tools>span{font-weight:900;color:#214f3b}
 </style>
 <script data-rafex-drive-in-mekik="v1">
@@ -105,7 +106,7 @@ const runtime = String.raw`
     viewerLoading=new Promise((resolve,reject)=>{
       const ready=()=>resolve(window.RafexDriveInViewer);
       window.addEventListener('rafex-drive-in-viewer-ready',ready,{once:true});
-      const script=document.createElement('script');script.src='/drive-in-viewer.js?v=drive-in-front-v7';script.defer=true;script.dataset.rafexDriveInViewerLoader='v7';
+      const script=document.createElement('script');script.src='/drive-in-viewer.js?v=drive-in-front-v8';script.defer=true;script.dataset.rafexDriveInViewerLoader='v8';
       script.onerror=()=>reject(new Error('Drive In 3D motoru yüklenemedi.'));
       document.head.appendChild(script);
     }).catch((error)=>{viewerLoading=null;throw error});
@@ -216,7 +217,7 @@ const runtime = String.raw`
 html = html.replace("</body>", runtime + "</body>");
 for (const required of [
   'data-rafex-drive-in-mekik="v1"',
-  '/drive-in-viewer.js?v=drive-in-front-v7',
+  '/drive-in-viewer.js?v=drive-in-front-v8',
   "İlk kat yüksekliği (mm)",
   "m2ActivateModule('drive')",
   "rafexSystem='drive'",
@@ -227,4 +228,5 @@ const encoded = Buffer.from(html).toString("base64");
 source = source.slice(0, match.index) + match[0].replace(match[2], encoded) + source.slice(match.index + match[0].length);
 fs.writeFileSync(file, source);
 console.log("Drive In v1: Mekik akışı korundu; GLB ön görünüş tekrar mount döngüsü ve resize titreşimi giderildi.");
+
 
