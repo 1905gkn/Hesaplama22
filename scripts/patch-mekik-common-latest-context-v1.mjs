@@ -4,7 +4,10 @@ const target = "client/mekik-front-viewer.entry.js";
 let source = fs.readFileSync(target, "utf8");
 
 const oldGate = `  if (activePage) return activePage === "mekik2" || activePage === "mekik";`;
-const newGate = `  if (activePage) {\n    const commonMekik = activePage === "free"\n      && page.classList.contains("rafex-free-drawing-page")\n      && String(page.dataset?.rafexFreeContextSystem || "") === "mekik2";\n    return activePage === "mekik2" || activePage === "mekik" || commonMekik;\n  }`;
+const newGate = `  if (activePage) {\n    const commonMekik = activePage === "free"\n      && page.classList.contains("rafex-free-drawing-page")\n      && (
+        String(page.dataset?.rafexFreeContextSystem || "") === "mekik2"
+        || document.querySelector('input[name="rafexUnifiedSystem"][value="mekik2"]:checked')
+      );\n    return activePage === "mekik2" || activePage === "mekik" || commonMekik;\n  }`;
 
 if (!source.includes(oldGate)) {
   if (source.includes('const commonMekik = activePage === "free"')) {
@@ -21,6 +24,7 @@ for (const required of [
   'activePage === "free"',
   'rafex-free-drawing-page',
   'rafexFreeContextSystem',
+  'rafexUnifiedSystem',
   'activePage === "mekik2" || activePage === "mekik" || commonMekik'
 ]) {
   if (!source.includes(required)) throw new Error(`Mekik common latest context v1 dogrulama eksigi: ${required}`);
