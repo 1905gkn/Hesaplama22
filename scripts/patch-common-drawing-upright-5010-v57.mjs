@@ -26,7 +26,7 @@ const runtime = String.raw`
 (function(){
   if(window.__rafexCommonUpright5010V57)return;
   window.__rafexCommonUpright5010V57=true;
-  var baseRender=typeof m2RenderLayout==="function"?m2RenderLayout:null,pending=0;
+  var baseRender=typeof m2RenderLayout==="function"?m2RenderLayout:null,pending=0,pdfPaintTimers=[];
   function rackState(){try{return m2LayoutState}catch(_){return null}}
   function isMrRack(rack){return !!(rack&&((rack.b2b&&rack.b2b.mr)||rack.systemType==="mr"||(rack.b2bLayout&&rack.b2bLayout.palletType==="mr")||(rack.plan&&rack.plan.mr)))}
   function mergeBackToBackProfiles(group,rack){
@@ -99,7 +99,7 @@ const runtime = String.raw`
       });
     });
   }
-  function schedulePdfPaint(){[0,40,120,280,650].forEach(function(ms){setTimeout(copyPdfUprightPaint,ms)})}
+  function schedulePdfPaint(){pdfPaintTimers.forEach(clearTimeout);pdfPaintTimers=[0,40,120,280,650].map(function(ms){return setTimeout(copyPdfUprightPaint,ms)})}
   function schedule(delay){clearTimeout(pending);pending=setTimeout(decorate,Math.max(0,Number(delay)||0))}
   if(baseRender)m2RenderLayout=function(){var result=baseRender.apply(this,arguments);decorate();return result};
   try{
@@ -110,7 +110,13 @@ const runtime = String.raw`
       try{m2RenderCorporateReport=corporateWrapper}catch(_){}window.m2RenderCorporateReport=corporateWrapper;
     }
   }catch(_){}
-  document.addEventListener("click",function(event){if(event.target.closest('button[data-page="free"],button[data-page="b2b"],button[data-page="mr"]'))schedule(35)},true);
+  document.addEventListener("click",function(event){
+    if(event.target.closest('button[data-page="free"],button[data-page="b2b"],button[data-page="mr"]'))schedule(35);
+    if(event.target.closest('#m2CreateOutputButton,#m2PdfButton,.m2-pdf-button'))schedulePdfPaint();
+  },true);
+  ["m2CorporatePreview","m2CorporatePrint","m2CorporatePrintArea"].forEach(function(id){
+    var host=document.getElementById(id);if(host)new MutationObserver(schedulePdfPaint).observe(host,{childList:true,subtree:true});
+  });
   [0,80,240,700].forEach(function(ms){setTimeout(decorate,ms)});schedulePdfPaint();
   window.rafexCommonUpright5010V57={decorate:decorate,copyPdfUprightPaint:copyPdfUprightPaint};
 })();
@@ -152,6 +158,8 @@ for (const required of [
   'copyPdfUprightPaint',
   'dataset.rafexUprightPaint="live-svg-v72"',
   'corporateWrapper.__rafexUprightPaintV72=true',
+  '#m2CreateOutputButton,#m2PdfButton,.m2-pdf-button',
+  'new MutationObserver(schedulePdfPaint)',
 ]) if (!html.includes(required)) throw new Error("Common drawing RAL 5010 upright v57 missing: " + required);
 
 const encoded = Buffer.from(html).toString("base64");
