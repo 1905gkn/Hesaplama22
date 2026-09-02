@@ -12,7 +12,7 @@ const normalizeAnchor = '      liftClearance: clamp(Number(next.liftClearance) |
 if (!source.includes("loadType: ['profile', 'pallet', 'unpacked']")) {
   replaceRequired(
     normalizeAnchor,
-    normalizeAnchor + "\n      loadType: ['profile', 'pallet', 'unpacked'].includes(String(next.loadType)) ? String(next.loadType) : 'profile',",
+    normalizeAnchor + "\n      loadType: ['profile', 'pallet', 'unpacked'].includes(String(globalThis.__rafexKonsolLoadType || next.loadType)) ? String(globalThis.__rafexKonsolLoadType || next.loadType) : 'profile',",
     'ürün tipi normalize alanı',
   );
 }
@@ -67,6 +67,7 @@ source = source
 
 for (const required of [
   "loadType: ['profile', 'pallet', 'unpacked']",
+  'globalThis.__rafexKonsolLoadType || next.loadType',
   "this.konsolLoadTypesVersion = 'RAFEX_KONSOL_LOAD_TYPES_V15';",
   'const addSelectedLoad = (centerZ, supportTopY)',
   "o.loadType === 'pallet'",
