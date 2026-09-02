@@ -4,7 +4,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-const ASSET_VERSION = "drive-in-front-v8";
+const ASSET_VERSION = "drive-in-front-v9";
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 let sharedModelsPromise = null;
 const sourceMetrics = new WeakMap();
@@ -265,6 +265,21 @@ class DriveInFrontViewer {
     this.camera.zoom = 1;
     this.camera.updateProjectionMatrix();
     this.controls.update();
+    this.camera.updateMatrixWorld();
+    const project = (x, z) => {
+      const point = new THREE.Vector3(x, center.y, z).project(this.camera);
+      return { x: (point.x + 1) * width / 2, y: (1 - point.y) * height / 2 };
+    };
+    const lowerLeft = project(bounds.min.x, bounds.min.z);
+    const upperRight = project(bounds.max.x, bounds.max.z);
+    this.emit("drive-in-layout", {
+      left: lowerLeft.x,
+      right: upperRight.x,
+      top: upperRight.y,
+      bottom: lowerLeft.y,
+      width,
+      height,
+    });
   }
 
   scheduleResize(force = false) {

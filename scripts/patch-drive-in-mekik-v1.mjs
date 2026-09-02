@@ -18,12 +18,11 @@ const runtime = String.raw`
 #page.drive-in-mode #m2Front .rafex-drive-front-wrap{position:absolute;inset:0;min-height:100%;background:linear-gradient(180deg,#fff,#f8faf8)}
 #page.drive-in-mode #m2Front .rafex-drive-front-wrap canvas{display:block;width:100%;height:100%;min-height:430px;touch-action:none}
 #page.drive-in-mode #m2Front .rafex-drive-front-status{position:absolute;left:12px;bottom:10px;padding:6px 9px;border:1px solid #dfe5e0;border-radius:7px;background:#ffffffdd;color:#536158;font-size:10px;font-weight:900;pointer-events:none}
-#page.drive-in-mode #m2Front .rafex-drive-dim{position:absolute;z-index:3;padding:4px 7px;border:1px solid #b9c9bf;border-radius:999px;background:#fffffff0;color:#174d36;font:900 10px/1 Arial,sans-serif;pointer-events:none;box-shadow:0 1px 4px #0001}
-#page.drive-in-mode #m2Front .rafex-drive-dim-width{left:50%;top:8px;transform:translateX(-50%)}
-#page.drive-in-mode #m2Front .rafex-drive-dim-height{left:8px;top:50%;transform:translateY(-50%) rotate(-90deg)}
-#page.drive-in-mode #m2Front .rafex-drive-dim-bay{left:50%;bottom:9px;transform:translateX(-50%)}
-#page.drive-in-mode #m2Front .rafex-drive-dim-level{right:8px;top:42%}
-#page.drive-in-mode #m2Front .rafex-drive-dim-pallet{right:8px;top:52%}
+#page.drive-in-mode #m2Front .rafex-drive-dimensions{position:absolute;inset:0;z-index:3;width:100%;height:100%;pointer-events:none;overflow:visible}
+#page.drive-in-mode #m2Front .rafex-drive-dimensions .dim-line{fill:none;stroke:#d7aa00;stroke-width:1;stroke-dasharray:2 2;vector-effect:non-scaling-stroke}
+#page.drive-in-mode #m2Front .rafex-drive-dimensions .dim-main{stroke-dasharray:none}
+#page.drive-in-mode #m2Front .rafex-drive-dimensions text{fill:#123f31;font:900 12px Arial,sans-serif;paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round}
+#page.drive-in-mode #m2Front .rafex-drive-dimensions .dim-title{font-size:14px}
 #page.drive-in-mode .m2-view[data-m2-view="front"] .m2-zoom{display:none!important}
 #page.drive-in-mode .m2-view[data-m2-view="front"] .m2-view-header-tools>span{font-weight:900;color:#214f3b}
 </style>
@@ -106,22 +105,28 @@ const runtime = String.raw`
     viewerLoading=new Promise((resolve,reject)=>{
       const ready=()=>resolve(window.RafexDriveInViewer);
       window.addEventListener('rafex-drive-in-viewer-ready',ready,{once:true});
-      const script=document.createElement('script');script.src='/drive-in-viewer.js?v=drive-in-front-v8';script.defer=true;script.dataset.rafexDriveInViewerLoader='v8';
+      const script=document.createElement('script');script.src='/drive-in-viewer.js?v=drive-in-front-v9';script.defer=true;script.dataset.rafexDriveInViewerLoader='v9';
       script.onerror=()=>reject(new Error('Drive In 3D motoru yüklenemedi.'));
       document.head.appendChild(script);
     }).catch((error)=>{viewerLoading=null;throw error});
     return viewerLoading;
   }
 
-  function dimensionMarkup(c){
-    const bayClear=c.palletWidth+150,total=c.bays*bayClear+(c.bays+1)*90,totalH=c.firstLevelHeight+Math.max(0,c.levels-1)*c.levelSpacing+c.palletHeight+220;
-    return '<span class="rafex-drive-dim rafex-drive-dim-width">TOPLAM '+Math.round(total)+' mm</span><span class="rafex-drive-dim rafex-drive-dim-height">YÜKSEKLİK '+Math.round(totalH)+' mm</span><span class="rafex-drive-dim rafex-drive-dim-bay">GÖZ '+Math.round(bayClear)+' mm</span><span class="rafex-drive-dim rafex-drive-dim-level">İLK KAT '+Math.round(c.firstLevelHeight)+' · ARA '+Math.round(c.levelSpacing)+' mm</span><span class="rafex-drive-dim rafex-drive-dim-pallet">PALET '+Math.round(c.palletWidth)+' × '+Math.round(c.palletDepth)+' × '+Math.round(c.palletHeight)+' mm</span>';
-  }
-
-  function updateDimensions(host,c){
-    const bayClear=c.palletWidth+150,total=c.bays*bayClear+(c.bays+1)*90,totalH=c.firstLevelHeight+Math.max(0,c.levels-1)*c.levelSpacing+c.palletHeight+220;
-    const set=(name,value)=>{const node=host.querySelector('.rafex-drive-dim-'+name);if(node)node.textContent=value};
-    set('width','TOPLAM '+Math.round(total)+' mm');set('height','YÜKSEKLİK '+Math.round(totalH)+' mm');set('bay','GÖZ '+Math.round(bayClear)+' mm');set('level','İLK KAT '+Math.round(c.firstLevelHeight)+' · ARA '+Math.round(c.levelSpacing)+' mm');set('pallet','PALET '+Math.round(c.palletWidth)+' × '+Math.round(c.palletDepth)+' × '+Math.round(c.palletHeight)+' mm');
+  function renderDimensions(host,c,layout){
+    const svg=host.querySelector('.rafex-drive-dimensions');if(!svg||!layout)return;
+    const w=Math.max(1,layout.width),h=Math.max(1,layout.height),left=layout.left,right=layout.right,top=layout.top,bottom=layout.bottom;
+    const rackH=c.firstLevelHeight+Math.max(0,c.levels-1)*c.levelSpacing+c.palletHeight+220;
+    const yAt=(z)=>bottom-(bottom-top)*(z/Math.max(1,rackH));
+    const lx=Math.max(112,left-34),labelX=Math.max(8,lx-13),rx=Math.min(w-86,right+28),rx2=Math.min(w-18,right+76);
+    const arrow='<defs><marker id="rafexDriveArrow" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto-start-reverse"><path d="M0,0 L5,2.5 L0,5 Z" fill="#d7aa00"/></marker></defs>';
+    let out=arrow+'<text class="dim-title" x="'+Math.max(8,labelX-6)+'" y="'+Math.max(18,top+14)+'">KOT ARALIKLARI</text>';
+    const ground=yAt(0),first=yAt(c.firstLevelHeight);
+    out+='<line class="dim-line dim-main" x1="'+lx+'" y1="'+ground+'" x2="'+lx+'" y2="'+first+'" marker-start="url(#rafexDriveArrow)" marker-end="url(#rafexDriveArrow)"/><line class="dim-line" x1="'+lx+'" y1="'+ground+'" x2="'+left+'" y2="'+ground+'"/><line class="dim-line" x1="'+lx+'" y1="'+first+'" x2="'+left+'" y2="'+first+'"/><text x="'+labelX+'" y="'+(ground-7)+'" text-anchor="end">ZEMİN · '+Math.round(c.firstLevelHeight)+' mm</text>';
+    for(let i=1;i<c.levels;i+=1){const y1=yAt(c.firstLevelHeight+(i-1)*c.levelSpacing),y2=yAt(c.firstLevelHeight+i*c.levelSpacing),mid=(y1+y2)/2;out+='<line class="dim-line dim-main" x1="'+lx+'" y1="'+y1+'" x2="'+lx+'" y2="'+y2+'" marker-start="url(#rafexDriveArrow)" marker-end="url(#rafexDriveArrow)"/><line class="dim-line" x1="'+lx+'" y1="'+y2+'" x2="'+left+'" y2="'+y2+'"/><text x="'+labelX+'" y="'+(mid+4)+'" text-anchor="end">K'+i+' · '+Math.round(c.levelSpacing)+' mm</text>'}
+    const lastSupport=c.firstLevelHeight+Math.max(0,c.levels-1)*c.levelSpacing,lastPallet=lastSupport+c.palletHeight,total=rackH,yp=yAt(lastPallet),yt=yAt(total);
+    out+='<line class="dim-line dim-main" x1="'+rx+'" y1="'+ground+'" x2="'+rx+'" y2="'+yp+'" marker-start="url(#rafexDriveArrow)" marker-end="url(#rafexDriveArrow)"/><line class="dim-line" x1="'+right+'" y1="'+yp+'" x2="'+rx+'" y2="'+yp+'"/><text x="'+(rx+15)+'" y="'+((ground+yp)/2)+'" text-anchor="middle" transform="rotate(-90 '+(rx+15)+' '+((ground+yp)/2)+')">SON PALET YÜKSEKLİĞİ · '+Math.round(lastPallet)+' mm</text>';
+    out+='<line class="dim-line dim-main" x1="'+rx2+'" y1="'+ground+'" x2="'+rx2+'" y2="'+yt+'" marker-start="url(#rafexDriveArrow)" marker-end="url(#rafexDriveArrow)"/><line class="dim-line" x1="'+right+'" y1="'+yt+'" x2="'+rx2+'" y2="'+yt+'"/><line class="dim-line" x1="'+right+'" y1="'+ground+'" x2="'+rx2+'" y2="'+ground+'"/><text x="'+(rx2+15)+'" y="'+((ground+yt)/2)+'" text-anchor="middle" transform="rotate(-90 '+(rx2+15)+' '+((ground+yt)/2)+')">AYAK UZUNLUĞU · '+Math.round(total)+' mm</text>';
+    svg.setAttribute('viewBox','0 0 '+w+' '+h);svg.innerHTML=out;
   }
 
   function mountFront(){
@@ -131,14 +136,15 @@ const runtime = String.raw`
     const nextKey=JSON.stringify(nextConfig);
     const existingCanvas=host.querySelector('#rafexDriveFrontCanvas');
     if(frontViewer&&existingCanvas&&frontViewer.canvas===existingCanvas&&!frontViewer.destroyed){
-      if(nextKey!==frontConfigKey){try{frontViewer.update?.(nextConfig)}catch{}updateDimensions(host,nextConfig);frontConfigKey=nextKey;}
+      if(nextKey!==frontConfigKey){try{frontViewer.update?.(nextConfig)}catch{}frontConfigKey=nextKey;}
       return;
     }
     destroyFront();
     const token=frontMountToken;
-    host.innerHTML='<div class="rafex-drive-front-wrap"><canvas id="rafexDriveFrontCanvas" aria-label="Drive In GLB ön görünüş"></canvas>'+dimensionMarkup(nextConfig)+'<span class="rafex-drive-front-status" id="rafexDriveFrontStatus">Drive In GLB parçaları yükleniyor…</span></div>';
+    host.innerHTML='<div class="rafex-drive-front-wrap"><canvas id="rafexDriveFrontCanvas" aria-label="Drive In GLB ön görünüş"></canvas><svg class="rafex-drive-dimensions" aria-label="Drive In teknik kot ölçüleri"></svg><span class="rafex-drive-front-status" id="rafexDriveFrontStatus">Drive In GLB parçaları yükleniyor…</span></div>';
     const canvas=document.getElementById('rafexDriveFrontCanvas'),status=document.getElementById('rafexDriveFrontStatus');
     if(!canvas)return;
+    canvas.addEventListener('drive-in-layout',(event)=>renderDimensions(host,config(),event.detail));
     const start=()=>{
       if(token!==frontMountToken||!isDrive()||!document.body.contains(canvas))return;
       const api=window.RafexDriveInViewer;if(!api?.mount){if(status)status.textContent='Drive In 3D motoru hazırlanıyor…';return;}
@@ -217,7 +223,7 @@ const runtime = String.raw`
 html = html.replace("</body>", runtime + "</body>");
 for (const required of [
   'data-rafex-drive-in-mekik="v1"',
-  '/drive-in-viewer.js?v=drive-in-front-v8',
+  '/drive-in-viewer.js?v=drive-in-front-v9',
   "İlk kat yüksekliği (mm)",
   "m2ActivateModule('drive')",
   "rafexSystem='drive'",
