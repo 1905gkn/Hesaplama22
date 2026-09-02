@@ -190,11 +190,15 @@ const runtime = `<style ${marker}>
   function renderKonsolCommon(){
     var page=document.getElementById('page'),floor=page&&page.querySelector('.m2-floor-editor');
     if(floor)floor.remove();
+    var legacy=document.createElement('div');legacy.hidden=true;legacy.setAttribute('aria-hidden','true');legacy.className='rafex-konsol-common-legacy-engine';
+    if(page)Array.from(page.children).filter(function(node){return node.matches?.('.m2-layout,.rafex-b2b-mekik-savebar,.m2-spacing-modal')}).forEach(function(node){legacy.appendChild(node)});
     if(typeof window.renderKonsol==='function')window.renderKonsol();
     page=document.getElementById('page');if(!page)return;
+    if(legacy.childElementCount)page.appendChild(legacy);
     if(floor)page.appendChild(floor);
     page.classList.add('konsol-common-mode');
-    page.querySelectorAll('.konsol-free-card,.konsol-pdf-card').forEach(function(node){node.hidden=true;node.setAttribute('aria-hidden','true')});
+    var settle=function(){page.querySelectorAll('.konsol-free-card,.konsol-pdf-card,.konsol-ortak-floor').forEach(function(node){if(node!==floor){node.hidden=true;node.setAttribute('aria-hidden','true')}})};
+    settle();[80,220,600,1200].forEach(function(delay){setTimeout(settle,delay)});
     if(!page.dataset.rafexKonsolCommonAdapter){page.dataset.rafexKonsolCommonAdapter='1';page.addEventListener('input',function(event){if(event.target?.closest?.('.konsol-panel'))setTimeout(syncKonsolDrawing,0)});page.addEventListener('change',function(event){if(event.target?.closest?.('.konsol-panel'))setTimeout(syncKonsolDrawing,0)})}
     syncKonsolDrawing();setTimeout(syncKonsolDrawing,80);setTimeout(function(){window.rafexUnifiedCatalogSync?.()},120);
   }
