@@ -21,6 +21,7 @@ const runtime = String.raw`
 #page #m2LayoutSvg .rafex-merged-b2b-profile-v61{shape-rendering:geometricPrecision}
 /* Corporate output removes the live SVG id. Keep the RAL 5010 finish in preview/print too. */
 :is(#m2CorporatePreview,#m2CorporatePrint,#m2CorporatePrintArea) .m2-corporate-floor .m2-b2b-plan-upright.rafex-ral5010-upright{fill:#005f90!important;stroke:#001927!important;stroke-width:3.2px!important;opacity:1!important;filter:none!important}
+:is(#m2CorporatePreview,#m2CorporatePrint,#m2CorporatePrintArea) .m2-corporate-floor .rafex-profile-merge-source-v61{display:none!important}
 </style>
 <script data-rafex-common-upright-5010="v57">
 (function(){
@@ -111,6 +112,16 @@ const runtime = String.raw`
     ["m2CorporatePreview","m2CorporatePrint","m2CorporatePrintArea"].forEach(function(id){
       var host=document.getElementById(id);if(!host)return;
       host.querySelectorAll(".m2-corporate-floor svg").forEach(function(pdfSvg){
+        source.querySelectorAll('[data-rack]').forEach(function(sourceRack){
+          if(!sourceRack.querySelector('.m2-b2b-plan-pallet'))return;
+          var rackId=sourceRack.getAttribute('data-rack'),targetRack=pdfSvg.querySelector('[data-rack="'+rackId+'"]');if(!targetRack)return;
+          var sourceNodes=[sourceRack].concat(Array.from(sourceRack.querySelectorAll('*'))),targetNodes=[targetRack].concat(Array.from(targetRack.querySelectorAll('*'))),visualProps=['display','visibility','fill','fill-opacity','stroke','stroke-opacity','stroke-width','opacity','filter','transform','transform-origin','transform-box','vector-effect','paint-order','shape-rendering','font-family','font-size','font-weight','text-anchor'];
+          targetNodes.forEach(function(target,index){
+            var original=sourceNodes[index];if(!original||original.tagName!==target.tagName)return;var visual=getComputedStyle(original);
+            visualProps.forEach(function(name){var value=visual.getPropertyValue(name);if(value)target.style.setProperty(name,value,'important')});
+          });
+          targetRack.dataset.rafexB2BVisual="live-rack-v74";
+        });
         var targetParts=Array.from(pdfSvg.querySelectorAll(selector));
         targetParts.forEach(function(target,index){
           var original=sourceParts[index];if(!original)return;
@@ -186,6 +197,8 @@ for (const required of [
   'rack.b2b.uprightFinish||"ral5010"',
   'rack.b2b&&rack.b2b.footColor',
   'copyPdfUprightPaint',
+  'dataset.rafexB2BVisual="live-rack-v74"',
+  "visualProps=['display','visibility','fill'",
   '.m2-b2b-plan-pallet-line,.rafex-single-line-letter-v58 path',
   'dataset.rafexUprightPaint="live-svg-v72"',
   'corporateWrapper.__rafexUprightPaintV72=true',
