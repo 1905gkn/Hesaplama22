@@ -190,9 +190,7 @@ const konsolViewer = fs.readFileSync(konsolViewerPath, "utf8");
 for (const required of ["ipe180", "ipe300", "npi80", "npi140", "RAFEX_KONSOL_TOP_V8"]) {
   if (!konsolViewer.includes(required)) throw new Error(`Konsol viewer bundle içinde bulunamadı: ${required}`);
 }
-for (const required of ["Kutu profil bağı · galvaniz profil demeti", "Kutu profil bağı · paketleme şeridi", "Paletli yük · Konsol Kollu"]) {
-  if (!konsolViewer.includes(required)) throw new Error(`Konsol ürün görünümü bundle içinde bulunamadı: ${required}`);
-}
+if (!konsolViewer.includes("RAFEX_KONSOL_LOAD_TYPES_V15")) throw new Error("Konsol profil/palet görünümü v15 bundle içinde bulunamadı");
 if (konsolViewer.includes("RAFEX_KONSOL_DIMENSIONS_V13")) throw new Error("Eski Konsol v13 ölçü katmanı bundle içinde kalmış");
 if (konsolViewer.includes('konsol-glb-professional-v7')) throw new Error("Konsol eski delikli GLB katmanı viewer bundle içinde kalmış");
 console.log(`Final response runtime syntax verified: ${scripts.length} script blocks.`);

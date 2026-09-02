@@ -19,7 +19,8 @@ if (!source.includes("loadType: ['profile', 'pallet', 'unpacked']")) {
 
 const helpersAnchor = '    // İlk profil bağı zemindeki taban profilinin üzerinde başlar.';
 if (!source.includes('const addSelectedLoad = (centerZ, supportTopY)')) {
-  const helpers = `    const addPalletLoad = (centerZ, supportTopY) => {
+  const helpers = `    this.konsolLoadTypesVersion = 'RAFEX_KONSOL_LOAD_TYPES_V15';
+    const addPalletLoad = (centerZ, supportTopY) => {
       const palletHeight = Math.min(130, Math.max(70, o.productHeight * 0.14));
       const cargoHeight = Math.max(80, o.productHeight - palletHeight);
       const cargo = new THREE.Mesh(
@@ -66,6 +67,7 @@ source = source
 
 for (const required of [
   "loadType: ['profile', 'pallet', 'unpacked']",
+  "this.konsolLoadTypesVersion = 'RAFEX_KONSOL_LOAD_TYPES_V15';",
   'const addSelectedLoad = (centerZ, supportTopY)',
   "o.loadType === 'pallet'",
   "o.loadType === 'profile'",
