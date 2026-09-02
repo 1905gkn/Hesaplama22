@@ -113,6 +113,7 @@ const runtime=String.raw`
   function refreshAngle(){var s=currentState();if(el('konsolAngleValue'))el('konsolAngleValue').value=Math.round(s.angle);if(viewer&&viewer.setSectionAngle)viewer.setSectionAngle(s.angle);updateSectionSvg(s)}
   function updateAll(preferRec){if(applying)return;syncProfiles(preferRec);scheduleGeometry()}
   function mount(){var canvas=el('konsolCanvas');if(!canvas)return;if(!window.RafexKonsolViewer||!window.RafexKonsolViewer.mount){if(el('konsolViewerStatus'))el('konsolViewerStatus').textContent='Konsol 3D motoru hazırlanıyor…';window.addEventListener('rafex-konsol-viewer-ready',mount,{once:true});return}try{if(viewer&&viewer.destroy)viewer.destroy();viewer=window.RafexKonsolViewer.mount(canvas,currentState());if(el('konsolViewerStatus'))el('konsolViewerStatus').textContent='3D görünüm hazır';doGeometry()}catch(err){if(el('konsolViewerStatus'))el('konsolViewerStatus').textContent=(err&&err.message)||'3D görünüm açılamadı.'}}
+  window.rafexMountKonsolViewer=mount;
   window.renderKonsol=function(){
     if(viewer&&viewer.destroy){try{viewer.destroy()}catch(_){}}viewer=null;if(geometryRaf){cancelAnimationFrame(geometryRaf);geometryRaf=0}
     var page=el('page');if(!page)return;
@@ -147,7 +148,7 @@ const runtime=String.raw`
 })();
 </script>`;
 html=html.replace('</body>',runtime+'\n</body>');
-for(const required of ['data-rafex-konsol-v2="1"','data-rafex-krs-native="v9"','/konsol-viewer.js?v=konsol-krs-v9','SSI SCHÄFER KRS KATALOG SEÇİMİ','En üst kol kotu / KRS H','Kat arası mesafe (mm)','Kattaki ağırlık (kg)','6000:{600:{240:7590,270:11420}','1250:{80:505,100:885,120:1420,140:2110}','AORDER=[80,100,120,140]'])if(!html.includes(required))throw new Error('Konsol v9 doğrulaması eksik: '+required);
+for(const required of ['data-rafex-konsol-v2="1"','data-rafex-krs-native="v9"','/konsol-viewer.js?v=konsol-krs-v9','window.rafexMountKonsolViewer=mount','SSI SCHÄFER KRS KATALOG SEÇİMİ','En üst kol kotu / KRS H','Kat arası mesafe (mm)','Kattaki ağırlık (kg)','6000:{600:{240:7590,270:11420}','1250:{80:505,100:885,120:1420,140:2110}','AORDER=[80,100,120,140]'])if(!html.includes(required))throw new Error('Konsol v9 doğrulaması eksik: '+required);
 const encoded=Buffer.from(html).toString('base64');
 source=source.slice(0,match.index)+match[0].replace(match[2],encoded)+source.slice(match.index+match[0].length);
 
@@ -161,3 +162,4 @@ if(!source.includes(routeAnchor))throw new Error('Konsol viewer route ekleme nok
 source=source.replace(routeAnchor,'    if (path === "/konsol-viewer.js") return new Response(Uint8Array.from(atob(KONSOL_VIEWER_BASE64),(c)=>c.charCodeAt(0)),{headers:{"content-type":"text/javascript; charset=utf-8","cache-control":"no-store","x-content-type-options":"nosniff"}});\n'+routeAnchor);
 fs.writeFileSync(workerFile,source);
 console.log('Konsol native v9: tek runtime, exact SSI SCHAEFER KRS tablosu, top-arm H ve rAF performans akisi aktif.');
+
