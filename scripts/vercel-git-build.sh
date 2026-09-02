@@ -84,6 +84,10 @@ grep -q 'data-rafex-mobile-desktop-view="v30"' portal.html
 grep -q '__rafexLifecycleV30' client/b2b-viewer.entry.js
 grep -q '__rafexLifecycleV30' client/mr-viewer.entry.js
 
+node scripts/patch-b2b-manual-foot-height-v1.mjs
+grep -q 'function m2B2BEffectiveFootHeight(drawing)' portal.html
+grep -q 'sideUprightHeight:liveB2BHeight' portal.html
+
 bash scripts/build.sh
 node scripts/build-drive-in-assets-v1.mjs
 node scripts/inject-b2b-section-positioner.mjs
