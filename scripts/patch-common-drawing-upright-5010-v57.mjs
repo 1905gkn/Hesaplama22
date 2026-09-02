@@ -19,6 +19,8 @@ const runtime = String.raw`
 #page #m2LayoutSvg .m2-b2b-plan-upright.rafex-ral5010-upright.rafex-shared-upright-v60{stroke-width:4px!important;transform:scale(1.4);filter:drop-shadow(0 0 1.3px #fff) drop-shadow(0 0 1.2px #001927bb)}
 #page #m2LayoutSvg .rafex-profile-merge-source-v61{display:none!important}
 #page #m2LayoutSvg .rafex-merged-b2b-profile-v61{shape-rendering:geometricPrecision}
+/* Corporate output removes the live SVG id. Keep the RAL 5010 finish in preview/print too. */
+:is(#m2CorporatePreview,#m2CorporatePrint,#m2CorporatePrintArea) .m2-corporate-floor .m2-b2b-plan-upright.rafex-ral5010-upright{fill:#005f90!important;stroke:#001927!important;stroke-width:3.2px!important;opacity:1!important;filter:none!important}
 </style>
 <script data-rafex-common-upright-5010="v57">
 (function(){
@@ -76,11 +78,41 @@ const runtime = String.raw`
     });
     renderSharedFeet(state,svg);
   }
+  function copyPdfUprightPaint(){
+    var source=document.getElementById("m2LayoutSvg");if(!source)return;
+    var selector=".m2-b2b-plan-upright,.m2-ayak-glb-shape path,.m2-ayak-glb-shape rect,.m2-ayak-glb-shape circle";
+    var sourceParts=Array.from(source.querySelectorAll(selector));if(!sourceParts.length)return;
+    ["m2CorporatePreview","m2CorporatePrint","m2CorporatePrintArea"].forEach(function(id){
+      var host=document.getElementById(id);if(!host)return;
+      host.querySelectorAll(".m2-corporate-floor svg").forEach(function(pdfSvg){
+        var targetParts=Array.from(pdfSvg.querySelectorAll(selector));
+        targetParts.forEach(function(target,index){
+          var original=sourceParts[index];if(!original)return;
+          var paint=getComputedStyle(original);
+          ["fill","stroke","stroke-width","opacity"].forEach(function(name){
+            var value=paint.getPropertyValue(name);if(value)target.style.setProperty(name,value,"important");
+          });
+          target.style.setProperty("filter","none","important");
+          if(original.classList.contains("rafex-ral5010-upright"))target.classList.add("rafex-ral5010-upright");
+        });
+        pdfSvg.dataset.rafexUprightPaint="live-svg-v72";
+      });
+    });
+  }
+  function schedulePdfPaint(){[0,40,120,280,650].forEach(function(ms){setTimeout(copyPdfUprightPaint,ms)})}
   function schedule(delay){clearTimeout(pending);pending=setTimeout(decorate,Math.max(0,Number(delay)||0))}
   if(baseRender)m2RenderLayout=function(){var result=baseRender.apply(this,arguments);decorate();return result};
+  try{
+    var baseCorporate=window.m2RenderCorporateReport;
+    if(typeof baseCorporate==="function"&&!baseCorporate.__rafexUprightPaintV72){
+      var corporateWrapper=function(){var result=baseCorporate.apply(this,arguments);schedulePdfPaint();return result};
+      corporateWrapper.__rafexUprightPaintV72=true;
+      try{m2RenderCorporateReport=corporateWrapper}catch(_){}window.m2RenderCorporateReport=corporateWrapper;
+    }
+  }catch(_){}
   document.addEventListener("click",function(event){if(event.target.closest('button[data-page="free"],button[data-page="b2b"],button[data-page="mr"]'))schedule(35)},true);
-  [0,80,240,700].forEach(function(ms){setTimeout(decorate,ms)});
-  window.rafexCommonUpright5010V57={decorate:decorate};
+  [0,80,240,700].forEach(function(ms){setTimeout(decorate,ms)});schedulePdfPaint();
+  window.rafexCommonUpright5010V57={decorate:decorate,copyPdfUprightPaint:copyPdfUprightPaint};
 })();
 </script>`;
 
@@ -117,9 +149,13 @@ for (const required of [
   'upright.style.setProperty("filter","none","important")',
   'rack.b2b.uprightFinish||"ral5010"',
   'rack.b2b&&rack.b2b.footColor',
+  'copyPdfUprightPaint',
+  'dataset.rafexUprightPaint="live-svg-v72"',
+  'corporateWrapper.__rafexUprightPaintV72=true',
 ]) if (!html.includes(required)) throw new Error("Common drawing RAL 5010 upright v57 missing: " + required);
 
 const encoded = Buffer.from(html).toString("base64");
 source = source.slice(0, match.index) + match[0].replace(match[2], encoded) + source.slice(match.index + match[0].length);
 fs.writeFileSync(file, source);
-console.log("v57/v60: Serbest Cizim ortak ara ayaklari tek kez en ust katmanda gorunur; RAL 5010 daha baskin.");
+console.log("v57/v60/v72: Serbest Cizim ayak renkleri PDF SVG'sine inline kopyalanir; RAL 5010 griye donmez.");
+
