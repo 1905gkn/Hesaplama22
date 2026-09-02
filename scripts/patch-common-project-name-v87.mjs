@@ -9,10 +9,16 @@ if (!match) throw new Error("Common project name v87: HTML_BASE64 bulunamadi");
 let html = Buffer.from(match[3], "base64").toString("utf8");
 html = html
   .replace(/<style\s+data-rafex-common-project-name="v87">[\s\S]*?<\/style>\s*/g, "")
-  .replace(/<script\s+data-rafex-common-project-name="v87">[\s\S]*?<\/script>\s*/g, "");
+  .replace(/<script\s+data-rafex-common-project-name="v87">[\s\S]*?<\/script>\s*/g, "")
+  // v91 once hid every project-name field in Ortak Cizim. The current UI puts
+  // the shared project name exactly where the redundant top add button lived.
+  .replace(/<style\s+data-rafex-common-no-project-name="v91">[\s\S]*?<\/style>\s*/g, "")
+  .replace(/<script\s+data-rafex-common-no-project-name="v91">[\s\S]*?<\/script>\s*/g, "");
 
 const runtime = String.raw`<style data-rafex-common-project-name="v87">
 #page.rafex-free-drawing-page .rafex-common-project-name-wrap{display:flex;align-items:flex-end;gap:8px;min-width:260px;flex:1 1 320px;max-width:430px}
+#page.rafex-free-drawing-page #rafexUnifiedSystemPicker .rafex-system-picker-actions{justify-content:flex-start}
+#page.rafex-free-drawing-page #rafexUnifiedAddModule{display:none!important}
 #page.rafex-free-drawing-page .rafex-common-project-name-field{display:flex;flex-direction:column;gap:5px;width:100%;margin:0}
 #page.rafex-free-drawing-page .rafex-common-project-name-field>span{font-size:10px;font-weight:900;letter-spacing:.04em;color:#526158}
 #page.rafex-free-drawing-page #rafexCommonProjectName{width:100%;height:38px;padding:0 11px;border:1px solid #cbd9cf;border-radius:9px;background:#fff;color:#173c2d;font:800 12px Arial;outline:none}
@@ -147,8 +153,12 @@ for (const required of [
 ]) {
   if (!html.includes(required)) throw new Error(`Common project name v87 dogrulama eksigi: ${required}`);
 }
+if (html.includes('data-rafex-common-no-project-name="v91"')) {
+  throw new Error("Common project name v87: eski v91 gizleme yamasi kaldirilmadi");
+}
 
 const encoded = Buffer.from(html, "utf8").toString("base64");
 worker = worker.replace(match[0], `${match[1]}${match[2]}${encoded}${match[2]}`);
 fs.writeFileSync(workerPath, worker);
-console.log("v87: Proje Adi yalniz Ortak Cizim'de ortak ekleme alanina tasindi; sistemlerin kendi sayfalari degismedi.");
+console.log("v87: Ortak Cizim ust ekleme dugmesi kaldirildi; yerine ortak Proje Adi alani getirildi. Sistem sayfalari degismedi.");
+
