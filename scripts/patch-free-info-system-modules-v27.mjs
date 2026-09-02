@@ -64,7 +64,11 @@ const runtime = String.raw`
     destroyInfoViewer();const token=activeInfoToken;const entry=entries()[index];if(!entry?.drawing)return;const d=entry.drawing,sys=systemOf(entry),m=ensureModal(),body=m.querySelector('#rafexFreeInfoBody');m.querySelector('#rafexFreeInfoTitle').textContent=(sys==='b2b'?'B2B':sys==='mr'?'MR':sys==='drive'?'DRIVE-IN':sys==='konsol'?'KONSOL KOLLU':'MEKİK')+' · '+String(entry.name||'Raf')+' · MODÜL';m.hidden=false;
     try{
       if(sys==='konsol'){body.innerHTML=konsolInfo(entry);return;}
-      if(sys==='mekik2'||sys==='drive'){
+      if(sys==='mekik2'){
+        const front=typeof m2ReportElevationSvg==='function'?m2ReportElevationSvg(d,'front',true):'';const side=typeof m2ReportElevationSvg==='function'?m2ReportElevationSvg(d,'side',true):'';
+        body.innerHTML=metaHtml(entry,sys)+'<div class="rafex-free-info-views mekik-only">'+(front?'<div class="rafex-free-info-view"><strong>ÖNDEN GÖRÜŞ</strong>'+front+'</div>':'')+(side?'<div class="rafex-free-info-view"><strong>YAN GÖRÜŞ</strong>'+side+'</div>':'')+'</div>';return;
+      }
+      if(sys==='drive'){
         const front=typeof m2ReportElevationSvg==='function'?m2ReportElevationSvg(d,'front',true):'';const side=typeof m2ReportElevationSvg==='function'?m2ReportElevationSvg(d,'side',true):'';
         body.innerHTML=metaHtml(entry,sys)+'<div class="rafex-free-info-views mekik-only">'+(front?'<div class="rafex-free-info-view"><strong>ÖNDEN GÖRÜŞ</strong>'+front+'</div>':'')+(side?'<div class="rafex-free-info-view"><strong>YAN GÖRÜŞ</strong>'+side+'</div>':'')+'</div>';return;
       }
