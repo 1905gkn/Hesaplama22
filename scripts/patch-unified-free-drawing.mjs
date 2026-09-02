@@ -192,6 +192,7 @@ const runtime = `<style ${marker}>
     if(floor)floor.remove();
     var legacy=document.createElement('div');legacy.hidden=true;legacy.setAttribute('aria-hidden','true');legacy.className='rafex-konsol-common-legacy-engine';
     if(page)Array.from(page.children).filter(function(node){return node.matches?.('.m2-layout,.rafex-b2b-mekik-savebar,.m2-spacing-modal')}).forEach(function(node){legacy.appendChild(node)});
+    if(legacy.childElementCount)document.body.appendChild(legacy);
     if(typeof window.renderKonsol==='function')window.renderKonsol();
     page=document.getElementById('page');if(!page)return;
     if(legacy.childElementCount)page.appendChild(legacy);
