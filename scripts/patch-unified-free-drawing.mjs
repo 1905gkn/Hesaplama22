@@ -213,6 +213,18 @@ const runtime = `<style ${marker}>
     if(legacy.childElementCount)page.appendChild(legacy);
     if(floor)page.appendChild(floor);
     page.classList.add('konsol-common-mode');
+    var shell=page.querySelector('.konsol-shell');
+    if(shell&&!document.getElementById('rafexKonsolCommonSaveRack')){
+      var savebar=document.createElement('div');savebar.className='rafex-konsol-common-savebar';
+      savebar.innerHTML='<small id="rafexKonsolCommonSaveStatus">Mevcut Konsol ölçülerini ortak kayıtlı raf tiplerine ekler.</small><button type="button" id="rafexKonsolCommonSaveRack">Rafı Kaydet</button>';
+      shell.insertAdjacentElement('afterend',savebar);
+      savebar.querySelector('button').addEventListener('click',async function(){
+        var button=this,status=document.getElementById('rafexKonsolCommonSaveStatus');button.disabled=true;if(status)status.textContent='Konsol raf tipi kaydediliyor…';
+        try{await saveKonsolCommonRack();var floorStatus=document.getElementById('m2FloorStatus');if(status)status.textContent=floorStatus&&floorStatus.textContent||'Konsol raf tipi kaydedildi.'}
+        catch(error){if(status)status.textContent=error&&error.message||'Konsol raf tipi kaydedilemedi.'}
+        finally{button.disabled=false}
+      });
+    }
     var settle=function(){page.querySelectorAll('.konsol-free-card,.konsol-pdf-card,.konsol-ortak-floor').forEach(function(node){if(node!==floor){node.hidden=true;node.setAttribute('aria-hidden','true')}})};
     settle();[80,220,600,1200].forEach(function(delay){setTimeout(settle,delay)});
     if(!page.dataset.rafexKonsolCommonAdapter){page.dataset.rafexKonsolCommonAdapter='1';page.addEventListener('input',function(event){if(event.target?.closest?.('.konsol-panel'))setTimeout(syncKonsolDrawing,0)});page.addEventListener('change',function(event){if(event.target?.closest?.('.konsol-panel'))setTimeout(syncKonsolDrawing,0)})}
