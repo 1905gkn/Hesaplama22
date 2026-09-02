@@ -14,6 +14,7 @@ html = html
 const runtime = String.raw`
 <style data-rafex-drive-in-mekik="v1">
 #page.drive-in-mode .rafex-drive-first-level{order:0}
+#page.drive-in-mode .rafex-drive-level-spacing{order:0}
 #page.drive-in-mode #m2Front{position:relative;overflow:hidden;background:#fff}
 #page.drive-in-mode #m2Front .rafex-drive-front-wrap{position:absolute;inset:0;min-height:100%;background:linear-gradient(180deg,#fff,#f8faf8)}
 #page.drive-in-mode #m2Front .rafex-drive-front-wrap canvas{display:block;width:100%;height:100%;min-height:430px;touch-action:none}
@@ -62,6 +63,13 @@ const runtime = String.raw`
     else if(document.activeElement!==visible)visible.value=String(Math.max(0,Number(native.value)||430));
   }
 
+  function syncLevelSpacing(fromVisible=false){
+    const visible=document.getElementById('driveLevelSpacing'),native=document.getElementById('m2LevelSpacing');
+    if(!visible||!native)return;
+    if(fromVisible)native.value=String(Math.max(380,Math.min(5000,Number(visible.value)||1580)));
+    else if(document.activeElement!==visible)visible.value=String(Math.max(380,Number(native.value)||1580));
+  }
+
   function setText(selector,value){const el=document.querySelector(selector);if(el)el.textContent=value}
   function relabelDrive(){
     if(!isDrive())return;
@@ -89,6 +97,16 @@ const runtime = String.raw`
       input.addEventListener('change',()=>{syncFirstLevel(true);try{drawMekik2()}catch{}});
     }
     syncFirstLevel(false);
+    let spacing=document.querySelector('.rafex-drive-level-spacing');
+    if(!spacing){
+      spacing=document.createElement('label');spacing.className='input-field rafex-drive-level-spacing';
+      spacing.innerHTML='Kat arası mesafe (mm)<input id="driveLevelSpacing" type="number" min="380" max="5000" step="10" value="1580">';
+      field.insertAdjacentElement('afterend',spacing);
+      const spacingInput=spacing.querySelector('input');
+      spacingInput.addEventListener('input',()=>{syncLevelSpacing(true);try{drawMekik2()}catch{}});
+      spacingInput.addEventListener('change',()=>{syncLevelSpacing(true);try{drawMekik2()}catch{}});
+    }
+    syncLevelSpacing(false);
   }
 
   function destroyFront(){
@@ -167,7 +185,7 @@ const runtime = String.raw`
     const result=baseDrawMekik2.apply(this,args);
     if(isDrive()){
       if(typeof m2LastDrawing!=='undefined'&&m2LastDrawing)m2LastDrawing.rafexSystem='drive';
-      syncFirstLevel(false);relabelDrive();scheduleFront();
+      syncFirstLevel(false);syncLevelSpacing(false);relabelDrive();scheduleFront();
     }
     return result;
   };
