@@ -24,13 +24,15 @@ await import(`./patch-free-info-system-modules-v27.mjs?build=${Date.now()}`);
 await import(`./build-drive-in-assets-v1.mjs?build=${Date.now()}`);
 await import(`./patch-drive-in-mekik-v1.mjs?build=${Date.now()}`);
 
-// Konsol viewer: deliksiz IPE/INP görünümü, taban, çapraz düzeni, üst kol devamı ve temiz plan görünüşü.
-// Kutu profil urun yuku ve ona bagli v13 yuk secici geri alindi.
+// Konsol viewer: deliksiz IPE/INP görünümü, taban, çapraz düzeni, üst kol devamı,
+// temiz plan görünüşü ve sağ üstten seçilen profil/palet yükleri.
 await import(`./patch-konsol-viewer-foot-v4.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-viewer-fields-v5.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-viewer-brace-v7.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-viewer-top-arm-v8.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-viewer-top-v8.mjs?build=${Date.now()}`);
+await import(`./patch-konsol-viewer-product-support-v12.mjs?build=${Date.now()}`);
+await import(`./patch-konsol-viewer-load-types-v15.mjs?build=${Date.now()}`);
 
 // Konsol ana ekranı: exact SSI SCHÄFER KRS + kullanıcı akışı + FEM 10.2.09 ön kontrol katmanı.
 await import(`./patch-konsol-cantilever-v2.mjs?build=${Date.now()}`);
@@ -55,6 +57,7 @@ await import(`./patch-common-drawing-precise-wall-hit-v66.mjs?build=${Date.now()
 await import(`./patch-b2b-tunnel-label-v67.mjs?build=${Date.now()}`);
 await import(`./patch-mr-extension-controls-v70.mjs?build=${Date.now()}`);
 await import(`./patch-mr-extension-activation-v71.mjs?build=${Date.now()}`);
+await import(`./patch-konsol-load-switch-v13.mjs?build=${Date.now()}`);
 
 const workerModule = await import(`${workerPath}?syntax-check=${Date.now()}`);
 const response = await workerModule.default.fetch(
@@ -86,7 +89,8 @@ if (!html.includes('data-rafex-drive-in-mekik="v1"')) throw new Error("Drive In 
 if (!html.includes('/drive-in-viewer.js?v=drive-in-front-v11')) throw new Error("Drive In viewer lazy yükleyicisi canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-v2="1"')) throw new Error("Konsol Kollu ekranı canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-krs-native="v9"')) throw new Error("Konsol native KRS v9 canlı HTML içinde bulunamadı");
-if (!html.includes('/konsol-viewer.js?v=konsol-krs-v10')) throw new Error("Konsol KRS viewer yükleyicisi canlı HTML içinde bulunamadı");
+if (!html.includes('/konsol-viewer.js?v=konsol-krs-v11')) throw new Error("Konsol KRS viewer yükleyicisi canlı HTML içinde bulunamadı");
+if (!html.includes('data-rafex-konsol-load-switch="v13"')) throw new Error("Konsol sağ üst ürün seçicisi canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-request="v3"')) throw new Error("Konsol son kullanıcı istekleri canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-fem="v10"')) throw new Error("FEM 10.2.09 Konsol ön kontrol katmanı canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-free-plan="v38"')) throw new Error("Konsol Serbest Cizim temiz 2D plan katmanı canlı HTML içinde bulunamadı");
@@ -186,9 +190,10 @@ const konsolViewer = fs.readFileSync(konsolViewerPath, "utf8");
 for (const required of ["ipe180", "ipe300", "npi80", "npi140", "RAFEX_KONSOL_TOP_V8"]) {
   if (!konsolViewer.includes(required)) throw new Error(`Konsol viewer bundle içinde bulunamadı: ${required}`);
 }
-for (const removed of ["Kutu profil bağı · galvaniz profil demeti", "Kutu profil bağı · paketleme şeridi", "RAFEX_KONSOL_DIMENSIONS_V13"]) {
-  if (konsolViewer.includes(removed)) throw new Error(`Kaldirilan Konsol kutu profil guncellemesi bundle icinde kaldi: ${removed}`);
+for (const required of ["Kutu profil bağı · galvaniz profil demeti", "Kutu profil bağı · paketleme şeridi", "Paletli yük · Konsol Kollu"]) {
+  if (!konsolViewer.includes(required)) throw new Error(`Konsol ürün görünümü bundle içinde bulunamadı: ${required}`);
 }
+if (konsolViewer.includes("RAFEX_KONSOL_DIMENSIONS_V13")) throw new Error("Eski Konsol v13 ölçü katmanı bundle içinde kalmış");
 if (konsolViewer.includes('konsol-glb-professional-v7')) throw new Error("Konsol eski delikli GLB katmanı viewer bundle içinde kalmış");
 console.log(`Final response runtime syntax verified: ${scripts.length} script blocks.`);
 

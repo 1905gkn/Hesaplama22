@@ -15,7 +15,7 @@ html=html
   .replace(/<script data-rafex-konsol-v[12]="1"[^>]*>[\s\S]*?<\/script>/g,'')
   .replace(/<script data-rafex-konsol-viewer-loader="v[12]"[^>]*><\/script>/g,'');
 if(!html.includes('else if (name === "konsol") window.renderKonsol?.();'))html=html.replace('else if (name === "ayak") renderFoot();','else if (name === "ayak") renderFoot();\n        else if (name === "konsol") window.renderKonsol?.();');
-const loader='<script data-rafex-konsol-viewer-loader="v2" defer src="/konsol-viewer.js?v=konsol-krs-v10"></script>';
+const loader='<script data-rafex-konsol-viewer-loader="v2" defer src="/konsol-viewer.js?v=konsol-krs-v11"></script>';
 html=html.replace('</head>',loader+'\n</head>');
 
 const runtime=String.raw`
@@ -148,7 +148,7 @@ const runtime=String.raw`
 })();
 </script>`;
 html=html.replace('</body>',runtime+'\n</body>');
-for(const required of ['data-rafex-konsol-v2="1"','data-rafex-krs-native="v9"','/konsol-viewer.js?v=konsol-krs-v10','window.rafexMountKonsolViewer=mount','SSI SCHÄFER KRS KATALOG SEÇİMİ','En üst kol kotu / KRS H','Kat arası mesafe (mm)','Kattaki ağırlık (kg)','6000:{600:{240:7590,270:11420}','1250:{80:505,100:885,120:1420,140:2110}','AORDER=[80,100,120,140]'])if(!html.includes(required))throw new Error('Konsol v10 doğrulaması eksik: '+required);
+for(const required of ['data-rafex-konsol-v2="1"','data-rafex-krs-native="v9"','/konsol-viewer.js?v=konsol-krs-v11','window.rafexMountKonsolViewer=mount','SSI SCHÄFER KRS KATALOG SEÇİMİ','En üst kol kotu / KRS H','Kat arası mesafe (mm)','Kattaki ağırlık (kg)','6000:{600:{240:7590,270:11420}','1250:{80:505,100:885,120:1420,140:2110}','AORDER=[80,100,120,140]'])if(!html.includes(required))throw new Error('Konsol v11 doğrulaması eksik: '+required);
 const encoded=Buffer.from(html).toString('base64');
 source=source.slice(0,match.index)+match[0].replace(match[2],encoded)+source.slice(match.index+match[0].length);
 
