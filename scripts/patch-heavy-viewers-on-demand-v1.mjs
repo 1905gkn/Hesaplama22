@@ -81,10 +81,20 @@ const runtime = `<script data-rafex-heavy-viewers-on-demand="v1">
     const name=normalized(active?.dataset?.page||active?.dataset?.mobilePage||page?.dataset?.rafexFreeContextSystem||page?.dataset?.freeSystem||page?.dataset?.m2Module);
     if(sources[name])load(name).catch((error)=>console.warn(error));
   }
-  document.addEventListener('click',(event)=>loadFromTarget(event.target),true);
-  document.addEventListener('change',(event)=>loadFromTarget(event.target),true);
-  const page=document.getElementById('page');
-  if(page)new MutationObserver(loadActive).observe(page,{attributes:true,attributeFilter:['class','data-m2-module','data-rafex-free-context-system','data-free-system']});
+  function scheduleActiveLoad(){
+    setTimeout(loadActive,0);
+    setTimeout(loadActive,120);
+  }
+  document.addEventListener('click',(event)=>{loadFromTarget(event.target);scheduleActiveLoad()},true);
+  document.addEventListener('change',(event)=>{loadFromTarget(event.target);scheduleActiveLoad()},true);
+  const root=document.body||document.documentElement;
+  if(root)new MutationObserver((mutations)=>{
+    const relevant=mutations.some((mutation)=>{
+      if(mutation.type==='attributes')return mutation.target?.id==='page';
+      return Array.from(mutation.addedNodes||[]).some((node)=>node?.nodeType===1&&(node.id==='page'||node.querySelector?.('#page')));
+    });
+    if(relevant)scheduleActiveLoad();
+  }).observe(root,{childList:true,subtree:true,attributes:true,attributeFilter:['class','data-m2-module','data-rafex-free-context-system','data-free-system']});
   window.rafexLoadHeavyViewerV1=load;
   loadActive();
 })();
