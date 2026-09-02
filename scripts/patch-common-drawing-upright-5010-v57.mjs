@@ -67,6 +67,12 @@ const runtime = String.raw`
       upper.setAttribute("height",String(Math.max(0,upperH-extra/2)));lower.setAttribute("y",String(lowerY+extra/2));lower.setAttribute("height",String(Math.max(0,lowerH-extra/2)));
       upper.dataset.rafexB2BRowGap="v73";lower.dataset.rafexB2BRowGap="v73";
     });
+    Object.keys(columns).forEach(function(key){
+      var nodes=columns[key];if(nodes.length!==1)return;
+      var upper=nodes[0],top=Number(upper.getAttribute("y"))||0,totalH=Number(upper.getAttribute("height"))||0,gap=Math.min(1.4,Math.max(.8,totalH*.07)),half=Math.max(0,(totalH-gap)/2),lower=upper.cloneNode(true);
+      upper.setAttribute("height",String(half));upper.dataset.rafexB2BRowGap="v73";
+      lower.setAttribute("y",String(top+half+gap));lower.setAttribute("height",String(half));lower.dataset.rafexB2BRowGap="v73";lower.dataset.rafexB2BSplitProfile="v73";group.appendChild(lower);
+    });
     group.querySelectorAll(".m2-b2b-plan-pallet").forEach(function(pallet){
       var baseX=Number(pallet.dataset.rafexB2BPalletBaseX),baseW=Number(pallet.dataset.rafexB2BPalletBaseWidth);
       if(!Number.isFinite(baseX)){baseX=Number(pallet.getAttribute("x"))||0;pallet.dataset.rafexB2BPalletBaseX=String(baseX)}
@@ -171,6 +177,7 @@ for (const required of [
   'mergeBackToBackProfiles(group,rack)',
   'refineB2BPlanSpacing(group,rack)',
   'dataset.rafexB2BRowGap="v73"',
+  'dataset.rafexB2BSplitProfile="v73"',
   'dataset.rafexB2BPalletGap="v73"',
   'nodes.length===2',
   'rack.b2bLayout.palletType==="mr"',
