@@ -88,6 +88,9 @@ node scripts/patch-b2b-manual-foot-height-v1.mjs
 grep -q 'function m2B2BEffectiveFootHeight(drawing)' portal.html
 grep -q 'sideUprightHeight:liveB2BHeight' portal.html
 
+node scripts/patch-common-mekik-first-level-realism-v1.mjs
+grep -q 'RAFEX_COMMON_MEKIK_FIRST_LEVEL_REALISM_V1' client/mekik-front-viewer.entry.js
+
 bash scripts/build.sh
 node scripts/build-drive-in-assets-v1.mjs
 node scripts/inject-b2b-section-positioner.mjs
