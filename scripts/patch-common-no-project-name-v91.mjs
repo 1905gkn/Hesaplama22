@@ -26,7 +26,7 @@ const runtime = String.raw`<style data-rafex-common-no-project-name="v91">
   function realCommon(){
     var page=document.getElementById('page');
     var picker=document.getElementById('rafexUnifiedSystemPicker');
-    return !!(page&&picker&&page.contains(picker)&&page.classList.contains('rafex-free-drawing-page'));
+    return !!(page&&(document.body?.classList.contains('rafex-common-header-v95')||(picker&&page.contains(picker)&&page.classList.contains('rafex-free-drawing-page'))));
   }
   function hideNativeProjectFields(page){
     if(!page)return;

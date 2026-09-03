@@ -12,10 +12,10 @@ html = html
   .replace(/<script\s+data-rafex-common-project-name="v87">[\s\S]*?<\/script>\s*/g, "");
 
 const runtime = String.raw`<style data-rafex-common-project-name="v87">
-#page.rafex-free-drawing-page .rafex-common-project-name-wrap{display:flex!important;align-items:flex-end;gap:8px;width:min(430px,100%);min-width:260px;margin:12px 0 16px;padding:10px 12px;border:1px solid #d9e4dc;border-radius:12px;background:#f7faf8;box-sizing:border-box;font-family:Arial,sans-serif!important;font-style:normal!important;text-transform:none!important}
-#page.rafex-free-drawing-page .rafex-common-project-name-field{display:flex;flex-direction:column;gap:5px;width:100%;margin:0}
-#page.rafex-free-drawing-page .rafex-common-project-name-field>span{font-family:Arial,sans-serif!important;font-size:10px!important;font-style:normal!important;font-weight:900!important;letter-spacing:.04em!important;text-transform:none!important;color:#526158!important}
-#page.rafex-free-drawing-page #rafexCommonProjectName{width:100%;height:38px;padding:0 11px;border:1px solid #cbd9cf;border-radius:9px;background:#fff;color:#173c2d;font-family:Arial,sans-serif!important;font-size:12px!important;font-style:normal!important;font-weight:800!important;letter-spacing:normal!important;text-transform:none!important;outline:none;box-sizing:border-box}
+body.rafex-common-header-v95 #page .rafex-common-project-name-wrap,#page.rafex-free-drawing-page .rafex-common-project-name-wrap{display:flex!important;align-items:flex-end;gap:8px;width:min(430px,100%);min-width:260px;margin:12px 0 16px;padding:10px 12px;border:1px solid #d9e4dc;border-radius:12px;background:#f7faf8;box-sizing:border-box;font-family:Arial,sans-serif!important;font-style:normal!important;text-transform:none!important}
+body.rafex-common-header-v95 #page .rafex-common-project-name-field,#page.rafex-free-drawing-page .rafex-common-project-name-field{display:flex;flex-direction:column;gap:5px;width:100%;margin:0}
+body.rafex-common-header-v95 #page .rafex-common-project-name-field>span,#page.rafex-free-drawing-page .rafex-common-project-name-field>span{font-family:Arial,sans-serif!important;font-size:10px!important;font-style:normal!important;font-weight:900!important;letter-spacing:.04em!important;text-transform:none!important;color:#526158!important}
+body.rafex-common-header-v95 #page #rafexCommonProjectName,#page.rafex-free-drawing-page #rafexCommonProjectName{width:100%;height:38px;padding:0 11px;border:1px solid #cbd9cf;border-radius:9px;background:#fff;color:#173c2d;font-family:Arial,sans-serif!important;font-size:12px!important;font-style:normal!important;font-weight:800!important;letter-spacing:normal!important;text-transform:none!important;outline:none;box-sizing:border-box}
 #page.rafex-free-drawing-page #rafexCommonProjectName:focus{border-color:#173c2d;box-shadow:0 0 0 2px rgba(23,60,45,.09)}
 #page.rafex-free-drawing-page .rafex-native-project-name-v87{display:none!important}
 #page:not(.rafex-free-drawing-page) .rafex-native-project-name-v87{display:revert!important}
@@ -31,7 +31,7 @@ const runtime = String.raw`<style data-rafex-common-project-name="v87">
 
   function isCommon(){
     var page=document.getElementById('page');
-    return !!(page&&(page.dataset.rafexFreeDrawing==='1'||page.classList.contains('rafex-free-drawing-page')));
+    return !!(page&&(document.body?.classList.contains('rafex-common-header-v95')||page.dataset.rafexFreeDrawing==='1'||page.classList.contains('rafex-free-drawing-page')));
   }
   function norm(value){
     return String(value||'').toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i').replace(/[^a-z0-9]+/g,' ').trim();

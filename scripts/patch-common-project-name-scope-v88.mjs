@@ -26,7 +26,7 @@ const runtime = String.raw`<style data-rafex-common-project-name-scope="v88">
   function realCommon(){
     var page=document.getElementById('page');
     var picker=document.getElementById('rafexUnifiedSystemPicker');
-    return !!(page&&picker&&page.contains(picker)&&page.classList.contains('rafex-free-drawing-page'));
+    return !!(page&&(document.body?.classList.contains('rafex-common-header-v95')||(picker&&page.contains(picker)&&page.classList.contains('rafex-free-drawing-page'))));
   }
   function sync(){
     queued=false;
@@ -57,7 +57,7 @@ html = html.slice(0, closing) + runtime + "\n" + html.slice(closing);
 for (const required of [
   'data-rafex-common-project-name-scope="v88"',
   'rafex-common-project-name-active-v88',
-  "page.classList.contains('rafex-free-drawing-page')",
+  "document.body?.classList.contains('rafex-common-header-v95')",
   'rafexUnifiedSystemPicker'
 ]) if (!html.includes(required)) throw new Error("Common project name scope v88 dogrulama eksigi: "+required);
 
