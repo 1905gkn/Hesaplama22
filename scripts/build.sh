@@ -151,7 +151,7 @@ const accessoryMethods = `
           beam.scale.x *= -1;
           beam.scale.y *= -1;
           beam.position.set(beamLeft + beamLength, rear, -bottom);
-        } else beam.position.set(beamLeft, front, -bottom);
+        } else beam.position.set(beamLeft, front - beamDepth, -bottom);
         this.applyRackMaterials(beam);
         layer.add(beam);
       });
