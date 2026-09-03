@@ -73,7 +73,8 @@
 
   function notify() {
     try {
-      if (typeof window.b2bApplyInputs === 'function') window.b2bApplyInputs({ target: document.getElementById('b2bAccessoryArea'), accessoryChange: true });
+      if (typeof window.b2bRefreshSummary === 'function') window.b2bRefreshSummary();
+      if (typeof window.b2b3DOptions === 'function') window.RafexB2BViewer?.update?.(window.b2b3DOptions());
     } catch (error) { console.warn('Aksesuar güncelleme', error); }
   }
 
