@@ -23,6 +23,7 @@ for (const required of [
   ".rafex-system-option strong{font-size:18px",
   "<span class=\"rafex-system-option-body\"><strong>'+system.label+'</strong></span>",
   "#page.rafex-common-project-name-active-v88 .rafex-common-project-name-field{display:flex!important;flex-direction:column!important;align-items:stretch!important",
+  ".rafex-common-project-name-wrap{display:flex!important;flex:1 1 100%!important;width:100%!important;max-width:none!important",
   "#page.rafex-common-project-name-active-v88 #rafexCommonProjectName{box-sizing:border-box!important;width:100%!important;height:42px!important",
   "font-size:32px!important",
   "text-transform:uppercase!important",

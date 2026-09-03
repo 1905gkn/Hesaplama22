@@ -29,13 +29,13 @@ const runtime = String.raw`<style data-rafex-common-wording-palette="v94">
 :root{--rafex-pallet-color:#9a6028;--rafex-box-color:#c58b47}
 #page.rafex-free-drawing-page #rafexUnifiedAddModule{display:none!important}
 #page.rafex-free-drawing-page #rafexUnifiedSystemPicker .rafex-system-picker-actions{justify-content:flex-start!important}
-#page.rafex-common-project-name-active-v88 .rafex-common-project-name-wrap{display:flex!important;flex:1 1 470px!important;max-width:470px!important;min-width:260px!important}
+#page.rafex-common-project-name-active-v88 .rafex-common-project-name-wrap{display:flex!important;flex:1 1 100%!important;width:100%!important;max-width:none!important;min-width:0!important}
 #page.rafex-common-project-name-active-v88 .rafex-common-project-name-field{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:5px!important;width:100%!important}
 #page.rafex-common-project-name-active-v88 #rafexCommonProjectName{box-sizing:border-box!important;width:100%!important;height:42px!important;padding:0 12px!important;border:1px solid #cbd9cf!important;border-radius:9px!important;font:800 12px Arial!important}
 .m2-pallet,.m2-pallet-base,.m2-pallet-real,.m2-front-pallet,.m2-side-pallet{fill:var(--rafex-pallet-color)!important}
 .m2-load,.m2-pallet-surface,.m2-layout-pallet,.m2-b2b-plan-pallet,.m2-front-box,.m2-side-box{fill:var(--rafex-box-color)!important;stroke:#744719!important}
 .m2-b2b-plan-pallet-line,.m2-pallet-board,.m2-pallet-slat{stroke:var(--rafex-pallet-color)!important}
-@media(max-width:720px){#page.rafex-common-project-name-active-v88 .rafex-common-project-name-wrap{flex-basis:100%!important;max-width:none!important;min-width:0!important}}
+@media(max-width:720px){#page.rafex-common-project-name-active-v88 .rafex-common-project-name-wrap{flex-basis:100%!important;width:100%!important;max-width:none!important;min-width:0!important}}
 </style>
 <script data-rafex-common-wording-palette="v94">(function(){
   if(window.__rafexCommonWordingPaletteV94)return;
