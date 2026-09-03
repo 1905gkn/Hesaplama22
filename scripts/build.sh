@@ -98,9 +98,9 @@ const accessoryMethods = `
         : part.material.clone();
     });
     object.applyMatrix4(new THREE.Matrix4().makeBasis(
-      new THREE.Vector3(0, 0, 1),
       new THREE.Vector3(1, 0, 0),
-      new THREE.Vector3(0, -1, 0),
+      new THREE.Vector3(0, 0, -1),
+      new THREE.Vector3(0, 1, 0),
     ));
     const normalized = new THREE.Group();
     normalized.add(object);
@@ -108,21 +108,17 @@ const accessoryMethods = `
     let bounds = new THREE.Box3().setFromObject(normalized);
     object.position.sub(bounds.min);
     normalized.updateMatrixWorld(true);
-    const wrapper = new THREE.Group();
-    wrapper.add(normalized);
-    wrapper.rotation.x = -Math.PI / 2;
-    wrapper.updateMatrixWorld(true);
-    bounds = new THREE.Box3().setFromObject(wrapper);
+    bounds = new THREE.Box3().setFromObject(normalized);
     const size = bounds.getSize(new THREE.Vector3());
-    wrapper.scale.set(
+    normalized.scale.set(
       targetSize.x / Math.max(1, size.x),
       targetSize.y / Math.max(1, size.y),
       targetSize.z / Math.max(1, size.z),
     );
-    wrapper.updateMatrixWorld(true);
-    bounds = new THREE.Box3().setFromObject(wrapper);
-    wrapper.position.set(-bounds.min.x, -bounds.min.y, -bounds.max.z);
-    return wrapper;
+    normalized.updateMatrixWorld(true);
+    bounds = new THREE.Box3().setFromObject(normalized);
+    normalized.position.set(-bounds.min.x, -bounds.min.y, -bounds.max.z);
+    return normalized;
   }
 
   addCollectionShelves(section, sectionScale, depthScale) {
@@ -134,23 +130,28 @@ const accessoryMethods = `
     const clearWidth = this.options.sectionWidth;
     const front = SOURCE_TRAVERSE_FRONT_OFFSET * depthScale;
     const rear = SOURCE_TRAVERSE_BACK_OFFSET * depthScale;
-    const seat = Math.max(100, rear - front);
     const beamDepth = Math.max(24, 42 * depthScale);
+    const seat = Math.max(100, rear - front - 2 * beamDepth);
     floors.forEach((floor, floorIndex) => {
       const height = Math.max(50, Number(floor.zsHeight) || 55);
       const bottom = Math.max(0, Number(floor.bottom) || 0);
       [front, rear - beamDepth].forEach((offset, sideIndex) => {
         const beam = this.mrCollectionPart(this.models.mrTraverse, { x:clearWidth, y:beamDepth, z:height });
         beam.name = String(floor.traverse || "ZS35") + " MR Toplama " + (floorIndex + 1) + (sideIndex ? " Arka" : " On");
-        beam.position.set(clearLeft, offset, -bottom);
+        if (sideIndex === 0) {
+          beam.scale.x *= -1;
+          beam.scale.y *= -1;
+          beam.position.set(clearLeft + clearWidth, front + beamDepth, -bottom);
+        } else beam.position.set(clearLeft, rear - beamDepth, -bottom);
         this.applyRackMaterials(beam);
         layer.add(beam);
       });
       let cursor = 0;
       this.trayPiecePlan(clearWidth, floor.trayWidth).forEach((pieceWidth, pieceIndex) => {
-        const tray = this.mrCollectionPart(this.models.mrTray, { x:pieceWidth, y:seat, z:35 });
+        const trayHeight = Math.max(18, Math.min(32, 22 + Number(floor.trayThickness || .8) * 4));
+        const tray = this.mrCollectionPart(this.models.mrTray, { x:pieceWidth, y:seat, z:trayHeight });
         tray.name = "MR Toplama Tava " + (floorIndex + 1) + "-" + (pieceIndex + 1) + " · " + String(floor.trayThickness).replace(".", ",") + " mm";
-        tray.position.set(clearLeft + cursor, front, -(bottom + height));
+        tray.position.set(clearLeft + cursor, front + beamDepth, -(bottom + height));
         layer.add(tray);
         cursor += pieceWidth;
       });
