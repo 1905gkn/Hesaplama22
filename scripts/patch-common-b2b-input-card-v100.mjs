@@ -35,6 +35,8 @@ const runtime = String.raw`<style data-rafex-common-b2b-input="v100">
 }
 #page[data-rafex-common-active="1"][data-rafex-common-system="b2b"].b2b-mode .b2b-input-body>.b2b-field:has(#b2bProjectName),
 #page[data-rafex-common-active="1"][data-rafex-common-system="b2b"].b2b-mode .b2b-input-body>.b2b-field:has(#b2bTunnelPicker){display:none!important}
+#page[data-rafex-common-active="1"][data-rafex-common-system="b2b"].b2b-mode .m2-views>.m2-view-tabs,
+#page[data-rafex-common-active="1"][data-rafex-common-system="b2b"].b2b-mode .m2-views>.m2-export{display:none!important}
 #page[data-rafex-common-active="1"][data-rafex-common-system="b2b"].b2b-mode .b2b-field{gap:6px!important;color:#5f3038!important;font-size:10px!important;line-height:1.25!important;font-weight:850!important}
 #page[data-rafex-common-active="1"][data-rafex-common-system="b2b"].b2b-mode .b2b-field-row{gap:9px!important}
 #page[data-rafex-common-active="1"][data-rafex-common-system="b2b"].b2b-mode .b2b-field input,
@@ -97,6 +99,7 @@ for (const required of [
   "title.textContent='Raf Ölçüleri'",
   "note.textContent='Anında güncellenir'",
   "body.insertBefore(accessories,result)",
+  '.m2-views>.m2-export{display:none!important}',
 ]) {
   if (!html.includes(required)) throw new Error("Common B2B input v100 dogrulama eksigi: " + required);
 }
@@ -104,4 +107,4 @@ for (const required of [
 const encoded = Buffer.from(html, "utf8").toString("base64");
 worker = worker.replace(match[0], `${match[1]}${match[2]}${encoded}${match[2]}`);
 fs.writeFileSync(workerPath, worker);
-console.log("v100: Ortak Cizim B2B hesap girdileri referans duzenine getirildi.");
+console.log("v100: Ortak Cizim B2B hesap girdileri referans duzenine getirildi; ust gorunus ve DXF satirlari gizlendi.");
