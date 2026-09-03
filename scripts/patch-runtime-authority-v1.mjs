@@ -42,7 +42,7 @@ const authority = String.raw`<style data-rafex-runtime-authority="v1">
   function schedule(){if(!scheduled)scheduled=requestAnimationFrame(commit)}
   document.addEventListener('change',function(event){if(event.target&&event.target.name==='rafexUnifiedSystem')schedule()},true);
   document.addEventListener('click',function(event){if(event.target&&event.target.closest&&event.target.closest('#rafexUnifiedSystemPicker'))schedule()},true);
-  new MutationObserver(schedule).observe(document.getElementById('page')||document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','checked','data-rafex-common-active','data-rafex-common-system','data-rafex-free-context-system','data-free-system','data-m2-module']});
+  new MutationObserver(schedule).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','checked','data-rafex-common-active','data-rafex-common-system','data-rafex-free-context-system','data-free-system','data-m2-module']});
   window.RafexRuntimeAuthority={version:'v1',sync:commit,getState:function(){var page=document.getElementById('page');return {mode:page&&page.dataset.rafexAuthorityMode||'',system:page&&page.dataset.rafexAuthoritySystem||''}}};
   schedule();setTimeout(commit,120);setTimeout(commit,600);
 })();</script>`;
