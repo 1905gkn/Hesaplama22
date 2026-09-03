@@ -57,7 +57,7 @@ html = html.slice(0, closing) + runtime + "\n" + html.slice(closing);
 for (const required of [
   'data-rafex-common-project-name-scope="v88"',
   'rafex-common-project-name-active-v88',
-  '#nav button[data-page="free"]',
+  "page.classList.contains('rafex-free-drawing-page')",
   'rafexUnifiedSystemPicker'
 ]) if (!html.includes(required)) throw new Error("Common project name scope v88 dogrulama eksigi: "+required);
 
