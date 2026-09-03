@@ -25,9 +25,8 @@ const runtime = String.raw`<style data-rafex-common-project-name-scope="v88">
   var queued=false;
   function realCommon(){
     var page=document.getElementById('page');
-    var nav=document.querySelector('#nav button[data-page="free"]');
     var picker=document.getElementById('rafexUnifiedSystemPicker');
-    return !!(page&&nav&&nav.classList.contains('active')&&picker&&page.contains(picker));
+    return !!(page&&picker&&page.contains(picker)&&page.classList.contains('rafex-free-drawing-page'));
   }
   function sync(){
     queued=false;
@@ -68,3 +67,4 @@ fs.writeFileSync(workerPath, worker);
 console.log("v88: Proje Adi gizleme yalniz gercek Ortak Cizim aktifken uygulanir; B2B/MR/Mekik/Drive-In/Konsol kendi sayfalarinda eski alanlarini korur.");
 
 await import("./patch-global-pdf-gate-v89.mjs");
+

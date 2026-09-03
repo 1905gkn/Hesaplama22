@@ -9,19 +9,13 @@ if (!match) throw new Error("Common project name v87: HTML_BASE64 bulunamadi");
 let html = Buffer.from(match[3], "base64").toString("utf8");
 html = html
   .replace(/<style\s+data-rafex-common-project-name="v87">[\s\S]*?<\/style>\s*/g, "")
-  .replace(/<script\s+data-rafex-common-project-name="v87">[\s\S]*?<\/script>\s*/g, "")
-  // v91 once hid every project-name field in Ortak Cizim. The current UI puts
-  // the shared project name exactly where the redundant top add button lived.
-  .replace(/<style\s+data-rafex-common-no-project-name="v91">[\s\S]*?<\/style>\s*/g, "")
-  .replace(/<script\s+data-rafex-common-no-project-name="v91">[\s\S]*?<\/script>\s*/g, "");
+  .replace(/<script\s+data-rafex-common-project-name="v87">[\s\S]*?<\/script>\s*/g, "");
 
 const runtime = String.raw`<style data-rafex-common-project-name="v87">
-#page.rafex-free-drawing-page .rafex-common-project-name-wrap{display:flex;align-items:flex-end;gap:8px;min-width:260px;flex:1 1 470px;max-width:470px}
-#page.rafex-free-drawing-page #rafexUnifiedSystemPicker .rafex-system-picker-actions{justify-content:flex-start}
-#page.rafex-free-drawing-page #rafexUnifiedAddModule{display:none!important}
+#page.rafex-free-drawing-page .rafex-common-project-name-wrap{display:flex!important;align-items:flex-end;gap:8px;width:min(430px,100%);min-width:260px;margin:12px 0 16px;padding:10px 12px;border:1px solid #d9e4dc;border-radius:12px;background:#f7faf8;box-sizing:border-box;font-family:Arial,sans-serif!important;font-style:normal!important;text-transform:none!important}
 #page.rafex-free-drawing-page .rafex-common-project-name-field{display:flex;flex-direction:column;gap:5px;width:100%;margin:0}
-#page.rafex-free-drawing-page .rafex-common-project-name-field>span{font-size:10px;font-weight:900;letter-spacing:.04em;color:#526158}
-#page.rafex-free-drawing-page #rafexCommonProjectName{width:100%;height:42px;padding:0 12px;border:1px solid #cbd9cf;border-radius:9px;background:#fff;color:#173c2d;font:800 12px Arial;outline:none}
+#page.rafex-free-drawing-page .rafex-common-project-name-field>span{font-family:Arial,sans-serif!important;font-size:10px!important;font-style:normal!important;font-weight:900!important;letter-spacing:.04em!important;text-transform:none!important;color:#526158!important}
+#page.rafex-free-drawing-page #rafexCommonProjectName{width:100%;height:38px;padding:0 11px;border:1px solid #cbd9cf;border-radius:9px;background:#fff;color:#173c2d;font-family:Arial,sans-serif!important;font-size:12px!important;font-style:normal!important;font-weight:800!important;letter-spacing:normal!important;text-transform:none!important;outline:none;box-sizing:border-box}
 #page.rafex-free-drawing-page #rafexCommonProjectName:focus{border-color:#173c2d;box-shadow:0 0 0 2px rgba(23,60,45,.09)}
 #page.rafex-free-drawing-page .rafex-native-project-name-v87{display:none!important}
 #page:not(.rafex-free-drawing-page) .rafex-native-project-name-v87{display:revert!important}
@@ -33,6 +27,7 @@ const runtime = String.raw`<style data-rafex-common-project-name="v87">
 
   var syncTimer=0;
   var commonName=typeof window.__rafexCommonProjectName==='string'?window.__rafexCommonProjectName:'';
+  var commonWrap=null;
 
   function isCommon(){
     var page=document.getElementById('page');
@@ -82,15 +77,14 @@ const runtime = String.raw`<style data-rafex-common-project-name="v87">
   }
   function ensureCommonField(items){
     if(!isCommon())return null;
-    var actions=document.querySelector('#rafexUnifiedSystemPicker .rafex-system-picker-actions');
-    if(!actions)return null;
-    var wrap=actions.querySelector('.rafex-common-project-name-wrap');
+    var picker=document.getElementById('rafexUnifiedSystemPicker');
+    if(!picker)return null;
+    var wrap=commonWrap||document.querySelector('.rafex-common-project-name-wrap');
     if(!wrap){
       wrap=document.createElement('div');
       wrap.className='rafex-common-project-name-wrap';
       wrap.innerHTML='<label class="rafex-common-project-name-field" for="rafexCommonProjectName"><span>Proje Adı</span><input id="rafexCommonProjectName" type="text" autocomplete="off" placeholder="Ortak proje adını yaz"></label>';
-      var addButton=document.getElementById('rafexUnifiedAddModule');
-      actions.insertBefore(wrap,addButton||actions.firstChild);
+      commonWrap=wrap;
       var input=wrap.querySelector('#rafexCommonProjectName');
       input.addEventListener('input',function(){
         commonName=input.value;
@@ -104,6 +98,9 @@ const runtime = String.raw`<style data-rafex-common-project-name="v87">
         });
       });
     }
+    commonWrap=wrap;
+    if(wrap.parentElement!==picker.parentElement||wrap.previousElementSibling!==picker)picker.insertAdjacentElement('afterend',wrap);
+    wrap.hidden=false;wrap.removeAttribute('aria-hidden');
     var input=wrap.querySelector('#rafexCommonProjectName');
     if(!commonName){
       var existing=(items||[]).map(function(item){return String(item.input.value||'').trim();}).find(Boolean);
@@ -153,12 +150,9 @@ for (const required of [
 ]) {
   if (!html.includes(required)) throw new Error(`Common project name v87 dogrulama eksigi: ${required}`);
 }
-if (html.includes('data-rafex-common-no-project-name="v91"')) {
-  throw new Error("Common project name v87: eski v91 gizleme yamasi kaldirilmadi");
-}
 
 const encoded = Buffer.from(html, "utf8").toString("base64");
 worker = worker.replace(match[0], `${match[1]}${match[2]}${encoded}${match[2]}`);
 fs.writeFileSync(workerPath, worker);
-console.log("v87: Ortak Cizim ust ekleme dugmesi kaldirildi; yerine ortak Proje Adi alani getirildi. Sistem sayfalari degismedi.");
+console.log("v87: Proje Adi yalniz Ortak Cizim'de ortak ekleme alanina tasindi; sistemlerin kendi sayfalari degismedi.");
 

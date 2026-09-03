@@ -12,8 +12,7 @@ html = html
   .replace(/<script\s+data-rafex-common-no-project-name="v91">[\s\S]*?<\/script>\s*/g, "");
 
 const runtime = String.raw`<style data-rafex-common-no-project-name="v91">
-/* Ortak Cizim, sistem ekranini aynen kullanir; yalniz Proje Adi bolumu gorunmez. */
-#page.rafex-common-no-project-name-v91 .rafex-common-project-name-wrap,
+/* Ortak Cizim'de tek ortak Proje Adi sabit kalir; sistemlerin yerel alanlari gizlenir. */
 #page.rafex-common-no-project-name-v91 .rafex-native-project-name-v87,
 #page.rafex-common-no-project-name-v91 .m2-project-name,
 #page.rafex-common-no-project-name-v91 label:has(#m2ProjectName),
@@ -26,13 +25,12 @@ const runtime = String.raw`<style data-rafex-common-no-project-name="v91">
   var queued=false;
   function realCommon(){
     var page=document.getElementById('page');
-    var nav=document.querySelector('#nav button[data-page="free"]');
     var picker=document.getElementById('rafexUnifiedSystemPicker');
-    return !!(page&&nav&&nav.classList.contains('active')&&picker&&page.contains(picker));
+    return !!(page&&picker&&page.contains(picker)&&page.classList.contains('rafex-free-drawing-page'));
   }
   function hideNativeProjectFields(page){
     if(!page)return;
-    page.querySelectorAll('.rafex-common-project-name-wrap').forEach(function(node){node.hidden=true;node.setAttribute('aria-hidden','true');});
+    page.querySelectorAll('.rafex-common-project-name-wrap').forEach(function(node){node.hidden=false;node.removeAttribute('aria-hidden');});
     page.querySelectorAll('#m2ProjectName,#b2bProjectName,#mrProjectName').forEach(function(input){
       var label=input.closest('label');
       if(label){label.hidden=true;label.setAttribute('aria-hidden','true');}
@@ -80,4 +78,5 @@ for (const required of [
 const encoded = Buffer.from(html, "utf8").toString("base64");
 worker = worker.replace(match[0], `${match[1]}${match[2]}${encoded}${match[2]}`);
 fs.writeFileSync(workerPath, worker);
-console.log("v91: Ortak Cizim sistem ekrani korunur; Proje Adi bolumu yalniz Ortak Cizim'de gizlenir.");
+console.log("v91: Ortak Cizim'de tek ortak Proje Adi sabit kalir; sistemlerin yerel alanlari gizlenir.");
+
