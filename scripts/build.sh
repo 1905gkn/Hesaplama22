@@ -143,11 +143,13 @@ const accessoryMethods = `
       [front, rear - beamDepth].forEach((offset, sideIndex) => {
         const beam = this.mrCollectionPart(this.models.mrTraverse, { x:beamLength, y:beamDepth, z:height });
         beam.name = String(floor.traverse || "ZS35") + " MR Toplama " + (floorIndex + 1) + (sideIndex ? " Arka" : " On");
-        if (sideIndex === 0) {
+        // B2B sahnesinde ön/arka derinlik yönü MR sahnesinin tersidir:
+        // ön ZS doğal yüzde, arka ZS 180° çevrilerek tırnaklar ayaklara bakar.
+        if (sideIndex === 1) {
           beam.scale.x *= -1;
           beam.scale.y *= -1;
-          beam.position.set(beamLeft + beamLength, front + beamDepth, -bottom);
-        } else beam.position.set(beamLeft, rear - beamDepth, -bottom);
+          beam.position.set(beamLeft + beamLength, rear, -bottom);
+        } else beam.position.set(beamLeft, front, -bottom);
         this.applyRackMaterials(beam);
         layer.add(beam);
       });
