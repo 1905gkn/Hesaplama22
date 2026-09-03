@@ -14,7 +14,7 @@ html = html
 const runtime = String.raw`<style data-rafex-uniform-color-controls="v1">
 #page[data-rafex-common-active="1"] .rafex-uniform-color-row{
   display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;
-  grid-column:1/-1!important;margin:0!important
+  grid-column:1/-1!important;width:100%!important;min-width:0!important;margin:0!important
 }
 #page[data-rafex-common-active="1"] .rafex-uniform-color-field,
 #page[data-rafex-common-active="1"] .b2b-field:has(>select#b2bFootColor),
@@ -23,7 +23,8 @@ const runtime = String.raw`<style data-rafex-uniform-color-controls="v1">
 #page[data-rafex-common-active="1"] .mr-form label:has(>select#mrTraverseFinish),
 #page[data-rafex-common-active="1"] .konsol-field:has(>select#konsolLegColor),
 #page[data-rafex-common-active="1"] .konsol-field:has(>select#konsolArmColor){
-  display:grid!important;gap:5px!important;color:#5a111d!important;font:800 10px/1.2 Arial,sans-serif!important
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:5px!important;min-width:0!important;
+  color:#5a111d!important;font:800 9px/1.2 Arial,sans-serif!important;white-space:nowrap!important
 }
 #page[data-rafex-common-active="1"] .rafex-uniform-color-field select,
 #page[data-rafex-common-active="1"] #b2bFootColor,#page[data-rafex-common-active="1"] #b2bTraverseColor,
@@ -34,7 +35,6 @@ const runtime = String.raw`<style data-rafex-uniform-color-controls="v1">
   color:#1c1113!important;font:800 11px/1 Arial,sans-serif!important;box-shadow:none!important;opacity:1!important
 }
 #page[data-rafex-common-active="1"] #konsolLegColor:disabled{color:#1c1113!important;background:#fff!important;cursor:default!important}
-@media(max-width:560px){#page[data-rafex-common-active="1"] .rafex-uniform-color-row{grid-template-columns:1fr!important}}
 </style>
 <script data-rafex-uniform-color-controls="v1">(function(){
   if(window.__rafexUniformColorControlsV1)return;window.__rafexUniformColorControlsV1=true;
