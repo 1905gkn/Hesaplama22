@@ -16,6 +16,15 @@ const runtime = String.raw`<style data-rafex-uniform-system-banner="v95">
 .top-actions{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:8px!important;flex-wrap:nowrap!important}
 .top-actions>button{min-height:38px!important;white-space:nowrap!important}
 body.rafex-common-header-v95 #pageTitle{display:none!important}
+#page .rafex-native-project-name-v87,
+#page .rafex-common-project-name-field,
+#page .rafex-common-project-name-field>span{
+  font-family:Arial,sans-serif!important;
+  font-size:12px!important;
+  font-weight:800!important;
+  line-height:1.2!important;
+  letter-spacing:0!important;
+}
 #page .hero,#page .mr-hero{
   box-sizing:border-box!important;
   width:100%!important;
@@ -111,6 +120,8 @@ for (const required of [
   "height:128px!important",
   "place-content:center!important",
   "body.rafex-common-header-v95 #pageTitle",
+  "#page .rafex-native-project-name-v87",
+  "font-size:12px!important",
   "var label=common?'ORTAK ÇİZİM'",
   "data-rafex-system-banner-title",
   "MEKİK",

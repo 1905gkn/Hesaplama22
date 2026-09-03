@@ -58,6 +58,12 @@ assert.match(b2bViewer, /const traverseCount = this\.options\.firstPalletPositio
 assert.match(b2bViewer, /\[SOURCE_TRAVERSE_FRONT_OFFSET, SOURCE_TRAVERSE_BACK_OFFSET\]\.forEach/, "B2B her katta ön ve arka travers montajlarını eklemeli");
 assert.match(b2bViewer, /SOURCE_TRAVERSE_BEAM_BOTTOM \* verticalScale - this\.traverseBottom\(level\)/, "B2B travers gövdesinin alt kotu net boşluğa göre yerleşmeli");
 assert.doesNotMatch(b2bViewer, /stripTraverseConnectors/, "B2B travers GLB konnektörleriyle birlikte eksiksiz kullanılmalı");
+assert.match(b2bViewer, /SOURCE_FRONT_CONNECTOR_SHIFT = SOURCE_UPRIGHT_FRONT_FACE - \(SOURCE_TRAVERSE_FRONT_OFFSET \+ SOURCE_CONNECTOR_FRONT_EDGE\)/, "B2B ön konnektörleri ayak profilinin ön yüzüne hesaplı olarak hizalanmalı");
+assert.match(b2bViewer, /\(depthOffset \+ \(side === 0 \? SOURCE_FRONT_CONNECTOR_SHIFT : 0\)\) \* depthScale/, "Ön traversin tamamı ayak profilinin ön yüzü düzlemine taşınmalı");
+assert.match(b2bViewer, /if \(side === 0\) \{[\s\S]*?this\.mountFrontTraverseOnUprightFace\(traverse\);[\s\S]*?this\.extendLeftTraverseTowardUpright\(traverse\);/, "Ön travers ayakların ön yüzüne taşınmalı ve sol gövde 100 mm ayak yüzeyine doğru uzamalı");
+assert.match(b2bViewer, /traverse\.userData\.mountingFace = "upright-front-face"/, "Ön yüz montajı model üzerinde izlenebilir olmalı");
+assert.match(b2bViewer, /const SOURCE_LEFT_TRAVERSE_OVERHANG = 100;/, "Sol travers dışa taşması 100 mm olmalı");
+assert.match(b2bViewer, /object\.userData\.leftExtensionTowardUprightMm = SOURCE_LEFT_TRAVERSE_OVERHANG;/, "Sol traversin ayak yönündeki uzaması model üzerinde izlenebilir olmalı");
 assert.match(b2bViewer, /if \(name\.includes\("KUTU"\) \|\| name\.includes\("PALET"\)\) removals\.push\(object\)/, "B2B takım GLB içindeki eski mavi palet geometrileri kaldırılmalı");
 assert.match(b2bViewer, /name\.includes\("DİAGONEL"\)[\s\S]*?material\.color\.setHex\(COLORS\.galvanized\)/, "B2B diagonelleri renk seçiminden bağımsız galvaniz kalmalı");
 assert.match(b2bViewer, /const levelPalletHeight = this\.palletHeightAt\(level\)[\s\S]*?const loadHeightScale = levelPalletHeight \/ 966\.1927337646484/, "B2B her kattaki manuel palet yüksekliğini ayrı uygulamalı");

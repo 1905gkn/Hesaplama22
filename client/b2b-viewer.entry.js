@@ -15,6 +15,14 @@ const SOURCE_TRAVERSE_BEAM_HEIGHT = 119.97255;
 const SOURCE_TRAVERSE_X_OFFSET = 79.15549;
 const SOURCE_TRAVERSE_FRONT_OFFSET = 81.59595;
 const SOURCE_TRAVERSE_BACK_OFFSET = 1077.32687;
+// The front traverse must meet the outward-facing (front) surface of the
+// upright as one assembly, rather than leaving its beam behind the profile.
+const SOURCE_UPRIGHT_FRONT_FACE = 116.41129;
+const SOURCE_CONNECTOR_FRONT_EDGE = 93.85228;
+const SOURCE_FRONT_CONNECTOR_SHIFT = SOURCE_UPRIGHT_FRONT_FACE - (SOURCE_TRAVERSE_FRONT_OFFSET + SOURCE_CONNECTOR_FRONT_EDGE);
+const SOURCE_LEFT_TRAVERSE_OVERHANG = 100;
+const SOURCE_TRAVERSE_LEFT_BEAM_EDGE = 47.27;
+const SOURCE_TRAVERSE_RIGHT_BEAM_EDGE = 2739.27;
 const SOURCE_LOAD_BOTTOM = 227.79448;
 const ASSET_VERSION = "b2b-detail-layout-camera-519";
 const COLORS = {
@@ -374,13 +382,38 @@ class B2BViewer {
         traverse.scale.set(sectionScale, depthScale, verticalScale);
         traverse.position.set(
           SOURCE_TRAVERSE_X_OFFSET * sectionScale,
-          depthOffset * depthScale,
+          (depthOffset + (side === 0 ? SOURCE_FRONT_CONNECTOR_SHIFT : 0)) * depthScale,
           SOURCE_TRAVERSE_BEAM_BOTTOM * verticalScale - this.traverseBottom(level),
         );
+        if (side === 0) {
+          this.mountFrontTraverseOnUprightFace(traverse);
+          this.extendLeftTraverseTowardUpright(traverse);
+        }
         this.applyRackMaterials(traverse);
         section.add(traverse);
       });
     }
+  }
+
+  mountFrontTraverseOnUprightFace(traverse) {
+    traverse.userData.mountingFace = "upright-front-face";
+    traverse.userData.frontFaceShiftMm = SOURCE_FRONT_CONNECTOR_SHIFT;
+  }
+
+  extendLeftTraverseTowardUpright(traverse) {
+    const beamLength = SOURCE_TRAVERSE_RIGHT_BEAM_EDGE - SOURCE_TRAVERSE_LEFT_BEAM_EDGE;
+    const beamScale = (beamLength + SOURCE_LEFT_TRAVERSE_OVERHANG) / beamLength;
+    traverse.traverse((object) => {
+      if (!object.isMesh || !object.geometry) return;
+      const name = (object.name || "").toLocaleUpperCase("tr-TR");
+      if (!name.includes("TRAVERS")) return;
+      const geometry = object.geometry.clone();
+      geometry.translate(-SOURCE_TRAVERSE_RIGHT_BEAM_EDGE, 0, 0);
+      geometry.scale(beamScale, 1, 1);
+      geometry.translate(SOURCE_TRAVERSE_RIGHT_BEAM_EDGE, 0, 0);
+      object.geometry = geometry;
+      object.userData.leftExtensionTowardUprightMm = SOURCE_LEFT_TRAVERSE_OVERHANG;
+    });
   }
 
   addLoads(section, sectionScale) {
