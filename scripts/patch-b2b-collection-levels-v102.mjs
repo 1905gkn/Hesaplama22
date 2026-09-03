@@ -42,7 +42,7 @@ const runtime = String.raw`<style data-rafex-b2b-collection-levels="v102">
   function plan(){var s=normalize(state),cursor=s.groundGap,rows=s.floors.map(function(f,index){var bottom=cursor,zsHeight=ZS[f.traverse]||55;cursor+=zsHeight+f.height;return{index:index,bottom:bottom,zsHeight:zsHeight,top:cursor,trayWidth:f.trayWidth,trayThickness:f.trayThickness,traverse:f.traverse,height:f.height}});return{groundGap:s.groundGap,floors:rows,totalHeight:cursor}}
   function fmt(value){return Math.round(Number(value)||0).toLocaleString('tr-TR')}
   function forceTraverse(){if(!state.enabled)return;var input=document.getElementById('b2bFirstPalletPosition');if(input){if(input.value!=='traverse')previousFirstPosition=input.value||'ground';input.value='traverse';var choice=input.closest('.b2b-field')?.querySelector('.b2b-choice');choice?.querySelectorAll('button').forEach(function(button){button.classList.toggle('active',(button.getAttribute('onclick')||'').includes("'traverse'"))})}}
-  function notify(){forceTraverse();try{window.b2bApplyInputs?.({target:document.getElementById('b2bCollectionShell'),accessoryChange:true,deferred:true})}catch(error){console.warn('Toplama kati guncelleme',error)}queue()}
+  function notify(){forceTraverse();try{window.b2bRefreshSummary?.()}catch(error){console.warn('Toplama kati ozeti',error)}try{window.RafexB2BViewer?.update?.(window.b2b3DOptions?.())}catch(error){console.warn('Toplama kati 3D',error)}try{window.b2bSchedule3DUpdate?.()}catch(e){}queue()}
   function option(value,label,selected){return'<option value="'+value+'"'+(String(value)===String(selected)?' selected':'')+'>'+label+'</option>'}
   function render(){
     frame=0;var area=document.getElementById('b2bAccessoryArea');if(!area)return false;
