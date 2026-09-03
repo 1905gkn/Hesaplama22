@@ -55,12 +55,12 @@ const runtime = String.raw`<style data-rafex-uniform-system-banner="v95">
   function selectedSystem(page){
     var checked=page.querySelector('input[name="rafexUnifiedSystem"]:checked');
     if(checked&&labels[checked.value])return checked.value;
+    var active=document.querySelector('#nav button.active[data-page]');
+    if(active&&labels[active.dataset.page])return active.dataset.page;
     var context=page.dataset.rafexFreeContextSystem||page.dataset.m2Module;
     if(context&&labels[context])return context;
     if(page.classList.contains('b2b-mode'))return 'b2b';
     if(page.classList.contains('mr-mode'))return 'mr';
-    var active=document.querySelector('#nav button.active[data-page]');
-    if(active&&labels[active.dataset.page])return active.dataset.page;
     var heading=page.querySelector('.hero h2,.mr-hero h2');
     var text=String(heading&&heading.textContent||'').toLocaleLowerCase('tr-TR');
     if(text.includes('drive'))return 'drive';
@@ -72,8 +72,15 @@ const runtime = String.raw`<style data-rafex-uniform-system-banner="v95">
   function sync(){
     if(busy)return;
     var page=document.getElementById('page');if(!page)return;
-    var hero=page.querySelector('.hero,.mr-hero');if(!hero)return;
-    var key=selectedSystem(page),label=labels[key]||'ORTAK ÇİZİM';
+    var key=selectedSystem(page);if(!key)return;
+    var hero=page.querySelector('.hero,.mr-hero');
+    if(!hero){
+      busy=true;
+      page.insertAdjacentHTML('afterbegin','<section class="hero" data-rafex-system-banner="'+key+'"></section>');
+      hero=page.querySelector('.hero,.mr-hero');
+      busy=false;
+    }
+    var label=labels[key]||'ORTAK ÇİZİM';
     var title=hero.querySelector(':scope>[data-rafex-system-banner-title]');
     var clean=title&&hero.children.length===1&&title.textContent===label;
     if(clean)return;
@@ -99,6 +106,7 @@ for (const required of [
   "data-rafex-system-banner-title",
   "MEKİK",
   "KONSOL KOLLU",
+  "page.insertAdjacentHTML('afterbegin','<section class=\"hero\"",
   "hero.innerHTML='<h2 data-rafex-system-banner-title>'",
 ]) if (!html.includes(required)) throw new Error(`Uniform system banner v95 eksigi: ${required}`);
 

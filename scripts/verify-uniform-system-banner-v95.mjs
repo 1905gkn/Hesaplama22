@@ -18,6 +18,7 @@ for (const required of [
   "place-items:center!important",
   "font-size:32px!important",
   "text-transform:uppercase!important",
+  "page.insertAdjacentHTML('afterbegin','<section class=\"hero\"",
   "hero.innerHTML='<h2 data-rafex-system-banner-title>'+label+'</h2>'",
   "#rafexB2BReleaseBadge{display:none!important;}",
   "'rafexB2BReleaseBadge'",
