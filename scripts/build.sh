@@ -65,7 +65,6 @@ replaceRequired(oldFit, newFit, 'B2B kamera genişlik hesabı');
 // Aksesuar ürün GLB'lerini mevcut viewer model havuzuna ekle.
 replaceRequired(
 `          loader.loadAsync(source("b2b-sac-arabag")),\n        ]).finally(() => draco.dispose());`,
-`          loader.loadAsync(source("b2b-sac-arabag")),\n          loader.loadAsync(source("b2b-palet-dayama")),\n          loader.loadAsync(source("b2b-h-travers")),\n          loader.loadAsync(source("b2b-tava")),\n        ]).finally(() => draco.dispose());`,
 `          loader.loadAsync(source("b2b-sac-arabag")),\n          loader.loadAsync(source("b2b-palet-dayama")),\n          loader.loadAsync(source("b2b-h-travers")),\n          loader.loadAsync(source("b2b-tava")),\n          loader.loadAsync("/mr-zs-travers.glb?v=b2b-collection-zs-103"),\n          loader.loadAsync("/mr-tava.glb?v=b2b-collection-zs-103"),\n        ]).finally(() => draco.dispose());`,
 'B2B model yükleme listesi');
 replaceRequired(
