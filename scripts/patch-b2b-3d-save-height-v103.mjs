@@ -9,14 +9,13 @@ let html = Buffer.from(match[3], "base64").toString("utf8");
 
 html = html.replace(/<style\s+data-rafex-b2b-3d-save-height="v103">[\s\S]*?<\/style>\s*/g, "");
 const css = `<style data-rafex-b2b-3d-save-height="v103">
-@media(min-width:1101px){
+@media(min-width:651px){
   #page.b2b-mode .m2-layout{align-items:stretch!important}
-  #page.b2b-mode .m2-layout>.m2-config-card{display:flex!important;flex-direction:column!important;min-height:0!important}
-  #page.b2b-mode .m2-layout>.m2-config-card>.m2-views{display:flex!important;flex:1 1 auto!important;min-height:0!important;flex-direction:column!important}
-  #page.b2b-mode .m2-layout>.m2-config-card>.m2-views>[data-m2-view="front"]{display:flex!important;flex:1 1 auto!important;min-height:760px!important;flex-direction:column!important}
-  #page.b2b-mode .m2-layout>.m2-config-card .b2b-main-3d-canvas{flex:1 1 auto!important;min-height:700px!important;height:auto!important}
-  #page.b2b-mode .m2-layout>.m2-config-card .b2b-main-3d-viewer{min-height:100%!important;height:100%!important}
-  #page.b2b-mode .m2-layout>.m2-config-card>.m2-export{flex:0 0 auto!important;margin-top:12px!important}
+  #page.b2b-mode .m2-layout>.m2-views{display:flex!important;min-height:0!important;flex-direction:column!important}
+  #page.b2b-mode .m2-layout>.m2-views>[data-m2-view="front"]{display:flex!important;flex:1 1 auto!important;min-height:820px!important;flex-direction:column!important}
+  #page.b2b-mode .m2-layout .b2b-main-3d-canvas{flex:1 1 auto!important;min-height:760px!important;height:auto!important}
+  #page.b2b-mode .m2-layout .b2b-main-3d-viewer{min-height:100%!important;height:100%!important}
+  #page.b2b-mode .m2-layout>.m2-export{align-self:end!important;margin-top:12px!important}
 }
 </style>`;
 const closing = html.lastIndexOf("</body>");
