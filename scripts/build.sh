@@ -130,7 +130,9 @@ const accessoryMethods = `
     layer.name = "B2B MR ZS Toplama Katlari";
     const clearLeft = SOURCE_CLEAR_LEFT * sectionScale;
     const clearWidth = this.options.sectionWidth;
-    const beamOverlap = Math.max(0, (SOURCE_CLEAR_LEFT - SOURCE_TRAVERSE_X_OFFSET) * sectionScale);
+    // Toplama katındaki sol ZS travers, ayak profilinin yüzeyine 100 mm
+    // bindirmeli; kaynak modelin eski 47 mm'lik payı bu birleşimde yetersiz.
+    const beamOverlap = 100 * sectionScale;
     const beamLeft = clearLeft - beamOverlap;
     const beamLength = clearWidth + beamOverlap * 2;
     const front = SOURCE_TRAVERSE_FRONT_OFFSET * depthScale;
