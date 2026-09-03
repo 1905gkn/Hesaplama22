@@ -66,14 +66,15 @@ replaceRequired(oldFit, newFit, 'B2B kamera genişlik hesabı');
 replaceRequired(
 `          loader.loadAsync(source("b2b-sac-arabag")),\n        ]).finally(() => draco.dispose());`,
 `          loader.loadAsync(source("b2b-sac-arabag")),\n          loader.loadAsync(source("b2b-palet-dayama")),\n          loader.loadAsync(source("b2b-h-travers")),\n          loader.loadAsync(source("b2b-tava")),\n        ]).finally(() => draco.dispose());`,
+`          loader.loadAsync(source("b2b-sac-arabag")),\n          loader.loadAsync(source("b2b-palet-dayama")),\n          loader.loadAsync(source("b2b-h-travers")),\n          loader.loadAsync(source("b2b-tava")),\n          loader.loadAsync("/mr-zs-travers.glb?v=b2b-collection-zs-103"),\n          loader.loadAsync("/mr-tava.glb?v=b2b-collection-zs-103"),\n        ]).finally(() => draco.dispose());`,
 'B2B model yükleme listesi');
 replaceRequired(
 `      const [module, pallet, traverse, foot, straightTie] = await sharedModelsPromise;`,
-`      const [module, pallet, traverse, foot, straightTie, palletStop, hTraverse, tray] = await sharedModelsPromise;`,
+`      const [module, pallet, traverse, foot, straightTie, palletStop, hTraverse, tray, mrTraverse, mrTray] = await sharedModelsPromise;`,
 'B2B model destructuring');
 replaceRequired(
 `        straightTie: straightTie.scene.clone(true),\n      };`,
-`        straightTie: straightTie.scene.clone(true),\n        palletStop: palletStop.scene.clone(true),\n        hTraverse: hTraverse.scene.clone(true),\n        tray: tray.scene.clone(true),\n      };`,
+`        straightTie: straightTie.scene.clone(true),\n        palletStop: palletStop.scene.clone(true),\n        hTraverse: hTraverse.scene.clone(true),\n        tray: tray.scene.clone(true),\n        mrTraverse: mrTraverse.scene.clone(true),\n        mrTray: mrTray.scene.clone(true),\n      };`,
 'B2B viewer model map');
 
 replaceRequired(
@@ -87,6 +88,44 @@ replaceRequired(
 'B2B section accessory hook');
 
 const accessoryMethods = `
+  mrCollectionPart(source, targetSize) {
+    const object = source.clone(true);
+    object.traverse((part) => {
+      if (!part.isMesh) return;
+      part.castShadow = true;
+      part.receiveShadow = true;
+      if (part.material) part.material = Array.isArray(part.material)
+        ? part.material.map((material) => material.clone())
+        : part.material.clone();
+    });
+    object.applyMatrix4(new THREE.Matrix4().makeBasis(
+      new THREE.Vector3(0, 0, 1),
+      new THREE.Vector3(1, 0, 0),
+      new THREE.Vector3(0, -1, 0),
+    ));
+    const normalized = new THREE.Group();
+    normalized.add(object);
+    normalized.updateMatrixWorld(true);
+    let bounds = new THREE.Box3().setFromObject(normalized);
+    object.position.sub(bounds.min);
+    normalized.updateMatrixWorld(true);
+    const wrapper = new THREE.Group();
+    wrapper.add(normalized);
+    wrapper.rotation.x = -Math.PI / 2;
+    wrapper.updateMatrixWorld(true);
+    bounds = new THREE.Box3().setFromObject(wrapper);
+    const size = bounds.getSize(new THREE.Vector3());
+    wrapper.scale.set(
+      targetSize.x / Math.max(1, size.x),
+      targetSize.y / Math.max(1, size.y),
+      targetSize.z / Math.max(1, size.z),
+    );
+    wrapper.updateMatrixWorld(true);
+    bounds = new THREE.Box3().setFromObject(wrapper);
+    wrapper.position.set(-bounds.min.x, -bounds.min.y, -bounds.max.z);
+    return wrapper;
+  }
+
   accessoryModel(source, targetSize, swapXY = false) {
     const raw = source.clone(true);
     raw.traverse((part) => {
