@@ -67,14 +67,43 @@ const runtime = String.raw`<style data-rafex-common-b2b-input="v100">
 #page[data-rafex-common-active="1"][data-rafex-common-system="b2b"].b2b-mode .b2b-result{gap:7px!important}
 #page[data-rafex-common-active="1"][data-rafex-common-system="b2b"].b2b-mode .b2b-result div{padding:10px!important;border-radius:9px!important;background:#f5e9eb!important}
 #page[data-rafex-common-active="1"][data-rafex-common-system="b2b"].b2b-mode .b2b-recommendation{border-radius:11px!important;background:#fbf4f5!important}
+#page[data-rafex-common-active="1"] .rafex-common-measure-head{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;
+  padding:16px 18px 12px!important;border-bottom:1px solid #eadcdf!important;background:#fff!important;color:#17231c!important
+}
+#page[data-rafex-common-active="1"] .rafex-common-measure-head h3{
+  margin:0!important;color:#17231c!important;font-size:17px!important;line-height:1.2!important;font-weight:900!important
+}
+#page[data-rafex-common-active="1"] .rafex-common-measure-head span{
+  display:block!important;margin:0!important;color:#8a7c7f!important;font-size:9px!important;line-height:1.2!important;font-weight:700!important;white-space:nowrap!important
+}
+#page[data-rafex-common-active="1"] .m2-config-card>.rafex-common-measure-head{margin:-20px -20px 14px!important}
+#page[data-rafex-common-active="1"] .mr-panel>.rafex-common-measure-head{margin:-14px -14px 12px!important;border-radius:14px 14px 0 0!important}
+#page[data-rafex-common-active="1"] .konsol-panel>.rafex-common-measure-head{margin:-15px -15px 14px!important;border-radius:14px 14px 0 0!important}
 @media(max-width:900px){#page[data-rafex-common-active="1"][data-rafex-common-system="b2b"].b2b-mode .b2b-input-card{max-width:none!important}}
 </style>
 <script data-rafex-common-b2b-input="v100">(function(){
   if(window.__rafexCommonB2BInputV100)return;window.__rafexCommonB2BInputV100=true;
   var frame=0;
   function active(page){return !!(page&&page.getAttribute('data-rafex-common-active')==='1'&&page.getAttribute('data-rafex-common-system')==='b2b'&&page.classList.contains('b2b-mode'));}
+  function sharedHead(page){
+    if(!page||page.getAttribute('data-rafex-common-active')!=='1')return;
+    var system=page.getAttribute('data-rafex-common-system')||'',head=null;
+    if(system==='mr'){
+      var mrInput=page.querySelector('#mrProjectName,#mrModuleCount,#mrLevels');
+      head=mrInput&&mrInput.closest('.mr-panel')&&mrInput.closest('.mr-panel').querySelector(':scope>.mr-panel-head');
+    }else if(system==='konsol'){
+      var panel=page.querySelector('#konsolUprightCount,#konsolHeight')?.closest('.konsol-panel');
+      head=panel&&panel.querySelector(':scope>h3,:scope>.rafex-common-measure-head');
+    }else if(system==='mekik2'||system==='drive'){
+      head=page.querySelector('.m2-config-card>.card-title,.m2-config-card>.rafex-common-measure-head');
+    }
+    if(!head||head.classList.contains('rafex-common-measure-head'))return;
+    var replacement=document.createElement('div');replacement.className='rafex-common-measure-head';
+    replacement.innerHTML='<h3>Raf Ölçüleri</h3><span>Anında güncellenir</span>';head.replaceWith(replacement);
+  }
   function sync(){
-    frame=0;var page=document.getElementById('page');if(!active(page))return;
+    frame=0;var page=document.getElementById('page');sharedHead(page);if(!active(page))return;
     var card=page.querySelector('.b2b-input-card'),body=card&&card.querySelector('.b2b-input-body');if(!card||!body)return;
     var title=card.querySelector('.b2b-input-head h3'),note=card.querySelector('.b2b-input-head span');
     if(title&&title.textContent!=='Raf Ölçüleri')title.textContent='Raf Ölçüleri';
@@ -100,6 +129,7 @@ for (const required of [
   "note.textContent='Anında güncellenir'",
   "body.insertBefore(accessories,result)",
   '.m2-views>.m2-export{display:none!important}',
+  "replacement.innerHTML='<h3>Raf Ölçüleri</h3><span>Anında güncellenir</span>'",
 ]) {
   if (!html.includes(required)) throw new Error("Common B2B input v100 dogrulama eksigi: " + required);
 }
@@ -107,4 +137,4 @@ for (const required of [
 const encoded = Buffer.from(html, "utf8").toString("base64");
 worker = worker.replace(match[0], `${match[1]}${match[2]}${encoded}${match[2]}`);
 fs.writeFileSync(workerPath, worker);
-console.log("v100: Ortak Cizim B2B hesap girdileri referans duzenine getirildi; ust gorunus ve DXF satirlari gizlendi.");
+console.log("v100: Ortak Cizim sistem giris basliklari Raf Olculeri olarak esitlendi; B2B referans duzeni korundu.");
