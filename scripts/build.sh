@@ -78,7 +78,7 @@ replaceRequired(
 
 replaceRequired(
 `      rowGap: clamp(Number(next.rowGap) || 200, 0, 3000),\n      straightTieCount:`,
-`      rowGap: clamp(Number(next.rowGap) || 200, 0, 3000),\n      accessories: Array.isArray(next.accessories) ? next.accessories\n        .filter((item) => item && ["palletStop", "hTraverse", "tray"].includes(item.type))\n        .map((item) => ({\n          type: item.type,\n          levels: Array.isArray(item.levels) ? [...new Set(item.levels.map(Number).filter((level) => Number.isFinite(level) && level >= 1 && level <= 15))].sort((a,b)=>a-b) : [],\n          ...(item.type === "tray" ? { width: [200,250,300].includes(Number(item.width)) ? Number(item.width) : 300 } : {}),\n        })) : [],\n      straightTieCount:`,
+`      rowGap: clamp(Number(next.rowGap) || 200, 0, 3000),\n      accessories: Array.isArray(next.accessories) ? next.accessories\n        .filter((item) => item && ["palletStop", "hTraverse", "tray"].includes(item.type))\n        .map((item) => ({\n          type: item.type,\n          levels: Array.isArray(item.levels) ? [...new Set(item.levels.map(Number).filter((level) => Number.isFinite(level) && level >= 1 && level <= 15))].sort((a,b)=>a-b) : [],\n          ...(item.type === "tray" ? { width: [200,250,300].includes(Number(item.width)) ? Number(item.width) : 300 } : {}),\n        })) : [],\n      collectionFloors: Array.isArray(next.collectionFloors) ? next.collectionFloors.slice(0,12).map((item,index) => ({ index, bottom:clamp(Number(item?.bottom)||0,0,30000), zsHeight:clamp(Number(item?.zsHeight)||55,50,100), trayWidth:[200,250,300].includes(Number(item?.trayWidth))?Number(item.trayWidth):300, trayThickness:[.6,.8,1,1.2,1.5].includes(Number(item?.trayThickness))?Number(item.trayThickness):.8, traverse:String(item?.traverse||"ZS35|1.5") })) : [],\n      straightTieCount:`,
 'B2B accessories normalize');
 
 replaceRequired(
@@ -123,6 +123,39 @@ const accessoryMethods = `
     bounds = new THREE.Box3().setFromObject(wrapper);
     wrapper.position.set(-bounds.min.x, -bounds.min.y, -bounds.max.z);
     return wrapper;
+  }
+
+  addCollectionShelves(section, sectionScale, depthScale) {
+    const floors = Array.isArray(this.options.collectionFloors) ? this.options.collectionFloors : [];
+    if (!floors.length || !this.models.mrTraverse || !this.models.mrTray) return;
+    const layer = new THREE.Group();
+    layer.name = "B2B MR ZS Toplama Katlari";
+    const clearLeft = SOURCE_CLEAR_LEFT * sectionScale;
+    const clearWidth = this.options.sectionWidth;
+    const front = SOURCE_TRAVERSE_FRONT_OFFSET * depthScale;
+    const rear = SOURCE_TRAVERSE_BACK_OFFSET * depthScale;
+    const seat = Math.max(100, rear - front);
+    const beamDepth = Math.max(24, 42 * depthScale);
+    floors.forEach((floor, floorIndex) => {
+      const height = Math.max(50, Number(floor.zsHeight) || 55);
+      const bottom = Math.max(0, Number(floor.bottom) || 0);
+      [front, rear - beamDepth].forEach((offset, sideIndex) => {
+        const beam = this.mrCollectionPart(this.models.mrTraverse, { x:clearWidth, y:beamDepth, z:height });
+        beam.name = String(floor.traverse || "ZS35") + " MR Toplama " + (floorIndex + 1) + (sideIndex ? " Arka" : " On");
+        beam.position.set(clearLeft, offset, -bottom);
+        this.applyRackMaterials(beam);
+        layer.add(beam);
+      });
+      let cursor = 0;
+      this.trayPiecePlan(clearWidth, floor.trayWidth).forEach((pieceWidth, pieceIndex) => {
+        const tray = this.mrCollectionPart(this.models.mrTray, { x:pieceWidth, y:seat, z:35 });
+        tray.name = "MR Toplama Tava " + (floorIndex + 1) + "-" + (pieceIndex + 1) + " · " + String(floor.trayThickness).replace(".", ",") + " mm";
+        tray.position.set(clearLeft + cursor, front, -(bottom + height));
+        layer.add(tray);
+        cursor += pieceWidth;
+      });
+    });
+    section.add(layer);
   }
 
   accessoryModel(source, targetSize, swapXY = false) {
@@ -170,6 +203,7 @@ const accessoryMethods = `
   }
 
   addAccessories(section, sectionScale, depthScale) {
+    this.addCollectionShelves(section, sectionScale, depthScale);
     const accessories = Array.isArray(this.options.accessories) ? this.options.accessories : [];
     if (!accessories.length) return;
     const clearLeft = SOURCE_CLEAR_LEFT * sectionScale;
