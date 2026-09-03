@@ -16,6 +16,8 @@ exactly('id="rafexVersionInfoCard"', 1);
 for (const required of [
   "height:128px!important",
   "place-items:center!important",
+  "place-content:center!important",
+  "justify-content:center!important",
   "font-size:32px!important",
   "text-transform:uppercase!important",
   "page.insertAdjacentHTML('afterbegin','<section class=\"hero\"",

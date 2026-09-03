@@ -24,6 +24,9 @@ const runtime = String.raw`<style data-rafex-uniform-system-banner="v95">
   padding:20px 28px!important;
   display:grid!important;
   place-items:center!important;
+  place-content:center!important;
+  justify-content:center!important;
+  align-content:center!important;
   text-align:center!important;
   border-radius:16px!important;
   overflow:hidden!important;
@@ -103,6 +106,7 @@ html = html.slice(0, closing) + runtime + "\n" + html.slice(closing);
 for (const required of [
   'data-rafex-uniform-system-banner="v95"',
   "height:128px!important",
+  "place-content:center!important",
   "data-rafex-system-banner-title",
   "MEKİK",
   "KONSOL KOLLU",
