@@ -15,6 +15,9 @@ const styles = String.raw`<style data-rafex-common-picker-height="v1">
     display:block!important;width:100%!important;height:78px!important;min-height:78px!important;max-height:78px!important;
     margin:0 0 10px!important;padding:8px 10px!important;box-sizing:border-box!important;overflow:hidden!important
   }
+  #page.rafex-common-mr #rafexUnifiedSystemPicker{
+    margin-bottom:-4px!important
+  }
   #page #rafexUnifiedSystemPicker .rafex-system-picker-head,
   #page #rafexUnifiedSystemPicker .rafex-system-picker-actions{display:none!important}
   #page #rafexUnifiedSystemPicker .rafex-system-options{
