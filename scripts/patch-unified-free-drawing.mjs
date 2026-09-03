@@ -113,13 +113,16 @@ const runtime = `<style ${marker}>
     const nav=document.getElementById('nav');
     if(!nav)return;
     let button=nav.querySelector('button[data-page="free"]');
+    const legacy=nav.querySelector('button[data-page="serbest"]');
+    if(!button&&legacy){button=legacy;button.dataset.page='free';}
     const b2b=nav.querySelector('button[data-page="b2b"]');
     if(!button&&b2b){
       button=document.createElement('button');
       button.dataset.page='free';
-      button.innerHTML='<i>01</i>Ortak Çizim';
       nav.insertBefore(button,b2b);
     }
+    if(button)button.innerHTML='<i>01</i>Ortak Çizim';
+    nav.querySelectorAll('button[data-page="serbest"]').forEach((duplicate)=>duplicate.remove());
     const numbers={b2b:'02',ayak:'03',travers:'04',mr:'05',drive:'06',mekik2:'07',konsol:'08',admin:'09'};
     Object.entries(numbers).forEach(([page,no])=>{const i=nav.querySelector('button[data-page="'+page+'"] i');if(i)i.textContent=no;});
   }
