@@ -45,8 +45,6 @@ const runtime = String.raw`<style data-rafex-common-wording-palette="v94">
     var common=page&&(page.dataset.rafexFreeDrawing==='1'||page.classList.contains('rafex-free-drawing-page'));
     if(!common)return;
     var title=document.getElementById('pageTitle');if(title)title.textContent='Ortak Çizim';
-    var hero=page.querySelector('.hero,.mr-hero');
-    if(hero){var kicker=hero.querySelector('p'),heading=hero.querySelector('h2');if(kicker)kicker.textContent='TÜM RAF SİSTEMLERİ · ORTAK YERLEŞİM';if(heading)heading.textContent='Ortak Çizim';}
   }
   document.addEventListener('change',function(event){if(event.target?.matches?.('input[name="rafexUnifiedSystem"]'))setTimeout(sync,0)},true);
   document.addEventListener('click',function(event){if(event.target?.closest?.('#nav button[data-page],#rafexUnifiedSystemPicker'))setTimeout(sync,0)},true);
@@ -62,7 +60,6 @@ for (const required of [
   'data-rafex-common-wording-palette="v94"',
   "--rafex-pallet-color:#9a6028",
   "--rafex-box-color:#c58b47",
-  "page.querySelector('.hero,.mr-hero')",
   "title.textContent='Ortak Çizim'",
   "#rafexUnifiedAddModule{display:none!important}",
 ]) if (!html.includes(required)) throw new Error(`Common wording/palette v94 eksigi: ${required}`);

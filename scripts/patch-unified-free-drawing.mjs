@@ -150,10 +150,11 @@ const runtime = `<style ${marker}>
     const title=document.getElementById('pageTitle');if(title)title.textContent='Ortak Çizim';
     const hero=page.querySelector('.hero,.mr-hero');
     if(hero){
-      const kicker=hero.querySelector('p'),heading=hero.querySelector('h2');
-      if(kicker)kicker.textContent='TÜM RAF SİSTEMLERİ · ORTAK YERLEŞİM';
-      if(heading)heading.textContent='Ortak Çizim';
       if(!document.getElementById('rafexUnifiedSystemPicker'))hero.insertAdjacentHTML('afterend',pickerMarkup());
+      const bannerKey=free.selected||free.pending||'';
+      const bannerText=bannerKey?systemLabel(bannerKey).toLocaleUpperCase('tr-TR'):'ORTAK ÇİZİM';
+      hero.innerHTML='<h2 data-rafex-system-banner-title>'+bannerText+'</h2>';
+      hero.dataset.rafexSystemBanner=bannerKey||'common';
     }else if(!document.getElementById('rafexUnifiedSystemPicker'))page.insertAdjacentHTML('afterbegin',pickerMarkup());
 
     const floor=page.querySelector('.m2-floor-editor');

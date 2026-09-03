@@ -40,6 +40,7 @@ const style = `
 <style ${marker}>
   #rafexVersionBadge,#rafexBuildVersionBadge,#rafexVersionInfoTop,#rafexVersionInfoLogin{display:none!important;}
   .top-actions{display:flex!important;align-items:center!important;gap:8px!important;}
+  #rafexB2BReleaseBadge{display:none!important;}
   .rafex-version-info-card{
     box-sizing:border-box!important;
     min-width:188px!important;
@@ -97,7 +98,7 @@ const runtime = `
     }) || null;
   }
   function removeKnownVersionCopies(card){
-    ['rafexVersionBadge','rafexBuildVersionBadge','rafexVersionInfoTop','rafexVersionInfoLogin'].forEach(function(id){
+    ['rafexVersionBadge','rafexBuildVersionBadge','rafexVersionInfoTop','rafexVersionInfoLogin','rafexB2BReleaseBadge'].forEach(function(id){
       var old=document.getElementById(id);if(old)old.remove();
     });
     document.querySelectorAll('.rafex-version-info-card,.version-badge,.version-info,[aria-label*="Son sürüm"],[aria-label*="Son surum"]').forEach(function(el){
@@ -108,6 +109,7 @@ const runtime = `
     if(!document.body)return;
     var card=document.getElementById('rafexVersionInfoCard');
     if(!card)return;
+    removeKnownVersionCopies(card);
     var app=document.getElementById('app');
     var auth=document.getElementById('auth');
     var history=findHistoryButton();
