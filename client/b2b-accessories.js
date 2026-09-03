@@ -56,7 +56,7 @@
         <button type="button" onclick="rafexAccessoryAdd('palletStop')">Palet Dayama</button>
         <button type="button" onclick="rafexAccessoryAdd('hTraverse')">H Travers</button>
         <button type="button" onclick="rafexAccessoryAdd('tray')">Tava</button>
-        <button type="button" onclick="rafexCollectionAdd()">Toplama Katı</button>
+        <div role="button" tabindex="0" class="b2b-collection-add" onclick="event.stopPropagation();rafexCollectionAdd()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();rafexCollectionAdd()}">Toplama Katı</div>
       </div>
       <div class="b2b-accessory-card" id="b2bCollection" hidden></div>
       <div class="b2b-accessory-list" id="b2bAccessoryList"></div>
