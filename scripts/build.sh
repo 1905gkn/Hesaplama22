@@ -151,7 +151,11 @@ const accessoryMethods = `
         const trayHeight = Math.max(18, Math.min(32, 22 + Number(floor.trayThickness || .8) * 4));
         const tray = this.mrCollectionPart(this.models.mrTray, { x:pieceWidth, y:seat, z:trayHeight });
         tray.name = "MR Toplama Tava " + (floorIndex + 1) + "-" + (pieceIndex + 1) + " · " + String(floor.trayThickness).replace(".", ",") + " mm";
-        tray.position.set(clearLeft + cursor, front + beamDepth, -(bottom + height));
+        // MR'deki tava montajını koru: derinlik yönünü arkadan öne,
+        // dudakları da rafın içine/aşağıya bakacak biçimde çevir.
+        tray.scale.y *= -1;
+        tray.scale.z *= -1;
+        tray.position.set(clearLeft + cursor, rear - beamDepth, -(bottom + height));
         layer.add(tray);
         cursor += pieceWidth;
       });
