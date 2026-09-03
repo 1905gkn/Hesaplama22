@@ -59,6 +59,7 @@ await import(`./patch-mr-extension-controls-v70.mjs?build=${Date.now()}`);
 await import(`./patch-mr-extension-activation-v71.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-load-switch-v13.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-common-save-v74.mjs?build=${Date.now()}`);
+await import(`./patch-common-wording-palette-v94.mjs?build=${Date.now()}`);
 
 const workerModule = await import(`${workerPath}?syntax-check=${Date.now()}`);
 const response = await workerModule.default.fetch(
@@ -91,6 +92,9 @@ if (!html.includes('/drive-in-viewer.js?v=drive-in-front-v11')) throw new Error(
 if (!html.includes('data-rafex-konsol-v2="1"')) throw new Error("Konsol Kollu ekranı canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-krs-native="v9"')) throw new Error("Konsol native KRS v9 canlı HTML içinde bulunamadı");
 if (!html.includes('/konsol-viewer.js?v=konsol-krs-v12')) throw new Error("Konsol KRS viewer yükleyicisi canlı HTML içinde bulunamadı");
+if (!html.includes('data-rafex-common-wording-palette="v94"')) throw new Error("Ortak Cizim v94 metin ve palet renk standardi canlı HTML içinde bulunamadı");
+if (html.includes("Serbest Çizim") || html.includes("SERBEST ÇİZİM")) throw new Error("Canlı HTML içinde eski Serbest Cizim etiketi kaldı");
+for (const required of ["--rafex-pallet-color:#9a6028","--rafex-box-color:#c58b47","page.querySelector('.hero,.mr-hero')","#rafexUnifiedAddModule{display:none!important}","id=\"rafexCommonProjectName\""]) if (!html.includes(required)) throw new Error(`Ortak Cizim v94 doğrulaması eksik: ${required}`);
 if (!html.includes('data-rafex-konsol-load-switch="v13"')) throw new Error("Konsol sağ üst ürün seçicisi canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-common-save="v74"')) throw new Error("Konsol Ortak Çizim Rafı Kaydet düğmesi canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-request="v3"')) throw new Error("Konsol son kullanıcı istekleri canlı HTML içinde bulunamadı");

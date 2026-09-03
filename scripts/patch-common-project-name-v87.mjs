@@ -16,12 +16,12 @@ html = html
   .replace(/<script\s+data-rafex-common-no-project-name="v91">[\s\S]*?<\/script>\s*/g, "");
 
 const runtime = String.raw`<style data-rafex-common-project-name="v87">
-#page.rafex-free-drawing-page .rafex-common-project-name-wrap{display:flex;align-items:flex-end;gap:8px;min-width:260px;flex:1 1 320px;max-width:430px}
+#page.rafex-free-drawing-page .rafex-common-project-name-wrap{display:flex;align-items:flex-end;gap:8px;min-width:260px;flex:1 1 470px;max-width:470px}
 #page.rafex-free-drawing-page #rafexUnifiedSystemPicker .rafex-system-picker-actions{justify-content:flex-start}
 #page.rafex-free-drawing-page #rafexUnifiedAddModule{display:none!important}
 #page.rafex-free-drawing-page .rafex-common-project-name-field{display:flex;flex-direction:column;gap:5px;width:100%;margin:0}
 #page.rafex-free-drawing-page .rafex-common-project-name-field>span{font-size:10px;font-weight:900;letter-spacing:.04em;color:#526158}
-#page.rafex-free-drawing-page #rafexCommonProjectName{width:100%;height:38px;padding:0 11px;border:1px solid #cbd9cf;border-radius:9px;background:#fff;color:#173c2d;font:800 12px Arial;outline:none}
+#page.rafex-free-drawing-page #rafexCommonProjectName{width:100%;height:42px;padding:0 12px;border:1px solid #cbd9cf;border-radius:9px;background:#fff;color:#173c2d;font:800 12px Arial;outline:none}
 #page.rafex-free-drawing-page #rafexCommonProjectName:focus{border-color:#173c2d;box-shadow:0 0 0 2px rgba(23,60,45,.09)}
 #page.rafex-free-drawing-page .rafex-native-project-name-v87{display:none!important}
 #page:not(.rafex-free-drawing-page) .rafex-native-project-name-v87{display:revert!important}

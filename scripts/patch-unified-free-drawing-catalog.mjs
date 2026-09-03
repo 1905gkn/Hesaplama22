@@ -87,7 +87,7 @@ const runtime = `<style ${marker}>
   }
   function summaryMarkup(){
     const counts=SYSTEMS.map((system)=>({label:system.label,count:cache.filter((entry)=>entry.__rafexSystem===system.key).length}));
-    return '<div class="rafex-unified-catalog-summary">'+counts.map((item)=>'<span class="rafex-unified-catalog-chip">'+item.label+' · '+item.count+'</span>').join('')+'<span>Aynı Serbest Çizim ve PDF projesinde birlikte kullanılabilir.</span></div>';
+    return '<div class="rafex-unified-catalog-summary">'+counts.map((item)=>'<span class="rafex-unified-catalog-chip">'+item.label+' · '+item.count+'</span>').join('')+'<span>Aynı Ortak Çizim ve PDF projesinde birlikte kullanılabilir.</span></div>';
   }
   function renderUnified(){
     if(!isFree()){if(originalRender)return originalRender();return;}
@@ -105,11 +105,11 @@ const runtime = `<style ${marker}>
       const footLabel=drawing.footProfile?drawing.footProfile+' · Ly '+fmt(drawing.footLy)+' mm':fmt(drawing.footType)+' mm';
       const levelDetail=typeof m2LevelDetail==='function'?m2LevelDetail(drawing):fmt(levels)+' kat';
       const detail=system==='konsol'?fmt(drawing.totalWidth)+' × '+fmt(drawing.railLength)+' mm · '+fmt(drawing.konsol?.count||drawing.plan?.feet?.length)+' ayak · '+fmt(levels)+' kat · '+(drawing.konsol?.side==='double'?'Çift taraflı':'Tek taraflı')+' · Kol '+fmt(drawing.konsol?.arm||drawing.palD)+' mm':fmt(drawing.totalWidth)+' × '+fmt(drawing.railLength)+' mm · '+esc(levelDetail)+(palletCount?' · <strong>'+fmt(palletCount)+' palet</strong>':'')+' · Palet '+fmt(drawing.palW)+' × '+fmt(drawing.palD)+' mm · Ayak '+esc(footLabel);
-      return '<div class="m2-saved-type-row rafex-unified-type-row" data-system="'+system+'"><button type="button" class="m2-saved-type'+(index===m2SelectedSavedType?' active':'')+'" style="border-color:'+color+';box-shadow:inset 5px 0 '+color+';background:'+color+'12" onclick="m2HandleSavedRackTypeClick('+index+',event)" title="Seç · çift tıklayarak ortak Serbest Çizim alanına ekle"><b><span class="rafex-unified-system-badge">'+esc(systemLabel)+'</span><i class="m2-type-swatch" style="background:'+color+'"></i>'+esc(entry.name)+'</b><small>'+detail+'</small></button><button type="button" class="m2-saved-type-preview rafex-free-info" data-saved-index="'+index+'" aria-label="İçeriğini göster" title="İçeriğini göster">i</button><button type="button" class="m2-saved-type-copy rafex-free-copy" data-saved-index="'+index+'" aria-label="Kopyala" title="Kopyala ve bu sistemin özelliklerini aç"><span class="rafex-free-copy-pages" aria-hidden="true"></span></button><button type="button" class="m2-type-delete" aria-label="'+esc(entry.name)+' kaydını sil" title="'+esc(systemLabel)+' raf tipini sil" onclick="event.stopPropagation();rafexUnifiedDeleteSavedRackType('+index+')">×</button></div>';
+      return '<div class="m2-saved-type-row rafex-unified-type-row" data-system="'+system+'"><button type="button" class="m2-saved-type'+(index===m2SelectedSavedType?' active':'')+'" style="border-color:'+color+';box-shadow:inset 5px 0 '+color+';background:'+color+'12" onclick="m2HandleSavedRackTypeClick('+index+',event)" title="Seç · çift tıklayarak Ortak Çizim alanına ekle"><b><span class="rafex-unified-system-badge">'+esc(systemLabel)+'</span><i class="m2-type-swatch" style="background:'+color+'"></i>'+esc(entry.name)+'</b><small>'+detail+'</small></button><button type="button" class="m2-saved-type-preview rafex-free-info" data-saved-index="'+index+'" aria-label="İçeriğini göster" title="İçeriğini göster">i</button><button type="button" class="m2-saved-type-copy rafex-free-copy" data-saved-index="'+index+'" aria-label="Kopyala" title="Kopyala ve bu sistemin özelliklerini aç"><span class="rafex-free-copy-pages" aria-hidden="true"></span></button><button type="button" class="m2-type-delete" aria-label="'+esc(entry.name)+' kaydını sil" title="'+esc(systemLabel)+' raf tipini sil" onclick="event.stopPropagation();rafexUnifiedDeleteSavedRackType('+index+')">×</button></div>';
     }).join(''):'<span class="m2-floor-status">B2B, Mekik, Drive-In, MR veya Konsol Kollu altında henüz kayıtlı raf tipi yok.</span>';
     if(typeof m2RenderSelectedRackInfo==='function')m2RenderSelectedRackInfo();
     const note=document.querySelector('.rafex-free-mode-note span');
-    if(note)note.textContent='B2B, Mekik, Drive-In, MR ve Konsol Kollu altında kaydettiğin raf tipleri burada tek listede görünür; aynı Serbest Çizim alanına eklenir ve aynı PDF içinde birlikte raporlanır.';
+    if(note)note.textContent='B2B, Mekik, Drive-In, MR ve Konsol Kollu altında kaydettiğin raf tipleri burada tek listede görünür; aynı Ortak Çizim alanına eklenir ve aynı PDF içinde birlikte raporlanır.';
   }
   function installCache(selectedKey=''){
     m2SavedRackTypes=cache.slice();
@@ -133,7 +133,7 @@ const runtime = `<style ${marker}>
       });
       cache=merged;loadedOnce=true;lastLoadedAt=Date.now();installCache(selectedKey);
       const counts=SYSTEMS.map((system)=>system.label+' '+cache.filter((entry)=>entry.__rafexSystem===system.key).length).join(' · ');
-      status(failed.length?counts+' kayıt yüklendi. Alınamayan: '+failed.join(', '):counts+' kayıt yüklendi; hepsi ortak Serbest Çizim ve PDF alanında hazır.');
+      status(failed.length?counts+' kayıt yüklendi. Alınamayan: '+failed.join(', '):counts+' kayıt yüklendi; hepsi Ortak Çizim ve PDF alanında hazır.');
       return cache;
     })();
     try{return await loading;}finally{loading=null;}
@@ -193,7 +193,7 @@ const runtime = `<style ${marker}>
       const before=Array.isArray(m2LayoutState?.racks)?m2LayoutState.racks.length:0;
       addRackForSystem(entry.__rafexSystem,entry.drawing,entry.name);
       const after=Array.isArray(m2LayoutState?.racks)?m2LayoutState.racks.length:0;
-      if(after>before)status(labelFor(entry.__rafexSystem)+' · '+entry.name+' ortak Serbest Çizim alanına eklendi ve PDF projesine dahil edildi.');
+      if(after>before)status(labelFor(entry.__rafexSystem)+' · '+entry.name+' Ortak Çizim alanına eklendi ve PDF projesine dahil edildi.');
       renderUnified();
     };
     try{m2AddSelectedSavedRack=wrappedAddSelected;}catch{}

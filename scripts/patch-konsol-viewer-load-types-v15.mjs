@@ -25,7 +25,7 @@ if (!source.includes('const addSelectedLoad = (centerZ, supportTopY)')) {
       const cargoHeight = Math.max(80, o.productHeight - palletHeight);
       const cargo = new THREE.Mesh(
         new THREE.BoxGeometry(o.productLength, cargoHeight, o.armLength),
-        new THREE.MeshStandardMaterial({ color: 0xd7d1bd, metalness: 0.05, roughness: 0.72 }),
+        new THREE.MeshStandardMaterial({ color: 0xc58b47, metalness: 0.05, roughness: 0.94 }),
       );
       cargo.position.set(0, supportTopY + palletHeight + cargoHeight / 2, centerZ);
       cargo.castShadow = true;
@@ -33,7 +33,7 @@ if (!source.includes('const addSelectedLoad = (centerZ, supportTopY)')) {
       cargo.name = 'Paletli yük · Konsol Kollu';
       this.root.add(cargo);
 
-      const wood = new THREE.MeshStandardMaterial({ color: 0xa9783d, metalness: 0.02, roughness: 0.82 });
+      const wood = new THREE.MeshStandardMaterial({ color: 0x9a6028, metalness: 0.02, roughness: 0.94 });
       const deck = new THREE.Mesh(new THREE.BoxGeometry(o.productLength, 28, o.armLength), wood);
       deck.position.set(0, supportTopY + palletHeight - 14, centerZ);
       deck.castShadow = true;

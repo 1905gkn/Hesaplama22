@@ -117,7 +117,7 @@ const runtime = `<style ${marker}>
     if(!button&&b2b){
       button=document.createElement('button');
       button.dataset.page='free';
-      button.innerHTML='<i>01</i>Serbest Çizim';
+      button.innerHTML='<i>01</i>Ortak Çizim';
       nav.insertBefore(button,b2b);
     }
     const numbers={b2b:'02',ayak:'03',travers:'04',mr:'05',drive:'06',mekik2:'07',konsol:'08',admin:'09'};
@@ -130,7 +130,7 @@ const runtime = `<style ${marker}>
     return '<label class="rafex-system-option" data-ready="'+String(system.ready)+'"><input type="radio" name="rafexUnifiedSystem" value="'+system.key+'"'+checked+'><span class="rafex-system-option-body"><strong>'+system.label+'</strong><small>'+system.desc+'</small><em>'+(system.ready?'MODÜL ÇİZİMİ HAZIR':'ALTYAPI BEKLİYOR')+'</em></span></label>';
   }
   function pickerMarkup(){
-    return '<section class="card rafex-system-picker" id="rafexUnifiedSystemPicker"><div class="rafex-system-picker-head"><div><h3>Raf Sistemi Araçları</h3><p>B2B, Mekik, Drive-In, MR ve Konsol Kollu aynı Serbest Çizim projesinde birlikte kullanılır. Sistem kartına tıklayınca kendi ürün girdileri ve görseli doğrudan açılır.</p></div><span class="rafex-system-picker-step">ORTAK YERLEŞİM</span></div><div class="rafex-system-options">'+SYSTEMS.map(optionMarkup).join('')+'</div><div class="rafex-system-picker-actions"><button type="button" class="rafex-system-add-module" id="rafexUnifiedAddModule" disabled>+ Modülü Ortak Alana Ekle</button><span class="rafex-system-picker-message" id="rafexUnifiedMessage"></span></div></section><section class="rafex-system-unavailable" id="rafexUnifiedUnavailable"><h3>Bu sistem için ortak modül geometrisi henüz hazır değil</h3><p id="rafexUnifiedUnavailableText"></p></section>';
+    return '<section class="card rafex-system-picker" id="rafexUnifiedSystemPicker"><div class="rafex-system-picker-head"><div><h3>Raf Sistemi Araçları</h3><p>B2B, Mekik, Drive-In, MR ve Konsol Kollu aynı Ortak Çizim projesinde birlikte kullanılır. Sistem kartına tıklayınca kendi ürün girdileri ve görseli doğrudan açılır.</p></div><span class="rafex-system-picker-step">ORTAK YERLEŞİM</span></div><div class="rafex-system-options">'+SYSTEMS.map(optionMarkup).join('')+'</div><div class="rafex-system-picker-actions"><span class="rafex-system-picker-message" id="rafexUnifiedMessage"></span></div></section><section class="rafex-system-unavailable" id="rafexUnifiedUnavailable"><h3>Bu sistem için ortak modül geometrisi henüz hazır değil</h3><p id="rafexUnifiedUnavailableText"></p></section>';
   }
   function setMessage(text,type=''){
     const box=document.getElementById('rafexUnifiedMessage');if(!box)return;
@@ -144,17 +144,17 @@ const runtime = `<style ${marker}>
     page.classList.toggle('rafex-free-awaiting',!free.continued);
     page.classList.toggle('rafex-free-unavailable',free.continued&&!SUPPORTED.has(free.selected));
     page.dataset.rafexFreeDrawing='1';
-    const title=document.getElementById('pageTitle');if(title)title.textContent='Serbest Çizim';
-    const hero=page.querySelector('.hero');
+    const title=document.getElementById('pageTitle');if(title)title.textContent='Ortak Çizim';
+    const hero=page.querySelector('.hero,.mr-hero');
     if(hero){
       const kicker=hero.querySelector('p'),heading=hero.querySelector('h2');
       if(kicker)kicker.textContent='TÜM RAF SİSTEMLERİ · ORTAK YERLEŞİM';
-      if(heading)heading.textContent='Serbest Çizim';
+      if(heading)heading.textContent='Ortak Çizim';
       if(!document.getElementById('rafexUnifiedSystemPicker'))hero.insertAdjacentHTML('afterend',pickerMarkup());
     }else if(!document.getElementById('rafexUnifiedSystemPicker'))page.insertAdjacentHTML('afterbegin',pickerMarkup());
 
     const floor=page.querySelector('.m2-floor-editor');
-    if(floor&&!page.querySelector('.rafex-free-mode-note'))floor.insertAdjacentHTML('beforebegin','<div class="rafex-free-mode-note"><b>ORTAK ALAN</b><span>B2B, Mekik, Drive-In, MR ve Konsol Kollu modülleri aynı Serbest Çizim alanında birlikte taşınabilir, döndürülebilir ve PDF yerleşiminde korunur.</span></div>');
+    if(floor&&!page.querySelector('.rafex-free-mode-note'))floor.insertAdjacentHTML('beforebegin','<div class="rafex-free-mode-note"><b>ORTAK ALAN</b><span>B2B, Mekik, Drive-In, MR ve Konsol Kollu modülleri aynı Ortak Çizim alanında birlikte taşınabilir, döndürülebilir ve PDF yerleşiminde korunur.</span></div>');
 
     page.querySelectorAll('input[name="rafexUnifiedSystem"]').forEach((input)=>{
       input.checked=free.pending===input.value;
@@ -166,7 +166,7 @@ const runtime = `<style ${marker}>
     if(free.continued&&free.selected){
       const supported=SUPPORTED.has(free.selected);
       setMessage(supported?systemLabel(free.selected)+' hesap girdileri açık.':'Bu sistemin ortak çizim adaptörü henüz mevcut değil.',supported?'ok':'error');
-      if(!supported){const text=document.getElementById('rafexUnifiedUnavailableText');if(text)text.textContent=systemLabel(free.selected)+' için mevcut portalda ortak Serbest Çizim alanına aktarılabilecek teknik modül çizimi tanımlı değil. Sistem kartı yerini aldı; çizim motoru eklendiğinde aynı akıştan doğrudan modül üretilecek.';}
+      if(!supported){const text=document.getElementById('rafexUnifiedUnavailableText');if(text)text.textContent=systemLabel(free.selected)+' için mevcut portalda Ortak Çizim alanına aktarılabilecek teknik modül çizimi tanımlı değil. Sistem kartı yerini aldı; çizim motoru eklendiğinde aynı akıştan doğrudan modül üretilecek.';}
     }else setMessage('Bir sistem tipi seç; ürün girdileri doğrudan açılır.');
     setNavActive();
     if(typeof applyTranslations==='function')try{applyTranslations(page);}catch{}
@@ -274,7 +274,7 @@ const runtime = `<style ${marker}>
       const page=document.getElementById('page');
       page?.classList.remove('rafex-free-awaiting');page?.classList.add('rafex-free-unavailable');
       const add=document.getElementById('rafexUnifiedAddModule');if(add)add.disabled=true;
-      const text=document.getElementById('rafexUnifiedUnavailableText');if(text)text.textContent=systemLabel(selected)+' için mevcut portalda ortak Serbest Çizim alanına aktarılabilecek teknik modül çizimi tanımlı değil. Sistem kartı ve seçim akışı hazır; teknik çizim motoru geldiğinde aynı alana bağlanacak.';
+      const text=document.getElementById('rafexUnifiedUnavailableText');if(text)text.textContent=systemLabel(selected)+' için mevcut portalda Ortak Çizim alanına aktarılabilecek teknik modül çizimi tanımlı değil. Sistem kartı ve seçim akışı hazır; teknik çizim motoru geldiğinde aynı alana bağlanacak.';
       setMessage(systemLabel(selected)+' seçildi; teknik ortak çizim adaptörü bekleniyor.','error');
     }
   }
@@ -287,7 +287,7 @@ const runtime = `<style ${marker}>
       const before=Array.isArray(m2LayoutState?.racks)?m2LayoutState.racks.length:0;
       m2AddRack(m2LastDrawing,null);
       const after=Array.isArray(m2LayoutState?.racks)?m2LayoutState.racks.length:0;
-      if(after>before){setMessage(systemLabel(free.selected)+' modülü ortak Serbest Çizim alanına eklendi.','ok');setTimeout(()=>document.getElementById('m2LayoutSvg')?.scrollIntoView({behavior:'smooth',block:'center'}),80);}
+      if(after>before){setMessage(systemLabel(free.selected)+' modülü Ortak Çizim alanına eklendi.','ok');setTimeout(()=>document.getElementById('m2LayoutSvg')?.scrollIntoView({behavior:'smooth',block:'center'}),80);}
       else setMessage('Modül eklenemedi. Önce Serbest Yerleşim alanını tamamla.','error');
     }catch(error){console.warn('Serbest Cizim modul ekleme hatasi',error);setMessage(error?.message||'Modül eklenemedi.','error');}
   }
@@ -326,7 +326,7 @@ const finalHtml = Buffer.from(encoded, "base64").toString("utf8");
 for (const required of ["rafexLoadHeavyViewerV1('konsol')","window.rafexMountKonsolViewer?.()","Konsol Ortak Cizim viewer yukleme hatasi"]) {
   if (!finalHtml.includes(required)) throw new Error(`Konsol Ortak Cizim 3D baglantisi eksik: ${required}`);
 }
-for (const required of [marker, "Serbest Çizim", "Raf Sistemi Araçları", "rafexEnterUnifiedFreeDrawing", "+ Modülü Ortak Alana Ekle", "['b2b','mekik2','drive','mr','konsol']", "else if(target==='konsol')renderKonsolCommon()", "rafexSystem:'konsol'", "page.classList.remove('b2b-mode','mr-mode','drive-in-mode')"] ) {
+for (const required of [marker, "Ortak Çizim", "Raf Sistemi Araçları", "rafexEnterUnifiedFreeDrawing", "['b2b','mekik2','drive','mr','konsol']", "else if(target==='konsol')renderKonsolCommon()", "rafexSystem:'konsol'", "page.classList.remove('b2b-mode','mr-mode','drive-in-mode')"] ) {
   if (!finalHtml.includes(required)) throw new Error(`Unified free drawing dogrulama hatasi: ${required}`);
 }
 if (finalHtml.includes("setTimeout(()=>document.querySelector('.m2-layout')?.scrollIntoView({behavior:'smooth',block:'start'}),60)")) {

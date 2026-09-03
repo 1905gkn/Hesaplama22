@@ -510,7 +510,7 @@ assert.match(source, /class="m2-front-ray-ends" data-support-height-mm="250" dat
 assert.match(source, /class="m2-front-ray-ends"[\s\S]*?fill="url\(#m2fronttraverse\)"[\s\S]*?fill="url\(#m2fronttraverse\)"/, "Ön görünüşte iki ray braketi de traversin sarı yüzeyini kullanmalı");
 assert.match(source, /class="m2-front-traverse" data-finish="RAL 1007"[\s\S]*?fill="#f2c500"/, "Travers profili A4 dahil tüm ön görünüşlerde doğrudan RAL 1007 sarı dolgu kullanmalı");
 assert.match(portal, /\.m2-front-connector,[\s\S]*?\.m2-front-traverse-connector > path[\s\S]*?fill:\s*#f2c500\s*!important/, "Braket rengi ekran ve PDF'de RAL 1007 olarak korunmalı");
-assert.match(portal, /\.m2-pallet-surface,[\s\S]*?\.m2-front-box[\s\S]*?fill:\s*#d7a44f\s*!important/, "Yük rengi üst, yerleşim ve ön görünüşlerde korunmalı");
+assert.match(portal, /\.m2-pallet-surface,[\s\S]*?\.m2-front-box[\s\S]*?fill:\s*#c58b47\s*!important/, "Yük rengi B2B standardıyla üst, yerleşim ve ön görünüşlerde korunmalı");
 assert.doesNotMatch(portal, /\.m2-front-pallet[^\{]*\{[^}]*!important/, "Ön görünüş paleti kendi koyu ahşap rengini korumalı");
 assert.doesNotMatch(portal, /\.m2-side-(?:box|pallet)[^{]*\{[^}]*!important/, "Yan görünüşün kendi SVG renkleri dış CSS tarafından ezilmemeli");
 const enhancedUprightLayer = source.indexOf("front+=m2FrontUpright(ux,postTop,postHeight,fPostW,fGround,fFootW,fFootH,u+1)");
@@ -820,7 +820,7 @@ assert.match(frontSvg, /<image href="data:image\/png;base64,[^"]+"/, "AYAK2 GLB'
 assert.match(frontSvg, /data-traverse-finish="yellow"/, "Ön görünüş traversleri sarı olmalı");
 assert.match(frontSvg, /data-pallet-style="side-view-matched"/, "Ön görünüş paletleri yan görünüş tipiyle eşleşmeli");
 assert.match(frontSvg, /fill="url\(#m2fronttraverse\)"/, "Ön görünüş travers geometrisi sarı travers dolgusunu kullanmalı");
-assert.match(frontSvg, /fill="#d7a44f" stroke="#744719"/, "Ön görünüş yük/palet rengi yan görünüşle eşleşmeli");
+assert.match(frontSvg, /fill="#c58b47" stroke="#744719"/, "Ön görünüş yük/kutu rengi B2B standardıyla eşleşmeli");
 assert.match(frontSvg, /data-pallet-width-mm="1300"/);
 assert.match(frontSvg, /data-bay-pitch-mm="1450"/);
 assert.match(frontSvg, /data-traverse-connector-mm="42x240"/);
@@ -884,7 +884,7 @@ const portalTopRenderIndex = process.argv.indexOf("--render-portal-top");
 if (portalTopRenderIndex !== -1) {
   const output = process.argv[portalTopRenderIndex + 1];
   assert.ok(output, "--render-portal-top için çıktı yolu gerekli");
-  const qaStyles = `<style>.m2-label{fill:#111827;font:800 12px Arial}.m2-dim{fill:#64748b;font:700 9px Arial}.m2-dimension{stroke:#64748b;stroke-width:1}.m2-top-v-brace-hit{fill:#f2c500;fill-opacity:.045;stroke:#d5aa00;stroke-width:1}.m2-top-v-brace-profile{fill:none;stroke:#b57d00;stroke-width:4.2;stroke-linecap:round;stroke-linejoin:round}.m2-top-v-brace-control{fill:#fff8cf;stroke:#b57d00;stroke-width:1.2}.m2-top-v-brace-selector text{fill:#6b4b00;font:900 10px Arial}.m2-straight-brace{stroke:#64748b;stroke-width:1}.m2-part-label{font:900 8px Arial}.m2-pallet-surface{fill:#d7a44f;stroke:#744719}</style>`;
+  const qaStyles = `<style>.m2-label{fill:#111827;font:800 12px Arial}.m2-dim{fill:#64748b;font:700 9px Arial}.m2-dimension{stroke:#64748b;stroke-width:1}.m2-top-v-brace-hit{fill:#f2c500;fill-opacity:.045;stroke:#d5aa00;stroke-width:1}.m2-top-v-brace-profile{fill:none;stroke:#b57d00;stroke-width:4.2;stroke-linecap:round;stroke-linejoin:round}.m2-top-v-brace-control{fill:#fff8cf;stroke:#b57d00;stroke-width:1.2}.m2-top-v-brace-selector text{fill:#6b4b00;font:900 10px Arial}.m2-straight-brace{stroke:#64748b;stroke-width:1}.m2-part-label{font:900 8px Arial}.m2-pallet-surface{fill:#c58b47;stroke:#744719}</style>`;
   const standalone = portalTopSvg.replace(/^<svg /, '<svg xmlns="http://www.w3.org/2000/svg" ').replace(/^(<svg[^>]*>)/, `$1<rect width="100%" height="100%" fill="#f7faf8"/>${qaStyles}`);
   fs.writeFileSync(output, standalone);
 }

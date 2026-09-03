@@ -13,8 +13,8 @@ const technicalMaterials = {
   ray: new THREE.MeshStandardMaterial({ color: 0xd6a11f, metalness: 0.42, roughness: 0.34 }),
   konsol: new THREE.MeshStandardMaterial({ color: 0xb96e18, metalness: 0.38, roughness: 0.4 }),
   arabag: new THREE.MeshStandardMaterial({ color: 0x465963, metalness: 0.58, roughness: 0.4 }),
-  palet: new THREE.MeshStandardMaterial({ color: 0xb87942, metalness: 0.04, roughness: 0.62 }),
-  yuk: new THREE.MeshStandardMaterial({ color: 0xd9b96e, metalness: 0, roughness: 0.78 }),
+  palet: new THREE.MeshStandardMaterial({ color: 0x9a6028, metalness: 0.04, roughness: 0.94 }),
+  yuk: new THREE.MeshStandardMaterial({ color: 0xc58b47, metalness: 0, roughness: 0.94 }),
 };
 const loadBoxGeometry = new THREE.BoxGeometry(1, 1, 1);
 

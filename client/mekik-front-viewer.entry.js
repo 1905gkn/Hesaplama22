@@ -177,7 +177,7 @@ function preparePalletTemplate(scene) {
     if (!part.isMesh) return;
     const upper = String(part.name || "").toLocaleUpperCase("tr-TR");
     part.material = new THREE.MeshStandardMaterial({
-      color: upper.includes("PALET") ? 0x9a6028 : 0xa96f35,
+      color: upper.includes("PALET") ? 0x9a6028 : 0xc58b47,
       metalness: 0.04,
       roughness: 0.94,
     });

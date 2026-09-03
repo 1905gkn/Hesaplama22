@@ -4,6 +4,10 @@ set -euo pipefail
 project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$project_root"
 
+# Windows gelistirme kopyalarinda checkout CRLF olabilir; asagidaki tarihsel
+# yamalar birebir LF dizileri aradigi icin once hedef dosyalari normalize et.
+sed -i 's/\r$//' portal.html worker/index.js client/*.js scripts/build.sh
+
 # Reproduce the exact prebuilt preparation used for the approved 34vnlp6h8 deployment.
 sed -i "s/b2b-accessories-v2/b2b-accessories-v1/" client/b2b-accessories.js
 
