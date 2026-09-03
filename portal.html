@@ -5648,7 +5648,7 @@
           visibleLevels = Math.min(levels, 6),
           visibleDepth = Math.min(depth, 10);
         $("m2OtherDepthWrap").classList.toggle("hidden", palletDepthChoice !== "other");
-        $("m2Capacity").textContent = `${fmt(bays * levels * depth)} palet`;
+        if ($("m2Capacity")) $("m2Capacity").textContent = `${fmt(bays * levels * depth)} palet`;
         $("m2Channels").textContent = fmt(bays * levels);
         $("m2Width").textContent = `${fmt(totalWidth)} mm`;
         $("m2WidthFormula").textContent = m2ActiveModule === "b2b" ? `(${fmt(bays)} × ${fmt(effectivePalW)} travers) + (${fmt(bays + 1)} × ${fmt(footType)} ayak)` : `(${fmt(bays)} × ${fmt(palW)}) + (${fmt(bays + 1)} × ${fmt(footType)})`;
