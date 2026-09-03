@@ -2598,7 +2598,14 @@
         const geometry = b2bPalletGeometry();
         const options = b2b3DOptions();
         const vertical = b2bVerticalLayout();
-        window.RafexB2BViewer?.update(options);
+        const viewer = window.RafexB2BViewer, canvas = $("b2bMain3DCanvas");
+        if (viewer && canvas) {
+          const mountedOnMain = typeof viewer.isMountedOn === "function"
+            ? viewer.isMountedOn(canvas)
+            : (typeof viewer.getActiveCanvas === "function" ? viewer.getActiveCanvas() === canvas : true);
+          if (!mountedOnMain && typeof viewer.mount === "function") viewer.mount(canvas, options);
+          else viewer.update?.(options);
+        }
         const metrics = $("b2b3DMetrics");
         if (metrics) metrics.innerHTML = `<span>${options.moduleCount} BÖLÜM · HER BÖLÜM ${fmt(geometry.sectionWidth)} mm</span><span>HER BÖLÜMDE ${geometry.count} PALET × ${fmt(geometry.width)} mm</span><span>${options.levels} KAT · ${options.firstPalletPosition === "ground" ? "İLK PALET ZEMİNDE" : `İLK TRAVERS ${fmt(options.firstFloorGap)} mm`}</span><span>${$("b2bTraverseType")?.value || "CC140"} · AYAK ${fmt(vertical.footHeight)} mm</span><span>KATTA TOPLAM ${fmt(options.moduleCount * geometry.count * (options.rowType === "double" ? 2 : 1))} PALET</span>`;
       }
