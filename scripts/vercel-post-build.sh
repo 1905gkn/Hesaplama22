@@ -12,6 +12,7 @@ node scripts/patch-heavy-viewers-on-demand-v1.mjs
 node scripts/patch-uniform-system-banner-v95.mjs
 node scripts/patch-common-layout-theme-v96.mjs
 node scripts/patch-runtime-authority-v2.mjs
+node scripts/patch-module-access-common-v98.mjs
 node scripts/verify-runtime-authority-v2.mjs
 node scripts/patch-dist-version-badge-position-v1.mjs
 node scripts/verify-uniform-system-banner-v95.mjs
