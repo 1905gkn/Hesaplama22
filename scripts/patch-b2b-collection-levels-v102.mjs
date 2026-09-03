@@ -78,7 +78,7 @@ const runtime = String.raw`<style data-rafex-b2b-collection-levels="v102">
   }
   function installViewer(){var service=window.RafexB2BViewer;if(!service||typeof service.mount!=='function'||service.mount.__rafexCollectionV102)return false;var base=service.mount,wrapped=function(){return patchViewer(base.apply(this,arguments))};wrapped.__rafexCollectionV102=true;service.mount=wrapped;try{var active=service.getActiveViewer?.();if(active)patchViewer(active)}catch(e){}return true}
   document.addEventListener('click',function(event){if(state.enabled&&event.target?.closest?.('.b2b-field:has(#b2bFirstPalletPosition) .b2b-choice'))setTimeout(function(){forceTraverse();notify()},0)},true);
-  new MutationObserver(function(){installHooks();installViewer();queue()}).observe(document.documentElement,{childList:true,subtree:true});
+  new MutationObserver(function(){installHooks();installViewer();var area=document.getElementById('b2bAccessoryArea');if(!area||!document.querySelector('[data-b2b-collection-add]')||!document.getElementById('b2bCollectionShell'))queue()}).observe(document.documentElement,{childList:true,subtree:true});
   function boot(){installHooks();installViewer();queue();setTimeout(queue,120);setTimeout(queue,600)}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
   window.addEventListener('rafex-b2b-viewer-ready',function(){installHooks();installViewer()});
 })();</script>`;
