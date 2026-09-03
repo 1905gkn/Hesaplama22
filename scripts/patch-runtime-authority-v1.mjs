@@ -18,8 +18,8 @@ const authority = String.raw`<style data-rafex-runtime-authority="v1">
 #page[data-rafex-authority-mode="common"]{--rafex-authority-accent:#214f3b;--rafex-authority-soft:#edf4f0}
 #page[data-rafex-authority-mode="common"][data-rafex-authority-system="drivein"]{--rafex-authority-accent:#17699a;--rafex-authority-soft:#eaf5fb}
 #page[data-rafex-authority-mode="common"][data-rafex-authority-system="konsol"]{--rafex-authority-accent:#765035;--rafex-authority-soft:#f5eee8}
-#page[data-rafex-authority-mode="common"]>.hero:first-of-type{width:100%!important;height:94px!important;min-height:94px!important;max-height:94px!important;margin:0 0 12px!important;padding:20px 26px!important;box-sizing:border-box!important;background:var(--rafex-authority-accent)!important;overflow:hidden!important}
-#page[data-rafex-authority-mode="common"]>.hero:first-of-type h2{margin:0!important;line-height:1.1!important}
+#page[data-rafex-authority-mode="common"] [data-rafex-system-banner="common"]{width:100%!important;height:94px!important;min-height:94px!important;max-height:94px!important;margin:0 0 12px!important;padding:20px 26px!important;box-sizing:border-box!important;background:var(--rafex-authority-accent)!important;overflow:hidden!important}
+#page[data-rafex-authority-mode="common"] [data-rafex-system-banner="common"] h2{margin:0!important;line-height:1.1!important}
 #page[data-rafex-authority-mode="common"] #rafexUnifiedSystemPicker{width:100%!important;min-width:0!important;height:166px!important;min-height:166px!important;max-height:166px!important;margin:0 0 12px!important;padding:14px!important;box-sizing:border-box!important;overflow:hidden!important}
 #page[data-rafex-authority-mode="common"] #rafexUnifiedSystemPicker .rafex-system-picker-head{height:38px!important;min-height:38px!important;margin:0 0 8px!important}
 #page[data-rafex-authority-mode="common"] #rafexUnifiedSystemPicker .rafex-system-options{height:62px!important;min-height:62px!important;gap:8px!important}
