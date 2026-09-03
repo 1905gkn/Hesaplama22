@@ -98,9 +98,11 @@ const accessoryMethods = `
         : part.material.clone();
     });
     object.applyMatrix4(new THREE.Matrix4().makeBasis(
-      new THREE.Vector3(1, 0, 0),
-      new THREE.Vector3(0, 0, -1),
+      // MR GLB eksenlerini MR viewer ile aynı biçimde normalize edip
+      // (x, y, z) -> (x, z, -y) ile B2B yerel eksenlerine taşı.
       new THREE.Vector3(0, 1, 0),
+      new THREE.Vector3(1, 0, 0),
+      new THREE.Vector3(0, 0, 1),
     ));
     const normalized = new THREE.Group();
     normalized.add(object);
@@ -128,6 +130,9 @@ const accessoryMethods = `
     layer.name = "B2B MR ZS Toplama Katlari";
     const clearLeft = SOURCE_CLEAR_LEFT * sectionScale;
     const clearWidth = this.options.sectionWidth;
+    const beamOverlap = Math.max(0, (SOURCE_CLEAR_LEFT - SOURCE_TRAVERSE_X_OFFSET) * sectionScale);
+    const beamLeft = clearLeft - beamOverlap;
+    const beamLength = clearWidth + beamOverlap * 2;
     const front = SOURCE_TRAVERSE_FRONT_OFFSET * depthScale;
     const rear = SOURCE_TRAVERSE_BACK_OFFSET * depthScale;
     const beamDepth = Math.max(24, 42 * depthScale);
@@ -136,13 +141,13 @@ const accessoryMethods = `
       const height = Math.max(50, Number(floor.zsHeight) || 55);
       const bottom = Math.max(0, Number(floor.bottom) || 0);
       [front, rear - beamDepth].forEach((offset, sideIndex) => {
-        const beam = this.mrCollectionPart(this.models.mrTraverse, { x:clearWidth, y:beamDepth, z:height });
+        const beam = this.mrCollectionPart(this.models.mrTraverse, { x:beamLength, y:beamDepth, z:height });
         beam.name = String(floor.traverse || "ZS35") + " MR Toplama " + (floorIndex + 1) + (sideIndex ? " Arka" : " On");
         if (sideIndex === 0) {
           beam.scale.x *= -1;
           beam.scale.y *= -1;
-          beam.position.set(clearLeft + clearWidth, front + beamDepth, -bottom);
-        } else beam.position.set(clearLeft, rear - beamDepth, -bottom);
+          beam.position.set(beamLeft + beamLength, front + beamDepth, -bottom);
+        } else beam.position.set(beamLeft, rear - beamDepth, -bottom);
         this.applyRackMaterials(beam);
         layer.add(beam);
       });
