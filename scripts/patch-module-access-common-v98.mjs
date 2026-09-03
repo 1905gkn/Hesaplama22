@@ -2,7 +2,7 @@ import fs from "node:fs";
 
 const file = "dist/server/index.js";
 let source = fs.readFileSync(file, "utf8");
-const match = source.match(/(const HTML_BASE64 = )(["'])([A-Za-z0-9+/=]+)\2/);
+const match = source.match(/(const HTML_BASE64\s*=\s*)(["'])([A-Za-z0-9+/=]+)\2/);
 if (!match) throw new Error("v98: HTML_BASE64 bulunamadı.");
 
 let html = Buffer.from(match[3], "base64").toString("utf8");
