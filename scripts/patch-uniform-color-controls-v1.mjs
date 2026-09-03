@@ -12,29 +12,29 @@ html = html
   .replace(/<script\s+data-rafex-uniform-color-controls="v1">[\s\S]*?<\/script>\s*/g, "");
 
 const runtime = String.raw`<style data-rafex-uniform-color-controls="v1">
-#page[data-rafex-common-active="1"] .rafex-uniform-color-row{
+#page .rafex-uniform-color-row{
   display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;
   grid-column:1/-1!important;width:100%!important;min-width:0!important;margin:0!important
 }
-#page[data-rafex-common-active="1"] .rafex-uniform-color-field,
-#page[data-rafex-common-active="1"] .b2b-field:has(>select#b2bFootColor),
-#page[data-rafex-common-active="1"] .b2b-field:has(>select#b2bTraverseColor),
-#page[data-rafex-common-active="1"] .mr-form label:has(>select#mrUprightFinish),
-#page[data-rafex-common-active="1"] .mr-form label:has(>select#mrTraverseFinish),
-#page[data-rafex-common-active="1"] .konsol-field:has(>select#konsolLegColor),
-#page[data-rafex-common-active="1"] .konsol-field:has(>select#konsolArmColor){
+#page .rafex-uniform-color-field,
+#page .b2b-field:has(>select#b2bFootColor),
+#page .b2b-field:has(>select#b2bTraverseColor),
+#page .mr-form label:has(>select#mrUprightFinish),
+#page .mr-form label:has(>select#mrTraverseFinish),
+#page .konsol-field:has(>select#konsolLegColor),
+#page .konsol-field:has(>select#konsolArmColor){
   display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:5px!important;min-width:0!important;
   color:#5a111d!important;font:800 9px/1.2 Arial,sans-serif!important;white-space:nowrap!important
 }
-#page[data-rafex-common-active="1"] .rafex-uniform-color-field select,
-#page[data-rafex-common-active="1"] #b2bFootColor,#page[data-rafex-common-active="1"] #b2bTraverseColor,
-#page[data-rafex-common-active="1"] #mrUprightFinish,#page[data-rafex-common-active="1"] #mrTraverseFinish,
-#page[data-rafex-common-active="1"] #konsolLegColor,#page[data-rafex-common-active="1"] #konsolArmColor{
+#page .rafex-uniform-color-field select,
+#page #b2bFootColor,#page #b2bTraverseColor,
+#page #mrUprightFinish,#page #mrTraverseFinish,
+#page #konsolLegColor,#page #konsolArmColor{
   width:100%!important;min-height:34px!important;padding:7px 30px 7px 11px!important;
   border:1px solid #dfc5cb!important;border-radius:8px!important;background:#fff!important;
   color:#1c1113!important;font:800 11px/1 Arial,sans-serif!important;box-shadow:none!important;opacity:1!important
 }
-#page[data-rafex-common-active="1"] #konsolLegColor:disabled{color:#1c1113!important;background:#fff!important;cursor:default!important}
+#page #konsolLegColor:disabled{color:#1c1113!important;background:#fff!important;cursor:default!important}
 </style>
 <script data-rafex-uniform-color-controls="v1">(function(){
   if(window.__rafexUniformColorControlsV1)return;window.__rafexUniformColorControlsV1=true;
