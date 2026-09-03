@@ -563,6 +563,16 @@
         border-bottom: 1px solid var(--line);
         text-align: left;
       }
+      .module-access-modal{position:fixed;inset:0;z-index:1200;display:grid;place-items:center;padding:20px;background:rgba(8,20,17,.58)}
+      .module-access-modal[hidden]{display:none}
+      .module-access-card{width:min(520px,100%);max-height:calc(100vh - 40px);overflow:auto;background:#fff;border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.28);padding:22px}
+      .module-access-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
+      .module-access-head h3{margin:0 0 4px}.module-access-head p{margin:0;color:#64736d}
+      .module-access-close{border:0;background:#edf2ef;border-radius:10px;width:36px;height:36px;font-size:22px;cursor:pointer}
+      .module-access-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+      .module-access-option{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid #d8e2dd;border-radius:12px;font-weight:700;cursor:pointer}
+      .module-access-option input{width:18px;height:18px;accent-color:#176b4d}
+      .module-access-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}.module-access-actions button{padding:10px 15px;border-radius:10px;border:1px solid #cfdad4;background:#fff;font-weight:700;cursor:pointer}.module-access-actions .primary{background:#176b4d;color:#fff;border-color:#176b4d}
       .badge {
         padding: 4px 7px;
         border-radius: 20px;
@@ -2005,6 +2015,26 @@
                 "'": "&#39;",
               })[c],
           );
+      const RAFEX_MODULES = [
+        { key:"b2b", label:"B2B" }, { key:"ayak", label:"Ayak Hesaplama" },
+        { key:"travers", label:"Travers Hesaplama" }, { key:"mr", label:"MR" },
+        { key:"drive", label:"Drive-In" }, { key:"mekik2", label:"Mekik" },
+        { key:"konsol", label:"Konsol Kollu" }
+      ];
+      function userAllowedModules(user = me) {
+        if (user?.role === "super") return RAFEX_MODULES.map((module) => module.key);
+        try {
+          const parsed = Array.isArray(user?.allowed_modules) ? user.allowed_modules : JSON.parse(user?.allowed_modules || "[]");
+          return parsed.filter((key) => RAFEX_MODULES.some((module) => module.key === key));
+        } catch { return RAFEX_MODULES.map((module) => module.key); }
+      }
+      function canViewModule(name) { return name === "home" || name === "admin" || userAllowedModules().includes(name); }
+      function applyModuleVisibility() {
+        document.querySelectorAll("#nav button[data-page]").forEach((button) => {
+          if (button.dataset.page !== "admin") button.hidden = !canViewModule(button.dataset.page);
+        });
+        document.querySelectorAll("#mobileTabs button[data-mobile-page]").forEach((button) => { button.hidden = !canViewModule(button.dataset.mobilePage); });
+      }
       async function req(url, opt = {}) {
         const r = await fetch(url, {
             headers: { "content-type": "application/json" },
@@ -2084,6 +2114,7 @@
           `${user.role === "super" ? "Süper Kullanıcı" : "Kullanıcı"} · ${user.username}`;
         if (user.role === "super") $("adminNav").classList.remove("hidden");
         else $("adminNav").remove();
+        applyModuleVisibility();
         await loadProjects();
         showPage("home");
       }
@@ -2101,6 +2132,7 @@
       let mrViewerInstance = null;
       function showPage(name) {
         if (name === "admin" && me.role !== "super") name = "home";
+        if (!canViewModule(name)) name = "home";
         if (name !== "mr") { try { window.RafexMRViewer?.destroy(); } catch {} mrViewerInstance = null; }
         $("page").oninput = null;
         $("page").onclick = null;
@@ -7167,7 +7199,7 @@
               const projectCount = projects.filter(
                 (p) => Number(p.created_by) === Number(x.id),
               ).length;
-              return `<tr><td><b>${esc(x.full_name || "—")}</b></td><td>${esc(x.username)}</td><td>${x.role === "super" ? "Süper" : "Kullanıcı"}</td><td><span class="badge ${x.active ? "" : "off"}">${x.active ? "Aktif" : "Pasif"}</span></td><td><select class="user-language-select" aria-label="${esc(x.username)} varsayılan dili" onchange="setUserDefaultLanguage(${x.id},this.value)"><option value="tr" ${x.default_language === "tr" ? "selected" : ""}>Türkçe</option><option value="en" ${x.default_language === "en" ? "selected" : ""}>English</option><option value="fr" ${x.default_language === "fr" ? "selected" : ""}>Français</option></select></td><td><div class="user-actions"><button class="small-btn project-btn" onclick="openUserProjects(${x.id})">Projeler (${projectCount})</button><button class="small-btn" onclick="changeFullName(${x.id})">Ad Soyad</button>${x.role === "super" ? "" : `<button class="small-btn" onclick="toggleUser(${x.id},${!x.active})">${x.active ? "Pasifleştir" : "Aktifleştir"}</button><button class="small-btn" onclick="resetPass(${x.id})">Şifre Değiştir</button><button class="small-btn danger" onclick="deleteUser(${x.id},'${esc(x.username)}')">Sil</button>`}</div></td></tr>`;
+              return `<tr><td><b>${esc(x.full_name || "—")}</b></td><td>${esc(x.username)}</td><td>${x.role === "super" ? "Süper" : "Kullanıcı"}</td><td><span class="badge ${x.active ? "" : "off"}">${x.active ? "Aktif" : "Pasif"}</span></td><td><select class="user-language-select" aria-label="${esc(x.username)} varsayılan dili" onchange="setUserDefaultLanguage(${x.id},this.value)"><option value="tr" ${x.default_language === "tr" ? "selected" : ""}>Türkçe</option><option value="en" ${x.default_language === "en" ? "selected" : ""}>English</option><option value="fr" ${x.default_language === "fr" ? "selected" : ""}>Français</option></select></td><td><div class="user-actions"><button class="small-btn project-btn" onclick="openUserProjects(${x.id})">Projeler (${projectCount})</button><button class="small-btn" onclick="changeFullName(${x.id})">Ad Soyad</button>${x.role === "super" ? `<button class="small-btn" disabled title="Süper kullanıcı bütün bölümleri görür">Tüm Bölümler</button>` : `<button class="small-btn" onclick="openModuleAccess(${x.id})">Bölüm Görüntüleme</button><button class="small-btn" onclick="toggleUser(${x.id},${!x.active})">${x.active ? "Pasifleştir" : "Aktifleştir"}</button><button class="small-btn" onclick="resetPass(${x.id})">Şifre Değiştir</button><button class="small-btn danger" onclick="deleteUser(${x.id},'${esc(x.username)}')">Sil</button>`}</div></td></tr>`;
             })
             .join("")}</tbody></table>`;
         applyTranslations($("userTable"));
@@ -7185,6 +7217,33 @@
           alert(error.message);
           await listUsers();
         }
+      }
+      function openModuleAccess(id) {
+        const user = adminUsers.find((item) => Number(item.id) === Number(id));
+        if (!user || user.role === "super") return;
+        const allowed = new Set(userAllowedModules(user));
+        let modal = $("moduleAccessModal");
+        if (!modal) {
+          document.body.insertAdjacentHTML("beforeend", `<div class="module-access-modal" id="moduleAccessModal" hidden onclick="if(event.target===this)closeModuleAccess()"><div class="module-access-card" role="dialog" aria-modal="true" aria-labelledby="moduleAccessTitle"><div class="module-access-head"><div><h3 id="moduleAccessTitle">Gösterilecek Bölümler</h3><p id="moduleAccessUser"></p></div><button class="module-access-close" type="button" aria-label="Kapat" onclick="closeModuleAccess()">×</button></div><div class="module-access-list" id="moduleAccessList"></div><div class="msg" id="moduleAccessMsg"></div><div class="module-access-actions"><button type="button" onclick="closeModuleAccess()">Vazgeç</button><button type="button" class="primary" onclick="saveModuleAccess()">Kaydet</button></div></div></div>`);
+          modal = $("moduleAccessModal");
+        }
+        modal.dataset.userId = String(id);
+        $("moduleAccessUser").textContent = `${user.full_name || user.username} · yalnız işaretlenen bölümleri görür`;
+        $("moduleAccessList").innerHTML = RAFEX_MODULES.map((module) => `<label class="module-access-option"><input type="checkbox" value="${module.key}" ${allowed.has(module.key) ? "checked" : ""}><span>${module.label}</span></label>`).join("");
+        $("moduleAccessMsg").textContent = "";
+        modal.hidden = false;
+      }
+      function closeModuleAccess() { const modal = $("moduleAccessModal"); if (modal) modal.hidden = true; }
+      async function saveModuleAccess() {
+        const modal = $("moduleAccessModal"), id = Number(modal?.dataset.userId);
+        const allowedModules = Array.from($("moduleAccessList")?.querySelectorAll("input:checked") || []).map((input) => input.value);
+        try {
+          await req("/api/users/" + id, { method:"PATCH", body:JSON.stringify({ allowedModules }) });
+          const user = adminUsers.find((item) => Number(item.id) === id);
+          if (user) user.allowed_modules = JSON.stringify(allowedModules);
+          closeModuleAccess();
+          await listUsers();
+        } catch (error) { $("moduleAccessMsg").textContent = error.message; }
       }
       const openHistoryBeforeUserProjects = openHistory;
       openHistory = function () {

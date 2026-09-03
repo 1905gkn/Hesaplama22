@@ -756,7 +756,7 @@ async function currentUser(request, db) {
   if (!token) return null;
   return await db
     .prepare(
-      "SELECT u.id,u.full_name,u.username,u.role,u.active,u.default_language FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.active=1",
+      "SELECT u.id,u.full_name,u.username,u.role,u.active,u.default_language,u.allowed_modules FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>? AND u.active=1",
     )
     .bind(await sha(token), now())
     .first();
@@ -967,6 +967,7 @@ async function api(request, env, path) {
           username: user.username,
           role: user.role,
           default_language: user.default_language || 'tr',
+          allowed_modules: user.allowed_modules,
         },
       },
       200,
@@ -1153,7 +1154,7 @@ async function api(request, env, path) {
     if (user.role !== "super") return json({ error: "Yetkisiz." }, 403);
     const rows = await db
       .prepare(
-        "SELECT id,full_name,username,role,active,created_at,default_language FROM users WHERE username NOT LIKE 'deleted_%' ORDER BY id",
+        "SELECT id,full_name,username,role,active,created_at,default_language,allowed_modules FROM users WHERE username NOT LIKE 'deleted_%' ORDER BY id",
       )
       .all();
     return json({ users: rows.results });
@@ -1243,6 +1244,14 @@ async function api(request, env, path) {
       await db
         .prepare("UPDATE users SET default_language=? WHERE id=?")
         .bind(x.defaultLanguage, id)
+        .run();
+    }
+    if (Array.isArray(x.allowedModules)) {
+      const validModules = ["b2b", "ayak", "travers", "mr", "drive", "mekik2", "konsol"];
+      const allowedModules = [...new Set(x.allowedModules.map(String).filter((module) => validModules.includes(module)))];
+      await db
+        .prepare("UPDATE users SET allowed_modules=? WHERE id=? AND role<>'super'")
+        .bind(JSON.stringify(allowedModules), id)
         .run();
     }
     if (x.password) {
