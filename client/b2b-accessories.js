@@ -74,7 +74,8 @@
   function notify() {
     try {
       if (typeof window.b2bRefreshSummary === 'function') window.b2bRefreshSummary();
-      if (typeof window.b2b3DOptions === 'function') window.RafexB2BViewer?.update?.(window.b2b3DOptions());
+      const viewer=window.RafexB2BViewer?.getActiveViewer?.(), plan=collectionPlan();
+      if(viewer){const options={...viewer.options,accessories:cloneState(),collectionLevels:normalizeCollection(collection),collectionFloors:plan.floors};if(collection.enabled){options.firstPalletPosition='traverse';options.firstFloorGap=plan.totalHeight;options.footHeight=Math.ceil((plan.totalHeight+Number(options.traverseHeight||140)+Math.max(0,Number(options.levels||1)-1)*(Number(options.palletHeight||1200)+Number(options.palletTraverseGap||0)+Number(options.traverseHeight||140))+Number(options.lastPalletOverlap||600))/50)*50;}window.RafexB2BViewer.update(options);}
     } catch (error) { console.warn('Aksesuar güncelleme', error); }
   }
 
