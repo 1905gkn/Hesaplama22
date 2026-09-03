@@ -23,17 +23,13 @@ const runtime = `<style ${marker}>
 .rafex-system-picker-head p{margin:5px 0 0;color:#6c786f;font-size:12px;line-height:1.5}
 .rafex-system-picker-step{flex:none;padding:6px 10px;border-radius:999px;background:#173c2d;color:#fff;font-size:10px;font-weight:900;letter-spacing:.07em}
 .rafex-system-options{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:9px}
-.rafex-system-option{position:relative;display:flex;min-height:84px;padding:12px;border:1px solid #dce6df;border-radius:11px;background:#f8faf8;cursor:pointer;transition:.15s ease}
+.rafex-system-option{position:relative;display:grid;place-items:center;min-height:84px;padding:12px;border:1px solid #dce6df;border-radius:11px;background:#f8faf8;cursor:pointer;transition:.15s ease;text-align:center}
 .rafex-system-option:hover{border-color:#9fb9a8;background:#f2f7f3}
 .rafex-system-option input{position:absolute;opacity:0;pointer-events:none}
-.rafex-system-option-body{display:flex;flex-direction:column;gap:5px;width:100%}
-.rafex-system-option strong{font-size:13px;color:#173c2d}
-.rafex-system-option small{font-size:10px;line-height:1.35;color:#738077}
-.rafex-system-option em{margin-top:auto;font-style:normal;font-size:9px;font-weight:900;letter-spacing:.04em;color:#728078}
+.rafex-system-option-body{display:grid;place-items:center;width:100%}
+.rafex-system-option strong{font-size:18px;line-height:1.15;color:#173c2d}
 .rafex-system-option:has(input:checked){border-color:#173c2d;background:#e8f1eb;box-shadow:inset 0 0 0 1px #173c2d}
-.rafex-system-option:has(input:checked) em{color:#173c2d}
 .rafex-system-option[data-ready="false"]{background:#fbfbfa}
-.rafex-system-option[data-ready="false"] em{color:#997b3c}
 .rafex-system-picker-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:14px;padding-top:13px;border-top:1px solid #edf1ee}
 .rafex-system-continue,.rafex-system-add-module{border:0;border-radius:9px;padding:10px 16px;font-weight:900;cursor:pointer}
 .rafex-system-continue{background:#173c2d;color:#fff}
@@ -130,7 +126,7 @@ const runtime = `<style ${marker}>
 
   function optionMarkup(system){
     const checked=free.pending===system.key?' checked':'';
-    return '<label class="rafex-system-option" data-ready="'+String(system.ready)+'"><input type="radio" name="rafexUnifiedSystem" value="'+system.key+'"'+checked+'><span class="rafex-system-option-body"><strong>'+system.label+'</strong><small>'+system.desc+'</small><em>'+(system.ready?'MODÜL ÇİZİMİ HAZIR':'ALTYAPI BEKLİYOR')+'</em></span></label>';
+    return '<label class="rafex-system-option" data-ready="'+String(system.ready)+'"><input type="radio" name="rafexUnifiedSystem" value="'+system.key+'"'+checked+'><span class="rafex-system-option-body"><strong>'+system.label+'</strong></span></label>';
   }
   function pickerMarkup(){
     return '<section class="card rafex-system-picker" id="rafexUnifiedSystemPicker"><div class="rafex-system-picker-head"><div><h3>Raf Sistemi Araçları</h3><p>B2B, Mekik, Drive-In, MR ve Konsol Kollu aynı Ortak Çizim projesinde birlikte kullanılır. Sistem kartına tıklayınca kendi ürün girdileri ve görseli doğrudan açılır.</p></div><span class="rafex-system-picker-step">ORTAK YERLEŞİM</span></div><div class="rafex-system-options">'+SYSTEMS.map(optionMarkup).join('')+'</div><div class="rafex-system-picker-actions"><span class="rafex-system-picker-message" id="rafexUnifiedMessage"></span></div></section><section class="rafex-system-unavailable" id="rafexUnifiedUnavailable"><h3>Bu sistem için ortak modül geometrisi henüz hazır değil</h3><p id="rafexUnifiedUnavailableText"></p></section>';
@@ -151,10 +147,8 @@ const runtime = `<style ${marker}>
     const hero=page.querySelector('.hero,.mr-hero');
     if(hero){
       if(!document.getElementById('rafexUnifiedSystemPicker'))hero.insertAdjacentHTML('afterend',pickerMarkup());
-      const bannerKey=free.selected||free.pending||'';
-      const bannerText=bannerKey?systemLabel(bannerKey).toLocaleUpperCase('tr-TR'):'ORTAK ÇİZİM';
-      hero.innerHTML='<h2 data-rafex-system-banner-title>'+bannerText+'</h2>';
-      hero.dataset.rafexSystemBanner=bannerKey||'common';
+      hero.innerHTML='<h2 data-rafex-system-banner-title>ORTAK ÇİZİM</h2>';
+      hero.dataset.rafexSystemBanner='common';
     }else if(!document.getElementById('rafexUnifiedSystemPicker'))page.insertAdjacentHTML('afterbegin',pickerMarkup());
 
     const floor=page.querySelector('.m2-floor-editor');

@@ -15,6 +15,7 @@ const runtime = String.raw`<style data-rafex-uniform-system-banner="v95">
 .top{box-sizing:border-box!important;position:sticky!important;top:0!important;z-index:40!important;height:72px!important;min-height:72px!important}
 .top-actions{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:8px!important;flex-wrap:nowrap!important}
 .top-actions>button{min-height:38px!important;white-space:nowrap!important}
+body.rafex-common-header-v95 #pageTitle{display:none!important}
 #page .hero,#page .mr-hero{
   box-sizing:border-box!important;
   width:100%!important;
@@ -75,6 +76,8 @@ const runtime = String.raw`<style data-rafex-uniform-system-banner="v95">
   function sync(){
     if(busy)return;
     var page=document.getElementById('page');if(!page)return;
+    var common=page.dataset.rafexFreeDrawing==='1'||page.classList.contains('rafex-free-drawing-page');
+    if(document.body)document.body.classList.toggle('rafex-common-header-v95',common);
     var key=selectedSystem(page);if(!key)return;
     var hero=page.querySelector('.hero,.mr-hero');
     if(!hero){
@@ -83,7 +86,7 @@ const runtime = String.raw`<style data-rafex-uniform-system-banner="v95">
       hero=page.querySelector('.hero,.mr-hero');
       busy=false;
     }
-    var label=labels[key]||'ORTAK ÇİZİM';
+    var label=common?'ORTAK ÇİZİM':(labels[key]||'ORTAK ÇİZİM');
     var title=hero.querySelector(':scope>[data-rafex-system-banner-title]');
     var clean=title&&hero.children.length===1&&title.textContent===label;
     if(clean)return;
@@ -107,6 +110,8 @@ for (const required of [
   'data-rafex-uniform-system-banner="v95"',
   "height:128px!important",
   "place-content:center!important",
+  "body.rafex-common-header-v95 #pageTitle",
+  "var label=common?'ORTAK ÇİZİM'",
   "data-rafex-system-banner-title",
   "MEKİK",
   "KONSOL KOLLU",
