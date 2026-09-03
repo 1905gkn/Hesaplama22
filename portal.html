@@ -2016,13 +2016,13 @@
               })[c],
           );
       const RAFEX_MODULES = [
+        { key:"free", label:"Ortak Çizim" },
         { key:"b2b", label:"B2B" }, { key:"ayak", label:"Ayak Hesaplama" },
         { key:"travers", label:"Travers Hesaplama" }, { key:"mr", label:"MR" },
         { key:"drive", label:"Drive-In" }, { key:"mekik2", label:"Mekik" },
         { key:"konsol", label:"Konsol Kollu" }
       ];
       function userAllowedModules(user = me) {
-        if (user?.role === "super") return RAFEX_MODULES.map((module) => module.key);
         try {
           const parsed = Array.isArray(user?.allowed_modules) ? user.allowed_modules : JSON.parse(user?.allowed_modules || "[]");
           return parsed.filter((key) => RAFEX_MODULES.some((module) => module.key === key));
@@ -7199,7 +7199,7 @@
               const projectCount = projects.filter(
                 (p) => Number(p.created_by) === Number(x.id),
               ).length;
-              return `<tr><td><b>${esc(x.full_name || "—")}</b></td><td>${esc(x.username)}</td><td>${x.role === "super" ? "Süper" : "Kullanıcı"}</td><td><span class="badge ${x.active ? "" : "off"}">${x.active ? "Aktif" : "Pasif"}</span></td><td><select class="user-language-select" aria-label="${esc(x.username)} varsayılan dili" onchange="setUserDefaultLanguage(${x.id},this.value)"><option value="tr" ${x.default_language === "tr" ? "selected" : ""}>Türkçe</option><option value="en" ${x.default_language === "en" ? "selected" : ""}>English</option><option value="fr" ${x.default_language === "fr" ? "selected" : ""}>Français</option></select></td><td><div class="user-actions"><button class="small-btn project-btn" onclick="openUserProjects(${x.id})">Projeler (${projectCount})</button><button class="small-btn" onclick="changeFullName(${x.id})">Ad Soyad</button>${x.role === "super" ? `<button class="small-btn" disabled title="Süper kullanıcı bütün bölümleri görür">Tüm Bölümler</button>` : `<button class="small-btn" onclick="openModuleAccess(${x.id})">Bölüm Görüntüleme</button><button class="small-btn" onclick="toggleUser(${x.id},${!x.active})">${x.active ? "Pasifleştir" : "Aktifleştir"}</button><button class="small-btn" onclick="resetPass(${x.id})">Şifre Değiştir</button><button class="small-btn danger" onclick="deleteUser(${x.id},'${esc(x.username)}')">Sil</button>`}</div></td></tr>`;
+              return `<tr><td><b>${esc(x.full_name || "—")}</b></td><td>${esc(x.username)}</td><td>${x.role === "super" ? "Süper" : "Kullanıcı"}</td><td><span class="badge ${x.active ? "" : "off"}">${x.active ? "Aktif" : "Pasif"}</span></td><td><select class="user-language-select" aria-label="${esc(x.username)} varsayılan dili" onchange="setUserDefaultLanguage(${x.id},this.value)"><option value="tr" ${x.default_language === "tr" ? "selected" : ""}>Türkçe</option><option value="en" ${x.default_language === "en" ? "selected" : ""}>English</option><option value="fr" ${x.default_language === "fr" ? "selected" : ""}>Français</option></select></td><td><div class="user-actions"><button class="small-btn project-btn" onclick="openUserProjects(${x.id})">Projeler (${projectCount})</button><button class="small-btn" onclick="changeFullName(${x.id})">Ad Soyad</button><button class="small-btn" onclick="openModuleAccess(${x.id})">Bölüm Görüntüleme</button>${x.role === "super" ? "" : `<button class="small-btn" onclick="toggleUser(${x.id},${!x.active})">${x.active ? "Pasifleştir" : "Aktifleştir"}</button><button class="small-btn" onclick="resetPass(${x.id})">Şifre Değiştir</button><button class="small-btn danger" onclick="deleteUser(${x.id},'${esc(x.username)}')">Sil</button>`}</div></td></tr>`;
             })
             .join("")}</tbody></table>`;
         applyTranslations($("userTable"));
@@ -7220,7 +7220,7 @@
       }
       function openModuleAccess(id) {
         const user = adminUsers.find((item) => Number(item.id) === Number(id));
-        if (!user || user.role === "super") return;
+        if (!user) return;
         const allowed = new Set(userAllowedModules(user));
         let modal = $("moduleAccessModal");
         if (!modal) {
@@ -7241,6 +7241,10 @@
           await req("/api/users/" + id, { method:"PATCH", body:JSON.stringify({ allowedModules }) });
           const user = adminUsers.find((item) => Number(item.id) === id);
           if (user) user.allowed_modules = JSON.stringify(allowedModules);
+          if (Number(me?.id) === id) {
+            me.allowed_modules = JSON.stringify(allowedModules);
+            applyModuleVisibility();
+          }
           closeModuleAccess();
           await listUsers();
         } catch (error) { $("moduleAccessMsg").textContent = error.message; }

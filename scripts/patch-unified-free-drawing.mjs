@@ -117,7 +117,7 @@ const runtime = `<style ${marker}>
       button.dataset.page='free';
       nav.insertBefore(button,b2b);
     }
-    if(button)button.innerHTML='<i>01</i>Ortak Çizim';
+    if(button){button.innerHTML='<i>01</i>Ortak Çizim';button.hidden=typeof canViewModule==='function'?!canViewModule('free'):false;}
     nav.querySelectorAll('button[data-page="serbest"]').forEach((duplicate)=>duplicate.remove());
     const numbers={b2b:'02',ayak:'03',travers:'04',mr:'05',drive:'06',mekik2:'07',konsol:'08',admin:'09'};
     Object.entries(numbers).forEach(([page,no])=>{const i=nav.querySelector('button[data-page="'+page+'"] i');if(i)i.textContent=no;});
@@ -299,7 +299,7 @@ const runtime = `<style ${marker}>
   const originalShowPage=window.showPage||showPage;
   if(typeof originalShowPage==='function'){
     const wrapped=function(name){
-      if(name==='free'){enterFreeDrawing();return;}
+      if(name==='free'){if(typeof canViewModule==='function'&&!canViewModule('free'))return originalShowPage('home');enterFreeDrawing();return;}
       if(free.active){restoreStandaloneState();free.active=false;free.currentEngine=null;}
       return originalShowPage(name);
     };

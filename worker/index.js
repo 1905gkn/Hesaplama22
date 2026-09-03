@@ -1247,10 +1247,10 @@ async function api(request, env, path) {
         .run();
     }
     if (Array.isArray(x.allowedModules)) {
-      const validModules = ["b2b", "ayak", "travers", "mr", "drive", "mekik2", "konsol"];
+      const validModules = ["free", "b2b", "ayak", "travers", "mr", "drive", "mekik2", "konsol"];
       const allowedModules = [...new Set(x.allowedModules.map(String).filter((module) => validModules.includes(module)))];
       await db
-        .prepare("UPDATE users SET allowed_modules=? WHERE id=? AND role<>'super'")
+        .prepare("UPDATE users SET allowed_modules=? WHERE id=?")
         .bind(JSON.stringify(allowedModules), id)
         .run();
     }
