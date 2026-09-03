@@ -86,12 +86,14 @@ body.rafex-common-header-v95 #page #rafexCommonProjectName,#page.rafex-free-draw
       wrap.innerHTML='<label class="rafex-common-project-name-field" for="rafexCommonProjectName"><span>Proje Adı</span><input id="rafexCommonProjectName" type="text" autocomplete="off" placeholder="Ortak proje adını yaz"></label>';
       commonWrap=wrap;
       var input=wrap.querySelector('#rafexCommonProjectName');
-      input.addEventListener('input',function(){
+      input.addEventListener('input',function(event){
+        event.stopPropagation();
         commonName=input.value;
         window.__rafexCommonProjectName=commonName;
         nativeProjectInputs().forEach(function(item){item.input.value=commonName;});
       });
-      input.addEventListener('change',function(){
+      input.addEventListener('change',function(event){
+        event.stopPropagation();
         nativeProjectInputs().forEach(function(item){
           if(item.input.value!==commonName)item.input.value=commonName;
           try{item.input.dispatchEvent(new Event('change',{bubbles:true}));}catch(error){}
