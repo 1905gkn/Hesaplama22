@@ -83,8 +83,9 @@ const runtime = String.raw`<style data-rafex-b2b-collection-levels="v102">
   window.addEventListener('rafex-b2b-viewer-ready',function(){installHooks();installViewer()});
 })();</script>`;
 
-const closing = html.lastIndexOf("</body>");
-if (closing < 0) throw new Error("B2B collection levels v102: body bulunamadi");
+const closingMatch = /<\/body>\s*<\/html>\s*$/i.exec(html);
+const closing = closingMatch?.index ?? -1;
+if (closing < 0) throw new Error("B2B collection levels v102: gercek body kapanisi bulunamadi");
 html = html.slice(0, closing) + runtime + "\n" + html.slice(closing);
 for (const required of ['data-rafex-b2b-collection-levels="v102"','Toplama Katı','Z – 1. kat arası mesafe','ZS65|2','trayThickness','collectionFloors']) {
   if (!html.includes(required)) throw new Error("B2B collection levels v102 dogrulama eksigi: " + required);
