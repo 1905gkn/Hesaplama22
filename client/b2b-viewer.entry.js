@@ -765,6 +765,9 @@ window.RafexB2BViewer = {
   setCameraAngles(azimuth, elevation) {
     active?.setCameraAngles(azimuth, elevation);
   },
+  getActiveViewer() {
+    return active;
+  },
   destroy() {
     active?.destroy();
     active = null;

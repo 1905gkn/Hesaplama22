@@ -6,6 +6,11 @@
     tray: { label: 'Tava' },
   };
   let accessories = [];
+  const ZS_HEIGHTS = { 'ZS35|1.5':55, 'ZS35|2':55, 'ZS55|1.5':75, 'ZS55|2':75, 'ZS65|1.5':85, 'ZS65|2':85 };
+  const freshCollectionFloor = () => ({ trayWidth:300, trayThickness:.8, traverse:'ZS35|1.5', height:500 });
+  let collection = { enabled:false, groundGap:500, floors:[freshCollectionFloor()] };
+  const normalizeCollection = (raw = {}) => ({ enabled:raw.enabled===true, groundGap:Math.max(0,Math.min(5000,Number(raw.groundGap)||500)), floors:(Array.isArray(raw.floors)&&raw.floors.length?raw.floors:[freshCollectionFloor()]).slice(0,12).map((f)=>({trayWidth:[200,250,300].includes(Number(f?.trayWidth))?Number(f.trayWidth):300,trayThickness:[.6,.8,1,1.2,1.5].includes(Number(f?.trayThickness))?Number(f.trayThickness):.8,traverse:ZS_HEIGHTS[f?.traverse]?f.traverse:'ZS35|1.5',height:Math.max(100,Math.min(5000,Number(f?.height)||500))})) });
+  const collectionPlan = () => { const s=normalizeCollection(collection);let cursor=s.groundGap;const floors=s.enabled?s.floors.map((f,index)=>{const bottom=cursor,zsHeight=ZS_HEIGHTS[f.traverse];cursor+=zsHeight+f.height;return{...f,index,bottom,zsHeight,top:cursor};}):[];return{floors,totalHeight:s.enabled?cursor:0}; };
 
   const cloneState = () => accessories.map((item) => ({
     type: item.type,
@@ -51,7 +56,9 @@
         <button type="button" onclick="rafexAccessoryAdd('palletStop')">Palet Dayama</button>
         <button type="button" onclick="rafexAccessoryAdd('hTraverse')">H Travers</button>
         <button type="button" onclick="rafexAccessoryAdd('tray')">Tava</button>
+        <button type="button" onclick="rafexCollectionAdd()">Toplama Katı</button>
       </div>
+      <div class="b2b-accessory-card" id="b2bCollection" hidden></div>
       <div class="b2b-accessory-list" id="b2bAccessoryList"></div>
     </div>`;
   }
@@ -76,6 +83,7 @@
     const list = document.getElementById('b2bAccessoryList');
     if (!list) return;
     const levels = levelCount();
+    renderCollection();
     accessories = accessories.map((item) => ({ ...item, levels: (item.levels || []).filter((level) => level >= 1 && level <= levels) }));
     if (!accessories.length) {
       list.innerHTML = '<div class="b2b-accessory-empty">Henüz aksesuar eklenmedi.</div>';
@@ -104,6 +112,12 @@
     }).join('');
   }
 
+  function renderCollection() {
+    const host=document.getElementById('b2bCollection');if(!host)return;host.hidden=!collection.enabled;if(!collection.enabled){host.innerHTML='';return;}
+    const p=collectionPlan(),f=collection.floors[0],opts=(values,current,label=(v)=>v)=>values.map((v)=>`<option value="${v}" ${String(v)===String(current)?'selected':''}>${label(v)}</option>`).join('');
+    host.innerHTML=`<div class="b2b-accessory-card-head"><b>1. Toplama Katı</b><button class="b2b-accessory-remove" type="button" onclick="rafexCollectionRemove()">Kaldır</button></div><div class="b2b-accessory-tray-width"><span>Z – 1. kat arası</span><input type="number" min="0" max="5000" step="10" value="${collection.groundGap}" onchange="rafexCollectionSet('groundGap',this.value)"></div><div class="b2b-accessory-tray-width"><span>Tava</span><select onchange="rafexCollectionSet('trayWidth',this.value)">${opts([300,250,200],f.trayWidth,(v)=>v+' mm')}</select></div><div class="b2b-accessory-tray-width"><span>Kalınlık</span><select onchange="rafexCollectionSet('trayThickness',this.value)">${opts([.6,.8,1,1.2,1.5],f.trayThickness,(v)=>String(v).replace('.',',')+' mm')}</select></div><div class="b2b-accessory-tray-width"><span>ZS travers</span><select onchange="rafexCollectionSet('traverse',this.value)">${opts(Object.keys(ZS_HEIGHTS),f.traverse,(v)=>v.replace('|',' · ')+' mm')}</select></div><div class="b2b-accessory-tray-width"><span>Kat yüksekliği</span><input type="number" min="100" max="5000" step="10" value="${f.height}" onchange="rafexCollectionSet('height',this.value)"></div><div class="b2b-accessory-note"><b>ZS toplama yüksekliği ${p.totalHeight.toLocaleString('tr-TR')} mm:</b> ${collection.groundGap} + ${ZS_HEIGHTS[f.traverse]} ZS travers + ${f.height} kat yüksekliği. Sonrasında CC traversli normal katlar başlar.</div>`;
+  }
+
   window.rafexAccessoryToggle = () => {
     ensureArea();
     document.getElementById('b2bAccessoryArea')?.classList.toggle('open');
@@ -130,6 +144,9 @@
     item.width = [200,250,300].includes(Number(width)) ? Number(width) : 300; render(); notify();
   };
   window.rafexAccessoryState = () => cloneState();
+  window.rafexCollectionAdd=()=>{collection=normalizeCollection({...collection,enabled:true});document.getElementById('b2bAccessoryArea')?.classList.add('open');render();notify();};
+  window.rafexCollectionRemove=()=>{collection.enabled=false;render();notify();};
+  window.rafexCollectionSet=(key,value)=>{const f=collection.floors[0]||freshCollectionFloor();if(key==='groundGap')collection.groundGap=Math.max(0,Math.min(5000,Number(value)||0));else if(key==='trayWidth')f.trayWidth=[200,250,300].includes(Number(value))?Number(value):300;else if(key==='trayThickness')f.trayThickness=[.6,.8,1,1.2,1.5].includes(Number(value))?Number(value):.8;else if(key==='traverse'&&ZS_HEIGHTS[value])f.traverse=value;else if(key==='height')f.height=Math.max(100,Math.min(5000,Number(value)||500));collection.floors=[f];render();notify();};
   window.rafexTrayPlan = trayPlan;
 
   function hook(name, factory) {
@@ -148,22 +165,25 @@
     });
     hook('b2bReadInputState', (previous) => function (...args) {
       const state = previous.apply(this, args);
-      return state ? { ...state, accessories: cloneState() } : state;
+      return state ? { ...state, accessories: cloneState(), collectionLevels:normalizeCollection(collection) } : state;
     });
     hook('b2bApplySavedInputState', (previous) => function (state, ...args) {
       accessories = Array.isArray(state?.accessories) ? state.accessories.filter((item) => TYPES[item?.type]).map((item) => ({ type:item.type, levels:Array.isArray(item.levels)?item.levels.map(Number).filter(Number.isFinite):[], ...(item.type === 'tray' ? { width:[200,250,300].includes(Number(item.width))?Number(item.width):300 } : {}) })) : [];
+      collection = normalizeCollection(state?.collectionLevels);
       const result = previous.call(this, state, ...args);
       setTimeout(() => { render(); notify(); }, 0);
       return result;
     });
     hook('b2b3DOptions', (previous) => function (...args) {
       const options = previous.apply(this, args);
-      return { ...options, accessories: cloneState() };
+      const plan=collectionPlan();
+      return { ...options, accessories:cloneState(), collectionLevels:normalizeCollection(collection), collectionFloors:plan.floors, ...(collection.enabled?{firstPalletPosition:'traverse',firstFloorGap:plan.totalHeight,footHeight:Math.ceil((plan.totalHeight+Number(options.traverseHeight||140)+Math.max(0,Number(options.levels||1)-1)*(Number(options.palletHeight||1200)+Number(options.palletTraverseGap||0)+Number(options.traverseHeight||140))+Number(options.lastPalletOverlap||600))/50)*50}:{}) };
     });
     hook('m2Rack3DOptions', (previous) => function (rack, ...args) {
       const options = previous.call(this, rack, ...args);
       const saved = Array.isArray(rack?.b2b?.accessories) ? rack.b2b.accessories : cloneState();
-      return { ...options, accessories: saved.map((item) => ({...item, levels:[...(item.levels || [])]})) };
+      const savedCollection=normalizeCollection(rack?.b2b?.collectionLevels), oldCollection=collection;collection=savedCollection;const plan=collectionPlan();collection=oldCollection;
+      return { ...options, accessories:saved.map((item)=>({...item,levels:[...(item.levels||[])]})), collectionLevels:savedCollection, collectionFloors:plan.floors, ...(savedCollection.enabled?{firstPalletPosition:'traverse',firstFloorGap:plan.totalHeight}:{}) };
     });
     hook('b2bApplyInputs', (previous) => function (event, ...args) {
       const result = previous.call(this, event, ...args);
