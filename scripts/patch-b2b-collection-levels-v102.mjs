@@ -27,6 +27,7 @@ const runtime = String.raw`<style data-rafex-b2b-collection-levels="v102">
 #page.b2b-mode .b2b-collection-count input{text-align:center}
 #page.b2b-mode .b2b-collection-formula{padding:8px 9px;border-radius:8px;background:#f4e8eb;color:#6b2835;font-size:9px;line-height:1.45}
 #page.b2b-mode .b2b-collection-formula b{color:#5b111d}
+#page.b2b-mode .b2b-accessory-picker .b2b-collection-add{display:flex;align-items:center;justify-content:center;min-height:34px;padding:7px 9px;border:1px solid #d8c6ca;border-radius:8px;background:#fff;color:#5b111d;font:800 10px Arial,sans-serif;cursor:pointer}
 @media(max-width:520px){#page.b2b-mode .b2b-collection-floor{grid-template-columns:1fr}}
 </style>
 <script data-rafex-b2b-collection-levels="v102">(function(){
@@ -46,7 +47,7 @@ const runtime = String.raw`<style data-rafex-b2b-collection-levels="v102">
   function option(value,label,selected){return'<option value="'+value+'"'+(String(value)===String(selected)?' selected':'')+'>'+label+'</option>'}
   function render(){
     frame=0;var area=document.getElementById('b2bAccessoryArea');if(!area)return false;
-    var picker=area.querySelector('.b2b-accessory-picker');if(picker&&!picker.querySelector('[data-b2b-collection-add]'))picker.insertAdjacentHTML('beforeend','<button type="button" data-b2b-collection-add onclick="event.preventDefault();event.stopPropagation();rafexCollectionEnableV102();return false">Toplama Katı</button>');
+    var picker=area.querySelector('.b2b-accessory-picker');if(picker&&!picker.querySelector('[data-b2b-collection-add]'))picker.insertAdjacentHTML('beforeend','<div class="b2b-collection-add" role="button" tabindex="0" data-b2b-collection-add>Toplama Katı</div>');
     var shell=document.getElementById('b2bCollectionShell');if(!shell){shell=document.createElement('div');shell.id='b2bCollectionShell';shell.className='b2b-collection-shell';(area.querySelector('#b2bAccessoryList')||area.lastElementChild)?.before(shell)}
     if(!state.enabled){shell.innerHTML='';shell.hidden=true;return true}shell.hidden=false;forceTraverse();var p=plan();
     var floors=state.floors.map(function(f,index){var tray=[300,250,200].map(function(v){return option(v,v+' mm',f.trayWidth)}).join(''),th=[.6,.8,1,1.2,1.5].map(function(v){return option(v,String(v).replace('.',',')+' mm',f.trayThickness)}).join(''),zs=Object.keys(ZS).map(function(v){return option(v,v.replace('|',' · ')+' mm',f.traverse)}).join('');return'<section class="b2b-collection-floor"><h4>'+(index+1)+'. Toplama Katı</h4><label>Tava seçimi<select onchange="rafexCollectionFieldV102('+index+',\'trayWidth\',this.value)">'+tray+'</select></label><label>Kalınlık seçimi<select onchange="rafexCollectionFieldV102('+index+',\'trayThickness\',this.value)">'+th+'</select></label><label>ZS travers seçimi<select onchange="rafexCollectionFieldV102('+index+',\'traverse\',this.value)">'+zs+'</select></label><label>Kat yüksekliği (mm)<input type="number" min="100" max="5000" step="10" value="'+f.height+'" onchange="rafexCollectionFieldV102('+index+',\'height\',this.value)"></label></section>'}).join('');
@@ -79,6 +80,7 @@ const runtime = String.raw`<style data-rafex-b2b-collection-levels="v102">
   }
   function installViewer(){var service=window.RafexB2BViewer;if(!service||typeof service.mount!=='function'||service.mount.__rafexCollectionV102)return false;var base=service.mount,wrapped=function(){return patchViewer(base.apply(this,arguments))};wrapped.__rafexCollectionV102=true;service.mount=wrapped;try{var active=service.getActiveViewer?.();if(active)patchViewer(active)}catch(e){}return true}
   window.addEventListener('click',function(event){var button=event.target?.closest?.('[data-b2b-collection-add]');if(!button)return;event.preventDefault();event.stopImmediatePropagation();enableCollection()},true);
+  window.addEventListener('keydown',function(event){if(!event.target?.matches?.('[data-b2b-collection-add]')||!['Enter',' '].includes(event.key))return;event.preventDefault();event.stopImmediatePropagation();enableCollection()},true);
   document.addEventListener('click',function(event){if(state.enabled&&event.target?.closest?.('.b2b-field:has(#b2bFirstPalletPosition) .b2b-choice'))setTimeout(function(){forceTraverse();notify()},0)},true);
   new MutationObserver(function(){installHooks();installViewer();var area=document.getElementById('b2bAccessoryArea');if(!area||!document.querySelector('[data-b2b-collection-add]')||!document.getElementById('b2bCollectionShell'))queue()}).observe(document.documentElement,{childList:true,subtree:true});
   function boot(){installHooks();installViewer();queue();setTimeout(queue,120);setTimeout(queue,600)}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
