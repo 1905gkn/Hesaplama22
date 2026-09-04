@@ -22,7 +22,8 @@ const runtime = `<script data-rafex-sidebar-order="v100">
     order.forEach(function(page,index){
       const button=buttons.get(page)||nav.querySelector(':scope > button[data-page="'+page+'"]');
       const number=button&&button.querySelector('i');
-      if(number)number.textContent=String(index).padStart(2,'0');
+      const expected=String(index).padStart(2,'0');
+      if(number&&number.textContent!==expected)number.textContent=expected;
     });
   }
   function bind(){
