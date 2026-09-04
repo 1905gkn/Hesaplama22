@@ -501,8 +501,41 @@ class B2BViewer {
     const traverseCount = this.options.firstPalletPosition === "traverse" ? this.options.levels : Math.max(0, this.options.levels - 1);
 
     if (this.options.dimensions.levels && traverseCount > 0) {
-      const firstLevelHeight=this.palletHeightAt(0)+this.options.palletTraverseGap+this.options.traverseHeight;
-      this.addVerticalDimension(levelsLayer,lineX,frontY,0,firstLevelHeight,`Z+TRAVERS  ·  ${this.dimensionValue(firstLevelHeight)}`,0);
+      const collectionFloors = Array.isArray(this.options.collectionFloors)
+        ? this.options.collectionFloors
+          .map((floor) => ({ ...floor, bottom:Math.max(0, Number(floor?.bottom) || 0) }))
+          .sort((left, right) => left.bottom - right.bottom)
+        : [];
+      if (this.options.firstPalletPosition === "traverse" && collectionFloors.length) {
+        const firstCollectionBottom = collectionFloors[0].bottom;
+        if (firstCollectionBottom > 0) {
+          this.addVerticalDimension(
+            levelsLayer,
+            lineX,
+            frontY,
+            0,
+            firstCollectionBottom,
+            `Z–TOPLAMA 1  ·  ${this.dimensionValue(firstCollectionBottom)}`,
+            0,
+          );
+        }
+        collectionFloors.forEach((floor, index) => {
+          const nextBottom = collectionFloors[index + 1]?.bottom ?? this.traverseBottom(0);
+          if (nextBottom <= floor.bottom) return;
+          this.addVerticalDimension(
+            levelsLayer,
+            lineX,
+            frontY,
+            floor.bottom,
+            nextBottom,
+            `TOPLAMA ${index + 1}  ·  ${this.dimensionValue(nextBottom - floor.bottom)}`,
+            0,
+          );
+        });
+      } else {
+        const firstLevelHeight = this.traverseBottom(0);
+        this.addVerticalDimension(levelsLayer,lineX,frontY,0,firstLevelHeight,`Z+TRAVERS  ·  ${this.dimensionValue(firstLevelHeight)}`,0);
+      }
       for (let level = 1; level < traverseCount; level += 1) {
         this.addVerticalDimension(
           levelsLayer,
