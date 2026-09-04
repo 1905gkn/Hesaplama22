@@ -190,7 +190,7 @@ class B2BViewer {
       palletHeights: Array.isArray(next.palletHeights) ? next.palletHeights.map((value) => clamp(Number(value) || 800, 300, 3000)) : [],
       tunnelHeight: clamp(Number(next.tunnelHeight) || 0, 0, 30000),
       firstPalletPosition: next.firstPalletPosition === "traverse" ? "traverse" : "ground",
-      firstFloorGap: clamp(Number.isFinite(Number(next.firstFloorGap)) ? Number(next.firstFloorGap) : 200, 0, 2000),
+      firstFloorGap: clamp(Number.isFinite(Number(next.firstFloorGap)) ? Number(next.firstFloorGap) : 200, 0, 30000),
       lastPalletOverlap: clamp(Number(next.lastPalletOverlap) || (Number(next.palletHeight) || 800) / 2, 0, 3000),
       frontPalletGap: clamp(Number.isFinite(Number(next.frontPalletGap)) ? Number(next.frontPalletGap) : 50, 0, 1000),
       rearPalletGap: clamp(Number.isFinite(Number(next.rearPalletGap)) ? Number(next.rearPalletGap) : 50, 0, 1000),
