@@ -17,6 +17,7 @@ node scripts/patch-common-b2b-input-card-v100.mjs
 node scripts/patch-b2b-3d-save-height-v103.mjs
 node scripts/patch-uniform-color-controls-v1.mjs
 node scripts/patch-uniform-common-picker-height-v1.mjs
+node scripts/patch-sidebar-order-v100.mjs
 node scripts/verify-runtime-authority-v2.mjs
 node scripts/patch-dist-version-badge-position-v1.mjs
 node scripts/verify-uniform-system-banner-v95.mjs
