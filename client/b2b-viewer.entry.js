@@ -521,14 +521,15 @@ class B2BViewer {
         }
         collectionFloors.forEach((floor, index) => {
           const nextBottom = collectionFloors[index + 1]?.bottom ?? this.traverseBottom(0);
-          if (nextBottom <= floor.bottom) return;
+          const floorHeightStart = floor.bottom + Math.max(0, Number(floor.zsHeight) || 0);
+          if (nextBottom <= floorHeightStart) return;
           this.addVerticalDimension(
             levelsLayer,
             lineX,
             frontY,
-            floor.bottom,
+            floorHeightStart,
             nextBottom,
-            `TOPLAMA ${index + 1}  ·  ${this.dimensionValue(nextBottom - floor.bottom)}`,
+            `TOPLAMA ${index + 1}  ·  ${this.dimensionValue(nextBottom - floorHeightStart)}`,
             0,
           );
         });
