@@ -14,10 +14,10 @@ html = html
 const runtime = String.raw`<style data-rafex-common-mekik-input="v101">
 /* Yalnız Ortak Çizim > Mekik. B2B ölçü ve tipografi düzeni referanstır. */
 #page[data-rafex-common-active="1"][data-rafex-common-system="mekik2"] .m2-layout{
-  grid-template-columns:420px minmax(0,1fr)!important;align-items:start!important;gap:18px!important
+  grid-template-columns:360px minmax(0,1fr)!important;align-items:start!important;gap:18px!important
 }
 #page[data-rafex-common-active="1"][data-rafex-common-system="mekik2"] .rafex-common-mekik-input-card{
-  position:sticky!important;top:88px!important;width:100%!important;max-width:420px!important;
+  position:sticky!important;top:88px!important;width:100%!important;max-width:360px!important;
   max-height:calc(100vh - 108px)!important;padding:0!important;overflow:auto!important;
   border:1px solid #dcc5ca!important;border-radius:13px!important;background:#fff!important;
   box-shadow:0 10px 26px rgba(67,12,21,.08)!important
@@ -82,7 +82,7 @@ const runtime = String.raw`<style data-rafex-common-mekik-input="v101">
   margin-left:18px!important;margin-right:18px!important
 }
 @media(max-width:1100px){
-  #page[data-rafex-common-active="1"][data-rafex-common-system="mekik2"] .m2-layout{grid-template-columns:380px minmax(0,1fr)!important}
+  #page[data-rafex-common-active="1"][data-rafex-common-system="mekik2"] .m2-layout{grid-template-columns:360px minmax(0,1fr)!important}
 }
 @media(max-width:900px){
   #page[data-rafex-common-active="1"][data-rafex-common-system="mekik2"] .m2-layout{grid-template-columns:1fr!important}
@@ -111,7 +111,7 @@ for (const required of [
   'data-rafex-common-mekik-input="v101"',
   '[data-rafex-common-system="mekik2"] .m2-layout',
   'rafex-common-mekik-input-card',
-  'grid-template-columns:420px minmax(0,1fr)',
+  'grid-template-columns:360px minmax(0,1fr)',
   "card.classList.add('rafex-common-mekik-input-card')",
 ]) {
   if (!html.includes(required)) throw new Error("Common Mekik input v101 doğrulama eksiği: " + required);
