@@ -34,6 +34,7 @@ const runtime = String.raw`<style data-rafex-common-mekik-input="v101">
   color:#5f3038!important;font-size:10px!important;line-height:1.25!important;font-weight:850!important
 }
 #page[data-rafex-common-active="1"][data-rafex-common-system="mekik2"] .rafex-common-mekik-input-card .input-field.m2-project-name{display:none!important}
+#page[data-rafex-common-active="1"][data-rafex-common-system="mekik2"] .rafex-common-mekik-input-card .rafex-mekik-color-row{display:none!important}
 #page[data-rafex-common-active="1"][data-rafex-common-system="mekik2"] .rafex-common-mekik-input-card .input-field>input,
 #page[data-rafex-common-active="1"][data-rafex-common-system="mekik2"] .rafex-common-mekik-input-card .input-field>select,
 #page[data-rafex-common-active="1"][data-rafex-common-system="mekik2"] .rafex-common-mekik-input-card .classic-choice{
