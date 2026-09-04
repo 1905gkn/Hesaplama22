@@ -2483,7 +2483,8 @@
       function b2bVerticalLayout() {
         const inputLevels = Math.max(1, Math.round(Number($("b2bLevels")?.value) || 1));
         const groundPallet = $("b2bFirstPalletPosition")?.value !== "traverse";
-        const levels = inputLevels + (groundPallet ? 1 : 0);
+        // Kat sayısı toplam palet seviyesidir; zemin paleti ayrıca bir kat eklemez.
+        const levels = inputLevels;
         const palletHeight = Math.max(300, Number($("b2bPalletHeight")?.value) || 1200);
         const traverseHeight = b2bTraverseHeight();
         const levelStep = palletHeight + b2bPalletTraverseGap + traverseHeight;
@@ -2492,7 +2493,8 @@
         const automaticFootHeight=Math.ceil(rawAutomaticFootHeight/50)*50;
         const manual=$("b2bFootHeightMode")?.value==="manual"&&Number($("b2bFootHeight")?.value)>0;
         const footHeight=manual?Math.ceil(Number($("b2bFootHeight").value)/50)*50:automaticFootHeight;
-        return {inputLevels,levels,traverseLevels:inputLevels,groundPallet,palletHeight,traverseHeight,levelStep,firstLoadBottom,automaticFootHeight,footHeight};
+        const traverseLevels = groundPallet ? Math.max(0, inputLevels - 1) : inputLevels;
+        return {inputLevels,levels,traverseLevels,groundPallet,palletHeight,traverseHeight,levelStep,firstLoadBottom,automaticFootHeight,footHeight};
       }
       function b2bStraightTieCount(heightMm) {
         // Yalnız çift sırada, karşılıklı ayakları bağlayan 200 mm galvaniz düz arabağ adedi.
