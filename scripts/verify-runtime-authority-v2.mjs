@@ -9,6 +9,16 @@ const count = (needle) => html.split(needle).length - 1;
 if (count('data-rafex-runtime-authority="v2"') !== 2) throw new Error("Runtime authority v2 style/script tekil degil");
 if (count('window.RafexRuntimeAuthority=') !== 1) throw new Error("Runtime authority nesnesi tekil degil");
 if (html.includes('data-rafex-runtime-authority="v1"') || html.includes('data-rafex-common-layout-theme="v96"')) throw new Error("Eski tema katmani hala aktif");
+for (const [attr, version] of [
+  ['data-rafex-common-project-name', 'v87'],
+  ['data-rafex-common-project-name-scope', 'v88'],
+  ['data-rafex-common-no-project-name', 'v91'],
+]) {
+  if (html.includes(`<script ${attr}="${version}">`)) throw new Error('Emekli proje yoneticisi yayina giremez: '+version);
+}
+for (const required of ['observer.disconnect()', 'setAttributeIfChanged', 'syncNativeFields(page)']) {
+  if (!html.includes(required)) throw new Error('Runtime retirement missing: '+required);
+}
 for (const required of ['grid-template-columns:repeat(5','rafex-system-picker-head','display:none!important',"active.dataset.page==='free'",'leaveCommon(page)','ensurePicker(page)','ensureProject(picker)','projectNode','if(node!==projectNode)node.remove()','rafexAuthorityProjectName',"window.addEventListener('input'",'data-rafex-authority-project-name','projectName=event.target.value']) {
   if (!html.includes(required)) throw new Error("Runtime authority v2 verify eksigi: " + required);
 }

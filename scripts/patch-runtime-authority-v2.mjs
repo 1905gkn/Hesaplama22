@@ -7,6 +7,16 @@ const match = worker.match(/(const\s+HTML_BASE64\s*=\s*)(["'])([A-Za-z0-9+/=]+)\
 if (!match) throw new Error("Runtime authority v2: HTML_BASE64 bulunamadi");
 let html = Buffer.from(match[3], "base64").toString("utf8");
 
+// Retire superseded controllers before the browser can register their observers.
+// Keep the v87 presentation rules; field ownership now belongs to this controller.
+for (const [attr, version] of [
+  ['data-rafex-common-project-name', 'v87'],
+  ['data-rafex-common-project-name-scope', 'v88'],
+  ['data-rafex-common-no-project-name', 'v91'],
+]) {
+  html = html.replace(new RegExp(`<script\\s+${attr}="${version}">[\\s\\S]*?<\\/script>\\s*`, 'g'), '');
+}
+
 for (const version of ["v96", "v1", "v2"]) {
   const attr = version === "v96" ? "data-rafex-common-layout-theme" : "data-rafex-runtime-authority";
   html = html
@@ -42,13 +52,54 @@ const authority = String.raw`<style data-rafex-runtime-authority="v2">
   function ensurePicker(page){var live=document.getElementById('rafexUnifiedSystemPicker');if(live)pickerNode=live;if(!pickerNode)return null;if(!pickerNode.isConnected){var banner=page.querySelector('[data-rafex-system-banner="common"]');if(banner)banner.insertAdjacentElement('afterend',pickerNode);else page.insertAdjacentElement('afterbegin',pickerNode);}return pickerNode;}
   function ensureProject(picker){var wraps=Array.from(document.querySelectorAll('.rafex-common-project-name-wrap'));if(!projectNode){var oldInput=wraps[0]&&wraps[0].querySelector('#rafexCommonProjectName');projectName=oldInput&&oldInput.value||projectName;projectNode=document.createElement('section');projectNode.className='card rafex-common-project-name-wrap';projectNode.innerHTML='<label class="rafex-common-project-name-field"><span>Proje Adı</span><input id="rafexAuthorityProjectName" type="text" placeholder="Ortak proje adını yaz" autocomplete="off"><input id="rafexCommonProjectName" type="hidden"></label>';projectNode.querySelector('#rafexAuthorityProjectName').addEventListener('input',function(event){projectName=event.target.value;event.stopPropagation();schedule()},true);}wraps.forEach(function(node){if(node!==projectNode)node.remove()});var wrap=projectNode;if(wrap.hidden)wrap.hidden=false;if(wrap.hasAttribute('hidden'))wrap.removeAttribute('hidden');if(wrap.getAttribute('data-rafex-authority-project-name')!=='v2')wrap.setAttribute('data-rafex-authority-project-name','v2');if(picker.nextElementSibling!==wrap)picker.insertAdjacentElement('afterend',wrap);var input=wrap.querySelector('#rafexAuthorityProjectName'),legacy=wrap.querySelector('#rafexCommonProjectName');if(input&&input.value!==projectName)input.value=projectName;if(legacy&&legacy.value!==projectName)legacy.value=projectName;return wrap;}
   function requestViewer(system){var loader=window.rafexLoadViewerOnDemandV3||window.rafexLoadHeavyViewerV1;if(typeof loader!=='function'||!['b2b','mr','drivein','mekik2','konsol'].includes(system))return;if(viewerRequests.has(system))return;try{var request=Promise.resolve(loader(system)).catch(function(error){viewerRequests.delete(system);console.warn('RAFEX authority viewer:',error)});viewerRequests.set(system,request)}catch(error){viewerRequests.delete(system)}}
-  function commit(){scheduled=0;var page=document.getElementById('page');if(!page)return;if(!isCommon(page)){leaveCommon(page);return}var picker=ensurePicker(page);if(!picker)return;ensureProject(picker);var system=selectedSystem(page)||'b2b';page.setAttribute('data-rafex-authority-mode','common');page.setAttribute('data-rafex-authority-system',system);page.setAttribute('data-rafex-common-active','1');page.setAttribute('data-rafex-common-system',system);var key='common:'+system;if(key!==lastKey){lastKey=key;requestViewer(system);window.dispatchEvent(new CustomEvent('rafex-authority-state',{detail:{mode:'common',system:system}}))}}
+  function setAttributeIfChanged(node,name,value){if(node.getAttribute(name)!==value)node.setAttribute(name,value)}
+  function commit(){scheduled=0;var page=document.getElementById('page');if(!page)return;if(!isCommon(page)){if(page.hasAttribute('data-rafex-authority-mode')||(pickerNode&&pickerNode.isConnected)||(projectNode&&projectNode.isConnected))leaveCommon(page);return}var picker=ensurePicker(page);if(!picker)return;ensureProject(picker);var system=selectedSystem(page)||'b2b';setAttributeIfChanged(page,'data-rafex-authority-mode','common');setAttributeIfChanged(page,'data-rafex-authority-system',system);setAttributeIfChanged(page,'data-rafex-common-active','1');setAttributeIfChanged(page,'data-rafex-common-system',system);var key='common:'+system;if(key!==lastKey){lastKey=key;requestViewer(system);window.dispatchEvent(new CustomEvent('rafex-authority-state',{detail:{mode:'common',system:system}}))}}
+  var legacyCommit=commit;
+  var projectKnown=false;
+  function nativeFields(page){
+    return Array.from(page.querySelectorAll('input,textarea')).filter(function(input){
+      if(input.closest('.rafex-common-project-name-wrap'))return false;
+      var label=input.closest('label');
+      var text=[input.id,input.name,input.placeholder,input.getAttribute('aria-label'),label&&label.textContent].filter(Boolean).join(' ').toLocaleLowerCase('tr-TR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i');
+      return /proje\s*adi|project\s*name/.test(text);
+    });
+  }
+  function syncNativeFields(page){
+    var common=isCommon(page),fields=nativeFields(page);
+    if(common){
+      if(!projectKnown){projectName=window.__rafexCommonProjectName||fields.map(function(input){return input.value}).find(Boolean)||projectName;projectKnown=true;}
+      window.__rafexCommonProjectName=projectName;
+    }
+    ['rafex-common-project-name-active-v88','rafex-common-no-project-name-v91'].forEach(function(name){
+      if(page.classList.contains(name)!==common)page.classList.toggle(name,common);
+    });
+    fields.forEach(function(input){
+      var root=input.closest('label')||input.parentElement;
+      if(root&&root!==page){
+        if(common&&!root.classList.contains('rafex-native-project-name-v87'))root.classList.add('rafex-native-project-name-v87');
+        if(!common&&root.classList.contains('rafex-native-project-name-v87')){root.classList.remove('rafex-native-project-name-v87');root.hidden=false;root.removeAttribute('aria-hidden');}
+      }
+      if(common&&input.value!==projectName)input.value=projectName;
+    });
+  }
+  var observerOptions={subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','checked','data-rafex-common-active','data-rafex-common-system','data-rafex-free-context-system','data-free-system','data-m2-module']};
+  var observer=new MutationObserver(schedule);
+  commit=function(){
+    if(scheduled){cancelAnimationFrame(scheduled);scheduled=0;}
+    observer.disconnect();
+    try{var page=document.getElementById('page');if(page)syncNativeFields(page);legacyCommit();}
+    finally{observer.observe(document.body,observerOptions);}
+  };
   function schedule(){if(!scheduled)scheduled=requestAnimationFrame(commit)}
+  document.addEventListener('click',function(event){
+    var page=document.getElementById('page');
+    if(page&&isCommon(page)&&event.target&&event.target.closest&&event.target.closest('button'))syncNativeFields(page);
+  },true);
   window.addEventListener('input',function(event){if(event.target&&event.target.id==='rafexAuthorityProjectName'){projectName=event.target.value;event.stopPropagation();schedule()}},true);
   document.addEventListener('input',function(event){if(event.target&&event.target.id==='rafexAuthorityProjectName')projectName=event.target.value},true);
   document.addEventListener('change',function(event){if(event.target&&event.target.name==='rafexUnifiedSystem')schedule()},true);
   document.addEventListener('click',function(event){if(event.target&&event.target.closest&&event.target.closest('#rafexUnifiedSystemPicker'))schedule()},true);
-  new MutationObserver(schedule).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','checked','data-rafex-common-active','data-rafex-common-system','data-rafex-free-context-system','data-free-system','data-m2-module']});
+  observer.observe(document.body,observerOptions);
   window.RafexRuntimeAuthority={version:'v2',sync:commit,getState:function(){var page=document.getElementById('page');return {mode:page&&page.dataset.rafexAuthorityMode||'',system:page&&page.dataset.rafexAuthoritySystem||'',projectName:projectName}}};
   schedule();setTimeout(commit,120);setTimeout(commit,600);
 })();</script>`;

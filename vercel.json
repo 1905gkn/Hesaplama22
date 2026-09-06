@@ -4,6 +4,11 @@
   "installCommand": "npm ci",
   "outputDirectory": "dist",
   "framework": null,
+  "headers": [
+    { "source": "/", "headers": [{ "key": "Cache-Control", "value": "no-store" }] },
+    { "source": "/index.html", "headers": [{ "key": "Cache-Control", "value": "no-store" }] },
+    { "source": "/service-worker.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
+  ],
   "functions": {
     "api/index.js": {
       "includeFiles": "dist/server/index.js",
