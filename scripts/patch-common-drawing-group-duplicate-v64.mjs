@@ -15,7 +15,15 @@ const runtime = String.raw`
   window.__rafexCommonGroupDuplicateV64=true;
   var baseDuplicate=typeof m2DuplicateRack==="function"?m2DuplicateRack:null;
   function clonePlain(value){return JSON.parse(JSON.stringify(value))}
-  function selectionIds(){try{return Array.from(m2MultiSelect.rackIds||[]).map(Number).filter(Number.isFinite)}catch(_){return[]}}
+  function selectionIds(){
+    try{
+      var ids=new Set(Array.from(m2MultiSelect.rackIds||[]).map(Number).filter(Number.isFinite));
+      if(!ids.size&&m2LayoutState.selected!=null)ids.add(Number(m2LayoutState.selected));
+      var groups=new Set(m2LayoutState.racks.filter(function(r){return ids.has(Number(r.id))&&r.joinGroup}).map(function(r){return r.joinGroup}));
+      m2LayoutState.racks.forEach(function(r){if(r.joinGroup&&groups.has(r.joinGroup))ids.add(Number(r.id))});
+      return Array.from(ids);
+    }catch(_){return[]}
+  }
   function groupBounds(racks){
     var boxes=racks.map(function(rack){return m2RackBounds(rack)}),left=Math.min.apply(null,boxes.map(function(box){return box.left})),right=Math.max.apply(null,boxes.map(function(box){return box.right})),top=Math.min.apply(null,boxes.map(function(box){return box.top})),bottom=Math.max.apply(null,boxes.map(function(box){return box.bottom}));
     return {left:left,right:right,top:top,bottom:bottom,width:right-left,height:bottom-top};
@@ -23,7 +31,7 @@ const runtime = String.raw`
   function duplicateSelectedGroup(){
     var ids=selectionIds();if(ids.length<2)return false;
     var selectedSet=new Set(ids),sources=m2LayoutState.racks.filter(function(rack){return selectedSet.has(Number(rack.id))});if(sources.length<2)return false;
-    var stamp=Date.now(),idMap=new Map(),groupMap=new Map(),braceSequence=0;
+    var stamp=Math.max(Date.now(),1+Math.max(0,...m2LayoutState.racks.map(function(r){return Number(r.id)||0}),...m2LayoutSymbols.map(function(s){return Number(s.id)||0}))),idMap=new Map(),groupMap=new Map(),braceSequence=0;
     sources.forEach(function(rack,index){idMap.set(Number(rack.id),stamp+index)});
     sources.forEach(function(rack){if(rack.joinGroup&&!groupMap.has(rack.joinGroup))groupMap.set(rack.joinGroup,"copy-"+stamp+"-"+groupMap.size)});
     var copies=sources.map(function(rack){

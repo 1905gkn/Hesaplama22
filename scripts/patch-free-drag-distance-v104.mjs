@@ -75,6 +75,13 @@ export function transform(html){
   const anchor='      function m2PerfDistancePrepare(){';
   if(!html.includes(anchor))throw new Error('v104: distance index source missing');
   html=html.replace(anchor,helpers+'\n      function m2PerfDistancePrepareBaseV104(){');
+  const guideAnchor='        const overlay=m2PerfEnsureDragOverlay(layer,rack.id),showGap=!drag.selectionGroup,guideHtml=';
+  if(!html.includes(guideAnchor))throw new Error('v104: drag guide renderer missing');
+  html=html.replace(guideAnchor,`        // Rack transforms and collision checks run every frame; textual guides need not.
+        const guideNow=performance.now();
+        if(drag.rafexGuidePaintAt!=null&&guideNow-drag.rafexGuidePaintAt<80)return true;
+        drag.rafexGuidePaintAt=guideNow;
+${guideAnchor}`);
   // Compile every changed script before publishing any output.
   for(const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))if(match[1].includes('const m2DragDistanceV104='))new vm.Script(match[1]);
   return html;
