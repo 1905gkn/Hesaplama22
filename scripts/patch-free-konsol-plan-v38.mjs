@@ -5,6 +5,20 @@ let source=fs.readFileSync(file,'utf8');
 const match=source.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1/);
 if(!match)throw new Error('HTML_BASE64 not found for Konsol free plan v38');
 let html=Buffer.from(match[2],'base64').toString('utf8');
+if(!html.includes('const konsolExactScaleV111=')){
+  const anchor='      function m2RenderLayout() {';
+  if(!html.includes(anchor))throw new Error('Konsol scale: layout renderer missing');
+  html=html.replace(anchor,anchor+String.raw`
+        const konsolExactScaleV111=m2LayoutState.scale;
+        for(const rack of m2LayoutState.racks||[]){
+          if(rack.rafexSystem!=='konsol'&&rack.systemType!=='konsol'&&rack.layoutView!=='konsol-top')continue;
+          const w=Number(rack.widthMm)*konsolExactScaleV111,h=Number(rack.depthMm)*konsolExactScaleV111;
+          if(w>0&&h>0&&Number.isFinite(w)&&Number.isFinite(h)){
+            rack.x+=(rack.w-w)/2;rack.y+=(rack.h-h)/2;rack.w=w;rack.h=h;
+          }
+        }
+`);
+}
 html=html
   .replace(/<style data-rafex-konsol-free-plan="v38">[\s\S]*?<\/style>/g,'')
   .replace(/<script data-rafex-konsol-free-plan="v38">[\s\S]*?<\/script>/g,'');
@@ -61,7 +75,8 @@ const runtime=String.raw`
   }
   function drawPlan(group,rack){
     if(!group||group.dataset.rafexKonsolPlan==='v38')return;
-    const box=safeBox(group);if(!box)return;
+    const box={x:Number(rack.x),y:Number(rack.y),width:Number(rack.w),height:Number(rack.h)};
+    if(!Object.values(box).every(Number.isFinite))return;
     const wide=box.width>=box.height,w=box.width,h=box.height;
     if(w<1||h<1)return;
     const count=countOf(rack),side=sideOf(rack);
@@ -95,7 +110,11 @@ const runtime=String.raw`
         if(side==='double')shell.appendChild(node('line',{x1:edgeA,y1:y-minor*.6,x2:edgeA,y2:y+minor*.6,stroke:'#E25303','stroke-width':minor*.8,'stroke-linecap':'round'}));
       }
     }
-    frag.appendChild(shell);
+    // Keep the standard hit surface used by selection, dragging and drag caches.
+    const hit=group.querySelector('.m2-layout-rack')||node('rect',{'class':'m2-layout-rack'});
+    for(const [key,value] of Object.entries({x:box.x,y:box.y,width:w,height:h,fill:'transparent',stroke:'none','pointer-events':'all'}))hit.setAttribute(key,String(value));
+    hit.style.fill='transparent';hit.style.stroke='none';hit.style.pointerEvents='all';
+    frag.appendChild(hit);frag.appendChild(shell);
     group.dataset.rafexKonsolPlan='v38';
     group.replaceChildren(frag);
   }
