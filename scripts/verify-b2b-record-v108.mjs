@@ -1,0 +1,23 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+import {transform,helpers} from './patch-b2b-record-v108.mjs';
+const html=fs.readFileSync('.tmp-cold-store-before.html','utf8'),patched=transform(html);
+assert.equal(transform(patched),patched);
+function extract(name,next){const start=patched.indexOf('      '+name);return patched.slice(start,patched.indexOf('      '+next,start));}
+const nodes={m2FloorStatus:{},m2SaveRackButton:{},m2SavedTypesPanel:{scrollIntoView(){}}};
+const input={levels:4,palletHeight:1000,palletWeight:760,palletType:'euro',palletCount:3,rowType:'double',rowGap:200,palletOverhang:50,footHeight:5500,footHeightMode:'manual'};
+let posted,added;
+const context=vm.createContext({JSON,Number,Math,document:{querySelector:()=>({value:'b2b'})},$:id=>nodes[id],m2ActiveModule:'konsol',m2LastDrawing:{rafexSystem:'konsol',systemType:'konsol',konsol:{arm:1000},spec:{},levels:5,sideUprightHeight:5100,palletHeight:1200,railLength:403,plan:{feet:[5100],braces:[]}},m2SavedRackTypes:[],m2SelectedSavedType:null,m2LayoutState:{closed:true},b2bReadInputState:()=>input,b2bVerticalLayout:()=>({footHeight:5500}),b2b3DOptions:()=>({levels:4,footHeight:5500}),m2B2BFootWidth:()=>90,m2Rack3DOptions:()=>({levels:99}),req:async(url,options)=>{posted={url,...JSON.parse(options.body)};return{id:11,name:'A',drawing:posted.drawing}},m2RefreshSavedRackTypes:async()=>{},m2RenderSavedRackTypes:()=>{},m2AddRack:d=>{added=d},m2TypeApi:()=>'/api/mekik2-types'});
+vm.runInContext(helpers+extract('function b2bLayoutDrawing','function m2AddRack')+extract('async function m2SaveRackType','async function m2DeleteSavedRackType'),context);
+await vm.runInContext('m2SaveRackType()',context);
+assert.equal(posted.url,'/api/b2b-types');
+const d=posted.drawing;
+assert.equal(d.rafexSystem,'b2b');assert.equal(d.konsol,undefined);assert.equal(d.spec,undefined);
+assert.equal(d.levels,4);assert.equal(d.sideUprightHeight,5500);assert.equal(d.palletHeight,1000);assert.equal(d.railLength,2500);assert.equal(d.totalWidth,2880);
+assert.equal(added,d);
+context.saved=d;
+const options=vm.runInContext('m2B2BInfoOptionsV108(saved)',context);
+assert.equal(options.levels,4);assert.equal(options.footHeight,5500);assert.equal(options.palletDepth,1200);
+const original=JSON.stringify(d);vm.runInContext('m2B2BRecordV108(saved)',context);assert.equal(JSON.stringify(d),original);
+console.log('PASS: B2B saves to B2B API despite stale Konsol state; foreign fields removed; floor and preview agree on 4 levels, 5500 mm uprights, 2880 x 2500 mm; original untouched.');

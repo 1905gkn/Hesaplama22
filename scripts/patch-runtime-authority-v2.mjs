@@ -1,11 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
+import {transform as repairB2BRecord} from './patch-b2b-record-v108.mjs';
 
 const workerPath = path.join(process.cwd(), "dist/server/index.js");
 let worker = fs.readFileSync(workerPath, "utf8");
 const match = worker.match(/(const\s+HTML_BASE64\s*=\s*)(["'])([A-Za-z0-9+/=]+)\2/);
 if (!match) throw new Error("Runtime authority v2: HTML_BASE64 bulunamadi");
 let html = Buffer.from(match[3], "base64").toString("utf8");
+html=repairB2BRecord(html);
 
 // Common layout persistence must not depend on an unrelated open input editor.
 if(html.includes('      async function m2SaveProject() {')&&!html.includes('const commonLayoutSaveV106=')){
