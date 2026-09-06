@@ -3,6 +3,35 @@ import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
 export const helpers = String.raw`
+      function m2RemoveMovingGuidesV107(layer,members){
+        const ids=new Set(members.map(item=>Number(item.rack.id)));
+        layer.querySelectorAll('.m2-wall-guide[data-wall-rack],.m2-distance-guide[data-rack-gap],[data-dimension-key],.m2-b2b-seismic-brace[data-seismic-racks]').forEach(node=>{
+          if(node.matches('.m2-distance-guide[data-rack-gap]')||node.matches('.m2-wall-guide')&&ids.has(Number(node.dataset.wallRack)))node.remove();
+          else if(node.dataset.dimensionKey?.startsWith('column-gap:')&&ids.has(Number(node.dataset.dimensionKey.slice(11))))node.closest('.m2-distance-guide')?.remove();
+          else if(node.dataset.seismicRacks&&node.dataset.seismicRacks.split(',').some(id=>ids.has(Number(id))))node.remove();
+        });
+      }
+      function m2FinishRetainedDragV107(drag){
+        const origins=drag?.groupMembers?.length?drag.groupMembers:[{id:drag?.id}];
+        const byId=new Map(m2LayoutState.racks.map(r=>[Number(r.id),r]));
+        const members=origins.map(o=>byId.get(Number(o.id)));
+        // Keep the established full render for placement/topology/accessory edits.
+        if(!drag||drag.selectionGroup||drag.symbolMembers?.length||drag.rafexFastUndo?.racks?.some(r=>r.freePlacement||r.staged)||members.some(r=>!r||r.freePlacement||r.staged||(r.seismicBraces||[]).length)||m2LayoutSymbols.length)return false;
+        const layer=$("m2LayoutContent"),rack=byId.get(Number(drag.id));
+        if(!layer||members.some(r=>!m2PerfRackDomTable.get(Number(r.id))?.node?.isConnected))return false;
+        if(m2LayoutRenderFrame!=null){cancelAnimationFrame(m2LayoutRenderFrame);m2LayoutRenderFrame=null;}
+        drag.rafexGuidePaintAt=null;m2LayoutRuntimeCache.frameCache.key=null;
+        if(!m2PerfRenderSingleRackDragFrame())return false;
+        const unchanged=m2FastDragUnchanged(drag);
+        const rebase=entry=>{if(entry?.node?.isConnected){const m=entry.node.transform?.baseVal?.consolidate()?.matrix;entry.baseTransform=m?'matrix('+[m.a,m.b,m.c,m.d,m.e,m.f].join(' ')+')':entry.node.getAttribute('transform')||'';}};
+        members.forEach(r=>{rebase(m2PerfRackDomTable.get(Number(r.id)));(m2PerfRackAuxDomTable.get(Number(r.id))||[]).forEach(rebase)});
+        (drag.perfSharedFootEntries||[]).forEach(rebase);
+        m2LayoutState.drag=null;m2DimensionDrag=null;if(unchanged)m2DiscardUndo();
+        const overlay=m2PerfEnsureDragOverlay(layer,rack.id);
+        overlay.innerHTML=m2WallDistanceGuides(rack,{left:true,right:true,top:true,bottom:true,gap:true})+m2RackDistanceGuide(rack)+m2ColumnDistanceGuide(rack);
+        m2PerfRefreshStaticSelectionUi(rack.id);m2UpdateUndoButton();
+        return true;
+      }
       const m2GroupMotionV105=new WeakMap();
       function m2GroupMotionContextV105(origins){
         const drag=m2LayoutState.drag;if(!drag)return null;
@@ -131,6 +160,17 @@ export function transform(html){
         if(drag.rafexGuidePaintAt!=null&&guideNow-drag.rafexGuidePaintAt<80)return true;
         drag.rafexGuidePaintAt=guideNow;
 ${guideAnchor}`);
+  const finishAnchor='          const finishedDrag=m2LayoutState.drag;';
+  if(!html.includes(finishAnchor))throw new Error('v107: release handler missing');
+  html=html.replace(finishAnchor,finishAnchor+'\n          if(finishedDrag&&m2FinishRetainedDragV107(finishedDrag))return;');
+  const cleanupAnchor='members.forEach((item)=>m2PerfRemoveStaticMovingGuides(layer,item.rack.id))';
+  if(!html.includes(cleanupAnchor))throw new Error('v107: drag guide cleanup missing');
+  html=html.replace(cleanupAnchor,'m2RemoveMovingGuidesV107(layer,members)');
+  const relationsAnchor='const relations=(window.rafexRackGapRelationsV46?.(owner)||[m2NearestRackGap(owner)]).filter(Boolean).slice(0,2);';
+  if(!html.includes(relationsAnchor))throw new Error('v107: rack guide relations missing');
+  html=html.replace(relationsAnchor,`const table=m2PerfDistancePrepare();let relations;table.activeComputes++;
+        try{relations=(window.rafexRackGapRelationsV46?.(owner)||[m2NearestRackGap(owner)]).filter(Boolean).slice(0,2);}
+        finally{table.activeComputes=Math.max(0,table.activeComputes-1);}`);
   // Compile every changed script before publishing any output.
   for(const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))if(match[1].includes('const m2DragDistanceV104='))new vm.Script(match[1]);
   return html;
