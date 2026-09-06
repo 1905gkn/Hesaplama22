@@ -7,6 +7,23 @@ const match = worker.match(/(const\s+HTML_BASE64\s*=\s*)(["'])([A-Za-z0-9+/=]+)\
 if (!match) throw new Error("Runtime authority v2: HTML_BASE64 bulunamadi");
 let html = Buffer.from(match[3], "base64").toString("utf8");
 
+// Common layout persistence must not depend on an unrelated open input editor.
+if(html.includes('      async function m2SaveProject() {')&&!html.includes('const commonLayoutSaveV106=')){
+  const start=html.indexOf('      async function m2SaveProject() {');
+  const end=html.indexOf('      function m2ProjectPlacementError()',start);
+  if(start<0||end<start)throw new Error('Common save: source missing');
+  let save=html.slice(start,end);
+  save=save.replace('        const projectName = String($("m2ProjectName")?.value || "").trim();',`        const commonLayoutSaveV106=document.querySelector('#nav button.active[data-page]')?.dataset.page==='free'&&m2LayoutState.racks.length>0;
+        const projectName = String((commonLayoutSaveV106?$("rafexAuthorityProjectName")?.value:"")||$("m2ProjectName")?.value||"").trim();
+        const projectDrawingV106=commonLayoutSaveV106?m2LayoutState.racks[0]:m2LastDrawing;`);
+  save=save.replace('if (!m2LastDrawing?.plan && m2ActiveModule !== "b2b")','if ((!commonLayoutSaveV106&&!m2LastDrawing?.plan&&m2ActiveModule!=="b2b")||(commonLayoutSaveV106&&m2LayoutState.racks.some(rack=>!rack.plan)))');
+  save=save.replace('if (m2ActiveModule === "b2b" && m2LastDrawing','if (!commonLayoutSaveV106 && m2ActiveModule === "b2b" && m2LastDrawing');
+  save=save.replace('drawing: m2LastDrawing, rackTypes:', 'drawing: projectDrawingV106, rackTypes:');
+  save=save.replace('module: m2ActiveModule, payload: { version: 1,','module: commonLayoutSaveV106?"ortak":m2ActiveModule, payload: { version: 1, ...(commonLayoutSaveV106?{module:"ortak",rafexCommonDrawing:true}:{}),');
+  if(!save.includes('const commonLayoutSaveV106=')||!save.includes('drawing: projectDrawingV106'))throw new Error('Common save: anchors missing');
+  html=html.slice(0,start)+save+html.slice(end);
+}
+
 // Retire superseded controllers before the browser can register their observers.
 // Keep the v87 presentation rules; field ownership now belongs to this controller.
 for (const [attr, version] of [
