@@ -257,6 +257,7 @@ const runtime = `<style ${marker}>
       free.continued=false;
     }
     renderEngine(free.selected&&SUPPORTED.has(free.selected)?free.selected:'mekik2',false);
+    window.rafexUnifiedCatalogSync?.();
     window.scrollTo({top:0,behavior:'smooth'});
   }
 

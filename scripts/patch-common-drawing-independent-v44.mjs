@@ -37,6 +37,7 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
   var catalog=[];
   var catalogLoading=null;
   var catalogLoadedAt=0;
+  var catalogReady=false;
   var pdfTimer=0;
   var modalTimer=0;
   var syncingPdf=false;
@@ -97,9 +98,13 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
   async function loadCatalog(force){
     if(!isFree())return [];
     if(catalogLoading)return catalogLoading;
-    if(!force&&catalog.length&&Date.now()-catalogLoadedAt<2500){installCatalog();return catalog;}
+    if(!force&&catalogReady){installCatalog();return catalog;}
     catalogLoading=(async function(){
       var settled=await Promise.allSettled([req('/api/b2b-types'),req('/api/mekik2-types')]);
+      if(settled.some(function(item){return item.status!=='fulfilled'})){
+        status('Ortak kayıtların tamamı alınamadı. Kayıtları Getir ile tekrar dene.');
+        return catalog;
+      }
       var merged=[];
       if(settled[0].status==='fulfilled'){
         var b2bRows=Array.isArray(settled[0].value&&settled[0].value.types)?settled[0].value.types:[];
@@ -119,7 +124,7 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
         entry.__rafexGlobalLetter=entry.name;
         entry.drawing=Object.assign({},entry.drawing,{rafexSystem:entry.__rafexSystem,rafexSystemLabel:entry.__rafexSystemLabel,rafexCatalogKey:entryKey(entry),rafexOriginalTypeName:entry.__rafexOriginalName,rafexGlobalTypeLetter:entry.name});
       });
-      catalog=merged;catalogLoadedAt=Date.now();installCatalog();
+      catalog=merged;catalogReady=true;catalogLoadedAt=Date.now();installCatalog();
       status('Kayıtlı tipler ortak sıraya alındı: '+catalog.map(function(entry){return entry.name+' '+entry.__rafexSystemLabel;}).join(' · '));
       return catalog;
     })();
@@ -135,6 +140,24 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
     if(typeof m2RenderSavedRackTypes==='function')m2RenderSavedRackTypes();
   }
 
+  // Never expose a module-local list while its editor is being reconstructed.
+  var renderCommonCatalogBase=typeof m2RenderSavedRackTypes==='function'?m2RenderSavedRackTypes:null;
+  if(renderCommonCatalogBase){
+    m2RenderSavedRackTypes=function(){
+      if(!isFree())return renderCommonCatalogBase.apply(this,arguments);
+      if(!catalogReady){
+        var list=document.getElementById('m2SavedTypeList');
+        if(list)list.textContent='Tüm sistemlerin kayıtlı blokları yükleniyor…';
+        return;
+      }
+      var selected=m2SavedRackTypes&&m2SavedRackTypes[m2SelectedSavedType],key=entryKey(selected);
+      m2SavedRackTypes=catalog.slice();
+      var index=m2SavedRackTypes.findIndex(function(entry){return entryKey(entry)===key});
+      m2SelectedSavedType=m2SavedRackTypes.length?(index>=0?index:0):null;
+      return renderCommonCatalogBase.apply(this,arguments);
+    };
+    window.m2RenderSavedRackTypes=m2RenderSavedRackTypes;
+  }
   var previousRefresh=typeof m2RefreshSavedRackTypes==='function'?m2RefreshSavedRackTypes:null;
   async function commonRefresh(){if(isFree())return loadCatalog(true);return previousRefresh?previousRefresh.apply(this,arguments):[];}
   try{m2RefreshSavedRackTypes=commonRefresh}catch(error){}
