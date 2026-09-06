@@ -3,6 +3,45 @@ import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
 export const helpers = String.raw`
+      const m2GroupMotionV105=new WeakMap();
+      function m2GroupMotionContextV105(origins){
+        const drag=m2LayoutState.drag;if(!drag)return null;
+        let ctx=m2GroupMotionV105.get(origins);
+        if(!ctx||ctx.drag!==drag||ctx.list!==m2LayoutState.racks||ctx.count!==m2LayoutState.racks.length){
+          const byId=new Map(m2LayoutState.racks.map(r=>[Number(r.id),r]));
+          ctx={drag,list:m2LayoutState.racks,count:m2LayoutState.racks.length,ids:new Set(origins.map(o=>Number(o.id))),members:origins.map(origin=>({origin,rack:byId.get(Number(origin.id))})),bounds:new Map()};
+          m2GroupMotionV105.set(origins,ctx);
+        }
+        return ctx;
+      }
+      function m2GroupTranslationValid(origins,dx,dy){
+        const ctx=m2GroupMotionContextV105(origins);
+        if(!ctx)return m2GroupTranslationValidBaseV105(origins,dx,dy);
+        for(const {origin,rack} of ctx.members){
+          if(!rack)return false;
+          const x=origin.x+dx,y=origin.y+dy;
+          if(!m2RackInsideArea(rack,x,y,rack.angle)||m2RackOverlapsBlockingSymbol(rack,x,y,rack.angle))return false;
+          const a=m2RackBounds(rack,x,y,rack.angle);
+          for(const other of m2PerfCollisionCandidates(a)){
+            const id=Number(other.id);if(ctx.ids.has(id))continue;
+            let b=ctx.bounds.get(id);if(!b){b=m2RackBounds(other);ctx.bounds.set(id,b);}
+            if(a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top)return false;
+          }
+        }
+        return true;
+      }
+      function m2ApplyGroupTranslation(origins,dx,dy){
+        const ctx=m2GroupMotionContextV105(origins);
+        if(!ctx)return m2ApplyGroupTranslationBaseV105(origins,dx,dy);
+        for(const {origin,rack} of ctx.members)if(rack){rack.x=origin.x+dx;rack.y=origin.y+dy;rack.staged=false;}
+      }
+      function m2PerfDragMembers(drag,rack){
+        if(Array.isArray(drag?.groupMembers)&&drag.groupMembers.length){
+          const ctx=m2GroupMotionContextV105(drag.groupMembers);
+          if(ctx)return ctx.members.filter(item=>item.rack);
+        }
+        return m2PerfDragMembersBaseV105(drag,rack);
+      }
       const m2DragDistanceV104={drag:null,rows:new Map(),cols:new Map(),members:[],byId:new Map(),size:25,stats:{builds:0,updates:0,candidates:0,queries:0}};
       function m2DragBucketsV104(map,lo,hi,id,add){
         for(let i=Math.floor(lo/25);i<=Math.floor(hi/25);i++){
@@ -75,6 +114,16 @@ export function transform(html){
   const anchor='      function m2PerfDistancePrepare(){';
   if(!html.includes(anchor))throw new Error('v104: distance index source missing');
   html=html.replace(anchor,helpers+'\n      function m2PerfDistancePrepareBaseV104(){');
+  for(const name of ['m2GroupTranslationValid','m2ApplyGroupTranslation']){
+    const signature='      function '+name+'(origins, ';
+    if(!html.includes(signature))throw new Error('v105: group motion source missing '+name);
+    html=html.replace(signature,'      function '+name+'BaseV105(origins, ');
+  }
+  const memberAnchor='      function m2PerfDragMembers(drag,rack){';
+  // The helper was prepended above; rename the last (original) declaration only.
+  const memberAt=html.lastIndexOf(memberAnchor);
+  if(memberAt<0)throw new Error('v105: drag members missing');
+  html=html.slice(0,memberAt)+html.slice(memberAt).replace(memberAnchor,'      function m2PerfDragMembersBaseV105(drag,rack){');
   const guideAnchor='        const overlay=m2PerfEnsureDragOverlay(layer,rack.id),showGap=!drag.selectionGroup,guideHtml=';
   if(!html.includes(guideAnchor))throw new Error('v104: drag guide renderer missing');
   html=html.replace(guideAnchor,`        // Rack transforms and collision checks run every frame; textual guides need not.
