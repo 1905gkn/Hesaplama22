@@ -26,6 +26,8 @@ const runtime = String.raw`<style data-rafex-common-system-isolation="v1">
   function toggleClass(node,name,active){if(node.classList.contains(name)!==active)node.classList.toggle(name,active)}
   function pageTitle(){return String(document.getElementById('pageTitle')?.textContent||'').trim().toLocaleLowerCase('tr-TR')}
   function isCommonPage(){
+    var active=document.querySelector('#nav button.active[data-page]');
+    if(active)return active.dataset.page==='free';
     var t=pageTitle();
     return t==='serbest çizim'||t==='ortak çizim'||t.includes('ortak çizim');
   }
@@ -56,7 +58,9 @@ const runtime = String.raw`<style data-rafex-common-system-isolation="v1">
         return;
       }
       setAttr(page,'data-rafex-common-active','1');
-      var system=normalizeSystem(page.dataset.rafexFreeContextSystem||page.dataset.freeSystem||'');
+      var checked=page.querySelector('input[name="rafexUnifiedSystem"]:checked');
+      var authority=window.RafexRuntimeAuthority?.getState?.();
+      var system=normalizeSystem(checked?.value||(authority?.mode==='common'?authority.system:'')||page.dataset.rafexFreeContextSystem||page.dataset.freeSystem||'');
       setAttr(page,'data-rafex-common-system',system);
       toggleClass(page,'rafex-common-b2b',system==='b2b');
       toggleClass(page,'rafex-common-mekik',system==='mekik2');

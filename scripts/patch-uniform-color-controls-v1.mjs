@@ -41,7 +41,7 @@ const runtime = String.raw`<style data-rafex-uniform-color-controls="v1">
   var frame=0;
   function common(page){return page&&page.getAttribute('data-rafex-common-active')==='1'}
   function system(page){return String(page?.getAttribute('data-rafex-common-system')||page?.dataset.m2Module||'').toLowerCase()}
-  function cleanOptionText(root){root.querySelectorAll('#mrUprightFinish option,#mrTraverseFinish option').forEach(function(option){option.textContent=String(option.textContent||'').split(' · ')[0].trim()})}
+  function cleanOptionText(root){root.querySelectorAll('#mrUprightFinish option,#mrTraverseFinish option').forEach(function(option){var text=String(option.textContent||'').split(' · ')[0].trim();if(option.textContent!==text)option.textContent=text})}
   function makeSelect(id,items){var select=document.createElement('select');select.id=id;select.className=id.indexOf('Foot')>-1?'rafex-mekik-foot-color':'rafex-mekik-traverse-color';items.forEach(function(item,index){var option=document.createElement('option');option.value=item[0];option.textContent=item[1];if(!index)option.selected=true;select.appendChild(option)});return select}
   function addMekikColors(page,key){
     if(key!=='mekik2'&&key!=='drive'&&key!=='drivein')return;
