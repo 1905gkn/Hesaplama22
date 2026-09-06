@@ -74,7 +74,11 @@ const authority = String.raw`<style data-rafex-runtime-authority="v2">
       if(page.classList.contains(name)!==common)page.classList.toggle(name,common);
     });
     fields.forEach(function(input){
-      var root=input.closest('label')||input.parentElement;
+      var candidate=input.closest('label')||input.parentElement;
+      // Bare MR compatibility inputs live directly in the whole page wrapper.
+      // Never hide that wrapper (or any container owning unrelated controls).
+      var root=candidate&&candidate!==page&&Array.from(candidate.querySelectorAll('input,textarea,select,button')).every(function(control){return fields.includes(control)})?candidate:input;
+      if(candidate&&candidate!==root&&candidate.classList.contains('rafex-native-project-name-v87'))candidate.classList.remove('rafex-native-project-name-v87');
       if(root&&root!==page){
         if(common&&!root.classList.contains('rafex-native-project-name-v87'))root.classList.add('rafex-native-project-name-v87');
         if(!common&&root.classList.contains('rafex-native-project-name-v87')){root.classList.remove('rafex-native-project-name-v87');root.hidden=false;root.removeAttribute('aria-hidden');}

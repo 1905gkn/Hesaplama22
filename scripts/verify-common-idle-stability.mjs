@@ -12,8 +12,9 @@ const fixture=`<!doctype html><html><body><nav id="nav"><button class="active" d
 const scratch=fs.mkdtempSync(path.join(os.tmpdir(),'rafex-idle-'));
 fs.mkdirSync(path.join(scratch,'dist/server'),{recursive:true});
 const file=path.join(scratch,'dist/server/index.js');
-fs.writeFileSync(file,`const HTML_BASE64='${Buffer.from(fixture).toString('base64')}';`);
-for(const name of ['patch-common-system-isolation-v1.mjs','patch-uniform-color-controls-v1.mjs'])execFileSync(process.execPath,[path.resolve('scripts',name)],{cwd:scratch});
+const mrFixture=fixture.replace('<section class="hero"','<div class="mr-page rafex-native-project-name-v87"><input type="hidden" id="mrCompatibilityProjectName"><section class="hero"').replace('</select></div>','</select></div></div>').replace('<body>','<head><style>.rafex-native-project-name-v87{display:none!important}</style></head><body>');
+fs.writeFileSync(file,`const HTML_BASE64='${Buffer.from(mrFixture).toString('base64')}';`);
+for(const name of ['patch-common-system-isolation-v1.mjs','patch-uniform-color-controls-v1.mjs','patch-runtime-authority-v2.mjs'])execFileSync(process.execPath,[path.resolve('scripts',name)],{cwd:scratch});
 const after=Buffer.from(fs.readFileSync(file,'utf8').match(/HTML_BASE64='([^']+)'/)[1],'base64').toString();
 const browser=await chromium.launch({headless:true,channel:process.env.RAFEX_TEST_BROWSER_CHANNEL||'msedge'});
 try{
@@ -27,6 +28,8 @@ try{
     if(name==='before')assert(changes>10,'Regression must reproduce old self-triggering loop');
     else{
       assert.equal(changes,0,'Updated page must settle');
+      assert.equal(await page.locator('.mr-page').isVisible(),true,'MR wrapper must remain visible');
+      assert.equal(await page.locator('#rafexUnifiedSystemPicker').isVisible(),true,'System picker must remain visible');
       assert.equal(await page.locator('#mrUprightFinish option').first().textContent(),'RAL 5010');
       await page.locator('#rafexAuthorityProjectName').fill('Sabit Proje');
       await page.locator('input[value="mekik2"]').check();await page.waitForTimeout(100);
