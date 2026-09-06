@@ -68,7 +68,8 @@ const runtime = `<style ${marker}>
   function status(text){const box=document.getElementById('m2FloorStatus');if(box)box.textContent=text;}
   function currentSelectedKey(){return entryKey(Array.isArray(m2SavedRackTypes)?m2SavedRackTypes[m2SelectedSavedType]:null);}
   function activeFirstSystems(){
-    return [...SYSTEMS].sort((a,b)=>a.key===m2ActiveModule?-1:b.key===m2ActiveModule?1:0);
+    // Switching editors must not reorder the shared catalog.
+    return [...SYSTEMS];
   }
   function normalizeEntry(system,entry,index){
     const name=system.key==='b2b'&&typeof b2bTypeLetter==='function'?b2bTypeLetter(entry.name,entry.typeNo||index+1):entry.name;

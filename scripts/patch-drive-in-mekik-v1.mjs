@@ -200,6 +200,13 @@ const runtime = String.raw`
 
   m2RefreshSavedRackTypes=async function(...args){
     const result=await baseRefreshSaved.apply(this,args);
+    // Common drawing owns one cross-system catalog; standalone filters must not mutate it.
+    const catalogPage=document.getElementById('page');
+    if(catalogPage&&(catalogPage.dataset?.rafexFreeDrawing==='1'||catalogPage.classList.contains('rafex-free-drawing-page'))){
+      m2RenderSavedRackTypes();
+      relabelDrive();
+      return result;
+    }
     try{
       if(isDrive())m2SavedRackTypes=m2SavedRackTypes.filter((entry)=>entry?.drawing?.rafexSystem==='drive');
       else if(m2ActiveModule==='mekik2')m2SavedRackTypes=m2SavedRackTypes.filter((entry)=>entry?.drawing?.rafexSystem!=='drive');
