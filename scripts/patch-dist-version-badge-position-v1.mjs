@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {inventorySystem,konsolInventory} from './inventory-system-quantities-v112.mjs';
 
 const target = 'dist/server/index.js';
 let source = fs.readFileSync(target, 'utf8');
@@ -23,6 +24,8 @@ const buildTime = istanbulStamp();
 
 // Eski tum badge enjeksiyonlarini ve bilinen kart elemanlarini build cikisindan fiziksel olarak temizle.
 html = html
+  .replace(/<style\s+data-rafex-layout-inventory-style="[^"]*">[\s\S]*?<\/style>\s*/g, '')
+  .replace(/<script\s+data-rafex-layout-inventory="[^"]*">[\s\S]*?<\/script>\s*/g, '')
   .replace(/<style\s+data-rafex-version-badge-position="v\d+">[\s\S]*?<\/style>\s*/g, '')
   .replace(/<script\s+data-rafex-version-badge-position="v\d+">[\s\S]*?<\/script>\s*/g, '')
   .replace(/<style\s+data-rafex-version-badge-top="v\d+">[\s\S]*?<\/style>\s*/g, '')
@@ -278,11 +281,10 @@ const inventoryRuntime = `
     return result;
   }
   function rackSystem(rack){
-    var isMr=!!(rack&&((rack.b2b&&rack.b2b.mr)||rack.rafexSystem==='mr'||rack.systemType==='mr'||(rack.b2bLayout&&rack.b2bLayout.palletType==='mr')||(rack.plan&&rack.plan.mr)));
-    if(isMr)return 'mr';
-    if(rack&&rack.b2bLayout)return 'b2b';
-    return 'mekik2';
+    return inventorySystem(rack);
   }
+  ${inventorySystem.toString()}
+  ${konsolInventory.toString()}
   function decimalText(value){
     var parsed=Number(String(value==null?'':value).replace(',','.'));
     if(!Number.isFinite(parsed)||parsed<=0)return '';
@@ -354,11 +356,16 @@ const inventoryRuntime = `
     racks().forEach(function(rack){
       var system=rackSystem(rack);
       if(targetSystem&&system!==targetSystem)return;
+      if(system==='unknown'){add('Sistem bilgisi eksik blok',1,String(rack.typeName||''));return;}
+      if(system==='konsol'){
+        konsolInventory(rack).forEach(function(row){add(row.name,row.qty,row.spec,row.unit);});return;
+      }
       var isMr=system==='mr';
       if(isMr&&typeof window.rafexMrQuantitySummaryV42==='function'){
         try{(window.rafexMrQuantitySummaryV42([rack])||[]).forEach(function(row){add(row.item,row.qty,row.spec,row.unit);});return;}catch(e){}
       }
-      if(rack&&rack.b2bLayout){
+      if(isMr){add('MR ürün hesabı hazır değil',1,String(rack.typeName||''));return;}
+      if(system==='b2b'&&rack&&rack.b2bLayout){
         var rowCount=Math.max(1,n(rack.b2bLayout.rowCount)||((rack.b2b&&rack.b2b.rowType==='double')?2:1));
         var footTeams=Math.max(1,2*rowCount-(rack.sharedFootWith?rowCount:0));
         var profileQty=footTeams*2;
@@ -385,6 +392,10 @@ const inventoryRuntime = `
         b2bAccessoryRows(rack).forEach(function(row){add(row.name,row.qty,row.spec,row.unit);});
         return;
       }
+      if(system==='b2b'){add('B2B ölçü bilgisi eksik blok',1,String(rack.typeName||''));return;}
+      // Drive-In and Mekik keep their native channel calculation, but never
+      // aggregate across system boundaries. Other systems cannot enter here.
+      if(system!=='drive'&&system!=='mekik2')return;
       var bays=n(rack&&rack.bays),levels=n(rack&&rack.levels),columnCount=bays+1;
       var feet=rack&&rack.plan&&Array.isArray(rack.plan.feet)?rack.plan.feet:[];
       var braces=rack&&rack.plan&&Array.isArray(rack.plan.braces)?rack.plan.braces:[];
@@ -432,7 +443,7 @@ const inventoryRuntime = `
       return [rack&&rack.id,rackSystem(rack),rack&&rack.bays,rack&&rack.levels,rack&&rack.depth,rack&&rack.loadedLevels,rack&&rack.footProfile,rack&&rack.footProfileKey,rack&&rack.footLy,rack&&rack.totalRackHeight,rack&&rack.sideUprightHeight,rack&&rack.hasExtra?1:0,rack&&rack.straightProfileLength,rack&&rack.systemType,recommendationText(rack&&(rack.traverseRecommendation||rack.traverseType)),mekikColumnSpacing(rack),rack&&rack.railThickness,rack&&rack.railHeight,rack&&(rack.railLength||rack.depthMm),rack&&rack.palletWeight,layout.rowCount,layout.sectionWidth,layout.palletCount,layout.frameDepth,state.rowType,state.levels,state.tunnelHeight,JSON.stringify(state.accessories||[]),JSON.stringify(state.customLevels||[]),JSON.stringify(plan.feet||[]),JSON.stringify(plan.braces||[]),JSON.stringify(rack&&rack.seismicBraces||[])].join('~');
     }).join('|');
     var symbolRows=symbols().map(function(item){return [item&&item.id,item&&item.type,item&&item.rackId,item&&item.widthMm].join('~');}).join('|');
-    return rackRows+'#'+symbolRows;
+    return rackRows+'#'+symbolRows+'#'+JSON.stringify(racks().map(function(rack){return rackSystem(rack)==='konsol'?konsolInventory(rack):null}));
   }
   function render(force){
     var host=document.getElementById('m2LayoutProductList');if(!host)return false;
@@ -442,7 +453,10 @@ const inventoryRuntime = `
     var sections=[
       renderSection('b2b','B2B ÜRÜNLERİ',rows('b2b')),
       renderSection('mekik2','MEKİK ÜRÜNLERİ',rows('mekik2')),
+      renderSection('drive','DRIVE-IN ÜRÜNLERİ',rows('drive')),
       renderSection('mr','MR ÜRÜNLERİ',rows('mr')),
+      renderSection('konsol','KONSOL KOLLU ÜRÜNLERİ',rows('konsol')),
+      renderSection('unknown','SİSTEM BİLGİSİ EKSİK',rows('unknown')),
       renderSection('common','SERBEST ALAN AKSESUARLARI',rows('common'))
     ].filter(Boolean);
     host.classList.remove('rafex-system-product-lists');

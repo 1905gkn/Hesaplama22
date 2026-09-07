@@ -1,0 +1,56 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {inventorySystem,konsolInventory} from './inventory-system-quantities-v112.mjs';
+const fixture=fs.mkdtempSync(path.join(os.tmpdir(),'rafex-inventory-'));
+fs.mkdirSync(path.join(fixture,'dist/server'),{recursive:true});
+const file=path.join(fixture,'dist/server/index.js');
+const baseline=fs.readFileSync('.tmp-cold-store-before.html','utf8');
+fs.writeFileSync(file,"const HTML_BASE64 = '"+Buffer.from(baseline).toString('base64')+"';");
+execFileSync(process.execPath,[path.resolve('scripts/patch-dist-version-badge-position-v1.mjs')],{cwd:fixture});
+const html=Buffer.from(fs.readFileSync(file,'utf8').match(/HTML_BASE64\s*=\s*["']([^"']+)/)[1],'base64').toString();
+const runtime=html.match(/<script data-rafex-layout-inventory="v44">([\s\S]*?)<\/script>/)[1];
+assert.equal(html.split('<script data-rafex-layout-inventory="v44">').length-1,1,'Old inventory runtimes must be removed');
+execFileSync(process.execPath,[path.resolve('scripts/patch-dist-version-badge-position-v1.mjs')],{cwd:fixture});
+const second=Buffer.from(fs.readFileSync(file,'utf8').match(/HTML_BASE64\s*=\s*["']([^"']+)/)[1],'base64').toString();
+assert.equal(second.split('<script data-rafex-layout-inventory="v44">').length-1,1);
+new vm.Script(runtime);
+const state={racks:[]};
+const host={dataset:{},classList:{remove(){}},innerHTML:''};
+const context=vm.createContext({m2LayoutState:state,m2LayoutSymbols:[],window:{rafexMrQuantitySummaryV42:()=>[{item:'MR ayak',qty:4,spec:'MR',unit:'adet'}]},document:{getElementById:()=>host,querySelectorAll:()=>[]}});
+const start=runtime.indexOf('  function esc('),end=runtime.indexOf('  function schedule(',start);
+vm.runInContext(runtime.slice(start,end),context);
+const channel={bays:2,levels:3,depth:4,palW:1200,plan:{feet:[1100,1100],braces:[500]},systemType:'fifo'};
+const all=[{id:1,rafexSystem:'b2b',levels:3,b2bLayout:{rowCount:1,sectionWidth:2700},b2b:{}},{...channel,id:2,rafexSystem:'mekik2'},{...channel,id:3,rafexSystem:'drive'},{id:4,rafexSystem:'mr',b2bLayout:{}},{id:5,rafexSystem:'konsol',konsol:{count:2,levels:4,side:'single',height:4000,arm:1000}},{id:6}];
+for(const system of ['b2b','mekik2','drive','mr','konsol','unknown']){
+ state.racks=all.filter(r=>inventorySystem(r)===system);
+ const expected=JSON.stringify(context.rows(system));
+ assert.notEqual(expected,'[]',system+' needs its own rows');
+ state.racks=all;
+ assert.equal(JSON.stringify(context.rows(system)),expected,system+' must ignore every other system');
+}
+context.render(true);
+for(const title of ['B2B ÜRÜNLERİ','MEKİK ÜRÜNLERİ','DRIVE-IN ÜRÜNLERİ','MR ÜRÜNLERİ','KONSOL KOLLU ÜRÜNLERİ','SİSTEM BİLGİSİ EKSİK'])assert(host.innerHTML.includes(title));
+const count=(r,name)=>r.find(x=>x.name===name)?.qty;
+assert.equal(count(context.rows('konsol'),'Konsol kolu'),8);
+state.racks.push({...structuredClone(all[4]),id:7});
+assert.equal(count(context.rows('konsol'),'Konsol kolu'),16);
+const before=context.inventorySignature();state.racks[4].konsol.side='double';
+assert.notEqual(context.inventorySignature(),before);
+assert.equal(count(context.rows('konsol'),'Konsol kolu'),24);
+for(let legs=2;legs<=20;legs++)for(const side of ['single','double']){
+ const result=konsolInventory({konsol:{count:legs,levels:5,side,height:4000}});
+ assert.equal(count(result,'Konsol ayak'),legs);
+ assert.equal(count(result,'Konsol kolu'),legs*5*(side==='double'?2:1));
+ assert.equal(result.filter(x=>x.unit==='set').reduce((s,r)=>s+parseInt(r.name)*r.qty,0),legs);
+}
+assert.equal(inventorySystem({rafexSystem:'konsol',b2bLayout:{},systemType:'fifo'}),'konsol');
+assert.equal(inventorySystem({rafexSystem:'drive',systemType:'fifo'}),'drive');
+assert.equal(inventorySystem({plan:{mr:true}}),'mr');
+assert.equal(inventorySystem({}),'unknown');
+delete context.window.rafexMrQuantitySummaryV42;
+assert(!context.rows('mr').some(r=>r.name==='Ray'),'MR must never fall through to channel BOM');
+console.log('PASS: emitted runtime compiles; five systems isolated in mixed layout; Konsol duplication/double-side/2–20 uprights; missing-system and missing-MR guards; quantity cache refresh.');
