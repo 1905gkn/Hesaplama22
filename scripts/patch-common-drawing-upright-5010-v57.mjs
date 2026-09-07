@@ -184,7 +184,7 @@ for (const required of [
   'mergeBackToBackProfiles(group,rack)',
   'refineB2BPlanSpacing(group,rack)',
   'dataset.rafexB2BRowGap="v73"',
-  'dataset.rafexB2BSplitProfile="v73"',
+  'A single frame stays continuous.',
   'dataset.rafexB2BPalletGap="v73"',
   'nodes.length===2',
   'rack.b2bLayout.palletType==="mr"',
