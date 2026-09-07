@@ -369,9 +369,11 @@ const inventoryRuntime = `
         var rowCount=Math.max(1,n(rack.b2bLayout.rowCount)||((rack.b2b&&rack.b2b.rowType==='double')?2:1));
         var footTeams=Math.max(1,2*rowCount-(rack.sharedFootWith?rowCount:0));
         var profileQty=footTeams*2;
-        var height=n(rack.footLy||rack.totalRackHeight||rack.sideUprightHeight);
+        var height=n(rack.sideUprightHeight||rack.totalRackHeight),frameDepth=n(rack.b2bLayout.frameDepth);
+        try{if(typeof m2B2BEffectiveFootHeight==='function')height=n(m2B2BEffectiveFootHeight(rack));}catch(e){}
+        try{if(typeof m2B2BFootDepth==='function')frameDepth=n(m2B2BFootDepth(rack));}catch(e){}
         var profile=String(rack.footProfile||rack.footProfileKey||(rack.b2b&&rack.b2b.footProfile)||'Ayak');
-        var footSpec=profile+(height?' · L '+textNumber(height)+' mm':'');
+        var footSpec=profile+(height?' · Yükseklik '+textNumber(height)+' mm':'')+(frameDepth?' · Derinlik '+textNumber(frameDepth)+' mm':'');
         add('Ayak takımı',footTeams,footSpec);
         add('Ayak pabucu',profileQty,'Kaynaklı');
         add('Şim',profileQty,'');
@@ -443,7 +445,7 @@ const inventoryRuntime = `
       return [rack&&rack.id,rackSystem(rack),rack&&rack.bays,rack&&rack.levels,rack&&rack.depth,rack&&rack.loadedLevels,rack&&rack.footProfile,rack&&rack.footProfileKey,rack&&rack.footLy,rack&&rack.totalRackHeight,rack&&rack.sideUprightHeight,rack&&rack.hasExtra?1:0,rack&&rack.straightProfileLength,rack&&rack.systemType,recommendationText(rack&&(rack.traverseRecommendation||rack.traverseType)),mekikColumnSpacing(rack),rack&&rack.railThickness,rack&&rack.railHeight,rack&&(rack.railLength||rack.depthMm),rack&&rack.palletWeight,layout.rowCount,layout.sectionWidth,layout.palletCount,layout.frameDepth,state.rowType,state.levels,state.tunnelHeight,JSON.stringify(state.accessories||[]),JSON.stringify(state.customLevels||[]),JSON.stringify(plan.feet||[]),JSON.stringify(plan.braces||[]),JSON.stringify(rack&&rack.seismicBraces||[])].join('~');
     }).join('|');
     var symbolRows=symbols().map(function(item){return [item&&item.id,item&&item.type,item&&item.rackId,item&&item.widthMm].join('~');}).join('|');
-    return rackRows+'#'+symbolRows+'#'+JSON.stringify(racks().map(function(rack){return rackSystem(rack)==='konsol'?konsolInventory(rack):null}));
+    return rackRows+'#'+symbolRows+'#'+JSON.stringify(racks().map(function(rack){return rackSystem(rack)==='konsol'?konsolInventory(rack):rackSystem(rack)==='b2b'?[rack.b2b&&rack.b2b.footHeightMode,rack.b2b&&rack.b2b.footHeight,rack.b2bLayout&&rack.b2bLayout.frameDepth,rack.b2bLayout&&rack.b2bLayout.palletDepth,rack.b2bLayout&&rack.b2bLayout.palletOverhang,rack.palD]:null}));
   }
   function render(force){
     var host=document.getElementById('m2LayoutProductList');if(!host)return false;

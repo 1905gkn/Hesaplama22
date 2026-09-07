@@ -33,6 +33,15 @@ for(const system of ['b2b','mekik2','drive','mr','konsol','unknown']){
  assert.equal(JSON.stringify(context.rows(system)),expected,system+' must ignore every other system');
 }
 context.render(true);
+const b2b=state.racks[0];
+b2b.footLy=1200;b2b.sideUprightHeight=5500;b2b.b2bLayout.frameDepth=1100;b2b.depthMm=2500;
+const foot=context.rows('b2b').find(row=>row.name==='Ayak takımı');
+assert.match(foot.spec,/Yükseklik 5.500 mm · Derinlik 1.100 mm/);
+assert(!foot.spec.includes('2.500'),'Double-row depth is not individual frame depth');
+assert(!foot.spec.includes('1.200'),'Ly is not upright height');
+context.m2B2BEffectiveFootHeight=()=>6000;
+context.m2B2BFootDepth=()=>1000;
+assert.match(context.rows('b2b').find(row=>row.name==='Ayak takımı').spec,/Yükseklik 6.000 mm · Derinlik 1.000 mm/);
 for(const title of ['B2B ÜRÜNLERİ','MEKİK ÜRÜNLERİ','DRIVE-IN ÜRÜNLERİ','MR ÜRÜNLERİ','KONSOL KOLLU ÜRÜNLERİ','SİSTEM BİLGİSİ EKSİK'])assert(host.innerHTML.includes(title));
 const count=(r,name)=>r.find(x=>x.name===name)?.qty;
 assert.equal(count(context.rows('konsol'),'Konsol kolu'),8);
