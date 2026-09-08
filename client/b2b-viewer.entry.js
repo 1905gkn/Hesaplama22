@@ -17,11 +17,6 @@ const SOURCE_TRAVERSE_FRONT_OFFSET = 81.59595;
 const SOURCE_TRAVERSE_BACK_OFFSET = 1077.32687;
 const SOURCE_TRAVERSE_DEPTH_MIN = 30.815343856811523;
 const SOURCE_TRAVERSE_DEPTH_MAX = 93.85227966308594;
-// The front traverse must meet the outward-facing (front) surface of the
-// upright as one assembly, rather than leaving its beam behind the profile.
-const SOURCE_UPRIGHT_FRONT_FACE = 116.41129;
-const SOURCE_CONNECTOR_FRONT_EDGE = 93.85228;
-const SOURCE_FRONT_CONNECTOR_SHIFT = SOURCE_UPRIGHT_FRONT_FACE - (SOURCE_TRAVERSE_FRONT_OFFSET + SOURCE_CONNECTOR_FRONT_EDGE);
 const SOURCE_LEFT_TRAVERSE_OVERHANG = 100;
 const SOURCE_TRAVERSE_LEFT_BEAM_EDGE = 47.27;
 const SOURCE_TRAVERSE_RIGHT_BEAM_EDGE = 2739.27;
@@ -384,14 +379,13 @@ class B2BViewer {
         traverse.scale.set(sectionScale, depthScale, verticalScale);
         traverse.position.set(
           SOURCE_TRAVERSE_X_OFFSET * sectionScale,
-          (depthOffset + (side === 0 ? SOURCE_FRONT_CONNECTOR_SHIFT : 0)) * depthScale,
+          depthOffset * depthScale,
           SOURCE_TRAVERSE_BEAM_BOTTOM * verticalScale - this.traverseBottom(level),
         );
         if (side === 0) {
+          this.mirrorFrontTraverseDepth(traverse);
           this.mountFrontTraverseOnUprightFace(traverse);
           this.extendLeftTraverseTowardUpright(traverse);
-        } else {
-          this.mirrorRearTraverseDepth(traverse);
         }
         this.applyRackMaterials(traverse);
         section.add(traverse);
@@ -401,10 +395,9 @@ class B2BViewer {
 
   mountFrontTraverseOnUprightFace(traverse) {
     traverse.userData.mountingFace = "upright-front-face";
-    traverse.userData.frontFaceShiftMm = SOURCE_FRONT_CONNECTOR_SHIFT;
   }
 
-  mirrorRearTraverseDepth(traverse) {
+  mirrorFrontTraverseDepth(traverse) {
     const depthSum = SOURCE_TRAVERSE_DEPTH_MIN + SOURCE_TRAVERSE_DEPTH_MAX;
     traverse.traverse((part) => {
       if (!part.isMesh || !part.geometry) return;
@@ -428,7 +421,6 @@ class B2BViewer {
       geometry.computeBoundingSphere();
       part.geometry = geometry;
     });
-    traverse.userData.mountingFace = "upright-rear-face";
     traverse.userData.depthMirrored = true;
   }
 
