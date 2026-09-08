@@ -85,6 +85,20 @@ if(process.argv.includes('--visual')){
   await page.waitForFunction(()=>window.testReady||window.testError,{timeout:30000});
   const error=await page.evaluate(()=>window.testError);assert(!error,error);
   assert.deepEqual(errors,[]);
+  const rearCheck=await page.evaluate(()=>{
+   const viewer=window.testViewer,source=viewer.models.traverse;
+   const original=new Map();source.traverse(m=>{if(m.isMesh)original.set(m.name,m.geometry.attributes.position)});
+   let count=0,maxXzError=0,maxYError=0;
+   viewer.content.traverse(group=>{if(group.userData.mountingFace!=='upright-rear-face')return;count++;
+    group.traverse(m=>{if(!m.isMesh)return;const a=original.get(m.name),b=m.geometry.attributes.position;
+     for(let i=0;i<b.count;i++){
+      maxXzError=Math.max(maxXzError,Math.abs(b.getX(i)-a.getX(i)),Math.abs(b.getZ(i)-a.getZ(i)));
+      maxYError=Math.max(maxYError,Math.abs(b.getY(i)-(124.66762351989746-a.getY(i))));
+     }});
+   });return{count,maxXzError,maxYError};
+  });
+  assert(rearCheck.count>0&&rearCheck.maxXzError<.002&&rearCheck.maxYError<.002,JSON.stringify(rearCheck));
+  console.log('PASS: rear CC depth mirrored; left/right and vertical coordinates preserved.');
   await page.screenshot({path:path.join(dir,'zs55.png')});
   console.log('VISUAL='+path.join(dir,'zs55.png'));
  }finally{await browser.close();}

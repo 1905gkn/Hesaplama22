@@ -15,6 +15,8 @@ const SOURCE_TRAVERSE_BEAM_HEIGHT = 119.97255;
 const SOURCE_TRAVERSE_X_OFFSET = 79.15549;
 const SOURCE_TRAVERSE_FRONT_OFFSET = 81.59595;
 const SOURCE_TRAVERSE_BACK_OFFSET = 1077.32687;
+const SOURCE_TRAVERSE_DEPTH_MIN = 30.815343856811523;
+const SOURCE_TRAVERSE_DEPTH_MAX = 93.85227966308594;
 // The front traverse must meet the outward-facing (front) surface of the
 // upright as one assembly, rather than leaving its beam behind the profile.
 const SOURCE_UPRIGHT_FRONT_FACE = 116.41129;
@@ -388,6 +390,8 @@ class B2BViewer {
         if (side === 0) {
           this.mountFrontTraverseOnUprightFace(traverse);
           this.extendLeftTraverseTowardUpright(traverse);
+        } else {
+          this.mirrorRearTraverseDepth(traverse);
         }
         this.applyRackMaterials(traverse);
         section.add(traverse);
@@ -398,6 +402,34 @@ class B2BViewer {
   mountFrontTraverseOnUprightFace(traverse) {
     traverse.userData.mountingFace = "upright-front-face";
     traverse.userData.frontFaceShiftMm = SOURCE_FRONT_CONNECTOR_SHIFT;
+  }
+
+  mirrorRearTraverseDepth(traverse) {
+    const depthSum = SOURCE_TRAVERSE_DEPTH_MIN + SOURCE_TRAVERSE_DEPTH_MAX;
+    traverse.traverse((part) => {
+      if (!part.isMesh || !part.geometry) return;
+      const geometry = part.geometry.clone();
+      const positions = geometry.attributes.position;
+      for (let index = 0; index < positions.count; index += 1) {
+        positions.setY(index, depthSum - positions.getY(index));
+      }
+      if (geometry.index) {
+        const triangles = geometry.index.array;
+        for (let index = 0; index < triangles.length; index += 3) {
+          const swap = triangles[index + 1];
+          triangles[index + 1] = triangles[index + 2];
+          triangles[index + 2] = swap;
+        }
+        geometry.index.needsUpdate = true;
+      }
+      positions.needsUpdate = true;
+      geometry.computeVertexNormals();
+      geometry.computeBoundingBox();
+      geometry.computeBoundingSphere();
+      part.geometry = geometry;
+    });
+    traverse.userData.mountingFace = "upright-rear-face";
+    traverse.userData.depthMirrored = true;
   }
 
   extendLeftTraverseTowardUpright(traverse) {
