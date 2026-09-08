@@ -33,6 +33,15 @@ export function zs55Collection(THREE, viewer, section, floor, index) {
       const p=mesh.geometry.attributes.position;
       const body=/Z_TRAVERS|Z TRAVERS/i.test(mesh.name);
       const longConnector=/SOL/i.test(mesh.name);
+      // The supplied SOL mesh contains a second, disconnected connector at
+      // CAD Y=1446..1488. Keep only the upright-mounted piece at 1304..1346.
+      if(longConnector){
+        const source=mesh.geometry.index.array,keep=[];
+        for(let i=0;i<source.length;i+=3){
+          if([source[i],source[i+1],source[i+2]].every(v=>p.getY(v)<1400))keep.push(source[i],source[i+1],source[i+2]);
+        }
+        mesh.geometry.setIndex(keep);
+      }
       for(let i=0;i<p.count;i++){
         const depth=p.getX(i),along=p.getY(i)-1346,z=p.getZ(i);
         const x=body?along*beamLength/2692:along+(longConnector?0:beamLength-2692);
@@ -50,9 +59,11 @@ export function zs55Collection(THREE, viewer, section, floor, index) {
       mesh.geometry=mesh.geometry.clone();const p=mesh.geometry.attributes.position;
       for(let i=0;i<p.count;i++){
         const x=p.getX(i),y=p.getY(i),z=p.getZ(i);
-        p.setXYZ(i,cursor+y*(width-1.6)/298.4,front+4.6+x*(rear-front-5.6)/1044.4,z-(bottom+height-18));
+        // Turn the tray over within the same seating envelope: flat surface
+        // above, folded edges below (negative local Z points upwards).
+        p.setXYZ(i,cursor+y*(width-1.6)/298.4,front+4.6+x*(rear-front-5.6)/1044.4,-z-20.200947-(bottom+height-18));
       }
-      finish(mesh.geometry,true);
+      finish(mesh.geometry);
     });
     tray.name=layer.name+' Tava '+(piece+1);layer.add(tray);cursor+=width;
   });

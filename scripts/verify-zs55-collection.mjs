@@ -24,6 +24,11 @@ for(const width of [1800,2700,3600])for(const depth of [900,1050,1100]){
   assert(Math.abs(beams[0].min.y+4)<.01,'Front connector must sit 4 mm outside front face');
   assert(Math.abs(beams[1].max.y-depth-4)<.01,'Rear connector must sit 4 mm outside rear face');
   for(const beam of layer.children.slice(0,2))beam.traverse(mesh=>{
+   if(mesh.isMesh&&/SOL/i.test(mesh.name)){
+    const p=mesh.geometry.attributes.position,ids=mesh.geometry.index.array;
+    const xs=Array.from(ids,v=>p.getX(v));
+    assert(Math.max(...xs)-Math.min(...xs)<43,'Only the upright-mounted connector remains; no inner duplicate');
+   }
    if(!mesh.isMesh||!/TIRNAK/.test(mesh.name)||/TRAVERS/.test(mesh.name))return;
    const size=mesh.geometry.boundingBox.getSize(new THREE.Vector3());
    assert(Math.abs(size.z-155)<.01,'Connector height must not stretch');
@@ -31,6 +36,11 @@ for(const width of [1800,2700,3600])for(const depth of [900,1050,1100]){
   const tray=new THREE.Box3().setFromObject(layer.children[2]);
   assert(Math.abs(tray.min.y-4.6)<.01&&Math.abs(tray.max.y-(depth-1))<.01,'Tray sits inside frame depth');
   assert(Math.abs(tray.max.z+bottom+57)<.01,'Tray support seating matches reference assembly');
+  let sourceTray;models.zs55Tray.traverse(m=>{if(m.isMesh)sourceTray=m;});
+  layer.children[2].traverse(m=>{if(!m.isMesh)return;
+   const src=sourceTray.geometry.attributes.position,p=m.geometry.attributes.position;
+   for(let v=0;v<p.count;v++)assert(Math.abs(p.getZ(v)-(-src.getZ(v)-20.200947-bottom-57))<.001,'Tray folds face downward');
+  });
  }
 }
 assert(sourceBefore.equals(new THREE.Box3().setFromObject(models.zs55Traverse)),'Source asset unchanged');
