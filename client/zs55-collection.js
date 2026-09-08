@@ -1,5 +1,7 @@
 // Mounting offsets measured from the user's HR 3 TIRNAK ZS 55 assembly.
 // Local B2B axes: X span, Y depth, negative Z upwards.
+const CONNECTOR_FACE_OFFSET = 4.438834190368652;
+
 export function zs55Collection(THREE, viewer, section, floor, index) {
   const finish=(geometry,reflected=false)=>{
     // Swapping the CAD span/depth axes reflects the winding.
@@ -45,10 +47,9 @@ export function zs55Collection(THREE, viewer, section, floor, index) {
       for(let i=0;i<p.count;i++){
         const depth=p.getX(i),along=p.getY(i)-1346,z=p.getZ(i);
         const x=body?along*beamLength/2692:along+(longConnector?0:beamLength-2692);
-        // Offsets are measured from the supplied full HR90 + ZS55 assembly.
-        // The beam body sits outside the upright depth while each connector
-        // overlaps the upright face; front and rear therefore mirror exactly.
-        p.setXYZ(i,back?beamLeft+x:beamRight-x,back?rear+57.3247-depth:front+49.23013+depth,z+50.73630142211914-bottom);
+        // In the supplied HR90 + ZS55 assembly, both connectors cross the
+        // upright's outer face by 4 mm and seat 59 mm into the 80 mm profile.
+        p.setXYZ(i,back?beamLeft+x:beamRight-x,back?rear+CONNECTOR_FACE_OFFSET-depth:front-CONNECTOR_FACE_OFFSET+depth,z+50.73630142211914-bottom);
       }
       finish(mesh.geometry);
     });

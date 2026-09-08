@@ -21,8 +21,8 @@ for(const width of [1800,2700,3600])for(const depth of [900,1050,1100]){
   const layer=zs55Collection(THREE,viewer,section,{bottom,zsHeight:75,trayWidth:300,traverse:'ZS55|1.5'},i);
   assert.equal(layer.children.length,2+width/300);
   const beams=layer.children.slice(0,2).map(n=>new THREE.Box3().setFromObject(n));
-  assert(Math.abs(beams[0].min.y-49.66897)<.01&&Math.abs(beams[0].max.y-112.66897)<.01,'Front ZS connector matches supplied full assembly');
-  assert(Math.abs(beams[1].min.y-(depth-6.11414))<.01&&Math.abs(beams[1].max.y-(depth+56.88586))<.01,'Rear ZS connector matches supplied full assembly');
+  assert(Math.abs(beams[0].min.y+4)<.01&&Math.abs(beams[0].max.y-59)<.01,'Front ZS connector seats 59 mm into upright and overhangs outer face by 4 mm');
+  assert(Math.abs(beams[1].min.y-(depth-59))<.01&&Math.abs(beams[1].max.y-(depth+4))<.01,'Rear ZS connector seats 59 mm into upright and overhangs outer face by 4 mm');
   for(const beam of layer.children.slice(0,2))beam.traverse(mesh=>{
    if(mesh.isMesh&&/SOL/i.test(mesh.name)){
     const p=mesh.geometry.attributes.position,ids=mesh.geometry.index.array;
