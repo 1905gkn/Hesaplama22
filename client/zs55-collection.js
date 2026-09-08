@@ -45,7 +45,10 @@ export function zs55Collection(THREE, viewer, section, floor, index) {
       for(let i=0;i<p.count;i++){
         const depth=p.getX(i),along=p.getY(i)-1346,z=p.getZ(i);
         const x=body?along*beamLength/2692:along+(longConnector?0:beamLength-2692);
-        p.setXYZ(i,back?beamLeft+x:beamRight-x,back?rear+4.43884-depth:front-4.43884+depth,z+50.73630142211914-bottom);
+        // Offsets are measured from the supplied full HR90 + ZS55 assembly.
+        // The beam body sits outside the upright depth while each connector
+        // overlaps the upright face; front and rear therefore mirror exactly.
+        p.setXYZ(i,back?beamLeft+x:beamRight-x,back?rear+57.3247-depth:front+49.23013+depth,z+50.73630142211914-bottom);
       }
       finish(mesh.geometry);
     });
@@ -61,7 +64,7 @@ export function zs55Collection(THREE, viewer, section, floor, index) {
         const x=p.getX(i),y=p.getY(i),z=p.getZ(i);
         // Turn the tray over within the same seating envelope: flat surface
         // above, folded edges below (negative local Z points upwards).
-        p.setXYZ(i,cursor+y*(width-1.6)/298.4,front+4.6+x*(rear-front-5.6)/1044.4,-z-20.200947-(bottom+height-18));
+        p.setXYZ(i,cursor+y*(width-1.6)/298.4,front+58.26899+x*(rear-front-6.38345)/1044.4,-z-20.200947-(bottom+height-18));
       }
       finish(mesh.geometry);
     });

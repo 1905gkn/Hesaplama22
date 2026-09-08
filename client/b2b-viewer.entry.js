@@ -388,29 +388,11 @@ class B2BViewer {
         if (side === 0) {
           this.mountFrontTraverseOnUprightFace(traverse);
           this.extendLeftTraverseTowardUpright(traverse);
-        } else {
-          this.orientRearTraverse(traverse);
         }
         this.applyRackMaterials(traverse);
         section.add(traverse);
       });
     }
-  }
-
-  orientRearTraverse(traverse) {
-    // Rotate the complete CC assembly, not just its connector. Use the
-    // unscaled CAD envelope so both ends retain their mounting positions.
-    const center = new THREE.Box3().setFromObject(this.models.traverse).getCenter(new THREE.Vector3());
-    const turn = new THREE.Matrix4().makeTranslation(center.x, center.y, 0)
-      .multiply(new THREE.Matrix4().makeRotationZ(Math.PI))
-      .multiply(new THREE.Matrix4().makeTranslation(-center.x, -center.y, 0));
-    traverse.traverse(part => {
-      if (!part.isMesh || !part.geometry) return;
-      part.geometry = part.geometry.clone().applyMatrix4(turn);
-      part.geometry.computeBoundingBox();
-      part.geometry.computeBoundingSphere();
-    });
-    traverse.userData.mountingFace = "upright-rear-face";
   }
 
   mountFrontTraverseOnUprightFace(traverse) {

@@ -7,9 +7,9 @@
   };
   let accessories = [];
   const ZS_HEIGHTS = { 'ZS35|1.5':55, 'ZS35|2':55, 'ZS55|1.5':75, 'ZS55|2':75, 'ZS65|1.5':85, 'ZS65|2':85 };
-  const freshCollectionFloor = () => ({ trayWidth:300, trayThickness:.8, traverse:'ZS35|1.5', height:500 });
+  const freshCollectionFloor = () => ({ trayWidth:300, trayThickness:.8, traverse:'ZS55|1.5', height:500 });
   let collection = { enabled:false, groundGap:500, floors:[freshCollectionFloor()] };
-  const normalizeCollection = (raw = {}) => ({ enabled:raw.enabled===true, groundGap:Math.max(0,Math.min(5000,Number(raw.groundGap)||500)), floors:(Array.isArray(raw.floors)&&raw.floors.length?raw.floors:[freshCollectionFloor()]).slice(0,12).map((f)=>({trayWidth:[200,250,300].includes(Number(f?.trayWidth))?Number(f.trayWidth):300,trayThickness:[.6,.8,1,1.2,1.5].includes(Number(f?.trayThickness))?Number(f.trayThickness):.8,traverse:ZS_HEIGHTS[f?.traverse]?f.traverse:'ZS35|1.5',height:Math.max(100,Math.min(5000,Number(f?.height)||500))})) });
+  const normalizeCollection = (raw = {}) => ({ enabled:raw.enabled===true, groundGap:Math.max(0,Math.min(5000,Number(raw.groundGap)||500)), floors:(Array.isArray(raw.floors)&&raw.floors.length?raw.floors:[freshCollectionFloor()]).slice(0,12).map((f)=>({trayWidth:[200,250,300].includes(Number(f?.trayWidth))?Number(f.trayWidth):300,trayThickness:[.6,.8,1,1.2,1.5].includes(Number(f?.trayThickness))?Number(f.trayThickness):.8,traverse:ZS_HEIGHTS[f?.traverse]?f.traverse:'ZS55|1.5',height:Math.max(100,Math.min(5000,Number(f?.height)||500))})) });
   const collectionPlan = () => { const s=normalizeCollection(collection);let cursor=s.groundGap;const floors=s.enabled?s.floors.map((f,index)=>{const bottom=cursor,zsHeight=ZS_HEIGHTS[f.traverse];cursor+=zsHeight+f.height;return{...f,index,bottom,zsHeight,top:cursor};}):[];return{floors,totalHeight:s.enabled?cursor:0}; };
 
   const cloneState = () => accessories.map((item) => ({

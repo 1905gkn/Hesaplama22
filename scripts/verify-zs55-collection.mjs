@@ -21,8 +21,8 @@ for(const width of [1800,2700,3600])for(const depth of [900,1050,1100]){
   const layer=zs55Collection(THREE,viewer,section,{bottom,zsHeight:75,trayWidth:300,traverse:'ZS55|1.5'},i);
   assert.equal(layer.children.length,2+width/300);
   const beams=layer.children.slice(0,2).map(n=>new THREE.Box3().setFromObject(n));
-  assert(Math.abs(beams[0].min.y+4)<.01,'Front connector must sit 4 mm outside front face');
-  assert(Math.abs(beams[1].max.y-depth-4)<.01,'Rear connector must sit 4 mm outside rear face');
+  assert(Math.abs(beams[0].min.y-49.66897)<.01&&Math.abs(beams[0].max.y-112.66897)<.01,'Front ZS connector matches supplied full assembly');
+  assert(Math.abs(beams[1].min.y-(depth-6.11414))<.01&&Math.abs(beams[1].max.y-(depth+56.88586))<.01,'Rear ZS connector matches supplied full assembly');
   for(const beam of layer.children.slice(0,2))beam.traverse(mesh=>{
    if(mesh.isMesh&&/SOL/i.test(mesh.name)){
     const p=mesh.geometry.attributes.position,ids=mesh.geometry.index.array;
@@ -34,7 +34,7 @@ for(const width of [1800,2700,3600])for(const depth of [900,1050,1100]){
    assert(Math.abs(size.z-155)<.01,'Connector height must not stretch');
   });
   const tray=new THREE.Box3().setFromObject(layer.children[2]);
-  assert(Math.abs(tray.min.y-4.6)<.01&&Math.abs(tray.max.y-(depth-1))<.01,'Tray sits inside frame depth');
+  assert(Math.abs(tray.min.y-58.26899)<.01&&Math.abs(tray.max.y-(depth+51.88554))<.01,'Tray depth matches supplied full assembly');
   assert(Math.abs(tray.max.z+bottom+57)<.01,'Tray support seating matches reference assembly');
   let sourceTray;models.zs55Tray.traverse(m=>{if(m.isMesh)sourceTray=m;});
   layer.children[2].traverse(m=>{if(!m.isMesh)return;
@@ -56,6 +56,7 @@ execFileSync(process.execPath,['-',viewerSource,built],{input:script});
 execFileSync(process.execPath,['scripts/patch-zs55-collection-models.mjs',built]);
 execFileSync(process.execPath,['--check',built]);
 assert(fs.readFileSync('scripts/patch-b2b-collection-levels-v102.mjs','utf8').includes('function freshFloor(){return{trayWidth:300,trayThickness:.8,traverse:"ZS55|1.5"'));
+assert(fs.readFileSync('client/b2b-accessories.js','utf8').includes("freshCollectionFloor = () => ({ trayWidth:300, trayThickness:.8, traverse:'ZS55|1.5'"));
 console.log('PASS: supplied GLBs; 1–5 levels, 3 widths, 3 depths; connector size/outer mounting/tray seat; sources unchanged; generated viewer compiles; new floor defaults ZS55.');
 if(process.argv.includes('--visual')){
  const require=createRequire(import.meta.url),{build}=require('esbuild'),{chromium}=require('playwright');
@@ -84,19 +85,6 @@ if(process.argv.includes('--visual')){
   await page.waitForFunction(()=>window.testReady||window.testError,{timeout:30000});
   const error=await page.evaluate(()=>window.testError);assert(!error,error);
   assert.deepEqual(errors,[]);
-  const rearCheck=await page.evaluate(()=>{
-   const viewer=window.testViewer,source=viewer.models.traverse;
-   const original=new Map();let xmin=Infinity,xmax=-Infinity,ymin=Infinity,ymax=-Infinity;
-   source.traverse(m=>{if(!m.isMesh)return;original.set(m.name,m.geometry.attributes.position);
-    const p=m.geometry.attributes.position;for(let i=0;i<p.count;i++){xmin=Math.min(xmin,p.getX(i));xmax=Math.max(xmax,p.getX(i));ymin=Math.min(ymin,p.getY(i));ymax=Math.max(ymax,p.getY(i));}});
-   let count=0,maxError=0;
-   viewer.content.traverse(g=>{if(g.userData.mountingFace!=='upright-rear-face')return;count++;
-    g.traverse(m=>{if(!m.isMesh)return;const a=original.get(m.name),b=m.geometry.attributes.position;
-     for(let i=0;i<b.count;i++)maxError=Math.max(maxError,Math.abs(b.getX(i)-(xmin+xmax-a.getX(i))),Math.abs(b.getY(i)-(ymin+ymax-a.getY(i))),Math.abs(b.getZ(i)-a.getZ(i)));});});
-   return {count,maxError};
-  });
-  assert(rearCheck.count>0&&rearCheck.maxError<.002,JSON.stringify(rearCheck));
-  console.log('PASS: actual CC rear vertices rotated 180 degrees; original source and vertical coordinates preserved.');
   await page.screenshot({path:path.join(dir,'zs55.png')});
   console.log('VISUAL='+path.join(dir,'zs55.png'));
  }finally{await browser.close();}
