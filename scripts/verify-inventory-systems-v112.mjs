@@ -80,4 +80,6 @@ assert(!context.rows('mr').some(r=>r.name==='Ray'),'MR must never fall through t
 const addPatch=fs.readFileSync('scripts/patch-add-current-drawing-v113.mjs','utf8');
 const patchedBlock=addPatch.slice(addPatch.indexOf('const newBlock='));
 assert(patchedBlock.indexOf('drawing = m2LastDrawing;')<patchedBlock.indexOf('const selectedType = m2SavedRackTypes[m2SelectedSavedType];'),'Current editor drawing must take priority over the selected saved type');
+assert.match(patchedBlock,/const liveB2B = b2bReadInputState\(\);/,'Current B2B inputs must be read when adding the live drawing');
+assert.match(patchedBlock,/drawing = \{ \.\.\.drawing, b2b:liveB2B \};/,'Live collection levels must be merged into the placed rack');
 console.log('PASS: emitted runtime compiles; five systems isolated; collection rows refresh and feed PDF exactly; current editor drawing is added before saved fallback.');
