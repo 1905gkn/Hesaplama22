@@ -340,6 +340,17 @@ const inventoryRuntime = `
       else if(item.type==='palletStop')name='Palet Dayama';
       if(name&&qty>0)out.push({name:name,qty:qty,spec:spec,unit:'adet'});
     });
+    var collection=state.collectionLevels;
+    if(collection&&collection.enabled===true&&Array.isArray(collection.floors)){
+      collection.floors.forEach(function(floor){
+        var traverse=String(floor&&floor.traverse||'ZS55|1.5').split('|');
+        var traverseType=traverse[0]||'ZS55',traverseThickness=Number(traverse[1])||1.5;
+        var trayWidth=[200,250,300].includes(Number(floor&&floor.trayWidth))?Number(floor.trayWidth):300;
+        var trayThickness=Number(floor&&floor.trayThickness)||.8;
+        out.push({name:'Toplama Katı ZS Travers',qty:2*rowCount,spec:traverseType+' · '+decimalText(traverseThickness)+' mm · L '+textNumber(clearWidth)+' mm',unit:'adet'});
+        out.push({name:'Toplama Katı Tava',qty:trayPieceCount(clearWidth,trayWidth)*rowCount,spec:textNumber(trayWidth)+' mm · '+decimalText(trayThickness)+' mm',unit:'adet'});
+      });
+    }
     return out;
   }
   function rows(targetSystem){
@@ -428,6 +439,19 @@ const inventoryRuntime = `
     var order=['Ayak takımı','Ayak Profili','Ayak profili','Ayak pabucu','Şim','Kimyasal dübel','Travers','Emniyet pimi','Düz arabağ','Tava','H Travers','Palet Dayama','Ray','Palet yastığı','Arka stoper','Forklift stoperi','Giriş konsolu','Yatay çapraz seti','Hafif deprem çaprazı','Ağır deprem çaprazı','UAKS ayak koruma','UAKZ ayak koruma','Bariyer koruma','Klipsli dübel'];
     return Array.from(map.values()).sort(function(a,b){var ai=order.indexOf(a.name),bi=order.indexOf(b.name);if(ai<0)ai=999;if(bi<0)bi=999;return ai-bi||a.name.localeCompare(b.name,'tr')||a.spec.localeCompare(b.spec,'tr');});
   }
+  function inventoryPdfPages(types,labels){
+    var pages=[],systems=[['b2b','B2B ÜRÜNLERİ'],['mekik2','MEKİK ÜRÜNLERİ'],['drive','DRIVE-IN ÜRÜNLERİ'],['mr','MR ÜRÜNLERİ'],['konsol','KONSOL KOLLU ÜRÜNLERİ'],['unknown','SİSTEM BİLGİSİ EKSİK'],['common','SERBEST ALAN AKSESUARLARI']];
+    systems.forEach(function(pair){
+      var exact=rows(pair[0]);
+      for(var start=0;start<exact.length;start+=24){
+        var slice=exact.slice(start,start+24).map(function(row){return{item:row.name,spec:row.spec,qty:row.qty,unit:row.unit}});
+        var suffix=exact.length>24?' · '+(Math.floor(start/24)+1):'';
+        pages.push('<section class="m2-corporate-page">'+m2CorporateHeader(pair[1]+suffix)+'<div class="m2-corporate-bom-grid combined">'+m2CorporateBomTable(pair[1],slice,labels,'Ekrandaki ürün listesiyle aynı')+'</div></section>');
+      }
+    });
+    return pages;
+  }
+  try{m2CorporateBomPages=inventoryPdfPages;window.m2CorporateBomPages=inventoryPdfPages;}catch(error){console.warn('Tek ürün listesi PDF bağlantısı',error)}
   function cleanup(){
     document.querySelectorAll('.m2-selected-rack-main b').forEach(function(node){if(/YERLEŞİM AYAK TOPLAMI/i.test(String(node.textContent||'')))node.remove();});
   }
@@ -442,7 +466,7 @@ const inventoryRuntime = `
   function inventorySignature(){
     var rackRows=racks().map(function(rack){
       var layout=rack&&rack.b2bLayout||{},state=rack&&rack.b2b||{},plan=rack&&rack.plan||{};
-      return [rack&&rack.id,rackSystem(rack),rack&&rack.bays,rack&&rack.levels,rack&&rack.depth,rack&&rack.loadedLevels,rack&&rack.footProfile,rack&&rack.footProfileKey,rack&&rack.footLy,rack&&rack.totalRackHeight,rack&&rack.sideUprightHeight,rack&&rack.hasExtra?1:0,rack&&rack.straightProfileLength,rack&&rack.systemType,recommendationText(rack&&(rack.traverseRecommendation||rack.traverseType)),mekikColumnSpacing(rack),rack&&rack.railThickness,rack&&rack.railHeight,rack&&(rack.railLength||rack.depthMm),rack&&rack.palletWeight,layout.rowCount,layout.sectionWidth,layout.palletCount,layout.frameDepth,state.rowType,state.levels,state.tunnelHeight,JSON.stringify(state.accessories||[]),JSON.stringify(state.customLevels||[]),JSON.stringify(plan.feet||[]),JSON.stringify(plan.braces||[]),JSON.stringify(rack&&rack.seismicBraces||[])].join('~');
+      return [rack&&rack.id,rackSystem(rack),rack&&rack.bays,rack&&rack.levels,rack&&rack.depth,rack&&rack.loadedLevels,rack&&rack.footProfile,rack&&rack.footProfileKey,rack&&rack.footLy,rack&&rack.totalRackHeight,rack&&rack.sideUprightHeight,rack&&rack.hasExtra?1:0,rack&&rack.straightProfileLength,rack&&rack.systemType,recommendationText(rack&&(rack.traverseRecommendation||rack.traverseType)),mekikColumnSpacing(rack),rack&&rack.railThickness,rack&&rack.railHeight,rack&&(rack.railLength||rack.depthMm),rack&&rack.palletWeight,layout.rowCount,layout.sectionWidth,layout.palletCount,layout.frameDepth,state.rowType,state.levels,state.tunnelHeight,JSON.stringify(state.accessories||[]),JSON.stringify(state.collectionLevels||{}),JSON.stringify(state.customLevels||[]),JSON.stringify(plan.feet||[]),JSON.stringify(plan.braces||[]),JSON.stringify(rack&&rack.seismicBraces||[])].join('~');
     }).join('|');
     var symbolRows=symbols().map(function(item){return [item&&item.id,item&&item.type,item&&item.rackId,item&&item.widthMm].join('~');}).join('|');
     return rackRows+'#'+symbolRows+'#'+JSON.stringify(racks().map(function(rack){return rackSystem(rack)==='konsol'?konsolInventory(rack):rackSystem(rack)==='b2b'?[rack.b2b&&rack.b2b.footHeightMode,rack.b2b&&rack.b2b.footHeight,rack.b2bLayout&&rack.b2bLayout.frameDepth,rack.b2bLayout&&rack.b2bLayout.palletDepth,rack.b2bLayout&&rack.b2bLayout.palletOverhang,rack.palD]:null}));

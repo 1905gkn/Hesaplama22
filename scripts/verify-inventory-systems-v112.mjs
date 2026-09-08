@@ -8,7 +8,7 @@ import {inventorySystem,konsolInventory} from './inventory-system-quantities-v11
 const fixture=fs.mkdtempSync(path.join(os.tmpdir(),'rafex-inventory-'));
 fs.mkdirSync(path.join(fixture,'dist/server'),{recursive:true});
 const file=path.join(fixture,'dist/server/index.js');
-const baseline=fs.readFileSync('.tmp-cold-store-before.html','utf8');
+const baseline=fs.readFileSync('portal.html','utf8');
 fs.writeFileSync(file,"const HTML_BASE64 = '"+Buffer.from(baseline).toString('base64')+"';");
 execFileSync(process.execPath,[path.resolve('scripts/patch-dist-version-badge-position-v1.mjs')],{cwd:fixture});
 const html=Buffer.from(fs.readFileSync(file,'utf8').match(/HTML_BASE64\s*=\s*["']([^"']+)/)[1],'base64').toString();
@@ -42,6 +42,21 @@ assert(!foot.spec.includes('1.200'),'Ly is not upright height');
 context.m2B2BEffectiveFootHeight=()=>6000;
 context.m2B2BFootDepth=()=>1000;
 assert.match(context.rows('b2b').find(row=>row.name==='Ayak takımı').spec,/Yükseklik 6.000 mm · Derinlik 1.000 mm/);
+b2b.b2b.collectionLevels={enabled:true,groundGap:430,floors:[{traverse:'ZS55|1.5',trayWidth:300,trayThickness:.8,height:500},{traverse:'ZS65|2',trayWidth:250,trayThickness:1,height:500}]};
+let collectionRows=context.rows('b2b').filter(row=>row.name.startsWith('Toplama Katı'));
+assert.deepEqual(JSON.parse(JSON.stringify(collectionRows)),[
+ {name:'Toplama Katı Tava',spec:'250 mm · 1 mm',unit:'adet',qty:11},
+ {name:'Toplama Katı Tava',spec:'300 mm · 0,8 mm',unit:'adet',qty:9},
+ {name:'Toplama Katı ZS Travers',spec:'ZS55 · 1,5 mm · L 2.700 mm',unit:'adet',qty:2},
+ {name:'Toplama Katı ZS Travers',spec:'ZS65 · 2 mm · L 2.700 mm',unit:'adet',qty:2}
+]);
+const collectionSignature=context.inventorySignature();b2b.b2b.collectionLevels.floors[0].trayWidth=250;
+assert.notEqual(context.inventorySignature(),collectionSignature,'Collection changes must refresh the visible inventory');
+b2b.b2b.collectionLevels.floors[0].trayWidth=300;
+context.m2CorporateHeader=title=>'<header>'+title+'</header>';
+context.m2CorporateBomTable=(title,rows)=>'<table data-title="'+title+'">'+JSON.stringify(rows)+'</table>';
+const pdfPages=context.inventoryPdfPages([],{unitEach:'adet'}).join('');
+for(const row of context.rows('b2b'))assert(pdfPages.includes(JSON.stringify({item:row.name,spec:row.spec,qty:row.qty,unit:row.unit})),'PDF must use the exact visible inventory row: '+row.name);
 for(const title of ['B2B ÜRÜNLERİ','MEKİK ÜRÜNLERİ','DRIVE-IN ÜRÜNLERİ','MR ÜRÜNLERİ','KONSOL KOLLU ÜRÜNLERİ','SİSTEM BİLGİSİ EKSİK'])assert(host.innerHTML.includes(title));
 const count=(r,name)=>r.find(x=>x.name===name)?.qty;
 assert.equal(count(context.rows('konsol'),'Konsol kolu'),8);
@@ -62,4 +77,7 @@ assert.equal(inventorySystem({plan:{mr:true}}),'mr');
 assert.equal(inventorySystem({}),'unknown');
 delete context.window.rafexMrQuantitySummaryV42;
 assert(!context.rows('mr').some(r=>r.name==='Ray'),'MR must never fall through to channel BOM');
-console.log('PASS: emitted runtime compiles; five systems isolated in mixed layout; Konsol duplication/double-side/2–20 uprights; missing-system and missing-MR guards; quantity cache refresh.');
+const addPatch=fs.readFileSync('scripts/patch-add-current-drawing-v113.mjs','utf8');
+const patchedBlock=addPatch.slice(addPatch.indexOf('const newBlock='));
+assert(patchedBlock.indexOf('drawing = m2LastDrawing;')<patchedBlock.indexOf('const selectedType = m2SavedRackTypes[m2SelectedSavedType];'),'Current editor drawing must take priority over the selected saved type');
+console.log('PASS: emitted runtime compiles; five systems isolated; collection rows refresh and feed PDF exactly; current editor drawing is added before saved fallback.');

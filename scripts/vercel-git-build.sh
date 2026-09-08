@@ -88,7 +88,9 @@ grep -q '__rafexLifecycleV30' client/b2b-viewer.entry.js
 grep -q '__rafexLifecycleV30' client/mr-viewer.entry.js
 
 node scripts/patch-b2b-manual-foot-height-v1.mjs
+node scripts/patch-add-current-drawing-v113.mjs
 grep -q 'function m2B2BEffectiveFootHeight(drawing)' portal.html
+grep -q 'drawing = m2LastDrawing;' portal.html
 grep -q 'sideUprightHeight:liveB2BHeight' portal.html
 
 bash scripts/build.sh
@@ -140,6 +142,7 @@ node scripts/patch-common-project-name-v87.mjs
 node scripts/patch-common-project-name-scope-v88.mjs
 node scripts/patch-global-pdf-gate-v89.mjs
 node scripts/patch-common-nearest-gap-v90.mjs
+node scripts/patch-free-konsol-plan-v38.mjs
 node scripts/patch-b2b-collection-products-v110.mjs
 
 grep -q 'data-rafex-cad-import="v56"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\\\"\\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-cad-import=\\\"v56\\\"'))process.exit(1)"
@@ -155,6 +158,7 @@ node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8')
 node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\"\x27])([A-Za-z0-9+/=]+)\\1/);if(!m)process.exit(1);const h=Buffer.from(m[2],'base64').toString('utf8');if(/data-rafex-free-layout-stop3d|data-rafex-b2b-3d-module-pause|data-rafex-b2b-3d-add-hook|rafexPauseB2B3DIfUserAdd/.test(h))process.exit(1)"
 
 node scripts/verify-inline-runtime-syntax-v21.mjs
+node scripts/verify-konsol-plan-v111.mjs
 node scripts/verify-b2b-collection-products-v110.mjs
 
 grep -q "mode==='front'&&typeof m2SharedScaleReportSvg" scripts/patch-pdf-direct-type-pages-v19.mjs

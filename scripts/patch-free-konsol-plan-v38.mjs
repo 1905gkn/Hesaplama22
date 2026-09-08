@@ -50,6 +50,11 @@ const runtime=String.raw`
     return Boolean(num(rack?.armLength,rack?.armDepth,rack?.baseDepth,s?.arm,s?.armLength,d?.armLength,d?.armDepth,d?.baseDepth,k?.armLength,k?.armDepth,k?.baseDepth));
   }
   function isKonsol(rack,node){
+    const saved=savedFor(rack),d=rack?.drawing||saved?.drawing||{};
+    const explicit=[rack?.rafexSystem,rack?.__rafexSystem,rack?.systemType,d?.rafexSystem,d?.systemType,saved?.__rafexSystem]
+      .map(text).filter(Boolean);
+    if(explicit.some((value)=>/^(mekik|mekik2|shuttle|drive|drive-in|drivein|b2b|mr|fifo|lifo)$/.test(value)))return false;
+    if(explicit.some((value)=>/^(konsol|konsol-kollu|cantilever)$/.test(value)))return true;
     const t=token(rack,node);
     if(/konsol|cantilever/.test(t))return true;
     if(cantileverFields(rack))return true;

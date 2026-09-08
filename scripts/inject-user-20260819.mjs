@@ -467,7 +467,7 @@ if (!html.includes("__rafexOpenSectionPlacementV3") || !html.includes("__rafexEn
 if (!html.includes("rack.bays=state.count") || !html.includes("__rafexForceCustomizePreviewV3")) throw new Error("Özelleştir kat/palet düzeltmesi eklenemedi.");
 if (html.includes("rafex-seismic-info")) throw new Error("Serbest yerleşimde eski deprem bilgi etiketi kaldı.");
 if (html.includes("Ölçü yazısı boyutu")) throw new Error("Eski MR olcu yazisi etiketi canli ciktida kaldi.");
-if (!html.includes("__rafexMrFit4124V53") || !html.includes("value.azimuth = 41;\n      value.elevation = 24;")) throw new Error("MR Sigdir 41/24 canli davranisi korunamadi.");
+if (!html.includes("function fitCurrent()") || !html.includes("value.x = 0; value.y = 0; value.scale = 1;")) throw new Error("Kesit Sigdir canli davranisi korunamadi.");
 if (!html.includes("__rafexFreeSystemChooserV54") || !html.includes('data-page="serbest"')) throw new Error("Serbest Cizim sistem secimi eklenemedi.");
 
 const encoded = Buffer.from(html, "utf8").toString("base64");
