@@ -84,6 +84,19 @@ if(process.argv.includes('--visual')){
   await page.waitForFunction(()=>window.testReady||window.testError,{timeout:30000});
   const error=await page.evaluate(()=>window.testError);assert(!error,error);
   assert.deepEqual(errors,[]);
+  const rearCheck=await page.evaluate(()=>{
+   const viewer=window.testViewer,source=viewer.models.traverse;
+   const original=new Map();let xmin=Infinity,xmax=-Infinity,ymin=Infinity,ymax=-Infinity;
+   source.traverse(m=>{if(!m.isMesh)return;original.set(m.name,m.geometry.attributes.position);
+    const p=m.geometry.attributes.position;for(let i=0;i<p.count;i++){xmin=Math.min(xmin,p.getX(i));xmax=Math.max(xmax,p.getX(i));ymin=Math.min(ymin,p.getY(i));ymax=Math.max(ymax,p.getY(i));}});
+   let count=0,maxError=0;
+   viewer.content.traverse(g=>{if(g.userData.mountingFace!=='upright-rear-face')return;count++;
+    g.traverse(m=>{if(!m.isMesh)return;const a=original.get(m.name),b=m.geometry.attributes.position;
+     for(let i=0;i<b.count;i++)maxError=Math.max(maxError,Math.abs(b.getX(i)-(xmin+xmax-a.getX(i))),Math.abs(b.getY(i)-(ymin+ymax-a.getY(i))),Math.abs(b.getZ(i)-a.getZ(i)));});});
+   return {count,maxError};
+  });
+  assert(rearCheck.count>0&&rearCheck.maxError<.002,JSON.stringify(rearCheck));
+  console.log('PASS: actual CC rear vertices rotated 180 degrees; original source and vertical coordinates preserved.');
   await page.screenshot({path:path.join(dir,'zs55.png')});
   console.log('VISUAL='+path.join(dir,'zs55.png'));
  }finally{await browser.close();}
