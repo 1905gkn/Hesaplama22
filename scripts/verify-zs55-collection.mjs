@@ -89,11 +89,11 @@ if(process.argv.includes('--visual')){
   const ccCheck=await page.evaluate(()=>{
    const viewer=window.testViewer,source=viewer.models.traverse;
    const original=new Map();source.traverse(m=>{if(m.isMesh)original.set(m.name,m.geometry.attributes.position)});
-   let frontCount=0,rearCount=0,frontMeshCount=0,rearMeshCount=0,maxFrontConnectorXzError=0,maxFrontYError=0,maxRearError=0;
+   let frontCount=0,rearCount=0,frontMeshCount=0,rearMeshCount=0,maxFrontXzError=0,maxFrontYError=0,maxRearError=0;
    viewer.content.traverse(group=>{if(group.userData.mountingFace==='upright-front-face'){frontCount++;
     group.traverse(m=>{if(!m.isMesh)return;const a=original.get(m.name),b=m.geometry.attributes.position;if(!a||!b||a.count!==b.count)return;frontMeshCount++;
      for(let i=0;i<b.count;i++){
-      if(/KONNEKT/i.test(m.name))maxFrontConnectorXzError=Math.max(maxFrontConnectorXzError,Math.abs(b.getX(i)-a.getX(i)),Math.abs(b.getZ(i)-a.getZ(i)));
+      maxFrontXzError=Math.max(maxFrontXzError,Math.abs(b.getX(i)-a.getX(i)),Math.abs(b.getZ(i)-a.getZ(i)));
       maxFrontYError=Math.max(maxFrontYError,Math.abs(b.getY(i)-(124.66762351989746-a.getY(i))));
      }});
     return;
@@ -102,10 +102,10 @@ if(process.argv.includes('--visual')){
    group.traverse(m=>{if(!m.isMesh)return;const a=original.get(m.name),b=m.geometry.attributes.position;if(!a||!b||a.count!==b.count)return;rearMeshCount++;
     for(let i=0;i<b.count;i++)maxRearError=Math.max(maxRearError,Math.abs(b.getX(i)-a.getX(i)),Math.abs(b.getY(i)-a.getY(i)),Math.abs(b.getZ(i)-a.getZ(i)));
    });
-   });return{frontCount,rearCount,frontMeshCount,rearMeshCount,maxFrontConnectorXzError,maxFrontYError,maxRearError};
+   });return{frontCount,rearCount,frontMeshCount,rearMeshCount,maxFrontXzError,maxFrontYError,maxRearError};
   });
-  assert(ccCheck.frontCount>0&&ccCheck.rearCount>0&&ccCheck.frontMeshCount>0&&ccCheck.rearMeshCount>0&&ccCheck.maxFrontConnectorXzError<.002&&ccCheck.maxFrontYError<.002&&ccCheck.maxRearError<.002,JSON.stringify(ccCheck));
-  console.log('PASS: front CC depth mirrored; rear CC source orientation preserved.');
+  assert(ccCheck.frontCount>0&&ccCheck.rearCount>0&&ccCheck.frontMeshCount>0&&ccCheck.rearMeshCount>0&&ccCheck.maxFrontXzError<.002&&ccCheck.maxFrontYError<.002&&ccCheck.maxRearError<.002,JSON.stringify(ccCheck));
+  console.log('PASS: front CC depth mirrored without changing profile length; rear CC source orientation preserved.');
   const collectionColors=await page.evaluate(()=>{
    let bodyColor=null,connectorCount=0,mismatchCount=0;
    window.testViewer.content.traverse(m=>{if(!m.isMesh)return;const name=m.name.toLocaleUpperCase('tr-TR'),material=Array.isArray(m.material)?m.material[0]:m.material;

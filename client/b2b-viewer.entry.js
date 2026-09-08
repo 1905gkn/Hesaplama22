@@ -17,9 +17,6 @@ const SOURCE_TRAVERSE_FRONT_OFFSET = 81.59595;
 const SOURCE_TRAVERSE_BACK_OFFSET = 1077.32687;
 const SOURCE_TRAVERSE_DEPTH_MIN = 30.815343856811523;
 const SOURCE_TRAVERSE_DEPTH_MAX = 93.85227966308594;
-const SOURCE_LEFT_TRAVERSE_OVERHANG = 100;
-const SOURCE_TRAVERSE_LEFT_BEAM_EDGE = 47.27;
-const SOURCE_TRAVERSE_RIGHT_BEAM_EDGE = 2739.27;
 const SOURCE_LOAD_BOTTOM = 227.79448;
 const ASSET_VERSION = "b2b-detail-layout-camera-519";
 const COLORS = {
@@ -385,7 +382,6 @@ class B2BViewer {
         if (side === 0) {
           this.mirrorFrontTraverseDepth(traverse);
           this.mountFrontTraverseOnUprightFace(traverse);
-          this.extendLeftTraverseTowardUpright(traverse);
         }
         this.applyRackMaterials(traverse);
         section.add(traverse);
@@ -422,22 +418,6 @@ class B2BViewer {
       part.geometry = geometry;
     });
     traverse.userData.depthMirrored = true;
-  }
-
-  extendLeftTraverseTowardUpright(traverse) {
-    const beamLength = SOURCE_TRAVERSE_RIGHT_BEAM_EDGE - SOURCE_TRAVERSE_LEFT_BEAM_EDGE;
-    const beamScale = (beamLength + SOURCE_LEFT_TRAVERSE_OVERHANG) / beamLength;
-    traverse.traverse((object) => {
-      if (!object.isMesh || !object.geometry) return;
-      const name = (object.name || "").toLocaleUpperCase("tr-TR");
-      if (!name.includes("TRAVERS")) return;
-      const geometry = object.geometry.clone();
-      geometry.translate(-SOURCE_TRAVERSE_RIGHT_BEAM_EDGE, 0, 0);
-      geometry.scale(beamScale, 1, 1);
-      geometry.translate(SOURCE_TRAVERSE_RIGHT_BEAM_EDGE, 0, 0);
-      object.geometry = geometry;
-      object.userData.leftExtensionTowardUprightMm = SOURCE_LEFT_TRAVERSE_OVERHANG;
-    });
   }
 
   addLoads(section, sectionScale) {
