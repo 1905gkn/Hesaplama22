@@ -316,6 +316,7 @@ source = source.slice(0, takeStartIndex) + newTake + source.slice(takeEnd);
 fs.writeFileSync(outputPath, source);
 NODE
 
+node "$project_root/scripts/patch-zs55-collection-models.mjs" "$patched_viewer"
 "$project_root/node_modules/.bin/esbuild" "$patched_viewer" \
   --bundle \
   --format=iife \

@@ -34,7 +34,7 @@ const runtime = String.raw`<style data-rafex-b2b-collection-levels="v102">
   if(window.__rafexB2BCollectionLevelsV102)return;window.__rafexB2BCollectionLevelsV102=true;
   var ZS={"ZS35|1.5":55,"ZS35|2":55,"ZS55|1.5":75,"ZS55|2":75,"ZS65|1.5":85,"ZS65|2":85};
   var state={enabled:false,groundGap:500,floors:[]},previousFirstPosition='ground',frame=0;
-  function freshFloor(){return{trayWidth:300,trayThickness:.8,traverse:"ZS35|1.5",height:500}}
+  function freshFloor(){return{trayWidth:300,trayThickness:.8,traverse:"ZS55|1.5",height:500}}
   function clone(value){try{return JSON.parse(JSON.stringify(value))}catch(e){return null}}
   function normalize(raw){
     raw=raw&&typeof raw==='object'?raw:{};var list=Array.isArray(raw.floors)?raw.floors:[];

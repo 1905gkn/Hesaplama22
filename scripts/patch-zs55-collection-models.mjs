@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+const file=process.argv[2];
+let source=fs.readFileSync(file,'utf8');
+const replace=(a,b)=>{if(!source.includes(a))throw Error('ZS55 build anchor missing: '+a.slice(0,70));source=source.replace(a,b)};
+const uri=name=>'data:model/gltf-binary;base64,'+fs.readFileSync('assets/'+name).toString('base64');
+replace('const ASSET_VERSION =',fs.readFileSync('client/zs55-collection.js','utf8').replace('export function','function')+'\nconst ASSET_VERSION =');
+replace('tray, mrTraverse, mrTray]','tray, mrTraverse, mrTray, zs55Traverse, zs55Tray]');
+replace('loader.loadAsync("/mr-tava.glb?v=b2b-collection-zs-103"),','loader.loadAsync("/mr-tava.glb?v=b2b-collection-zs-103"),\n          loader.loadAsync('+JSON.stringify(uri('b2b-zs55-hr-traverse.glb'))+'),\n          loader.loadAsync('+JSON.stringify(uri('b2b-zs55-tray.glb'))+'),');
+replace('mrTray: mrTray.scene.clone(true),','mrTray: mrTray.scene.clone(true),\n        zs55Traverse: zs55Traverse.scene, zs55Tray: zs55Tray.scene,');
+replace('floors.forEach((floor, floorIndex) => {','floors.forEach((floor, floorIndex) => {\n      if(String(floor.traverse).startsWith("ZS55")){layer.add(zs55Collection(THREE,this,section,floor,floorIndex));return;}');
+fs.writeFileSync(file,source);
