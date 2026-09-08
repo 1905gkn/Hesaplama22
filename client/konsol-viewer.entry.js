@@ -252,5 +252,8 @@ window.RafexKonsolViewer = {
   mount(canvas, options) {
     return new KonsolViewer(canvas, options);
   },
+  createDetached(canvas, options) {
+    return new KonsolViewer(canvas, options);
+  },
 };
 window.dispatchEvent(new CustomEvent('rafex-konsol-viewer-ready'));

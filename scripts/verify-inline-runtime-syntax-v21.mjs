@@ -59,6 +59,7 @@ await import(`./patch-mr-extension-controls-v70.mjs?build=${Date.now()}`);
 await import(`./patch-mr-extension-activation-v71.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-load-switch-v13.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-common-save-v74.mjs?build=${Date.now()}`);
+await import(`./patch-konsol-common-3d-customize-v114.mjs?build=${Date.now()}`);
 await import(`./patch-common-wording-palette-v94.mjs?build=${Date.now()}`);
 
 const workerModule = await import(`${workerPath}?syntax-check=${Date.now()}`);
@@ -97,6 +98,7 @@ if (html.includes("Serbest Çizim") || html.includes("SERBEST ÇİZİM")) throw 
 for (const required of ["--rafex-pallet-color:#9a6028","--rafex-box-color:#c58b47","page.querySelector('.hero,.mr-hero')","#rafexUnifiedAddModule{display:none!important}","id=\"rafexCommonProjectName\""]) if (!html.includes(required)) throw new Error(`Ortak Cizim v94 doğrulaması eksik: ${required}`);
 if (!html.includes('data-rafex-konsol-load-switch="v13"')) throw new Error("Konsol sağ üst ürün seçicisi canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-common-save="v74"')) throw new Error("Konsol Ortak Çizim Rafı Kaydet düğmesi canlı HTML içinde bulunamadı");
+if (!html.includes('data-rafex-konsol-common-3d-customize="v114"')) throw new Error("Konsol Ortak Çizim 3D özelleştirme penceresi canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-request="v3"')) throw new Error("Konsol son kullanıcı istekleri canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-fem="v10"')) throw new Error("FEM 10.2.09 Konsol ön kontrol katmanı canlı HTML içinde bulunamadı");
 if (!html.includes('data-rafex-konsol-free-plan="v38"')) throw new Error("Konsol Serbest Cizim temiz 2D plan katmanı canlı HTML içinde bulunamadı");
