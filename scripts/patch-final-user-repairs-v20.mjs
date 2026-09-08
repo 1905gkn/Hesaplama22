@@ -43,7 +43,6 @@ const runtime = String.raw`<style data-rafex-final-user-repairs="v20">
   function finish(){stabilizeExtension();restoreProductOpenState();return restoreSelectedB2B()}
   try{var render=window.m2RenderCorporateReport;if(typeof render==='function'&&!render.__rafexV20){var wrapped=function(){return render.apply(this,arguments)};wrapped.__rafexV20=true;try{m2RenderCorporateReport=wrapped}catch{}window.m2RenderCorporateReport=wrapped}}catch{}
   try{var prepare=window.__rafexPrepareCorporatePrint;if(typeof prepare==='function'&&!prepare.__rafexV20){var wrappedPrepare=async function(){var out=await prepare.apply(this,arguments);await finish();await new Promise(function(resolve){requestAnimationFrame(async function(){await finish();resolve()})});return out};wrappedPrepare.__rafexV20=true;window.__rafexPrepareCorporatePrint=wrappedPrepare}}catch{}
-  document.addEventListener('click',function(){setTimeout(stabilizeExtension,0)},true);
   stabilizeExtension();restoreProductOpenState();
 })();</script>`;
 

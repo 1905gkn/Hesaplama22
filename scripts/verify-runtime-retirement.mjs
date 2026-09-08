@@ -12,8 +12,9 @@ const retired = [
   ['data-rafex-common-project-name', 'v87'],
   ['data-rafex-common-project-name-scope', 'v88'],
   ['data-rafex-common-no-project-name', 'v91'],
+  ['data-rafex-common-system-isolation', 'v1'],
 ];
-const fixture = `<!doctype html><html><body><div id="nav"><button class="active" data-page="free">Ortak</button></div><div id="page" class="rafex-common-independent"><section data-rafex-system-banner="common"></section><div id="rafexUnifiedSystemPicker"><input type="radio" name="rafexUnifiedSystem" value="b2b" checked></div><label>Proje adı<input id="b2bProjectName" value="Başlangıç"></label></div>${retired.map(([attr, version])=>`<script ${attr}="${version}">throw new Error('Retired controller executed')</script>`).join('')}</body></html>`;
+const fixture = `<!doctype html><html><body><div id="nav"><button class="active" data-page="free">Ortak</button></div><div id="page" class="rafex-common-independent"><section data-rafex-system-banner="common"></section><div id="rafexUnifiedSystemPicker"><input type="radio" name="rafexUnifiedSystem" value="b2b" checked></div><label>Proje adı<input id="b2bProjectName" value="Başlangıç"></label></div><script>function m2B2BRecordV108(drawing){return drawing}</script>${retired.map(([attr, version])=>`<script ${attr}="${version}">throw new Error('Retired controller executed')</script>`).join('')}</body></html>`;
 fs.mkdirSync(path.join(scratch, 'dist/server'), { recursive: true });
 const workerFile = path.join(scratch, 'dist/server/index.js');
 fs.writeFileSync(workerFile, `const HTML_BASE64 = '${Buffer.from(fixture).toString('base64')}';`);

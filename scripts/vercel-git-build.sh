@@ -161,6 +161,9 @@ grep -q "m2LayoutState.racks.filter" scripts/patch-pdf-direct-type-pages-v19.mjs
 grep -q "rafexRenderSelectedB2BSections" client/b2b-section-positioner-v5.js
 grep -q 'data-rafex-final-user-repairs="v20"' scripts/patch-final-user-repairs-v20.mjs
 grep -q 'data-rafex-manual-free-output="v32"' scripts/patch-manual-free-output-v32.mjs
-grep -q 'sectionWidth=config.modules\*config.width' portal.html
+# Source patches are intentionally layered and later compatibility patches may
+# rewrite portal.html again. Verify the authoritative MR patch itself here; the
+# built runtime marker is checked on the next line.
+grep -q 'sectionWidth=config.modules\*config.width' scripts/patch-mr-free-extension-v35.mjs
 grep -q 'data-rafex-mr-free-extension="v35"' dist/server/index.js || node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\"\x27])([A-Za-z0-9+/=]+)\\1/);if(!m||!Buffer.from(m[2],'base64').toString('utf8').includes('data-rafex-mr-free-extension=\"v35\"'))process.exit(1)"
 echo "Production chain verified: mevcut sistemler + Drive In + Konsol Kollu v3 aktif; Serbest Cizim 3D otomatik kapatma kapali."

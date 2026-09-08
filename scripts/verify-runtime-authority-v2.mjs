@@ -13,10 +13,11 @@ for (const [attr, version] of [
   ['data-rafex-common-project-name', 'v87'],
   ['data-rafex-common-project-name-scope', 'v88'],
   ['data-rafex-common-no-project-name', 'v91'],
+  ['data-rafex-common-system-isolation', 'v1'],
 ]) {
   if (html.includes(`<script ${attr}="${version}">`)) throw new Error('Emekli proje yoneticisi yayina giremez: '+version);
 }
-for (const required of ['observer.disconnect()', 'setAttributeIfChanged', 'syncNativeFields(page)']) {
+for (const required of ['observer.disconnect()', 'setAttributeIfChanged', 'toggleClassIfChanged', 'syncNativeFields(page)']) {
   if (!html.includes(required)) throw new Error('Runtime retirement missing: '+required);
 }
 for (const required of ['grid-template-columns:repeat(5','rafex-system-picker-head','display:none!important',"active.dataset.page==='free'",'leaveCommon(page)','ensurePicker(page)','ensureProject(picker)','projectNode','if(node!==projectNode)node.remove()','rafexAuthorityProjectName',"window.addEventListener('input'",'data-rafex-authority-project-name','projectName=event.target.value']) {

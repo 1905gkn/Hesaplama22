@@ -6,9 +6,15 @@ const match = source.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1/
 if (!match) throw new Error("Heavy viewer on-demand: HTML_BASE64 bulunamadi.");
 
 let html = Buffer.from(match[2], "base64").toString("utf8");
+const previousRuntime = html.match(/<script\s+data-rafex-heavy-viewers-on-demand="v1">([\s\S]*?)<\/script>/)?.[1] || "";
+let previousSources = {};
+try {
+  const encodedSources = previousRuntime.match(/const sources=(\{[^;]+\});/)?.[1];
+  if (encodedSources) previousSources = JSON.parse(encodedSources);
+} catch {}
 html = html.replace(/<script\s+data-rafex-heavy-viewers-on-demand="v1">[\s\S]*?<\/script>\s*/g, "");
 
-const viewerSources = {};
+const viewerSources = { ...previousSources };
 const viewers = [
   ["konsol", /\s*<script\b[^>]*\bsrc="(\/konsol-viewer\.js[^"]*)"[^>]*><\/script>\s*/g],
   ["drivein", /\s*<script\b[^>]*\bsrc="(\/drive-in-viewer\.js[^"]*)"[^>]*><\/script>\s*/g],
@@ -65,7 +71,8 @@ const runtime = `<script data-rafex-heavy-viewers-on-demand="v1">
     return value;
   }
   function fromTarget(target){
-    const page=target?.closest?.('[data-page]')?.dataset?.page;
+    const nav=target?.closest?.('[data-page],[data-mobile-page]');
+    const page=nav?.dataset?.page||nav?.dataset?.mobilePage;
     if(page)return normalized(page);
     const value=target?.value;
     if(value)return normalized(value);
@@ -81,8 +88,9 @@ const runtime = `<script data-rafex-heavy-viewers-on-demand="v1">
     const name=normalized(active?.dataset?.page||active?.dataset?.mobilePage||page?.dataset?.rafexFreeContextSystem||page?.dataset?.freeSystem||page?.dataset?.m2Module);
     if(sources[name])load(name).catch((error)=>console.warn(error));
   }
-  document.addEventListener('click',(event)=>loadFromTarget(event.target),true);
-  document.addEventListener('change',(event)=>loadFromTarget(event.target),true);
+  document.addEventListener('click',(event)=>{const target=event.target?.closest?.('#nav [data-page],#mobileTabs [data-mobile-page]');if(target)loadFromTarget(target)},true);
+  document.addEventListener('change',(event)=>{if(event.target?.matches?.('#rafexUnifiedSystemPicker input[name="rafexUnifiedSystem"]'))loadFromTarget(event.target)},true);
+  window.addEventListener('rafex-authority-state',(event)=>{const name=normalized(event.detail?.system);if(sources[name])load(name).catch((error)=>console.warn(error))});
   const page=document.getElementById('page');
   if(page)new MutationObserver(loadActive).observe(page,{attributes:true,attributeFilter:['class','data-m2-module','data-rafex-free-context-system','data-free-system']});
   window.rafexLoadHeavyViewerV1=load;

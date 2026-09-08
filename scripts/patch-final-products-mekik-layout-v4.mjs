@@ -212,8 +212,12 @@ const runtime = String.raw`<style data-rafex-final-products-mekik="v4">
     if(typeof prep==='function'&&!prep.__rafexProductsV4){var wrappedPrep=function(){postReport();var r=prep.apply(this,arguments);postReport();setTimeout(postReport,0);return r;};wrappedPrep.__rafexProductsV4=true;window.__rafexPrepareCorporatePrint=wrappedPrep;}
   }catch(e){}
 
-  function schedule(){[0,40,140,350].forEach(function(ms){setTimeout(function(){if(freePage()){try{if(typeof m2RenderLayoutProductList==='function')m2RenderLayoutProductList();}catch{}}appendB2BParts();postReport();},ms);});}
-  document.addEventListener('click',schedule,true);document.addEventListener('change',schedule,true);document.addEventListener('input',function(e){if(e.target&&/b2b|m2Customize/i.test(e.target.id||''))schedule();},true);
+  var scheduleTimer=0;
+  function refreshProducts(){scheduleTimer=0;if(freePage()){try{if(typeof m2RenderLayoutProductList==='function')m2RenderLayoutProductList();}catch{}}appendB2BParts();postReport();}
+  function schedule(){clearTimeout(scheduleTimer);scheduleTimer=setTimeout(refreshProducts,40);}
+  document.addEventListener('click',function(event){if(event.target?.closest?.('#page button,#page [role="button"]'))schedule()},true);
+  document.addEventListener('change',function(event){if(event.target?.closest?.('#page'))schedule()},true);
+  document.addEventListener('input',function(event){if(event.target?.closest?.('#page')&&/b2b|m2Customize/i.test(event.target.id||''))schedule()},true);
   schedule();
 })();</script>`;
 

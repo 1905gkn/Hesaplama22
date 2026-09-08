@@ -10,6 +10,26 @@ html = html
   .replace(/<style\s+data-rafex-pdf-direct-types="v19">[\s\S]*?<\/style>\s*/g, "")
   .replace(/<script\s+data-rafex-pdf-direct-types="v19">[\s\S]*?<\/script>\s*/g, "");
 
+// v19 rebuilds the final type pages directly from the live layout. Keeping the
+// v10-v18 wrappers active made the same report mutate repeatedly and allowed an
+// older card layout to win depending on timer order.
+const retiredPdfLayers = [
+  ['data-rafex-pdf-two-column-slots', 'v10'],
+  ['data-rafex-final-pdf-halves-extension', 'v11'],
+  ['data-rafex-force-mekik-pdf', 'v12'],
+  ['data-rafex-mekik-native-front-details', 'v13'],
+  ['data-rafex-pdf-two-halves', 'v14'],
+  ['data-rafex-pdf-excel-sketch', 'v15'],
+  ['data-rafex-pdf-type-layout', 'v16'],
+  ['data-rafex-pdf-b2b-rich-card', 'v17'],
+  ['data-rafex-pdf-excel-layout', 'v18'],
+];
+for (const [attr, version] of retiredPdfLayers) {
+  html = html
+    .replace(new RegExp(`<style\\s+${attr}="${version}">[\\s\\S]*?<\\/style>\\s*`, 'g'), '')
+    .replace(new RegExp(`<script\\s+${attr}="${version}">[\\s\\S]*?<\\/script>\\s*`, 'g'), '');
+}
+
 const runtime = String.raw`<style data-rafex-pdf-direct-types="v19">
 /* FINAL PDF AUTHORITY — type-driven, never fixed by left/right system. */
 .rafex-v19-type-page .rafex-v19-type-grid{
@@ -255,4 +275,8 @@ html = html.slice(0, bodyEnd) + runtime + html.slice(bodyEnd);
 const encoded = Buffer.from(html, "utf8").toString("base64");
 worker = worker.slice(0, match.index) + match[1] + match[2] + encoded + match[2] + worker.slice(match.index + match[0].length);
 fs.writeFileSync(workerPath, worker);
+for (const [attr, version] of retiredPdfLayers) {
+  if (html.includes(`${attr}="${version}"`)) throw new Error(`FINAL v19: eski PDF katmani kaldi: ${version}`);
+}
+if ((html.match(/data-rafex-pdf-direct-types="v19"/g) || []).length !== 2) throw new Error('FINAL v19: stil/script tekil degil');
 console.log("FINAL v19: type pages rebuilt directly from used Serbest racks; Mekik front/side and B2B front-only half-page cards.");

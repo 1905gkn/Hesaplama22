@@ -19,8 +19,9 @@ const newBase=`      // Ayak profili ayrı bir parça gibi değil, dikey ayağı
       base.castShadow = true;
       base.receiveShadow = true;
       this.root.add(base);`;
-if(!source.includes(oldBase)&&!source.includes('const baseDepth = o.doubleSided'))throw new Error('Konsol ayak profili kaynak bloğu bulunamadı.');
+const newerProfile=source.includes('const base = iBeamAlongZ(o.baseDepth');
+if(!source.includes(oldBase)&&!source.includes('const baseDepth = o.doubleSided')&&!newerProfile)throw new Error('Konsol ayak profili kaynak bloğu bulunamadı.');
 if(source.includes(oldBase))source=source.replace(oldBase,newBase);
-for(const required of ['const baseMat = uprightMat;','const baseDepth = o.doubleSided','o.armLength / 2'])if(!source.includes(required))throw new Error('Konsol ayak profili v4 eksik: '+required);
+if(!newerProfile)for(const required of ['const baseMat = uprightMat;','const baseDepth = o.doubleSided','o.armLength / 2'])if(!source.includes(required))throw new Error('Konsol ayak profili v4 eksik: '+required);
 fs.writeFileSync(file,source);
 console.log('Konsol v4: ayak profili ayağın devamı ve aynı galvaniz renk olarak uygulandı.');

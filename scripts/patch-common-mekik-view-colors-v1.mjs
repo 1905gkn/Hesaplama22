@@ -50,7 +50,6 @@ const runtime = String.raw`<style data-rafex-common-mekik-view-colors="v1">
     return String((visible[visible.length-1]||nodes[nodes.length-1])?.value||fallback);
   }
   function apply(){
-    try{window.rafexSyncCommonIsolationV1?.()}catch{}
     var page=document.getElementById('page');
     var active=page&&page.getAttribute('data-rafex-common-active')==='1'&&page.getAttribute('data-rafex-common-system')==='mekik2';
     if(!active){
@@ -65,10 +64,7 @@ const runtime = String.raw`<style data-rafex-common-mekik-view-colors="v1">
   }
   document.addEventListener('input',function(event){if(event.target?.matches?.('.rafex-mekik-foot-color,.rafex-mekik-traverse-color'))requestAnimationFrame(apply)},true);
   document.addEventListener('change',function(event){if(event.target?.matches?.('.rafex-mekik-foot-color,.rafex-mekik-traverse-color'))requestAnimationFrame(apply)},true);
-  document.addEventListener('click',function(){requestAnimationFrame(apply)},true);
-  new MutationObserver(function(mutations){
-    if(mutations.some(function(m){return m.target?.id==='page'||m.target?.id==='pageTitle'}))requestAnimationFrame(apply);
-  }).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['class','data-rafex-common-active','data-rafex-common-system']});
+  window.addEventListener('rafex-authority-state',function(){requestAnimationFrame(apply)});
   window.addEventListener('load',apply);
   requestAnimationFrame(apply);
 })();</script>`;
