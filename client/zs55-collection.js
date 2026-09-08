@@ -51,6 +51,7 @@ export function zs55Collection(THREE, viewer, section, floor, index) {
         // upright's outer face by 4 mm and seat 59 mm into the 80 mm profile.
         p.setXYZ(i,back?beamLeft+x:beamRight-x,back?rear+CONNECTOR_FACE_OFFSET-depth:front-CONNECTOR_FACE_OFFSET+depth,z+50.73630142211914-bottom);
       }
+      if(!body&&!/KONNEKTÖR/i.test(mesh.name))mesh.name+=' KONNEKTÖR';
       finish(mesh.geometry);
     });
     beam.name=layer.name+(back?' Arka':' Ön');viewer.applyRackMaterials(beam);layer.add(beam);
@@ -65,7 +66,10 @@ export function zs55Collection(THREE, viewer, section, floor, index) {
         const x=p.getX(i),y=p.getY(i),z=p.getZ(i);
         // Turn the tray over within the same seating envelope: flat surface
         // above, folded edges below (negative local Z points upwards).
-        p.setXYZ(i,cursor+y*(width-1.6)/298.4,front+58.26899+x*(rear-front-6.38345)/1044.4,-z-20.200947-(bottom+height-18));
+        // Seat the tray between the corrected front/rear ZS bodies, matching
+        // the supplied assembly: 4.6 mm inside the front face to 1 mm inside
+        // the rear face.
+        p.setXYZ(i,cursor+y*(width-1.6)/298.4,front+4.6000213623046875+x*(rear-front-5.6000213623046875)/1044.4,-z-20.200947-(bottom+height-18));
       }
       finish(mesh.geometry);
     });

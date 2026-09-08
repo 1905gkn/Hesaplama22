@@ -30,11 +30,12 @@ for(const width of [1800,2700,3600])for(const depth of [900,1050,1100]){
     assert(Math.max(...xs)-Math.min(...xs)<43,'Only the upright-mounted connector remains; no inner duplicate');
    }
    if(!mesh.isMesh||!/TIRNAK/.test(mesh.name)||/TRAVERS/.test(mesh.name))return;
+   assert(/KONNEKTÖR/.test(mesh.name),'Collection connector must use traverse-color classification');
    const size=mesh.geometry.boundingBox.getSize(new THREE.Vector3());
    assert(Math.abs(size.z-155)<.01,'Connector height must not stretch');
   });
   const tray=new THREE.Box3().setFromObject(layer.children[2]);
-  assert(Math.abs(tray.min.y-58.26899)<.01&&Math.abs(tray.max.y-(depth+51.88554))<.01,'Tray depth matches supplied full assembly');
+  assert(Math.abs(tray.min.y-4.60002)<.01&&Math.abs(tray.max.y-(depth-1))<.01,'Tray seats fully inside the corrected front/rear ZS bodies');
   assert(Math.abs(tray.max.z+bottom+57)<.01,'Tray support seating matches reference assembly');
   let sourceTray;models.zs55Tray.traverse(m=>{if(m.isMesh)sourceTray=m;});
   layer.children[2].traverse(m=>{if(!m.isMesh)return;
@@ -105,6 +106,17 @@ if(process.argv.includes('--visual')){
   });
   assert(ccCheck.frontCount>0&&ccCheck.rearCount>0&&ccCheck.frontMeshCount>0&&ccCheck.rearMeshCount>0&&ccCheck.maxFrontConnectorXzError<.002&&ccCheck.maxFrontYError<.002&&ccCheck.maxRearError<.002,JSON.stringify(ccCheck));
   console.log('PASS: front CC depth mirrored; rear CC source orientation preserved.');
+  const collectionColors=await page.evaluate(()=>{
+   let bodyColor=null,connectorCount=0,mismatchCount=0;
+   window.testViewer.content.traverse(m=>{if(!m.isMesh)return;const name=m.name.toLocaleUpperCase('tr-TR'),material=Array.isArray(m.material)?m.material[0]:m.material;
+    if(name.includes('Z_TRAVERS'))bodyColor=material.color.getHex();
+   });
+   window.testViewer.content.traverse(m=>{if(!m.isMesh||!m.name.toLocaleUpperCase('tr-TR').includes('KONNEKTÖR'))return;connectorCount++;
+    const materials=Array.isArray(m.material)?m.material:[m.material];if(materials.some(x=>x.color.getHex()!==bodyColor))mismatchCount++;
+   });return{bodyColor,connectorCount,mismatchCount};
+  });
+  assert(collectionColors.bodyColor!==null&&collectionColors.connectorCount>0&&collectionColors.mismatchCount===0,JSON.stringify(collectionColors));
+  console.log('PASS: all collection connectors use the selected traverse color.');
   await page.screenshot({path:path.join(dir,'zs55.png')});
   console.log('VISUAL='+path.join(dir,'zs55.png'));
  }finally{await browser.close();}
