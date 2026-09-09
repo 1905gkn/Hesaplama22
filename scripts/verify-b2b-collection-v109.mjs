@@ -44,5 +44,7 @@ assert(html.includes('if(!b2bValidateHeightV109(o,candidateV109.b2b))return;'));
 const build=fs.readFileSync('scripts/build.sh','utf8');
 assert(build.includes(".filter(floor=>!(this.options.tunnelHeight>0&&floor.bottom<this.options.tunnelHeight))"));
 assert(html.includes('flex-direction:row!important;flex-wrap:nowrap!important;overflow-x:auto!important'));
-assert(html.lastIndexOf('data-rafex-b2b-behavior="v109"')>html.lastIndexOf('</script>'));
+const behaviorMarker=html.lastIndexOf('data-rafex-b2b-behavior="v109"');
+assert(behaviorMarker>html.lastIndexOf('</script>',behaviorMarker));
+assert(behaviorMarker<html.lastIndexOf('</body>'));
 console.log('B2B v109: manual height, boundary validation, collection BOM, tunnel boundaries, saved options, dimensions and transform checks passed.');
