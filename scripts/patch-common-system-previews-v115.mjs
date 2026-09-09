@@ -13,6 +13,7 @@ const runtime=String.raw`
 <style data-rafex-common-system-previews="v115">
 #rafexSystemDetailV115,#rafexLaneCustomizeV115{position:fixed;inset:0;z-index:10070;display:grid;place-items:center;padding:18px;background:#10271dcc;backdrop-filter:blur(4px)}
 #rafexSystemDetailV115[hidden],#rafexLaneCustomizeV115[hidden]{display:none!important}
+#m2SelectedRackDetailV50{display:none!important}
 .rsv115-dialog{width:min(1280px,96vw);max-height:94vh;overflow:auto;border:1px solid #d4e0d8;border-radius:15px;background:#fff;box-shadow:0 25px 70px #07150e66}
 .rsv115-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;border-bottom:2px solid #f2c500;color:#173c2d}
 .rsv115-head>div{display:grid;gap:3px}.rsv115-head b{font-size:15px}.rsv115-head small{color:#68766e;font-size:9px;font-weight:800}
@@ -24,20 +25,18 @@ const runtime=String.raw`
 .rsv115-canvas-wrap{position:relative;height:570px;min-height:430px;border:1px solid #dae4dd;border-radius:0 0 10px 10px;overflow:hidden;background:#fff}.rsv115-canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}.rsv115-status{position:absolute;left:10px;bottom:10px;padding:6px 9px;border:1px solid #d6e0d9;border-radius:7px;background:#fffffff0;color:#536158;font-size:9px;font-weight:900}
 .rsv115-elevations{display:grid;grid-template-columns:1fr 1fr;gap:12px}.rsv115-elevation{min-width:0;padding:10px;border:1px solid #dbe4de;border-radius:10px;background:#fff;overflow:auto}.rsv115-elevation strong{display:block;margin-bottom:7px;color:#173c2d;font-size:10px}.rsv115-elevation svg{display:block;width:100%!important;height:auto!important;min-height:300px}
 .rsv115-custom-grid{display:grid;grid-template-columns:280px minmax(0,1fr);gap:14px}.rsv115-fields{display:grid;align-content:start;gap:10px}.rsv115-fields label{display:grid;gap:4px;color:#294c3b;font-size:10px;font-weight:900}.rsv115-fields input{width:100%;min-height:39px;box-sizing:border-box;border:1px solid #b9c9bf;border-radius:8px;padding:8px 10px;font:800 12px Arial}.rsv115-save{display:flex;justify-content:flex-end;gap:7px;padding-top:4px}.rsv115-save button{min-height:38px;padding:8px 12px;border:1px solid #acc0b3;border-radius:8px;background:#fff;color:#214f3b;font-weight:900}.rsv115-save button:last-child{border-color:#214f3b;background:#214f3b;color:#fff}
-.rsv115-selected{display:grid;gap:7px;margin-top:9px;padding-top:9px;border-top:1px solid #dce5df}.rsv115-selected button{min-height:34px;border:1px solid #b7c8bd;border-radius:7px;background:#fff;color:#214f3b;font-size:9px;font-weight:900}.rsv115-selected .rsv115-mini{display:grid;grid-template-columns:1fr 1fr;gap:6px}.rsv115-selected .rsv115-mini>div{min-width:0;overflow:hidden;border:1px solid #dce5df;border-radius:6px;background:#fff}.rsv115-selected .rsv115-mini b{display:block;padding:3px 5px;background:#f3f6f4;color:#526158;font-size:7px}.rsv115-selected .rsv115-mini svg{display:block;width:100%!important;height:auto!important;max-height:115px}
-@media(max-width:850px){.rsv115-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.rsv115-custom-grid{grid-template-columns:1fr}.rsv115-elevations{grid-template-columns:1fr}.rsv115-canvas-wrap{height:440px}.rsv115-selected .rsv115-mini{grid-template-columns:1fr}}
+@media(max-width:850px){.rsv115-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.rsv115-custom-grid{grid-template-columns:1fr}.rsv115-elevations{grid-template-columns:1fr}.rsv115-canvas-wrap{height:440px}}
 </style>
 <script data-rafex-common-system-previews="v115">
 (function(){
  if(window.__rafexCommonSystemPreviewsV115)return;window.__rafexCommonSystemPreviewsV115=true;
- var detailViewer=null,detailToken=0,laneRackId=null,renderQueued=false;
+ var detailViewer=null,detailToken=0,laneRackId=null;
  function copy(value){try{return JSON.parse(JSON.stringify(value))}catch(_){return value}}
  function esc(value){return String(value==null?'':value).replace(/[&<>\"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]})}
  function normalize(value){value=String(value||'').toLowerCase();if(value==='drive'||value==='drive-in'||value==='drivein')return'drive';if(value==='mekik'||value==='mekik2'||value==='shuttle')return'mekik2';if(value==='konsol'||value==='konsol-kollu'||value==='cantilever')return'konsol';return value}
  function systemOf(value){var entry=value||{},d=entry.drawing||entry,spec=d.spec||d.konsol||{},explicit=normalize(entry.__rafexSystem||entry.rafexSystem||d.rafexSystem||d.systemType);if(d.b2b?.mr||d.plan?.mr||d.b2bLayout?.palletType==='mr')return'mr';if(d.konsol||d.layoutView==='konsol-top'||spec.system==='konsol')return'konsol';if(explicit==='mr'||explicit==='konsol'||explicit==='drive')return explicit;if(d.b2bLayout||d.b2b)return'b2b';if(explicit==='b2b')return'b2b';return'mekik2'}
  function racks(){try{return Array.isArray(m2LayoutState?.racks)?m2LayoutState.racks:[]}catch(_){return[]}}
  function entries(){try{return Array.isArray(m2SavedRackTypes)?m2SavedRackTypes:[]}catch(_){return[]}}
- function selected(){try{var id=m2LayoutState?.selected;if(id==null&&m2MultiSelect?.rackIds?.size===1)id=Array.from(m2MultiSelect.rackIds)[0];return racks().find(function(r){return Number(r.id)===Number(id)})}catch(_){return null}}
  function label(sys){return sys==='b2b'?'HR / B2B':sys==='mr'?'MR':sys==='drive'?'DRIVE-IN':sys==='konsol'?'KONSOL KOLLU':'MEKİK'}
  function mm(value){return Math.round(Number(value)||0).toLocaleString('tr-TR')+' mm'}
  function meta(source,name,sys){var d=source.drawing||source,b=d.b2b||{},k=d.konsol||d.spec||{},width=Number(d.totalWidth||d.widthMm||k.totalWidth),depth=Number(d.railLength||d.depthMm||k.totalDepth);var rows=[['Sistem',label(sys)],['Tip',name||d.typeName||'Raf'],['Genişlik',mm(width)],['Derinlik',mm(depth)],['Kat',Math.round(Number(d.levels||b.levels||k.levels)||0)],['Ayak',sys==='konsol'?Math.round(Number(k.count||d.plan?.feet?.length)||0)+' adet':String(d.footProfile||b.uprightType||d.footType||'-')]];return'<div class="rsv115-meta">'+rows.map(function(row){return'<div><small>'+esc(row[0])+'</small><b>'+esc(row[1])+'</b></div>'}).join('')+'</div>'}
@@ -58,12 +57,7 @@ const runtime=String.raw`
  function saveLane(){var rack=racks().find(function(item){return Number(item.id)===Number(laneRackId)});if(!rack)return;var draft=laneDraft(rack),sys=systemOf(rack);try{m2PushUndo?.(label(sys)+' özelleştirme')}catch(_){}rack.blockName=String(document.getElementById('rsv115Block')?.value||'').trim();rack.typeName=String(document.getElementById('rsv115Name')?.value||'').trim()||rack.typeName;rack.levels=draft.levels;rack.palletHeight=draft.palletHeight;rack.individualSpec=true;closeLane();try{m2RenderLayout?.();window.rafexUnifiedCatalogSync?.()}catch(_){}var status=document.getElementById('m2FloorStatus');if(status)status.textContent=label(sys)+' ön ve yan görünüş değerleri güncellendi.'}
  var previousInfo=window.rafexFreeShowInfoV3;window.rafexFreeShowInfoV3=function(index){var entry=entries()[Number(index)];if(entry?.drawing)return show(entry,entry.name);return previousInfo?.apply(this,arguments)};
  window.rafexSystemOfV115=systemOf;
- window.rafexShowSelectedRackDetailV115=function(){var rack=selected();if(rack)show(rack,rack.blockName||rack.typeName)};
  var previousOpen=window.m2OpenCustomizeModal;window.m2OpenCustomizeModal=function(rackId){var rack=racks().find(function(item){return Number(item.id)===Number(rackId)}),sys=systemOf(rack);if(sys==='drive'||sys==='mekik2'){openLane(rack);return}if((sys==='mr'||sys==='b2b')&&!window[sys==='mr'?'RafexMRViewer':'RafexB2BViewer']&&typeof window.rafexLoadViewerOnDemandV3==='function'){window.rafexLoadViewerOnDemandV3(sys).then(function(){previousOpen?.call(window,rackId)}).catch(function(){previousOpen?.call(window,rackId)});return}return previousOpen?.apply(this,arguments)};try{m2OpenCustomizeModal=window.m2OpenCustomizeModal}catch(_){}
- function renderSelected(){renderQueued=false;var panel=document.getElementById('m2SelectedRackDetailV50'),rack=selected();if(!panel||!rack)return;var sys=systemOf(rack),old=panel.querySelector('.rsv115-selected');if(old)old.remove();var section=document.createElement('div');section.className='rsv115-selected';if(sys==='drive'||sys==='mekik2'){section.innerHTML='<div class="rsv115-mini"><div><b>ÖNDEN</b>'+schematic(rack,'front')+'</div><div><b>YANDAN</b>'+schematic(rack,'side')+'</div></div><button type="button">ÖN / YAN DETAYI AÇ</button>'}else section.innerHTML='<button type="button">'+label(sys)+' 3D DETAYI AÇ</button>';section.querySelector('button').onclick=window.rafexShowSelectedRackDetailV115;panel.appendChild(section)}
- function scheduleSelected(){if(!renderQueued){renderQueued=true;requestAnimationFrame(renderSelected)}}
- var previousRender=window.m2RenderLayout;if(typeof previousRender==='function'){window.m2RenderLayout=function(){var result=previousRender.apply(this,arguments);scheduleSelected();return result};try{m2RenderLayout=window.m2RenderLayout}catch(_){}}
- document.addEventListener('click',scheduleSelected,true);scheduleSelected();
  window.rafexCommonPreviewSystemOfV115=systemOf;
 })();
 </script>`;
@@ -71,8 +65,8 @@ const runtime=String.raw`
 const close=html.lastIndexOf('</body>');
 if(close<0)throw new Error('Common previews v115: body close missing');
 html=html.slice(0,close)+runtime+'\n'+html.slice(close);
-for(const required of ['data-rafex-common-system-previews="v115"','rafexLoadViewerOnDemandV3(sys)','RafexMRViewer?.createDetached','RafexKonsolViewer?.createDetached','ÖNDEN GÖRÜNÜŞ','YANDAN GÖRÜNÜŞ','rafexShowSelectedRackDetailV115'])if(!html.includes(required))throw new Error('Common previews v115 missing: '+required);
+for(const required of ['data-rafex-common-system-previews="v115"','rafexLoadViewerOnDemandV3(sys)','RafexMRViewer?.createDetached','RafexKonsolViewer?.createDetached','ÖNDEN GÖRÜNÜŞ','YANDAN GÖRÜNÜŞ','#m2SelectedRackDetailV50{display:none!important}'])if(!html.includes(required))throw new Error('Common previews v115 missing: '+required);
 const encoded=Buffer.from(html).toString('base64');
 source=source.slice(0,match.index)+match[0].replace(match[2],encoded)+source.slice(match.index+match[0].length);
 fs.writeFileSync(file,source);
-console.log('Ortak Cizim v115: HR/MR/Konsol 3D, Drive-In/Mekik on-yan Incele/Ozellestir/Detay gorunumleri eklendi.');
+console.log('Ortak Cizim v115: bilgi dugmesinde HR/MR/Konsol 3D, Drive-In/Mekik on-yan gorunumleri eklendi; secili raf detay kutusu kaldirildi.');

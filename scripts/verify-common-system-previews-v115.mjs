@@ -20,10 +20,10 @@ for(const marker of [
   'ÖNDEN GÖRÜNÜŞ',
   'YANDAN GÖRÜNÜŞ',
   "front=front||schematic(d,'front')",
-  "schematic(rack,'side')",
   'rafexLaneCustomizeV115',
-  'rafexShowSelectedRackDetailV115'
+  '#m2SelectedRackDetailV50{display:none!important}'
 ])assert(html.includes(marker),'missing '+marker);
+assert(!html.includes('rafexShowSelectedRackDetailV115'),'selected rack detail controller must be removed');
 assert(html.indexOf("if(d.b2b?.mr||d.plan?.mr")<html.indexOf("if(explicit==='mr'||explicit==='konsol'||explicit==='drive')"),'structural MR classification must win over stale tags');
 assert(html.lastIndexOf('data-rafex-common-system-previews="v115"')>html.lastIndexOf('data-rafex-free-info-modules="v27"'),'v115 must override the older preview controller');
-console.log('PASS: common Inspect/Customize/Detail previews use 3D for HR-MR-Konsol and front/side for Drive-In-Mekik.');
+console.log('PASS: saved-type info and Customize previews are system-specific; selected rack detail is removed.');
