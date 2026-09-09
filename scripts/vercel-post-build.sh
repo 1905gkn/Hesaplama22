@@ -26,4 +26,5 @@ node scripts/verify-b2b-collection-products-v110.mjs
 node scripts/patch-dist-version-badge-position-v1.mjs
 node scripts/verify-inventory-systems-v112.mjs
 node scripts/verify-uniform-system-banner-v95.mjs
+node scripts/patch-b2b-collection-behavior-v109.mjs
 node scripts/emit-static-index-v1.mjs

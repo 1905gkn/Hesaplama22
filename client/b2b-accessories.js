@@ -72,11 +72,17 @@
     return true;
   }
 
+  function collectionOptions(options,state) {
+    if(!state.collectionLevels?.enabled)return options;
+    const plan=b2bCollectionPlanV109(state);
+    const out={...options,firstPalletPosition:'traverse',firstFloorGap:plan.totalHeight,collectionFloors:plan.floors};
+    out.footHeight=state.footHeightMode==='manual'&&Number(state.footHeight)>0?Number(state.footHeight):b2bHeightV109(out).automatic;
+    return out;
+  }
   function notify() {
     try {
       if (typeof window.b2bRefreshSummary === 'function') window.b2bRefreshSummary();
-      const viewer=window.RafexB2BViewer?.getActiveViewer?.(), plan=collectionPlan();
-      if(viewer){const options={...viewer.options,accessories:cloneState(),collectionLevels:normalizeCollection(collection),collectionFloors:plan.floors};if(collection.enabled){options.firstPalletPosition='traverse';options.firstFloorGap=plan.totalHeight;options.footHeight=Math.ceil((plan.totalHeight+Number(options.traverseHeight||140)+Math.max(0,Number(options.levels||1)-1)*(Number(options.palletHeight||1200)+Number(options.palletTraverseGap||0)+Number(options.traverseHeight||140))+Number(options.lastPalletOverlap||600))/50)*50;}window.RafexB2BViewer.update(options);}
+      if(window.RafexB2BViewer?.getActiveViewer?.())window.RafexB2BViewer.update(window.b2b3DOptions());
     } catch (error) { console.warn('Aksesuar güncelleme', error); }
   }
 
@@ -162,6 +168,14 @@
   }
 
   function installHooks() {
+    hook('b2bVerticalLayout',(previous)=>function(...args){
+      const out=previous.apply(this,args);if(!collection.enabled)return out;
+      const plan=collectionPlan(),firstLoadBottom=plan.totalHeight+out.traverseHeight;
+      const automaticFootHeight=Math.ceil((firstLoadBottom+(out.levels-1)*out.levelStep+Number(typeof b2bLastPalletOverlap==='number'?b2bLastPalletOverlap:out.palletHeight/2))/50)*50;
+      const input=document.getElementById('b2bFootHeight'),manual=document.getElementById('b2bFootHeightMode')?.value==='manual';
+      if(input)input.disabled=!manual;
+      return {...out,firstLoadBottom,groundPallet:false,traverseLevels:out.levels,automaticFootHeight,footHeight:manual&&Number(input?.value)>0?Number(input.value):automaticFootHeight};
+    });
     hook('b2bPanelMarkup', (previous) => function (...args) {
       const html = previous.apply(this, args);
       setTimeout(render, 0);
@@ -171,7 +185,7 @@
     });
     hook('b2bReadInputState', (previous) => function (...args) {
       const state = previous.apply(this, args);
-      return state ? { ...state, accessories: cloneState(), collectionLevels:normalizeCollection(collection) } : state;
+      return state ? { ...state, accessories: cloneState(), collectionLevels:normalizeCollection(collection), ...(collection.enabled?{firstPalletPosition:'traverse',firstFloorGap:collectionPlan().totalHeight}:{}) } : state;
     });
     hook('b2bApplySavedInputState', (previous) => function (state, ...args) {
       accessories = Array.isArray(state?.accessories) ? state.accessories.filter((item) => TYPES[item?.type]).map((item) => ({ type:item.type, levels:Array.isArray(item.levels)?item.levels.map(Number).filter(Number.isFinite):[], ...(item.type === 'tray' ? { width:[200,250,300].includes(Number(item.width))?Number(item.width):300 } : {}) })) : [];
@@ -183,13 +197,15 @@
     hook('b2b3DOptions', (previous) => function (...args) {
       const options = previous.apply(this, args);
       const plan=collectionPlan();
-      return { ...options, accessories:cloneState(), collectionLevels:normalizeCollection(collection), collectionFloors:plan.floors, ...(collection.enabled?{firstPalletPosition:'traverse',firstFloorGap:plan.totalHeight,footHeight:Math.ceil((plan.totalHeight+Number(options.traverseHeight||140)+Math.max(0,Number(options.levels||1)-1)*(Number(options.palletHeight||1200)+Number(options.palletTraverseGap||0)+Number(options.traverseHeight||140))+Number(options.lastPalletOverlap||600))/50)*50}:{}) };
+      return collectionOptions({...options,accessories:cloneState(),collectionLevels:normalizeCollection(collection),collectionFloors:plan.floors},window.b2bReadInputState());
     });
     hook('m2Rack3DOptions', (previous) => function (rack, ...args) {
       const options = previous.call(this, rack, ...args);
       const saved = Array.isArray(rack?.b2b?.accessories) ? rack.b2b.accessories : cloneState();
       const savedCollection=normalizeCollection(rack?.b2b?.collectionLevels), oldCollection=collection;collection=savedCollection;const plan=collectionPlan();collection=oldCollection;
-      return { ...options, accessories:saved.map((item)=>({...item,levels:[...(item.levels||[])]})), collectionLevels:savedCollection, collectionFloors:plan.floors, ...(savedCollection.enabled?{firstPalletPosition:'traverse',firstFloorGap:plan.totalHeight}:{}) };
+      const result=collectionOptions({...options,accessories:saved.map(item=>({...item,levels:[...(item.levels||[])]})),collectionLevels:savedCollection,collectionFloors:plan.floors},rack?.b2b||{});
+      if(!rack?.b2b?.mr)result.dimensions={levels:true,markers:true,eye:true,width:true,depth:true};
+      return result;
     });
     hook('b2bApplyInputs', (previous) => function (event, ...args) {
       const result = previous.call(this, event, ...args);

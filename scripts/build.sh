@@ -124,7 +124,7 @@ const accessoryMethods = `
   }
 
   addCollectionShelves(section, sectionScale, depthScale) {
-    const floors = Array.isArray(this.options.collectionFloors) ? this.options.collectionFloors : [];
+    const floors = (Array.isArray(this.options.collectionFloors) ? this.options.collectionFloors : []).filter(floor=>!(this.options.tunnelHeight>0&&floor.bottom<this.options.tunnelHeight));
     if (!floors.length || !this.models.mrTraverse || !this.models.mrTray) return;
     const layer = new THREE.Group();
     layer.name = "B2B MR ZS Toplama Katlari";

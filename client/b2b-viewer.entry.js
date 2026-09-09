@@ -508,6 +508,7 @@ class B2BViewer {
       const collectionFloors = Array.isArray(this.options.collectionFloors)
         ? this.options.collectionFloors
           .map((floor) => ({ ...floor, bottom:Math.max(0, Number(floor?.bottom) || 0) }))
+          .filter((floor) => !(this.options.tunnelHeight > 0 && floor.bottom < this.options.tunnelHeight))
           .sort((left, right) => left.bottom - right.bottom)
         : [];
       if (this.options.firstPalletPosition === "traverse" && collectionFloors.length) {

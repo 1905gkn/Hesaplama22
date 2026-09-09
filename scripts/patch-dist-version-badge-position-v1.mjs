@@ -342,13 +342,18 @@ const inventoryRuntime = `
     });
     var collection=state.collectionLevels;
     if(collection&&collection.enabled===true&&Array.isArray(collection.floors)){
+      var cursor=Math.max(0,n(collection.groundGap)),tunnel=Math.max(0,n(state.tunnelHeight));
       collection.floors.forEach(function(floor){
         var traverse=String(floor&&floor.traverse||'ZS55|1.5').split('|');
         var traverseType=traverse[0]||'ZS55',traverseThickness=Number(traverse[1])||1.5;
+        var zsHeight={ZS35:55,ZS55:75,ZS65:85}[traverseType]||55,bottom=cursor;
+        cursor+=zsHeight+Math.max(100,n(floor&&floor.height)||500);
+        if(tunnel>0&&bottom<tunnel)return;
         var trayWidth=[200,250,300].includes(Number(floor&&floor.trayWidth))?Number(floor.trayWidth):300;
         var trayThickness=Number(floor&&floor.trayThickness)||.8;
         out.push({name:'Toplama Katı ZS Travers',qty:2*rowCount,spec:traverseType+' · '+decimalText(traverseThickness)+' mm · L '+textNumber(clearWidth)+' mm',unit:'adet'});
-        out.push({name:'Toplama Katı Tava',qty:trayPieceCount(clearWidth,trayWidth)*rowCount,spec:textNumber(trayWidth)+' mm · '+decimalText(trayThickness)+' mm',unit:'adet'});
+        var trayQty=trayPieceCount(clearWidth,trayWidth)*rowCount;
+        if(trayQty)out.push({name:'Toplama Katı Tava',qty:trayQty,spec:textNumber(trayWidth)+' mm · '+decimalText(trayThickness)+' mm',unit:'adet'});
       });
     }
     return out;

@@ -3,14 +3,20 @@ export function inventorySystem(rack) {
   rack = rack || {};
   const d = rack.drawing || rack;
   const aliases = {b2b:'b2b',mr:'mr',mekik:'mekik2',mekik2:'mekik2',shuttle:'mekik2',drive:'drive','drive-in':'drive',drivein:'drive',konsol:'konsol','konsol-kollu':'konsol',cantilever:'konsol'};
-  for (const value of [rack.rafexSystem,rack.__rafexSystem,d.rafexSystem,d.systemType]) {
+  if (d.b2b?.mr || d.plan?.mr || d.b2bLayout?.palletType === 'mr') return 'mr';
+  if (d.layoutView === 'konsol-top' || d.konsol) return 'konsol';
+  for (const value of [rack.rafexSystem,rack.__rafexSystem,d.rafexSystem]) {
+    const key = String(value || '').toLowerCase();
+    if (['mr','drive','drive-in','drivein','konsol','konsol-kollu','cantilever'].includes(key)) return aliases[key];
+  }
+  if (d.b2bLayout || d.b2b) return 'b2b';
+  for (const value of [rack.rafexSystem,rack.__rafexSystem,d.rafexSystem]) {
     const key = String(value || '').toLowerCase();
     if (aliases[key]) return aliases[key];
   }
-  if (d.b2b?.mr || d.plan?.mr || d.b2bLayout?.palletType === 'mr') return 'mr';
-  if (d.layoutView === 'konsol-top' || d.konsol) return 'konsol';
-  if (d.b2bLayout || d.b2b) return 'b2b';
-  if (['fifo','lifo'].includes(String(d.systemType || '').toLowerCase())) return 'mekik2';
+  const systemType = String(d.systemType || '').toLowerCase();
+  if (aliases[systemType]) return aliases[systemType];
+  if (['fifo','lifo'].includes(systemType)) return 'mekik2';
   return 'unknown';
 }
 
