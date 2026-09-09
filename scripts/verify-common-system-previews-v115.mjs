@@ -25,10 +25,14 @@ for(const marker of [
 ])assert(html.includes(marker),'missing '+marker);
 assert(!/function b2bOptions\(d\)[\s\S]{0,500}m2Rack3DOptions/.test(html),'Saved B2B detail must not read the active Common-system form');
 assert(html.includes('function b2bMeasure(d)'),'Saved B2B detail must derive measurements from its own record');
-const context={window:{},document:{},console,JSON,Math,Number,String,Array,Object};
+let customizeOpened=0;
+const context={window:{m2OpenCustomizeModal:()=>{customizeOpened+=1},rafexLoadViewerOnDemandV3:()=>new Promise(()=>{})},document:{},console,JSON,Math,Number,String,Array,Object,Promise};
 context.window.window=context.window;
+context.m2LayoutState={racks:[{id:77,rafexSystem:'b2b',b2b:{levels:4},b2bLayout:{sectionWidth:2730,rowCount:1}}]};
 vm.createContext(context);
 vm.runInContext(runtime,context);
+context.window.m2OpenCustomizeModal(77);
+assert.equal(customizeOpened,1,'B2B Customize modal must open immediately without waiting for the 3D loader');
 const saved={totalWidth:2880,depthMm:2500,sideUprightHeight:6150,levels:5,palletHeight:1300,footType:75,b2b:{levels:5,palletHeight:1300,rowType:'double',rowGap:300},b2bLayout:{sectionWidth:2730,palletCount:3,palletWidth:800,palletDepth:1200,frameDepth:1100,rowCount:2,rowGap:300},b2bViewerOptions:{sectionWidth:2730,levels:5,footHeight:6150}};
 const measure=context.window.rafexB2BDetailMeasureV117(saved);
 const options=context.window.rafexB2BDetailOptionsV117(saved);
