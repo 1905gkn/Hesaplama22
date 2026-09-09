@@ -42,7 +42,10 @@ export function transform(html){
   if(start<0||end<0)throw Error('B2B v108 info options missing');
   html=html.slice(0,start)+'  const b2bOptions=(d)=>m2B2BInfoOptionsV108(d);'+html.slice(end);
   replace("const metaHtml=(entry,sys)=>{const d=entry.drawing||{};","const metaHtml=(entry,sys)=>{const d=sys==='b2b'?m2B2BRecordV108(entry.drawing):entry.drawing||{};");
-  replace("      const drawing=entry.drawing||{};\n      const system=entry.__rafexSystem||'mekik2';","      const system=entry.__rafexSystem||'mekik2';\n      const drawing=system==='b2b'&&entry.drawing?.b2b?m2B2BRecordV108(entry.drawing):entry.drawing||{};");
+  const catalogDrawingAnchor=html.includes("      const drawing=entry.__rafexSnapshot||entry.drawing||{};\n      const system=entry.__rafexSystem||'mekik2';")
+    ? "      const drawing=entry.__rafexSnapshot||entry.drawing||{};\n      const system=entry.__rafexSystem||'mekik2';"
+    : "      const drawing=entry.drawing||{};\n      const system=entry.__rafexSystem||'mekik2';";
+  replace(catalogDrawingAnchor,"      const system=entry.__rafexSystem||'mekik2';\n      const rawDrawing=entry.__rafexSnapshot||entry.drawing||{};\n      const drawing=system==='b2b'&&rawDrawing?.b2b?m2B2BRecordV108(rawDrawing):rawDrawing;");
   replace("      const create=window.RafexB2BViewer?.createDetached;if(typeof create!=='function')", "      if(!window.RafexB2BViewer?.createDetached)await window.rafexLoadViewerOnDemandV3?.('b2b');\n      if(token!==activeInfoToken)return;\n      const create=window.RafexB2BViewer?.createDetached;if(typeof create!=='function')");
   for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))if(m[1].includes('m2B2BRecordV108'))new vm.Script(m[1]);
   return html;

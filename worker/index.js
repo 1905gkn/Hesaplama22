@@ -709,6 +709,9 @@ async function ensureDb(db) {
       "CREATE TABLE IF NOT EXISTS mr_rack_types (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, type_no INTEGER NOT NULL CHECK(type_no BETWEEN 1 AND 26), name TEXT NOT NULL, drawing TEXT NOT NULL, created_at TEXT NOT NULL, UNIQUE(user_id,type_no), FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)",
     ),
     db.prepare(
+      "CREATE TABLE IF NOT EXISTS rack_type_records (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, system TEXT NOT NULL CHECK(system IN ('b2b','mr','mekik2','drive','konsol')), type_no INTEGER NOT NULL, name TEXT NOT NULL, drawing TEXT NOT NULL, log_id TEXT NOT NULL, legacy_source TEXT, legacy_id INTEGER, created_at TEXT NOT NULL, UNIQUE(user_id,system,type_no), UNIQUE(user_id,log_id), UNIQUE(user_id,legacy_source,legacy_id), FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)",
+    ),
+    db.prepare(
       "CREATE TABLE IF NOT EXISTS app_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)",
     ),
     db.prepare(
@@ -729,6 +732,9 @@ async function ensureDb(db) {
     db.prepare(
       "CREATE INDEX IF NOT EXISTS mr_rack_types_user_idx ON mr_rack_types(user_id,type_no)",
     ),
+    db.prepare(
+      "CREATE INDEX IF NOT EXISTS rack_type_records_user_idx ON rack_type_records(user_id,system,type_no)",
+    ),
   ]);
   const userColumns = await db.prepare("PRAGMA table_info(users)").all();
   if (!userColumns.results.some((column) => column.name === "full_name")) {
@@ -742,6 +748,15 @@ async function ensureDb(db) {
     await db.batch([
       db.prepare("DELETE FROM mekik2_rack_types"),
       db.prepare("INSERT INTO app_settings(key,value) VALUES('mekik2_types_reset_v101',?)").bind(now()),
+    ]);
+  }
+  const rackRegistryMigration = await db.prepare("SELECT value FROM app_settings WHERE key='rack_type_records_migrated_v116'").first();
+  if (!rackRegistryMigration) {
+    await db.batch([
+      db.prepare("INSERT OR IGNORE INTO rack_type_records(user_id,system,type_no,name,drawing,log_id,legacy_source,legacy_id,created_at) SELECT user_id,CASE WHEN json_extract(drawing,'$.b2b.mr')=1 OR json_extract(drawing,'$.plan.mr')=1 OR lower(COALESCE(json_extract(drawing,'$.systemType'),''))='mr' THEN 'mr' ELSE 'b2b' END,type_no,name,drawing,'LEGACY-B2B-'||id||'-'||replace(substr(created_at,12,8),':',''),'b2b',id,created_at FROM b2b_rack_types"),
+      db.prepare("INSERT OR IGNORE INTO rack_type_records(user_id,system,type_no,name,drawing,log_id,legacy_source,legacy_id,created_at) SELECT user_id,CASE WHEN lower(COALESCE(json_extract(drawing,'$.rafexSystem'),''))='drive' THEN 'drive' WHEN lower(COALESCE(json_extract(drawing,'$.rafexSystem'),'')) IN ('konsol','konsol-kollu','cantilever') THEN 'konsol' ELSE 'mekik2' END,type_no,name,drawing,'LEGACY-MEKIK-'||id||'-'||replace(substr(created_at,12,8),':',''),'mekik2',id,created_at FROM mekik2_rack_types"),
+      db.prepare("INSERT OR IGNORE INTO rack_type_records(user_id,system,type_no,name,drawing,log_id,legacy_source,legacy_id,created_at) SELECT user_id,'mr',type_no,name,drawing,'LEGACY-MR-'||id||'-'||replace(substr(created_at,12,8),':',''),'mr',id,created_at FROM mr_rack_types"),
+      db.prepare("INSERT INTO app_settings(key,value) VALUES('rack_type_records_migrated_v116',?)").bind(now()),
     ]);
   }
 }
@@ -771,6 +786,35 @@ async function body(request) {
   } catch {
     return {};
   }
+}
+function rackSystem(drawing, fallback = "mekik2") {
+  const explicit = String(drawing?.rafexSystem || drawing?.systemType || "").toLowerCase();
+  if (drawing?.b2b?.mr === true || drawing?.plan?.mr === true || explicit === "mr") return "mr";
+  if (drawing?.konsol || ["konsol", "konsol-kollu", "cantilever"].includes(explicit)) return "konsol";
+  if (["drive", "drive-in", "drivein"].includes(explicit)) return "drive";
+  if (drawing?.b2b || drawing?.b2bLayout || explicit === "b2b") return "b2b";
+  return fallback === "mekik" ? "mekik2" : fallback;
+}
+function rackLogId(system) {
+  const stamp = new Date().toISOString().replace(/[-:TZ.]/g, "");
+  const day = stamp.slice(0, 8), time = stamp.slice(8, 14);
+  return `RX-${String(system).toUpperCase()}-${day}-${crypto.randomUUID().slice(0, 6).toUpperCase()}-${time}`;
+}
+function rackRecord(row) {
+  return { id:row.id, system:row.system, typeNo:row.type_no, name:row.name, drawing:JSON.parse(row.drawing), logId:row.log_id, createdAt:row.created_at };
+}
+async function createRackRecord(db, userId, drawing, fallback = "mekik2") {
+  if (!drawing || !drawing.plan || !Array.isArray(drawing.plan.feet) || !Array.isArray(drawing.plan.braces) || !Number(drawing.totalWidth) || !Number(drawing.railLength))
+    throw new Error("Kaydedilecek geçerli bir raf hesabı bulunamadı.");
+  const serialized = JSON.stringify(drawing);
+  if (serialized.length > 250000) throw new Error("Raf tipi kaydı çok büyük.");
+  const system = rackSystem(drawing, fallback);
+  const next = await db.prepare("SELECT COALESCE(MAX(type_no),0)+1 AS no FROM rack_type_records WHERE user_id=? AND system=?").bind(userId, system).first();
+  const typeNo = Number(next.no);
+  const name = ["b2b", "mr"].includes(system) ? b2bTypeLetter(typeNo) : `Tip ${typeNo}`;
+  const createdAt = now(), logId = rackLogId(system);
+  const result = await db.prepare("INSERT INTO rack_type_records(user_id,system,type_no,name,drawing,log_id,created_at) VALUES(?,?,?,?,?,?,?)").bind(userId,system,typeNo,name,serialized,logId,createdAt).run();
+  return { id:result.meta.last_row_id, system, typeNo, name, drawing:JSON.parse(serialized), logId, createdAt };
 }
 const sessionCookie = (token) =>
   `rafex_session=${encodeURIComponent(token)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`;
@@ -988,112 +1032,82 @@ async function api(request, env, path) {
   if (path === "/api/me" && request.method === "GET") return json({ user });
   if (path === "/api/dashboard" && request.method === "GET")
     return json(await dashboardData());
+  if (path === "/api/rack-types" && request.method === "GET") {
+    const rows = await db.prepare("SELECT id,system,type_no,name,drawing,log_id,created_at FROM rack_type_records WHERE user_id=? ORDER BY created_at,id").bind(user.id).all();
+    return json({ types:rows.results.map(rackRecord) });
+  }
+  if (path === "/api/rack-types" && request.method === "POST") {
+    const x = await body(request);
+    try { return json(await createRackRecord(db,user.id,x.drawing,x.system || "mekik2"),201); }
+    catch (error) { return json({ error:error?.message || "Raf tipi kaydedilemedi." },String(error?.message||"").includes("çok büyük")?413:400); }
+  }
+  if (path === "/api/rack-types" && request.method === "DELETE") {
+    const result = await db.prepare("DELETE FROM rack_type_records WHERE user_id=?").bind(user.id).run();
+    return json({ ok:true, deleted:Number(result.meta.changes || 0) });
+  }
+  const rackTypeMatch = path.match(/^\/api\/rack-types\/(\d+)$/);
+  if (rackTypeMatch && request.method === "DELETE") {
+    const result = await db.prepare("DELETE FROM rack_type_records WHERE id=? AND user_id=?").bind(Number(rackTypeMatch[1]),user.id).run();
+    if (!Number(result.meta.changes)) return json({ error:"Raf tipi kaydı bulunamadı." },404);
+    return json({ ok:true });
+  }
   if (path === "/api/mekik2-types" && request.method === "DELETE") {
-    const result = await db
-      .prepare("DELETE FROM mekik2_rack_types WHERE user_id=?")
-      .bind(user.id)
-      .run();
+    const result = await db.prepare("DELETE FROM rack_type_records WHERE user_id=? AND system IN ('mekik2','drive','konsol')").bind(user.id).run();
     return json({ ok: true, deleted: Number(result.meta.changes || 0) });
   }
   if (path === "/api/mekik2-types" && request.method === "GET") {
-    const rows = await db
-      .prepare("SELECT id,type_no,name,drawing,created_at FROM mekik2_rack_types WHERE user_id=? ORDER BY type_no")
-      .bind(user.id)
-      .all();
-    return json({
-      types: rows.results.map((row) => ({
-        id: row.id,
-        typeNo: row.type_no,
-        name: row.name,
-        drawing: JSON.parse(row.drawing),
-        createdAt: row.created_at,
-      })),
-    });
+    const rows = await db.prepare("SELECT id,system,type_no,name,drawing,log_id,created_at FROM rack_type_records WHERE user_id=? AND system IN ('mekik2','drive','konsol') ORDER BY created_at,id").bind(user.id).all();
+    return json({ types:rows.results.map(rackRecord) });
   }
   if (path === "/api/mekik2-types" && request.method === "POST") {
-    const x = await body(request), drawing = x.drawing;
-    if (
-      !drawing ||
-      !drawing.plan ||
-      !Array.isArray(drawing.plan.feet) ||
-      !Array.isArray(drawing.plan.braces) ||
-      !Number(drawing.totalWidth) ||
-      !Number(drawing.railLength)
-    )
-      return json({ error: "Kaydedilecek geçerli bir raf hesabı bulunamadı." }, 400);
-    const serialized = JSON.stringify(drawing);
-    if (serialized.length > 250000)
-      return json({ error: "Raf tipi kaydı çok büyük." }, 413);
-    const next = await db
-      .prepare("SELECT COALESCE(MAX(type_no),0)+1 AS no FROM mekik2_rack_types WHERE user_id=?")
-      .bind(user.id)
-      .first();
-    const typeNo = Number(next.no), name = `Tip ${typeNo}`, createdAt = now();
-    const result = await db
-      .prepare("INSERT INTO mekik2_rack_types(user_id,type_no,name,drawing,created_at) VALUES(?,?,?,?,?)")
-      .bind(user.id, typeNo, name, serialized, createdAt)
-      .run();
-    return json({ id: result.meta.last_row_id, typeNo, name, drawing, createdAt }, 201);
+    const x = await body(request);
+    try { return json(await createRackRecord(db,user.id,x.drawing,"mekik2"),201); }
+    catch (error) { return json({ error:error?.message || "Raf tipi kaydedilemedi." },String(error?.message||"").includes("çok büyük")?413:400); }
   }
   const mekikTypeMatch = path.match(/^\/api\/mekik2-types\/(\d+)$/);
   if (mekikTypeMatch && request.method === "DELETE") {
     const result = await db
-      .prepare("DELETE FROM mekik2_rack_types WHERE id=? AND user_id=?")
+      .prepare("DELETE FROM rack_type_records WHERE id=? AND user_id=? AND system IN ('mekik2','drive','konsol')")
       .bind(Number(mekikTypeMatch[1]), user.id)
       .run();
     if (!Number(result.meta.changes)) return json({ error: "Raf tipi bulunamadı." }, 404);
     return json({ ok: true });
   }
   if (path === "/api/b2b-types" && request.method === "DELETE") {
-    const result = await db.prepare("DELETE FROM b2b_rack_types WHERE user_id=?").bind(user.id).run();
+    const result = await db.prepare("DELETE FROM rack_type_records WHERE user_id=? AND system IN ('b2b','mr')").bind(user.id).run();
     return json({ ok: true, deleted: Number(result.meta.changes || 0) });
   }
   if (path === "/api/b2b-types" && request.method === "GET") {
-    const rows = await db.prepare("SELECT id,type_no,name,drawing,created_at FROM b2b_rack_types WHERE user_id=? ORDER BY type_no").bind(user.id).all();
-    return json({ types: rows.results.map((row) => ({ id:row.id, typeNo:row.type_no, name:b2bTypeLetter(row.type_no), drawing:JSON.parse(row.drawing), createdAt:row.created_at })) });
+    const rows = await db.prepare("SELECT id,system,type_no,name,drawing,log_id,created_at FROM rack_type_records WHERE user_id=? AND system IN ('b2b','mr') ORDER BY created_at,id").bind(user.id).all();
+    return json({ types:rows.results.map(rackRecord) });
   }
   if (path === "/api/b2b-types" && request.method === "POST") {
-    const x = await body(request), drawing = x.drawing;
-    if (!drawing || !drawing.plan || !Array.isArray(drawing.plan.feet) || !Array.isArray(drawing.plan.braces) || !Number(drawing.totalWidth) || !Number(drawing.railLength))
-      return json({ error: "Kaydedilecek geçerli bir B2B raf hesabı bulunamadı." }, 400);
-    const serialized = JSON.stringify(drawing);
-    if (serialized.length > 250000) return json({ error: "B2B raf tipi kaydı çok büyük." }, 413);
-    const next = await db.prepare("SELECT COALESCE(MAX(type_no),0)+1 AS no FROM b2b_rack_types WHERE user_id=?").bind(user.id).first();
-    const typeNo = Number(next.no), name = b2bTypeLetter(typeNo), createdAt = now();
-    const result = await db.prepare("INSERT INTO b2b_rack_types(user_id,type_no,name,drawing,created_at) VALUES(?,?,?,?,?)").bind(user.id,typeNo,name,serialized,createdAt).run();
-    return json({ id:result.meta.last_row_id, typeNo, name, drawing, createdAt }, 201);
+    const x = await body(request);
+    try { return json(await createRackRecord(db,user.id,x.drawing,"b2b"),201); }
+    catch (error) { return json({ error:error?.message || "B2B raf tipi kaydedilemedi." },String(error?.message||"").includes("çok büyük")?413:400); }
   }
   const b2bTypeMatch = path.match(/^\/api\/b2b-types\/(\d+)$/);
   if (b2bTypeMatch && request.method === "DELETE") {
-    const result = await db.prepare("DELETE FROM b2b_rack_types WHERE id=? AND user_id=?").bind(Number(b2bTypeMatch[1]),user.id).run();
+    const result = await db.prepare("DELETE FROM rack_type_records WHERE id=? AND user_id=? AND system IN ('b2b','mr')").bind(Number(b2bTypeMatch[1]),user.id).run();
     if (!Number(result.meta.changes)) return json({ error: "B2B raf tipi bulunamadı." }, 404);
     return json({ ok:true });
   }
   if (path === "/api/mr-types" && request.method === "DELETE") {
-    const result = await db.prepare("DELETE FROM mr_rack_types WHERE user_id=?").bind(user.id).run();
+    const result = await db.prepare("DELETE FROM rack_type_records WHERE user_id=? AND system='mr'").bind(user.id).run();
     return json({ ok:true, deleted:Number(result.meta.changes || 0) });
   }
   if (path === "/api/mr-types" && request.method === "GET") {
-    const rows = await db.prepare("SELECT id,type_no,name,drawing,created_at FROM mr_rack_types WHERE user_id=? ORDER BY type_no").bind(user.id).all();
-    return json({ types:rows.results.map((row) => ({ id:row.id, typeNo:row.type_no, name:b2bTypeLetter(row.type_no), drawing:JSON.parse(row.drawing), createdAt:row.created_at })) });
+    const rows = await db.prepare("SELECT id,system,type_no,name,drawing,log_id,created_at FROM rack_type_records WHERE user_id=? AND system='mr' ORDER BY created_at,id").bind(user.id).all();
+    return json({ types:rows.results.map(rackRecord) });
   }
   if (path === "/api/mr-types" && request.method === "POST") {
-    const x = await body(request), drawing = x.drawing;
-    if (!drawing?.b2b?.mr || !drawing.plan || !Array.isArray(drawing.plan.feet) || !Array.isArray(drawing.plan.braces) || !Number(drawing.totalWidth) || !Number(drawing.railLength))
-      return json({ error:"Kaydedilecek geçerli bir MR raf hesabı bulunamadı." }, 400);
-    const serialized = JSON.stringify(drawing);
-    if (serialized.length > 250000) return json({ error:"MR raf tipi kaydı çok büyük." }, 413);
-    const usedRows = await db.prepare("SELECT type_no FROM mr_rack_types WHERE user_id=? ORDER BY type_no").bind(user.id).all();
-    const used = new Set(usedRows.results.map((row) => Number(row.type_no)));
-    let typeNo = 1; while (typeNo <= 26 && used.has(typeNo)) typeNo += 1;
-    if (typeNo > 26) return json({ error:"A–Z arasındaki 26 MR bloğunun tamamı kayıtlı." }, 409);
-    const name = b2bTypeLetter(typeNo), createdAt = now();
-    const result = await db.prepare("INSERT INTO mr_rack_types(user_id,type_no,name,drawing,created_at) VALUES(?,?,?,?,?)").bind(user.id,typeNo,name,serialized,createdAt).run();
-    return json({ id:result.meta.last_row_id, typeNo, name, drawing, createdAt }, 201);
+    const x = await body(request);
+    try { return json(await createRackRecord(db,user.id,x.drawing,"mr"),201); }
+    catch (error) { return json({ error:error?.message || "MR raf tipi kaydedilemedi." },String(error?.message||"").includes("çok büyük")?413:400); }
   }
   const mrTypeMatch = path.match(/^\/api\/mr-types\/(\d+)$/);
   if (mrTypeMatch && request.method === "DELETE") {
-    const result = await db.prepare("DELETE FROM mr_rack_types WHERE id=? AND user_id=?").bind(Number(mrTypeMatch[1]),user.id).run();
+    const result = await db.prepare("DELETE FROM rack_type_records WHERE id=? AND user_id=? AND system='mr'").bind(Number(mrTypeMatch[1]),user.id).run();
     if (!Number(result.meta.changes)) return json({ error:"MR raf tipi bulunamadı." }, 404);
     return json({ ok:true });
   }
