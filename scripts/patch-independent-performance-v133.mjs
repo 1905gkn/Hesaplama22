@@ -4,11 +4,14 @@ import {independentProject} from './independent-project-v133.mjs';
 export function transform(html) {
   if (html.includes('data-rafex-independent-performance="v133"')) return html;
   const replace = (from, to) => { if (!html.includes(from)) throw new Error('v133 anchor missing: ' + from.slice(0,110)); html = html.replace(from, to); };
+  replace('m2ProjectRecords = (result.projects || []).filter((project) => project.module === m2ActiveModule); m2RenderProjects();', `const commonProjectsV133=document.querySelector('#nav button.active[data-page]')?.dataset.page==='free';
+          m2ProjectRecords = (result.projects || []).filter((project) => commonProjectsV133 ? Boolean(project.payload?.layout) : project.module === m2ActiveModule); m2RenderProjects();
+          if(commonProjectsV133){const title=$('m2ProjectList')?.previousElementSibling;if(title)title.textContent='Kayıtlı Projeler · Tüm Sistemler';}`);
   replace('      async function m2SaveProject() {', '      async function m2SaveProject() {\n        const independentV133=arguments[0]===true; if(window.rafexProjectSavingV133)return;');
   replace('const button = $("m2ProjectSaveButton"); if (button) button.disabled = true;', 'const button = $("m2ProjectSaveButton"); if (button) button.disabled = true; window.rafexProjectSavingV133=true;');
   const request = '{ projectName, module: commonLayoutSaveV106?"ortak":m2ActiveModule, payload: { version: 1, ...(commonLayoutSaveV106?{module:"ortak",rafexCommonDrawing:true}:{}), drawing: projectDrawingV106, rackTypes: m2SavedRackTypes, layout } }';
   replace('          const result = await req("/api/projects", { method: "POST", body: JSON.stringify('+request+') });',
-    '          let documentV133='+request+';\n          if(independentV133)documentV133=window.rafexIndependentProjectV133(documentV133,crypto.randomUUID(),Date.now());\n          const result = await req("/api/projects", { method: "POST", body: JSON.stringify(documentV133) });\n          if(independentV133){window.rafexOpenIndependentV133(documentV133);showProjectSavedNotice(result.serialNo,projectName);try{await loadProjects()}catch(_){}return;}');
+    '          let documentV133='+request+';\n          if(independentV133)documentV133=window.rafexIndependentProjectV133(documentV133,crypto.randomUUID(),Date.now());\n          const result = await req("/api/projects", { method: "POST", body: JSON.stringify(documentV133) });\n          if(independentV133){window.rafexOpenIndependentV133(documentV133);showProjectSavedNotice(result.serialNo,projectName);try{await m2RefreshProjects();await loadProjects()}catch(_){}return;}');
   replace('finally { if (button) button.disabled = false; }\n      }\n      function m2ProjectPlacementError', 'finally { window.rafexProjectSavingV133=false; if (button) button.disabled = false; }\n      }\n      function m2ProjectPlacementError');
   // Keep the project catalog authoritative when the global registry refreshes,
   // including requests that were already in flight when the project opened.

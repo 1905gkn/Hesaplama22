@@ -31,3 +31,11 @@ for(const scenario of ['independent','ordinary','network-error','invalid-placeme
   else{assert.equal(opened.length,0);assert.equal(calls.length,0);assert(ui.m2ProjectSaveMsg.textContent.startsWith('Kaydedilemedi:'));}
 }
 console.log('PASS v133: independent IDs, joins, braces, symbols, dimensions, immutable source and inline syntax');
+const refreshCode=html.slice(html.indexOf('      async function m2RefreshProjects() {'),html.indexOf('      async function m2SaveProject() {'));
+for(const active of ['free','b2b','mekik2']){
+  const records=['b2b','mekik2','mr','drive','konsol','ortak'].map((module,id)=>({id,module,payload:{layout:{racks:[]}}}));
+  const ctx={document:{querySelector:()=>({dataset:{page:active}})},$:()=>null,m2ActiveModule:active==='free'?'mekik2':active,m2ProjectRecords:[],req:async()=>({projects:records}),m2RenderProjects(){}};
+  vm.createContext(ctx);vm.runInContext(refreshCode,ctx);await ctx.m2RefreshProjects();
+  assert.equal(ctx.m2ProjectRecords.length,active==='free'?6:1,'common project list must include all saved drawing systems');
+}
+console.log('PASS v133: shared project history includes independently saved projects regardless of active editor');
