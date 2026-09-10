@@ -22,5 +22,6 @@ assert.equal(context.b2bReadInputState().firstFloorGap,600);
 assert.equal(context.b2bReadInputState().manualLevelSpecs[1].weight,3000);
 assert.equal(context.b2b3DOptions().traverseBottoms[1],2100);
 assert.equal(context.b2bFootCalculationInputs().footLoad,5500);
+assert.equal(context.b2bFootCalculationInputs().loadedPallets,6);
 assert.equal(context.b2bVerticalLayout().automaticFootHeight,2900);
 console.log('PASS: fixed tunnel levels, boundary, filtered accessories, first surviving tray, manual distances and individual beams.');
