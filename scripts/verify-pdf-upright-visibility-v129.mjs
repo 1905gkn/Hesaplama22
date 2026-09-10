@@ -14,6 +14,7 @@ for (const required of [
   ".m2-b2b-plan-upright:not(.rafex-profile-merge-source-v61):not(.rafex-pdf-upright-overlay-v129)",
   "overlay.style.setProperty('display','inline','important')",
   "overlay.style.setProperty('stroke-width','3.8px','important')",
+  "overlay.setAttribute('class','rafex-pdf-upright-overlay-v129')",
   "original.parentNode.appendChild(overlay)",
   "template.content.querySelectorAll('.m2-corporate-floor svg').forEach(enhance)",
 ]) assert.ok(html.includes(required), `Eksik PDF ayak görünürlük işareti: ${required}`);

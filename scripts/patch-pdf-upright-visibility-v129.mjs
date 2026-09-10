@@ -39,7 +39,7 @@ const runtime = String.raw`
     var originals=Array.from(svg.querySelectorAll('.m2-b2b-plan-upright:not(.rafex-profile-merge-source-v61):not(.rafex-pdf-upright-overlay-v129)'));
     originals.forEach(function(original){
       var overlay=original.cloneNode(true);
-      overlay.classList.add('rafex-pdf-upright-overlay-v129');
+      overlay.setAttribute('class','rafex-pdf-upright-overlay-v129');
       overlay.setAttribute('aria-hidden','true');
       overlay.style.setProperty('display','inline','important');
       overlay.style.setProperty('visibility','visible','important');
