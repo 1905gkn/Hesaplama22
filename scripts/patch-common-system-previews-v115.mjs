@@ -1,3 +1,4 @@
+import {shortcutRuntime} from './common-shortcuts-v122.mjs';
 import {manualRuntime} from './b2b-manual-height-v121.mjs';
 import fs from 'node:fs';
 import {runtime as collectionRuntime} from './b2b-customize-collection-v119.mjs';
@@ -100,7 +101,7 @@ html=html.replace('function m2B2BVisibleTraverseLevels(drawing){','function m2B2
 html=html.replace('function m2B2BCalculatedFootHeight(rack) {','function m2B2BCalculatedFootHeight(rack) {if(rack?.b2b?.manualLevelSpecs?.length&&window.rafexManualOptionsV121){const o=window.rafexManualOptionsV121({levels:rack.levels,palletHeight:rack.palletHeight,lastPalletOverlap:rack.b2b.lastPalletOverlap},rack.b2b.manualLevelSpecs);return rack.b2b.footHeightMode==="manual"?rack.b2b.footHeight:b2bHeightV109(o).automatic;}');
 close=html.lastIndexOf('</body>');
 if(close<0)throw new Error('Common previews v115: body close missing');
-html=html.slice(0,close)+manualRuntime+collectionRuntime+runtime+'\n'+html.slice(close);
+html=html.slice(0,close)+shortcutRuntime+manualRuntime+collectionRuntime+runtime+'\n'+html.slice(close);
 for(const required of ['data-rafex-common-system-previews="v115"','rafexLoadViewerOnDemandV3(sys)','RafexMRViewer?.createDetached','RafexKonsolViewer?.createDetached','ÖNDEN GÖRÜNÜŞ','YANDAN GÖRÜNÜŞ','#m2SelectedRackDetailV50{display:none!important}','rafexB2BDetailOptionsV117','rafexMountB2BCustomizeViewerV118'])if(!html.includes(required))throw new Error('Common previews v115 missing: '+required);
 const encoded=Buffer.from(html).toString('base64');
 source=source.slice(0,match.index)+match[0].replace(match[2],encoded)+source.slice(match.index+match[0].length);

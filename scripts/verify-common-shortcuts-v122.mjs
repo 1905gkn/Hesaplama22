@@ -1,0 +1,7 @@
+import assert from 'node:assert/strict';import vm from 'node:vm';import {shortcutRuntime} from './common-shortcuts-v122.mjs';
+let handler,clicked=[],editing=false,modal=false,active=false;
+const context={window:{addEventListener:(type,fn)=>handler=fn},document:{getElementById:()=>({getClientRects:()=>[1]}),querySelectorAll:()=>modal?[{getClientRects:()=>[1]}]:[],querySelector:sel=>({getClientRects:()=>[1],classList:{contains:()=>active},click:()=>clicked.push(sel)})}};
+vm.runInNewContext(shortcutRuntime.match(/<script[^>]*>([\s\S]*)<\/script>/)[1],context);
+function press(key,ctrlKey=false){let prevented=false;handler({key,ctrlKey,target:{closest:()=>editing},preventDefault:()=>prevented=true,stopImmediatePropagation:()=>{}});return prevented}
+for(const [key,ctrl,selector]of [['s',true,'#m2SelectRackButton'],['o',false,'#m2CustomizeRackButton'],['d',true,'button[onclick="m2RotateRack()"]'],['z',true,'#m2UndoButton'],['v',true,'button[onclick="m2DuplicateRack()"]']]){assert.equal(press(key,ctrl),true);assert.equal(clicked.at(-1),selector)}
+editing=true;assert.equal(press('v',true),false);assert.equal(press('z',true),false);editing=false;modal=true;assert.equal(press('d',true),false);modal=false;active=true;const count=clicked.length;press('s',true);press('o');assert.equal(clicked.length,count);console.log('PASS: five shortcuts, text editing, modal protection, activation remains active');
