@@ -27,6 +27,13 @@ export const tunnelRuntime=String.raw`
    options=tunnelPlanV120(options,boundsV120||{});lastPlanV120=options;
    window.m2RenderCustomizeRackAccessories?.();
    const blocked=options.tunnelHeight>0;
+   const sourceCount=document.getElementById('m2CustomizeLevels'),sourceLabel=sourceCount?.closest('label');
+   if(sourceLabel){
+     let visibleLabel=document.getElementById('m2CustomizeVisibleLevelsLabelV123');
+     if(!visibleLabel){visibleLabel=document.createElement('label');visibleLabel.id='m2CustomizeVisibleLevelsLabelV123';visibleLabel.textContent='Kat sayısı';const input=document.createElement('input');input.id='m2CustomizeVisibleLevelsV123';input.type='number';input.readOnly=true;input.title='Tünel üstünde kalan kat sayısı';visibleLabel.appendChild(input);sourceLabel.after(visibleLabel)}
+     sourceLabel.style.display=blocked?'none':'';visibleLabel.style.display=blocked?'':'none';
+     document.getElementById('m2CustomizeVisibleLevelsV123').value=String(options.visibleAccessoryLevels.length);
+   }
    const host=document.getElementById('m2CustomizeCollectionV119');if(host)host.hidden=blocked;
    const picker=document.querySelector('[data-collection-picker-v119]');if(picker)picker.hidden=blocked;
    const h=options.footHeight;
