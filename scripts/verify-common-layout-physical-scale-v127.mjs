@@ -17,6 +17,8 @@ for (const required of [
   "showPallets:state.showPallets!==false",
   "else if(rack.b2b?.showPallets!==false)",
   "showPallets:b.showPallets!==false",
+  'rx="0" class="m2-b2b-plan-upright"',
+  'rx="0" class="m2-b2b-plan-pallet"',
 ]) assert.ok(html.includes(required), `Final HTML missing physical/per-type rule: ${required}`);
 
 function geometry(areaWidth, areaHeight) {

@@ -18,10 +18,11 @@ const runtime = String.raw`
 #page .m2-layout-zoom-floating #m2FocusSelectedRackV126{width:auto!important;padding:0 10px!important;background:#174a35!important;color:#fff!important;border-color:#174a35!important;font-size:9px!important}
 #page #m2LayoutSvg{shape-rendering:geometricPrecision;text-rendering:geometricPrecision}
 #page #m2LayoutSvg [data-rack]>.m2-layout-rack{fill-opacity:.055!important;stroke-opacity:1!important;stroke-width:2.25px!important;vector-effect:non-scaling-stroke;shape-rendering:geometricPrecision}
-#page #m2LayoutSvg [data-rack] .m2-b2b-plan-frame{fill:#e2e9e5!important;fill-opacity:1!important;stroke:#2e4149!important;stroke-width:1.6px!important;opacity:1!important;vector-effect:non-scaling-stroke;shape-rendering:geometricPrecision}
+#page #m2LayoutSvg [data-rack] .m2-b2b-plan-frame{fill:#e2e9e5!important;fill-opacity:1!important;stroke:#263b44!important;stroke-width:1.75px!important;opacity:1!important;vector-effect:non-scaling-stroke;shape-rendering:crispEdges;rx:0!important;ry:0!important}
 #page #m2LayoutSvg [data-rack] .m2-b2b-plan-beam{stroke:#d79b00!important;stroke-width:2.7px!important;opacity:1!important;vector-effect:non-scaling-stroke;shape-rendering:geometricPrecision}
-#page #m2LayoutSvg [data-rack] .m2-b2b-plan-upright{opacity:1!important;vector-effect:non-scaling-stroke;shape-rendering:geometricPrecision}
-#page #m2LayoutSvg [data-rack] .m2-b2b-plan-pallet{fill:#c78330!important;fill-opacity:1!important;stroke:#58300d!important;stroke-width:1.35px!important;opacity:1!important;vector-effect:non-scaling-stroke;shape-rendering:geometricPrecision}
+#page #m2LayoutSvg [data-rack] .m2-b2b-plan-upright{fill:#728994!important;stroke:#1c3440!important;stroke-width:2.7px!important;opacity:1!important;vector-effect:non-scaling-stroke;shape-rendering:crispEdges;rx:0!important;ry:0!important}
+#page #m2LayoutSvg [data-rack] .m2-b2b-plan-upright.rafex-ral5010-upright{fill:#00679d!important;stroke:#00283d!important;stroke-width:3px!important}
+#page #m2LayoutSvg [data-rack] .m2-b2b-plan-pallet{fill:#c78330!important;fill-opacity:1!important;stroke:#4b2809!important;stroke-width:1.5px!important;opacity:1!important;vector-effect:non-scaling-stroke;shape-rendering:crispEdges;rx:0!important;ry:0!important}
 #page #m2LayoutSvg [data-rack] .m2-b2b-plan-pallet-line{stroke:#704018!important;stroke-width:.95px!important;opacity:1!important;vector-effect:non-scaling-stroke;shape-rendering:geometricPrecision}
 #page #m2LayoutSvg [data-rack] .m2-rack-nameplate{fill:#fff!important;fill-opacity:.94!important;stroke-opacity:.9!important;stroke-width:1.15px!important;vector-effect:non-scaling-stroke}
 #page #m2LayoutSvg [data-rack] .m2-rack-name,#page #m2LayoutSvg [data-rack] .m2-rack-pallet-count{fill-opacity:1!important;stroke-opacity:1!important;opacity:1!important;vector-effect:non-scaling-stroke;text-rendering:geometricPrecision}
