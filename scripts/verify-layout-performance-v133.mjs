@@ -114,10 +114,11 @@ try{
     m2SavedRackTypes=structuredClone(copy.payload.rackTypes);
     const oldTypes=JSON.stringify(m2SavedRackTypes),oldRecords=JSON.stringify(m2ProjectRecords),oldIdentity=window.rafexProjectIdentityV133.uuid;
     m2UserNotes=[{id:3,text:'old note'}];m2DimensionOffsets={old:{x:10,y:20}};m2ReportImages[0]='old image';m2ZoomLayout(.2);
+    (document.getElementById('rafexAuthorityProjectName')||document.getElementById('m2ProjectName')).value='New named project';
     document.getElementById('rafexNewProjectV133').click();
     const newProjectEmpty=!m2LayoutState.racks.length&&!m2LayoutState.points.length&&!m2LayoutSymbols.length&&!m2UserNotes.length&&!Object.keys(m2DimensionOffsets).length&&!m2UndoHistory.length&&m2LayoutState.scale===.04;
     const newIdentity=window.rafexProjectIdentityV133.uuid!==oldIdentity&&m2SavedRackTypes[0].id!==JSON.parse(oldTypes)[0].id;
-    const newProjectUi=document.querySelectorAll('#m2LayoutContent [data-rack]').length===0&&!document.getElementById('m2ProjectName').value&&document.getElementById('m2LayoutSvg').getAttribute('viewBox')==='0 0 1000 650';
+    const newProjectUi=document.querySelectorAll('#m2LayoutContent [data-rack]').length===0&&document.getElementById('m2ProjectName').value==='New named project'&&document.getElementById('m2LayoutSvg').getAttribute('viewBox')==='0 0 1000 650';
     const oldRecordsIntact=JSON.stringify(m2ProjectRecords)===oldRecords&&JSON.stringify(source)===before;
     const reportCleared=m2ReportImages.every(image=>image===null)&&!document.querySelector('#m2CorporatePreview svg');
     return {undo,rotated,duplicated,dragged,dragRetained,dragUndo,links,undoEmpty,ownedTypes,sourceIntact,reopen,pdfPaths,commonOwned,refreshOwned,imported,noDuplicateImport,commonLog,oneDeleted,localDelete,newProjectEmpty,newIdentity,newProjectUi,oldRecordsIntact,reportCleared,button:!!document.getElementById('rafexNewProjectV133')};

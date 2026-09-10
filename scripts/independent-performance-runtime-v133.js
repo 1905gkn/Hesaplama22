@@ -49,9 +49,17 @@
   };
   window.m2RenderSavedRackTypes=m2RenderSavedRackTypes;
   m2ApplyProjectRecord=function(project,asCopy){
+    if(document.querySelector('#nav button.active[data-page]')?.dataset.page==='free'||project?.module==='ortak'||project?.payload?.rafexCommonDrawing){
+      project=structuredClone(project);
+      if(asCopy||!project.payload.projectIdentity){
+        const uuid=crypto.randomUUID();
+        project.payload.projectIdentity={uuid,independent:true,createdAt:new Date().toISOString(),displayNumber:asCopy||!project.serial_no?'P-'+uuid.replaceAll('-','').slice(0,12).toUpperCase():'K-'+String(project.serial_no).padStart(4,'0')};
+      }
+    }
     const isolated=project?.payload?.projectIdentity?.independent;
     window.rafexProjectIdentityV133=isolated?structuredClone(project.payload.projectIdentity):null;
     window.rafexProjectTypesV133=isolated?structuredClone(project.payload.rackTypes||[]):null;
+    window.rafexActivateProjectV134?.(window.rafexProjectIdentityV133);
     resetSession();
     const result=baseApply.call(this,structuredClone(project),asCopy);
     // Restore the project name in the common editor's own controller.
@@ -65,12 +73,21 @@
     document.getElementById('m2FloorStatus').textContent='Bağımsız proje açıldı. '+record.payload.projectIdentity.createdAt+' · '+record.payload.projectIdentity.uuid;
   };
   window.rafexStartNewProjectV133=function(){
+    const nameInput=document.getElementById('rafexAuthorityProjectName')||document.getElementById('m2ProjectName');
+    const projectName=String(nameInput?.value||'').trim();
+    if(!projectName){
+      if(nameInput){nameInput.setCustomValidity('Önce proje adını yaz.');nameInput.reportValidity();nameInput.focus();}
+      window.rafexSyncProjectGateV134?.();return;
+    }
+    nameInput.setCustomValidity('');
     if(window.rafexProjectSavingV133||window.__rafexManualOutputBuild){
       document.getElementById('m2FloorStatus').textContent='Devam eden kayıt veya çıktı işlemi tamamlanınca yeni proje açabilirsin.';return;
     }
     const fresh=window.rafexIndependentProjectV133({payload:{rackTypes:m2SavedRackTypes,layout:{racks:[]}}},crypto.randomUUID(),Date.now());
     window.rafexProjectIdentityV133=fresh.payload.projectIdentity;
+    window.rafexProjectIdentityV133.displayNumber='P-'+fresh.payload.projectIdentity.uuid.replaceAll('-','').slice(0,12).toUpperCase();
     window.rafexProjectTypesV133=fresh.payload.rackTypes;
+    window.rafexActivateProjectV134?.(window.rafexProjectIdentityV133);
     m2LayoutState={mode:'idle',points:[],pathBreaks:[],closed:false,openFinished:false,areaEditMode:false,drawFromIndex:null,branchSourceIndex:null,racks:[],selected:null,pinnedRackId:null,drag:null,hover:null,scale:.04,showAreaDimensions:false,edgeDimensions:[]};
     m2LayoutSymbols=[];m2UserNotes=[];m2LayoutTool=null;
     m2DimensionOffsets={};m2DimensionFontSizes={};m2HiddenSummaryDimensions=new Set();
@@ -81,7 +98,7 @@
     if(m2SavedTypeClickTimer!=null){clearTimeout(m2SavedTypeClickTimer);m2SavedTypeClickTimer=null;}
     resetSession();m2SetAutoFillControlsActive(false);
     for(const id of ['rafexAuthorityProjectName','rafexCommonProjectName','m2ProjectName']){
-      const input=document.getElementById(id);if(input){input.value='';input.dispatchEvent(new Event('input',{bubbles:true}));}
+      const input=document.getElementById(id);if(input){input.value=projectName;input.dispatchEvent(new Event('input',{bubbles:true}));}
     }
     for(const id of ['m2AreaW','m2AreaH','m2SegmentLength','m2DimensionFontSize','m2AnnotationFontSize','m2AutoFillLength']){
       const input=document.getElementById(id);if(input)input.value=input.defaultValue;
@@ -93,8 +110,8 @@
     const saveMessage=document.getElementById('m2ProjectSaveMsg');if(saveMessage)saveMessage.textContent='';
     m2RenderReportImages();m2SelectedSavedType=fresh.payload.rackTypes.length?0:null;m2RenderSavedRackTypes();
     m2LayoutZoom=1;m2ZoomLayout(0,true);m2RenderLayout();
-    document.getElementById('m2FloorStatus').textContent='Yeni proje açıldı. Proje adını yaz, alanı oluştur ve çizime başla.';
-    document.getElementById('rafexAuthorityProjectName')?.focus();
+    document.getElementById('m2FloorStatus').textContent=projectName+' açıldı. Alanı oluşturup çizime başlayabilirsin.';
+    window.rafexSyncProjectGateV134?.();
   };
   function installButton(){
     const save=document.getElementById('m2ProjectSaveButton');

@@ -4,10 +4,13 @@ import {independentProject} from './independent-project-v133.mjs';
 export function transform(html) {
   if (html.includes('data-rafex-independent-performance="v133"')) return html;
   const replace = (from, to) => { if (!html.includes(from)) throw new Error('v133 anchor missing: ' + from.slice(0,110)); html = html.replace(from, to); };
+  const historyCopy='<button class="small-btn" onclick="event.stopPropagation();copyProject(${p.id})">';
+  if(!html.includes(historyCopy))throw new Error('Project history action missing');
+  html=html.replaceAll(historyCopy,'${p.payload?.layout ? `<button class="small-btn" onclick="event.stopPropagation();rafexOpenHistoryProjectV134(${p.id})">Projeyi Aç</button>` : ""}'+historyCopy);
   replace('m2ProjectRecords = (result.projects || []).filter((project) => project.module === m2ActiveModule); m2RenderProjects();', `const commonProjectsV133=document.querySelector('#nav button.active[data-page]')?.dataset.page==='free';
           m2ProjectRecords = (result.projects || []).filter((project) => commonProjectsV133 ? Boolean(project.payload?.layout) : project.module === m2ActiveModule); m2RenderProjects();
           if(commonProjectsV133){const title=$('m2ProjectList')?.previousElementSibling;if(title)title.textContent='Kayıtlı Projeler · Tüm Sistemler';}`);
-  replace('      async function m2SaveProject() {', '      async function m2SaveProject() {\n        const independentV133=arguments[0]===true; if(window.rafexProjectSavingV133)return;');
+  replace('      async function m2SaveProject() {', '      async function m2SaveProject() {\n        if(window.rafexCanEditProjectV134?.()===false)return;\n        const independentV133=arguments[0]===true; if(window.rafexProjectSavingV133)return;');
   replace('const button = $("m2ProjectSaveButton"); if (button) button.disabled = true;', 'const button = $("m2ProjectSaveButton"); if (button) button.disabled = true; window.rafexProjectSavingV133=true;');
   const request = '{ projectName, module: commonLayoutSaveV106?"ortak":m2ActiveModule, payload: { version: 1, ...(commonLayoutSaveV106?{module:"ortak",rafexCommonDrawing:true}:{}), drawing: projectDrawingV106, rackTypes: m2SavedRackTypes, layout } }';
   replace('          const result = await req("/api/projects", { method: "POST", body: JSON.stringify('+request+') });',
@@ -64,7 +67,7 @@ export function transform(html) {
   replace('var rect=frame&&frame.getBoundingClientRect(),shortPx=rect?Math.min(rect.width,rect.height):0,', 'var shortPx=frame?Math.min(Number(frame.getAttribute("width"))||0,Number(frame.getAttribute("height"))||0)*(Number(screenScaleV133)||1):0,');
   replace('function decorateRacks(){var node=svg();if(!node)return;node.querySelectorAll("[data-rack]").forEach(decorateRack)}', 'function decorateRacks(){var node=svg();if(!node)return;var matrix=node.getScreenCTM(),scale=matrix?Math.hypot(matrix.a,matrix.b):1;node.querySelectorAll("[data-rack]").forEach(function(group){decorateRack(group,scale)})}');
   replace('    var panel=ensureDetail(),rack=selectedRack(),node=svg();if(!panel||!node)return;', '    return; // Retired detail panel is permanently hidden by v115.');
-  const runtime = `<script data-rafex-independent-performance="v133">\nwindow.rafexIndependentProjectV133=${independentProject.toString()};\n${fs.readFileSync(new URL('./independent-performance-runtime-v133.js',import.meta.url),'utf8')}\n</script>`;
+  const runtime = `<script data-rafex-independent-performance="v133">\nwindow.rafexIndependentProjectV133=${independentProject.toString()};\n${fs.readFileSync(new URL('./independent-performance-runtime-v133.js',import.meta.url),'utf8')}\n${fs.readFileSync(new URL('./project-session-v134.js',import.meta.url),'utf8')}\n</script>`;
   const end=html.lastIndexOf('</body>');
   return html.slice(0,end)+runtime+html.slice(end);
 }
