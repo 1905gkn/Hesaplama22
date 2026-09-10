@@ -34,4 +34,6 @@ node scripts/verify-unified-rack-registry-v116.mjs
 node scripts/patch-common-layout-zoom-crisp-v126.mjs
 node scripts/verify-common-layout-zoom-crisp-v126.mjs
 node scripts/verify-common-layout-physical-scale-v127.mjs
+node scripts/patch-pdf-foot-count-v128.mjs
+node scripts/verify-pdf-foot-count-v128.mjs
 node scripts/emit-static-index-v1.mjs
