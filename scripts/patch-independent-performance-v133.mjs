@@ -6,7 +6,7 @@ export function transform(html) {
   const replace = (from, to) => { if (!html.includes(from)) throw new Error('v133 anchor missing: ' + from.slice(0,110)); html = html.replace(from, to); };
   const historyCopy='<button class="small-btn" onclick="event.stopPropagation();copyProject(${p.id})">';
   if(!html.includes(historyCopy))throw new Error('Project history action missing');
-  html=html.replaceAll(historyCopy,'${p.payload?.layout ? `<button class="small-btn" onclick="event.stopPropagation();rafexOpenHistoryProjectV134(${p.id})">Projeyi Aç</button>` : ""}'+historyCopy);
+  html=html.replace(historyCopy,'${p.payload?.layout ? `<button class="small-btn" onclick="event.stopPropagation();rafexOpenHistoryProjectV134(${p.id})">Projeyi Aç</button>` : ""}'+historyCopy);
   replace('m2ProjectRecords = (result.projects || []).filter((project) => project.module === m2ActiveModule); m2RenderProjects();', `const commonProjectsV133=document.querySelector('#nav button.active[data-page]')?.dataset.page==='free';
           m2ProjectRecords = (result.projects || []).filter((project) => commonProjectsV133 ? Boolean(project.payload?.layout) : project.module === m2ActiveModule); m2RenderProjects();
           if(commonProjectsV133){const title=$('m2ProjectList')?.previousElementSibling;if(title)title.textContent='Kayıtlı Projeler · Tüm Sistemler';}`);
