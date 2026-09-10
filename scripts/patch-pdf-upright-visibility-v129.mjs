@@ -36,11 +36,22 @@ const runtime = String.raw`
   function enhance(svg){
     if(!svg)return 0;
     svg.querySelectorAll('.rafex-pdf-upright-overlay-v129').forEach(function(node){node.remove()});
-    var originals=Array.from(svg.querySelectorAll('.m2-b2b-plan-upright:not(.rafex-pdf-upright-overlay-v129)'));
+    var originals=Array.from(svg.querySelectorAll('.m2-b2b-plan-upright:not(.rafex-profile-merge-source-v61):not(.rafex-pdf-upright-overlay-v129)'));
     originals.forEach(function(original){
       var overlay=original.cloneNode(true);
       overlay.classList.add('rafex-pdf-upright-overlay-v129');
       overlay.setAttribute('aria-hidden','true');
+      overlay.style.setProperty('display','inline','important');
+      overlay.style.setProperty('visibility','visible','important');
+      overlay.style.setProperty('fill','#0877ad','important');
+      overlay.style.setProperty('fill-opacity','1','important');
+      overlay.style.setProperty('stroke','#002c45','important');
+      overlay.style.setProperty('stroke-width','3.8px','important');
+      overlay.style.setProperty('stroke-opacity','1','important');
+      overlay.style.setProperty('vector-effect','non-scaling-stroke','important');
+      overlay.style.setProperty('shape-rendering','crispEdges','important');
+      overlay.style.setProperty('opacity','1','important');
+      overlay.style.setProperty('filter','none','important');
       original.parentNode.appendChild(overlay);
     });
     svg.dataset.rafexPdfUprights=String(originals.length);
@@ -82,4 +93,3 @@ const encoded = Buffer.from(html).toString("base64");
 source = source.slice(0, match.index) + match[0].replace(match[2], encoded) + source.slice(match.index + match[0].length);
 fs.writeFileSync(file, source);
 console.log("v129: PDF ust gorunum ayaklari, olcegi bozmadan ust katmanda ve sabit kontur kalinliginda belirginlestirildi.");
-
