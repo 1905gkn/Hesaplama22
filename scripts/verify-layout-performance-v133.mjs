@@ -8,9 +8,13 @@ const source=fs.readFileSync(path.join(build,'server/index.js'),'utf8');
 const html=Buffer.from(source.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1/)[2],'base64').toString();
 const browser=await chromium.launch({channel:'msedge',headless:true});
 const errors=[],requests=[];
+let registryTypes=[];
 try{
   const page=await browser.newPage({viewport:{width:1440,height:1000}});
   page.on('pageerror',error=>errors.push(error.message));
+  const deletions=[];
+  page.on('request',request=>{if(request.method()==='DELETE')deletions.push(request.url());});
+  page.on('dialog',dialog=>dialog.accept());
   await page.route('**/*',async route=>{
     const u=new URL(route.request().url());
     if(u.pathname==='/')return route.fulfill({contentType:'text/html',body:html});
@@ -18,6 +22,7 @@ try{
     if(u.pathname==='/api/me')return route.fulfill({json:{user:{id:1,fullName:'Test',username:'test',role:'super',defaultLanguage:'tr'}}});
     if(u.pathname==='/api/projects'&&route.request().method()==='POST'){requests.push(route.request().postDataJSON());return route.fulfill({json:{ok:true,serialNo:123}});}
     if(u.pathname==='/api/projects')return route.fulfill({json:{projects:[]}});
+    if(u.pathname==='/api/b2b-types')return route.fulfill({json:{types:registryTypes}});
     if(u.pathname.startsWith('/api/'))return route.fulfill({json:{rows:[],rackTypes:[],settings:{},projects:[]}});
     // Fixtures deliberately do not load 3D engines; these tests exercise the
     // production 2D renderer, persistence and PDF SVG, not GPU model loading.
@@ -56,6 +61,7 @@ try{
   });
   console.log(JSON.stringify({results,errors},null,2));
   for(const r of results){assert.equal(r.retained,r.count);assert(r.untouchedRetained&&r.changedReplaced);assert.equal(r.originals,r.segments);assert.equal(r.stroke,'3px');assert(r.paths<r.originals);}
+  registryTypes=await page.evaluate(()=>[{id:22,name:'B',drawing:structuredClone(fixtureV133)}]);
   const flows=await page.evaluate(async()=>{
     m2LayoutState.racks=m2LayoutState.racks.slice(0,2);
     m2LayoutState.racks[1].sharedFootWith=m2LayoutState.racks[0].id;
@@ -90,10 +96,26 @@ try{
     await new Promise(resolve=>setTimeout(resolve,3800));
     const pdf=document.querySelector('#m2CorporatePreview .m2-corporate-floor svg');
     const pdfPaths=pdf?pdf.querySelectorAll('path.rafex-pdf-upright-overlay-v132').length:0;
-    return {undo,rotated,duplicated,dragged,dragRetained,dragUndo,links,undoEmpty,ownedTypes,sourceIntact,reopen,pdfPaths,button:!!document.getElementById('rafexIndependentSaveV133')};
+    // Exercise the final common-catalog wrapper as well as the B2B editor.
+    // It used to replace project snapshots with its private global catalog.
+    document.getElementById('page').dataset.rafexFreeDrawing='1';
+    m2RenderSavedRackTypes();
+    const commonOwned=m2SavedRackTypes[0]?.logId===copy.payload.rackTypes[0].logId;
+    await m2RefreshSavedRackTypes();
+    const refreshOwned=m2SavedRackTypes[0]?.logId===copy.payload.rackTypes[0].logId;
+    const imported=m2SavedRackTypes.length===2&&m2SavedRackTypes[1].id!==22&&!!m2SavedRackTypes[1].projectUuid;
+    await m2RefreshSavedRackTypes();
+    const noDuplicateImport=m2SavedRackTypes.length===2;
+    const commonLog=document.getElementById('m2SavedTypeList').textContent.includes(copy.payload.rackTypes[0].logId);
+    await rafexUnifiedDeleteSavedRackType(0);
+    const oneDeleted=window.rafexProjectTypesV133.length===1;
+    await m2DeleteAllSavedRackTypes();
+    const localDelete=window.rafexProjectTypesV133.length===0&&m2SavedRackTypes.length===0&&m2LayoutState.racks.length===2;
+    return {undo,rotated,duplicated,dragged,dragRetained,dragUndo,links,undoEmpty,ownedTypes,sourceIntact,reopen,pdfPaths,commonOwned,refreshOwned,imported,noDuplicateImport,commonLog,oneDeleted,localDelete,button:!!document.getElementById('rafexIndependentSaveV133')};
   });
   console.log(JSON.stringify({flows,errors},null,2));
-  for(const key of ['undo','rotated','duplicated','dragged','dragRetained','dragUndo','links','undoEmpty','ownedTypes','sourceIntact','reopen','button'])assert(flows[key],key);
+  for(const key of ['undo','rotated','duplicated','dragged','dragRetained','dragUndo','links','undoEmpty','ownedTypes','sourceIntact','reopen','commonOwned','refreshOwned','imported','noDuplicateImport','commonLog','oneDeleted','localDelete','button'])assert(flows[key],key);
+  assert.equal(deletions.length,0,'Deleting a project-owned type must not delete a global registry entry');
   assert(flows.pdfPaths>0,'PDF must retain upright overlay paths');
   assert.equal(errors.length,0,errors.join('\n'));
   console.log('PASS: retained render at 100/400/800 racks; snapshot reopen, joins, undo, PDF paths and source isolation');

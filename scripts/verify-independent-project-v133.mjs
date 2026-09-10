@@ -16,6 +16,9 @@ assert.equal(copy.payload.layout.distanceRackId,a.id);assert.equal(copy.payload.
 assert.equal(a.rackTypeId,copy.payload.rackTypes[0].id);
 assert.deepEqual(copy.payload.rackTypes[0].drawing,original.payload.rackTypes[0].drawing);
 assert.equal(copy.payload.projectIdentity.uuid,'new-uuid');
+const mixed=independentProject({payload:{rackTypes:[{id:1,__rafexSystem:'b2b'},{id:1,__rafexSystem:'mr'}],layout:{racks:[{id:11,rafexSystem:'b2b',rackTypeId:1,rafexCatalogKey:'b2b:1'},{id:12,rafexSystem:'mr',rackTypeId:1,rafexCatalogKey:'mr:1'}]}}},'mixed',1800000000000);
+assert.notEqual(mixed.payload.rackTypes[0].id,mixed.payload.rackTypes[1].id,'Type IDs from different system tables must remain distinct');
+mixed.payload.layout.racks.forEach((rack,index)=>{assert.equal(rack.rackTypeId,mixed.payload.rackTypes[index].id);assert.equal(rack.rafexCatalogKey,rack.rafexSystem+':'+rack.rackTypeId);});
 const worker=fs.readFileSync('dist/server/index.js','utf8'),match=worker.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1/),html=Buffer.from(match[2],'base64').toString();
 for(const script of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi))if(!/\bsrc\s*=/.test(script[1]))new vm.Script(script[2]);
 assert(html.includes('rafexIndependentSaveV133'));assert(html.includes('window.rafexCommitLayoutV133(layer,html)'));

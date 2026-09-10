@@ -22,7 +22,7 @@ export function transform(html) {
       if(force){
         const owner=window.rafexProjectIdentityV133?.uuid,records=await fetchRegistry();
         if(owner!==window.rafexProjectIdentityV133?.uuid)return [];
-        const key=entry=>JSON.stringify([entry.__rafexSystem,entry.name,entry.__rafexSnapshot||entry.drawing]);
+        const key=entry=>{const drawing=structuredClone(entry.__rafexSnapshot||entry.drawing);delete drawing.rafexCatalogKey;return JSON.stringify([entry.__rafexSystem,entry.name,drawing]);};
         const known=new Set(window.rafexProjectTypesV133.map(key));
         const missing=records.filter(entry=>!known.has(key(entry)));
         if(missing.length){const imported=window.rafexIndependentProjectV133({payload:{rackTypes:missing,layout:{racks:[]}}},crypto.randomUUID(),Date.now());window.rafexProjectTypesV133.push(...imported.payload.rackTypes);}
@@ -32,6 +32,24 @@ export function transform(html) {
   replace("      if(!isFree())return originalDeleteAll();", "      if(!isFree())return originalDeleteAll();\n      if(window.rafexProjectTypesV133){if(confirm('Bu projedeki raf tipi listesini temizle? Yerleşimdeki raflar korunur.')){window.rafexProjectTypesV133=[];installCache('');}return;}");
   replace("    const entry=m2SavedRackTypes[index];if(!entry)return;\n    if(!confirm", "    const entry=m2SavedRackTypes[index];if(!entry)return;\n    if(window.rafexProjectTypesV133){if(confirm(entry.name+' raf tipini bu projenin listesinden kaldır?')){window.rafexProjectTypesV133=window.rafexProjectTypesV133.filter(item=>item.id!==entry.id);installCache('');}return;}\n    if(!confirm");
   // Save the same identity on subsequent ordinary saves, too.
+  // The v44 common catalog wraps the earlier unified catalog. Protect the
+  // final owner too, including its legacy API refresh and delete handlers.
+  replace('  async function loadCatalog(force){\n    if(!isFree())return [];', `  async function loadCatalog(force){
+    if(!isFree())return [];
+    const ownerV133=window.rafexProjectIdentityV133?.uuid;
+    if(window.rafexProjectTypesV133&&!force){installCatalog();return window.rafexProjectTypesV133;}`);
+  replace('      catalog=merged;catalogReady=true;catalogLoadedAt=Date.now();installCatalog();', `      catalog=merged;catalogReady=true;catalogLoadedAt=Date.now();
+      if(ownerV133&&ownerV133===window.rafexProjectIdentityV133?.uuid&&window.rafexProjectTypesV133){
+        const key=entry=>{const drawing=structuredClone(entry.__rafexSnapshot||entry.drawing);delete drawing.rafexCatalogKey;return JSON.stringify([entry.__rafexSystem,entry.__rafexOriginalName||entry.name,drawing]);};
+        const known=new Set(window.rafexProjectTypesV133.map(key));
+        const missing=merged.filter(entry=>!known.has(key(entry)));
+        if(missing.length){const imported=window.rafexIndependentProjectV133({payload:{rackTypes:missing,layout:{racks:[]}}},crypto.randomUUID(),Date.now());window.rafexProjectTypesV133.push(...imported.payload.rackTypes);}
+      }
+      installCatalog();`);
+  replace('m2SavedRackTypes=catalog.slice().sort(function(a,b){return letterNo(a.name)-letterNo(b.name);});', 'm2SavedRackTypes=structuredClone(window.rafexProjectTypesV133||catalog).sort(function(a,b){return letterNo(a.name)-letterNo(b.name);});');
+  replace('      if(!catalogReady){\n        var list=', '      if(window.rafexProjectTypesV133){m2SavedRackTypes=structuredClone(window.rafexProjectTypesV133);return renderCommonCatalogBase.apply(this,arguments);}\n      if(!catalogReady){\n        var list=');
+  replace("    var entry=m2SavedRackTypes[index];if(!entry)return;\n    if(!confirm", "    var entry=m2SavedRackTypes[index];if(!entry)return;\n    if(window.rafexProjectTypesV133){if(confirm(entry.name+' raf tipini bu projenin listesinden kaldır?')){window.rafexProjectTypesV133=window.rafexProjectTypesV133.filter(item=>item.id!==entry.id);installCatalog();}return;}\n    if(!confirm");
+  replace("    if(!catalog.length){status('Silinecek kayıtlı raf tipi yok.');return;}", "    if(isFree()&&window.rafexProjectTypesV133){if(confirm('Bu projedeki raf tipi listesini temizle? Yerleşimdeki raflar korunur.')){window.rafexProjectTypesV133=[];installCatalog();}return;}\n    if(!catalog.length){status('Silinecek kayıtlı raf tipi yok.');return;}");
   replace('drawing: projectDrawingV106, rackTypes: m2SavedRackTypes, layout } };', 'drawing: projectDrawingV106, rackTypes: m2SavedRackTypes, layout, ...(window.rafexProjectIdentityV133?{projectIdentity:window.rafexProjectIdentityV133}:{}) } };');
   // Existing retained dragging stays intact; full refreshes reuse unchanged
   // rack nodes. Other nodes are rebuilt so event listeners never accumulate.
