@@ -42,6 +42,12 @@
     if(typeof m2PerfDistanceIndex!=='undefined')m2PerfDistanceIndex.signature='';
   }
   const baseApply=m2ApplyProjectRecord;
+  const baseTypes=m2RenderSavedRackTypes;
+  m2RenderSavedRackTypes=function(){
+    if(window.rafexProjectTypesV133&&document.querySelector('#nav button.active[data-page]')?.dataset.page==='free')m2SavedRackTypes=structuredClone(window.rafexProjectTypesV133);
+    return baseTypes.apply(this,arguments);
+  };
+  window.m2RenderSavedRackTypes=m2RenderSavedRackTypes;
   m2ApplyProjectRecord=function(project,asCopy){
     const isolated=project?.payload?.projectIdentity?.independent;
     window.rafexProjectIdentityV133=isolated?structuredClone(project.payload.projectIdentity):null;
@@ -60,6 +66,13 @@
   };
   function installButton(){
     const save=document.getElementById('m2ProjectSaveButton');
+    const identity=window.rafexProjectIdentityV133,name=document.getElementById('rafexAuthorityProjectName');
+    let info=document.getElementById('rafexIndependentProjectInfoV133');
+    if(identity&&name){
+      if(!info){info=document.createElement('small');info.id='rafexIndependentProjectInfoV133';name.insertAdjacentElement('afterend',info);}
+      info.dataset.projectUuid=identity.uuid;info.title=identity.uuid;
+      const text='Bağımsız kayıt · '+new Date(identity.createdAt).toLocaleString('tr-TR');if(info.textContent!==text)info.textContent=text;
+    }else if(info)info.remove();
     if(!save||document.getElementById('rafexIndependentSaveV133'))return;
     const button=document.createElement('button');button.id='rafexIndependentSaveV133';button.type='button';button.className=save.className;
     button.textContent='Yeni proje olarak kaydet';button.title='Çizimi bağımsız kimliklerle kaydet ve yeni kaydı aç';

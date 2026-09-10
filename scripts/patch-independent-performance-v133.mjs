@@ -16,6 +16,7 @@ export function transform(html) {
   // Keep the project catalog authoritative when the global registry refreshes,
   // including requests that were already in flight when the project opened.
   replace('m2SavedRackTypes=cache.map((entry)=>({...entry,drawing:clone(entry.__rafexSnapshot)}));', 'm2SavedRackTypes=(window.rafexProjectTypesV133||cache).map((entry)=>({...entry,drawing:clone(entry.__rafexSnapshot||entry.drawing)}));');
+  replace('count:cache.filter((entry)=>entry.__rafexSystem===system.key).length', 'count:m2SavedRackTypes.filter((entry)=>entry.__rafexSystem===system.key).length');
   replace('    if(!isFree()){if(originalRefresh)return originalRefresh();return [];}',`    if(!isFree()){if(originalRefresh)return originalRefresh();return [];}
     if(window.rafexProjectTypesV133){
       if(force){

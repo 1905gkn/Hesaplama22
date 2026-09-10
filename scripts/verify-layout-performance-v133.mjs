@@ -75,12 +75,13 @@ try{
     const dragged=m2FinishRetainedDragV107(m2LayoutState.drag);
     const dragRetained=stableNode===document.querySelector('[data-rack="1000"]');
     m2UndoLastAction();const dragUndo=m2LayoutState.racks.every((r,i)=>r.x===origins[i].x&&r.y===origins[i].y);
-    const source={projectName:'Bağımsız test',module:'ortak',payload:{version:1,module:'ortak',rafexCommonDrawing:true,drawing:structuredClone(m2LayoutState.racks[0]),rackTypes:[],layout:{...structuredClone(m2LayoutState),symbols:[]}}};
+    const source={projectName:'Bağımsız test',module:'ortak',payload:{version:1,module:'ortak',rafexCommonDrawing:true,drawing:structuredClone(m2LayoutState.racks[0]),rackTypes:[{id:21,name:'A',__rafexUnified:true,__rafexSystem:'b2b',drawing:structuredClone(fixtureV133),logId:'old-log'}],layout:{...structuredClone(m2LayoutState),symbols:[]}}};
     const before=JSON.stringify(source),copy=rafexIndependentProjectV133(source,crypto.randomUUID(),Date.now());
     m2PushUndo('Old project');rafexOpenIndependentV133(copy);
     const fresh=m2LayoutState.racks;
     const links=fresh.length===2&&fresh[1].sharedFootWith===fresh[0].id&&fresh[0].id!==1000;
     const undoEmpty=m2UndoHistory.length===0;
+    const ownedTypes=m2SavedRackTypes[0]?.logId===copy.payload.rackTypes[0].logId&&window.rafexProjectIdentityV133?.uuid===copy.payload.projectIdentity.uuid;
     const sourceIntact=JSON.stringify(source)===before;
     // Reopen through the normal loader and ensure IDs and dimensions survive.
     m2ApplyProjectRecord({project_name:copy.projectName,module:'ortak',payload:copy.payload},false);
@@ -89,10 +90,10 @@ try{
     await new Promise(resolve=>setTimeout(resolve,3800));
     const pdf=document.querySelector('#m2CorporatePreview .m2-corporate-floor svg');
     const pdfPaths=pdf?pdf.querySelectorAll('path.rafex-pdf-upright-overlay-v132').length:0;
-    return {undo,rotated,duplicated,dragged,dragRetained,dragUndo,links,undoEmpty,sourceIntact,reopen,pdfPaths,button:!!document.getElementById('rafexIndependentSaveV133')};
+    return {undo,rotated,duplicated,dragged,dragRetained,dragUndo,links,undoEmpty,ownedTypes,sourceIntact,reopen,pdfPaths,button:!!document.getElementById('rafexIndependentSaveV133')};
   });
   console.log(JSON.stringify({flows,errors},null,2));
-  for(const key of ['undo','rotated','duplicated','dragged','dragRetained','dragUndo','links','undoEmpty','sourceIntact','reopen','button'])assert(flows[key],key);
+  for(const key of ['undo','rotated','duplicated','dragged','dragRetained','dragUndo','links','undoEmpty','ownedTypes','sourceIntact','reopen','button'])assert(flows[key],key);
   assert(flows.pdfPaths>0,'PDF must retain upright overlay paths');
   assert.equal(errors.length,0,errors.join('\n'));
   console.log('PASS: retained render at 100/400/800 racks; snapshot reopen, joins, undo, PDF paths and source isolation');
