@@ -1,4 +1,4 @@
-import {physicalLevels,manualOptions} from './b2b-level-plan-v121.mjs';
+import {physicalLevels,automaticOptions,manualOptions} from './b2b-level-plan-v121.mjs';
 export function netLevelRows(rows){return rows.map((r,i)=>({...r,distance:r.distance-(i?Number(String(rows[i-1].traverseType).match(/\d+/)?.[0])||140:0)}))}
 export function storedLevelRows(rows){return rows.map((r,i)=>({...r,distance:r.distance+(i?Number(String(rows[i-1].traverseType).match(/\d+/)?.[0])||140:0)}))}
 export const manualRuntime=String.raw`
@@ -12,19 +12,19 @@ export const manualRuntime=String.raw`
 @media(max-width:650px){#rafexManualHeightV121 .level-row{grid-template-columns:1fr 1fr}}
 </style><script data-rafex-manual-height="v121">
 (function(){
-const physicalLevels=${physicalLevels.toString()},manualOptions=${manualOptions.toString()},copy=x=>JSON.parse(JSON.stringify(x));
+const physicalLevels=${physicalLevels.toString()},automaticOptions=${automaticOptions.toString()},manualOptions=${manualOptions.toString()},copy=x=>JSON.parse(JSON.stringify(x));
 const netLevelRows=${netLevelRows.toString()},storedLevelRows=${storedLevelRows.toString()};
-let mainRows=[],customRows=[],customId=null,editing='main';
+let mainRows=[],customRows=[],customId=null,customCleared=false,editing='main';
 const value=(id,fallback)=>Number(document.getElementById(id)?.value)||fallback;
 function height(o){const p=physicalLevels(o),last=p.at(-1);return last?last.bottom+last.beam:500}
 function positionOf(o){return o?.firstPalletPosition==='traverse'?'traverse':'ground'}
 function rowsToCustom(rows,position){return rows.map((r,i)=>{const beam=Number(String(r.traverseType).match(/\d+/)?.[0])||140;return {interval:position==='ground'?(i?Number(r.distance)||r.palletHeight+200+beam:(Number(r.distance)||r.palletHeight+200)+beam):(Number(rows[i+1]?.distance)||r.palletHeight+200+beam),palletHeight:r.palletHeight,weight:r.weight,traverseType:r.traverseType}})}
 window.rafexManualOptionsV121=(o,rows)=>manualOptions(o,rows);
 window.rafexPhysicalLevelsV121=physicalLevels;
-window.rafexLoadManualCustomizeV121=rack=>{customId=rack.id;customRows=copy(rack.b2b?.manualLevelSpecs||[])};
+window.rafexLoadManualCustomizeV121=rack=>{customId=rack.id;customRows=copy(rack.b2b?.manualLevelSpecs||[]);customCleared=false};
 window.rafexManualCustomizeActiveV121=()=>customRows.length>0;
-window.rafexCustomizeManualOptionsV121=(o,rack)=>rack.id===customId?manualOptions(o,customRows):o;
-window.rafexSaveManualV121=rack=>{if(rack.id!==customId)return;rack.b2b.manualLevelSpecs=copy(customRows);if(customRows.length){const position=positionOf(rack.b2b);rack.b2b.firstPalletPosition=position;rack.b2b.firstFloorGap=customRows[0].distance;rack.b2b.customLevels=rowsToCustom(customRows,position);}};
+window.rafexCustomizeManualOptionsV121=(o,rack)=>rack.id===customId?(customRows.length?manualOptions(o,customRows):customCleared?automaticOptions(o):o):o;
+window.rafexSaveManualV121=rack=>{if(rack.id!==customId)return;rack.b2b.manualLevelSpecs=copy(customRows);if(customRows.length){const position=positionOf(rack.b2b);rack.b2b.firstPalletPosition=position;rack.b2b.firstFloorGap=customRows[0].distance;rack.b2b.customLevels=rowsToCustom(customRows,position);}else if(customCleared){rack.b2b.customLevels=[];if(positionOf(rack.b2b)==='traverse')rack.b2b.firstFloorGap=200;}};
 function open(kind){
  editing=kind;const custom=kind==='custom',rack=custom?m2LayoutState.racks.find(r=>r.id===customId):null;
  const o=custom?window.rafexB2BCustomizeOptionsV120(rack):b2b3DOptions(),saved=netLevelRows(custom?customRows:mainRows),physical=physicalLevels({...o,tunnelHeight:0});
@@ -33,7 +33,7 @@ function open(kind){
  let dialog=document.getElementById('rafexManualHeightV121');if(!dialog){dialog=document.createElement('dialog');dialog.id='rafexManualHeightV121';document.body.appendChild(dialog)}
  dialog.innerHTML='<h3>Manuel yükseklik</h3><p>Her satırdaki palet yüksekliği, satırın başındaki kata aittir. Kat arası mesafe, alt traversin üstünden üst traversin altına kadar olan net boşluktur; travers yüksekliği dahil değildir. Zemin mesafesi ilk traversin altına kadardır. Kat ağırlığı bir sıradaki katın toplam yüküdür.</p><div class="rows">'+Array.from({length:count},(_,i)=>{const r=saved[i]||{},hasDistance=!ground||i<count-1,distance=r.distance??(i===0?physical[0]?.bottom??200:(physical[i]?.bottom-physical[i-1]?.bottom-physical[i-1]?.beam)||pallet+200),levelName=ground?(i===0?'Zemin':i+'. kat'):(i+1)+'. kat',distanceName=i===0?'Zemin – 1. kat':i+'. kat – '+(i+1)+'. kat',traverseName=ground?(hasDistance?(i+1)+'. kat travers tipi':'Taşıyıcı travers yok'):levelName+' travers tipi';return '<div class="level-row"><label>'+(hasDistance?distanceName+' mesafesi (mm)':'Üst kat mesafesi')+(hasDistance?'<input data-distance type="number" min="0" max="30000" value="'+distance+'">':'<input data-distance type="number" value="0" disabled>')+'</label><label>'+levelName+' ağırlığı (kg)<input data-weight type="number" min="0" max="100000" value="'+(r.weight??weight)+'"></label><label>'+levelName+' palet yüksekliği (mm)<input data-pallet type="number" min="300" max="3000" value="'+(r.palletHeight||pallet)+'"></label><label>'+traverseName+'<select data-traverse'+(hasDistance?'':' disabled')+'>'+['CC100','CC120','CC140','CC160','CC180'].map(t=>'<option'+(t===(r.traverseType||rack?.b2b?.traverseType||'CC140')?' selected':'')+'>'+t+'</option>').join('')+'</select></label></div>'}).join('')+'</div><p role="alert" class="error"></p><footer><button data-clear>Otomatik düzene dön</button><button data-cancel>Vazgeç</button><button data-save>Uygula</button></footer>';
  dialog.querySelector('[data-cancel]').onclick=()=>dialog.close();
- const commit=rows=>{if(custom)customRows=rows;else mainRows=rows;dialog.close();if(custom)window.rafexUpdateB2BCustomizeViewerV119?.();else b2bApplyInputs();};
+ const commit=rows=>{if(custom){customRows=rows;customCleared=!rows.length;const legacy=document.getElementById('m2CustomizeManualLevels');if(legacy)legacy.checked=rows.length>0}else mainRows=rows;dialog.close();if(custom)window.rafexUpdateB2BCustomizeViewerV119?.();else b2bApplyInputs();};
  dialog.querySelector('[data-clear]').onclick=()=>commit([]);
  dialog.querySelector('[data-save]').onclick=()=>{
  const rows=[...dialog.querySelectorAll('.level-row')].map(row=>({distance:Number(row.querySelector('[data-distance]').value),weight:Number(row.querySelector('[data-weight]').value),palletHeight:Number(row.querySelector('[data-pallet]').value),traverseType:row.querySelector('[data-traverse]').value}));

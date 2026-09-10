@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {physicalLevels,manualOptions} from './b2b-level-plan-v121.mjs';
+import {physicalLevels,automaticOptions,manualOptions} from './b2b-level-plan-v121.mjs';
 import {tunnelPlan} from './b2b-tunnel-plan-v121.mjs';
 import vm from 'node:vm';
 import {manualRuntime,netLevelRows,storedLevelRows} from './b2b-manual-height-v121.mjs';
@@ -19,11 +19,15 @@ const pictured=manualOptions({...base,levels:4,firstPalletPosition:'ground'},pic
 assert.deepEqual(pictured.palletHeights,[1000,1200,800,1200],'Every pallet height belongs to the level named at the start of its row');
 assert.deepEqual(pictured.traverseBottoms,[1600,3740,5080],'A ground-start rack has one fewer traverse than loaded levels');
 assert.deepEqual(pictured.levelClearances,[600,800,400]);
+const reset=automaticOptions({...pictured,firstPalletPosition:'ground'});
+assert.deepEqual(reset.traverseBottoms,[]);assert.deepEqual(reset.traverseHeights,[]);assert.deepEqual(reset.palletHeights,[]);assert.deepEqual(reset.levelClearances,[]);
+assert.equal(automaticOptions({...manual,firstPalletPosition:'traverse',firstFloorGap:1600}).firstFloorGap,200,'Automatic traverse layout restores the formula floor gap');
 const cut=tunnelPlan({...manual,tunnelHeight:3600});assert.deepEqual(cut.visibleAccessoryLevels,[3]);assert.deepEqual(cut.traverseBottoms,manual.traverseBottoms);
 assert.deepEqual(tunnelPlan({...manual,tunnelHeight:3900}).visibleAccessoryLevels,[3],'A beam at the boundary remains');
 assert.equal(tunnelPlan({...manual,tunnelHeight:3901}).invalidTunnel,true);
 const rows=[{distance:600,weight:2500,palletHeight:1000,traverseType:'CC100'},{distance:1500,weight:3000,palletHeight:1200,traverseType:'CC160'}];
 const context={window:{},document:{getElementById:id=>({value:id==='b2bLevels'?'2':id==='b2bFirstPalletPosition'?'ground':'auto'})},b2bReadInputState:()=>({levels:2,firstPalletPosition:'ground'}),b2bApplySavedInputState:()=>{},b2b3DOptions:()=>({...base,levels:2,firstPalletPosition:'ground'}),b2bVerticalLayout:()=>({levels:2,palletHeight:1200,traverseHeight:140}),b2bFootCalculationInputs:()=>({}),b2bLastPalletOverlap:600};
+assert.match(manualRuntime,/customCleared=!rows\.length/);assert.match(manualRuntime,/legacy\.checked=rows\.length>0/);assert.match(manualRuntime,/rack\.b2b\.customLevels=\[\]/);
 vm.createContext(context);vm.runInContext(manualRuntime.match(/<script[^>]*>([\s\S]*?)<\/script>/)[1],context);
 context.b2bApplySavedInputState({manualLevelSpecs:rows});
 assert.equal(context.b2bReadInputState().firstFloorGap,600);

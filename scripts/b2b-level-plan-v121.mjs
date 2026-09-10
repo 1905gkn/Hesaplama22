@@ -10,6 +10,9 @@ export function physicalLevels(o) {
   }
   return out;
 }
+export function automaticOptions(o) {
+  return {...o,traverseBottoms:[],traverseHeights:[],palletHeights:[],levelClearances:[],...(o.firstPalletPosition==='traverse'?{firstFloorGap:200}:{})};
+}
 export function manualOptions(o,rows) {
   if(!Array.isArray(rows)||!rows.length)return o;
   const firstPalletPosition=o.firstPalletPosition==='traverse'?'traverse':'ground';
