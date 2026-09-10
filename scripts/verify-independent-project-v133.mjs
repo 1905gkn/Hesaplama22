@@ -21,16 +21,17 @@ assert.notEqual(mixed.payload.rackTypes[0].id,mixed.payload.rackTypes[1].id,'Typ
 mixed.payload.layout.racks.forEach((rack,index)=>{assert.equal(rack.rackTypeId,mixed.payload.rackTypes[index].id);assert.equal(rack.rafexCatalogKey,rack.rafexSystem+':'+rack.rackTypeId);});
 const worker=fs.readFileSync('dist/server/index.js','utf8'),match=worker.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1/),html=Buffer.from(match[2],'base64').toString();
 for(const script of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi))if(!/\bsrc\s*=/.test(script[1]))new vm.Script(script[2]);
-assert(html.includes('rafexIndependentSaveV133'));assert(html.includes('window.rafexCommitLayoutV133(layer,html)'));
+assert(html.includes('rafexNewProjectV133'));assert(html.includes('window.rafexCommitLayoutV133(layer,html)'));
 const saveCode=html.slice(html.indexOf('      async function m2SaveProject() {'),html.indexOf('      function m2ProjectPlacementError()'));
-for(const scenario of ['independent','ordinary','network-error','invalid-placement']){
+for(const scenario of ['independent','ordinary','ordinary-new-project','network-error','invalid-placement']){
   const ui={m2ProjectName:{value:'old'},rafexAuthorityProjectName:{value:'copy'},m2ProjectSaveMsg:{textContent:''},m2ProjectSaveButton:{disabled:false}};
   const racks=[{id:20,plan:{feet:[5000],braces:[]},x:10,y:10}],calls=[],opened=[];
   const ctx={window:{rafexIndependentProjectV133:independentProject,rafexOpenIndependentV133:r=>opened.push(r)},crypto:{randomUUID:()=>scenario+'-uuid'},document:{querySelector:()=>({dataset:{page:'free'}})},$:id=>ui[id],m2LayoutState:{racks,points:[],scale:1},m2LastDrawing:{plan:null},m2ActiveModule:'mekik2',m2LayoutSymbols:[],m2SavedRackTypes:[],m2PinnedDimensions:{},m2PinnedDimensionsByRack:{},m2DimensionOffsets:{},m2DimensionFontSizes:{},m2HiddenSummaryDimensions:new Set(),m2VisibleRackDimensions:{length:new Set(),depth:new Set()},m2UserNotes:[],m2FreeMeasure:{},m2ProjectPlacementError:()=>scenario==='invalid-placement'?'Çakışma':'',m2MeasurementRack:()=>null,req:async(url,opts)=>{if(scenario==='network-error')throw Error('offline');calls.push(JSON.parse(opts.body));return{serialNo:123}},loadProjects:async()=>{},showPage(){},showProjectSavedNotice(){}};
-  vm.createContext(ctx);vm.runInContext(saveCode,ctx);await ctx.m2SaveProject(scenario!=='ordinary');
+  if(scenario==='ordinary-new-project')ctx.window.rafexProjectIdentityV133={uuid:'started-before-drawing',independent:true,createdAt:'2026-09-10T20:00:00Z'};
+  vm.createContext(ctx);vm.runInContext(saveCode,ctx);await ctx.m2SaveProject(!scenario.startsWith('ordinary'));
   assert.equal(racks[0].id,20);assert.equal(ui.m2ProjectSaveButton.disabled,false);assert(!ctx.window.rafexProjectSavingV133);
   if(scenario==='independent'){assert.equal(opened.length,1);assert.equal(calls[0].module,'ortak');assert.notEqual(calls[0].payload.layout.racks[0].id,20);assert.equal(calls[0].payload.projectIdentity.uuid,'independent-uuid');}
-  else if(scenario==='ordinary'){assert.equal(opened.length,0);assert.equal(calls[0].payload.layout.racks[0].id,20);}
+  else if(scenario.startsWith('ordinary')){assert.equal(opened.length,0);assert.equal(calls[0].payload.layout.racks[0].id,20);if(scenario==='ordinary-new-project')assert.equal(calls[0].payload.projectIdentity.uuid,'started-before-drawing','Normal save keeps the identity allocated by New Project');}
   else{assert.equal(opened.length,0);assert.equal(calls.length,0);assert(ui.m2ProjectSaveMsg.textContent.startsWith('Kaydedilemedi:'));}
 }
 console.log('PASS v133: independent IDs, joins, braces, symbols, dimensions, immutable source and inline syntax');
