@@ -101,7 +101,7 @@ if (!html.includes(runtimeMarker)) {
   window.m2ToggleCustomizePallets=()=>{palletsVisible=!palletsVisible;renderPalletButton();preview();};
   window.m2ToggleCustomizeAccessoriesSection=()=>{const section=document.getElementById('m2CustomizeAccessories');setSectionOpen(!section?.classList.contains('open'));if(section?.classList.contains('open'))window.m2RenderCustomizeRackAccessories();};
 
-  window.m2CollectCustomizeRackAccessories=()=>clone(draft).map((item)=>({...item,levels:item.levels.filter((level)=>level>=1&&level<=levelCount())}));
+  window.m2CollectCustomizeRackAccessories=()=>{const items=clone(draft).map((item)=>({...item,levels:item.levels.filter((level)=>level>=1&&level<=levelCount())}));if(document.getElementById('m2CustomizeTunnel')?.checked){let tray=items.find(i=>i.type==='tray');if(!tray){tray={type:'tray',width:300,levels:[]};items.push(tray)}if(!tray.levels.includes(1))tray.levels.unshift(1)}return items;};
   window.m2LoadCustomizeRackAccessories=(items)=>{draft=clone(items);expandedType=null;setSectionOpen(false);window.m2RenderCustomizeRackAccessories();};
   window.m2ToggleCustomizeRackAccessoryPanel=(type)=>{if(!TYPES[type])return;expandedType=expandedType===type?null:type;setSectionOpen(true);window.m2RenderCustomizeRackAccessories();};
   window.m2EnableCustomizeRackAccessory=(type)=>{if(!TYPES[type])return;if(!itemFor(type))draft.push({type,levels:[],...(type==='tray'?{width:300}:{})});expandedType=type;setSectionOpen(true);window.m2RenderCustomizeRackAccessories();preview();};
@@ -112,6 +112,7 @@ if (!html.includes(runtimeMarker)) {
   window.m2RenderCustomizeRackAccessories=()=>{
     const host=document.getElementById('m2CustomizeAccessoryList');if(!host)return;
     const count=levelCount();
+    if(document.getElementById('m2CustomizeTunnel')?.checked){let tray=itemFor('tray');if(!tray){tray={type:'tray',width:300,levels:[]};draft.push(tray)}if(!tray.levels.includes(1))tray.levels.unshift(1)}
     draft=draft.map((item)=>({...item,levels:(item.levels||[]).filter((level)=>level>=1&&level<=count)}));
     host.innerHTML=Object.entries(TYPES).map(([type,title])=>{
       const item=itemFor(type),enabled=!!item,open=expandedType===type;

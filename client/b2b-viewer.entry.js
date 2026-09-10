@@ -197,7 +197,7 @@ class B2BViewer {
         levels: next.dimensions?.levels !== false,
         markers: next.dimensions?.markers !== false,
         eye: next.dimensions?.eye !== false,
-        width: next.dimensions?.width === true,
+        width: false,
         depth: next.dimensions?.depth !== false,
       },
       sectionWidth,
@@ -540,7 +540,7 @@ class B2BViewer {
         });
       } else {
         const firstLevelHeight = this.traverseBottom(0);
-        this.addVerticalDimension(levelsLayer,lineX,frontY,0,firstLevelHeight,`Z+TRAVERS  ·  ${this.dimensionValue(firstLevelHeight)}`,0);
+        this.addVerticalDimension(levelsLayer,lineX,frontY,0,firstLevelHeight,`${this.options.tunnelHeight > 0 ? "TÜNEL" : "Z+TRAVERS"}  ·  ${this.dimensionValue(firstLevelHeight)}`,0);
       }
       for (let level = 1; level < traverseCount; level += 1) {
         this.addVerticalDimension(
@@ -549,7 +549,7 @@ class B2BViewer {
           frontY,
           this.traverseTop(level - 1),
           this.traverseBottom(level),
-          `K${level}  ·  ${this.dimensionValue(this.traverseBottom(level) - this.traverseTop(level - 1))}`,
+          `K${level} – K${level+1}  ·  ${this.dimensionValue(this.traverseBottom(level) - this.traverseTop(level - 1))}`,
           0,
         );
       }
