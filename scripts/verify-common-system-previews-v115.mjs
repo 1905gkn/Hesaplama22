@@ -32,6 +32,7 @@ context.m2LayoutState={racks:[{id:77,rafexSystem:'b2b',b2b:{levels:4},b2bLayout:
 vm.createContext(context);
 const collectionRuntime=html.match(/<script data-rafex-customize-collection="v119">([\s\S]*?)<\/script>/)?.[1];
 assert(collectionRuntime,'Collection customize runtime missing');
+assert(!html.includes('window.RafexB2BViewer.mount(canvas,m2Rack3DOptions(rack))'),'Only the detached viewer may render the Customize canvas');
 context.document.querySelector=()=>null;
 vm.runInContext(collectionRuntime,context);
 vm.runInContext(runtime,context);
