@@ -75,11 +75,9 @@ const runtime = String.raw`
       if(!Number.isFinite(baseX)){baseX=Number(pallet.getAttribute("x"))||0;pallet.dataset.rafexB2BPalletBaseX=String(baseX)}
       if(!Number.isFinite(baseW)||baseW<=0){baseW=Number(pallet.getAttribute("width"))||0;pallet.dataset.rafexB2BPalletBaseWidth=String(baseW)}
       if(baseW<=0)return;
-      // The physical 75 mm clearance becomes only a few pixels in the plan view.
-      // Keep the pallet centred while adding enough visual air for the upright
-      // profile and its stroke to remain completely visible.
-      var inset=Math.min(baseW*.08,Math.max(2.2,baseW*.045));
-      pallet.setAttribute("x",String(baseX+inset));pallet.setAttribute("width",String(Math.max(1,baseW-inset*2)));pallet.dataset.rafexB2BPalletGap="v73";pallet.dataset.rafexB2BClearance="75mm-v124";
+      // Base rendering already reserves the 75 mm clearance from the visible
+      // upright edge. Preserve those coordinates during every decoration pass.
+      pallet.setAttribute("x",String(baseX));pallet.setAttribute("width",String(baseW));pallet.dataset.rafexB2BPalletGap="v73";pallet.dataset.rafexB2BClearance="upright-75mm-v125";
     });
   }
   function renderSharedFeet(state,svg){
@@ -191,7 +189,7 @@ for (const required of [
   'dataset.rafexB2BRowGap="v73"',
   'A single frame stays continuous.',
   'dataset.rafexB2BPalletGap="v73"',
-  'dataset.rafexB2BClearance="75mm-v124"',
+  'dataset.rafexB2BClearance="upright-75mm-v125"',
   'nodes.length===2',
   'rack.b2bLayout.palletType==="mr"',
   'merged.style.setProperty("transform","none","important")',
