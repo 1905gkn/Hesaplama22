@@ -5,6 +5,8 @@ import os from 'node:os';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 const source=fs.readFileSync('scripts/patch-common-drawing-upright-5010-v57.mjs','utf8');
+assert.match(source,/Math\.max\(2\.2,baseW\*\.045\)/,'Plan pallets must keep a visible clearance from uprights');
+assert.match(source,/75mm-v124/,'The 75 mm plan-view clearance marker must be present');
 const start=source.indexOf('  function refineB2BPlanSpacing('),end=source.indexOf('  function renderSharedFeet(',start);
 const context=vm.createContext({isMrRack:r=>!!r.b2b?.mr});
 vm.runInContext(source.slice(start,end),context);

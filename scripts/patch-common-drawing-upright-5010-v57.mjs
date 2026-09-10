@@ -74,7 +74,12 @@ const runtime = String.raw`
       var baseX=Number(pallet.dataset.rafexB2BPalletBaseX),baseW=Number(pallet.dataset.rafexB2BPalletBaseWidth);
       if(!Number.isFinite(baseX)){baseX=Number(pallet.getAttribute("x"))||0;pallet.dataset.rafexB2BPalletBaseX=String(baseX)}
       if(!Number.isFinite(baseW)||baseW<=0){baseW=Number(pallet.getAttribute("width"))||0;pallet.dataset.rafexB2BPalletBaseWidth=String(baseW)}
-      if(baseW<=0)return;var inset=baseW*.03;pallet.setAttribute("x",String(baseX+inset));pallet.setAttribute("width",String(baseW-inset*2));pallet.dataset.rafexB2BPalletGap="v73";
+      if(baseW<=0)return;
+      // The physical 75 mm clearance becomes only a few pixels in the plan view.
+      // Keep the pallet centred while adding enough visual air for the upright
+      // profile and its stroke to remain completely visible.
+      var inset=Math.min(baseW*.08,Math.max(2.2,baseW*.045));
+      pallet.setAttribute("x",String(baseX+inset));pallet.setAttribute("width",String(Math.max(1,baseW-inset*2)));pallet.dataset.rafexB2BPalletGap="v73";pallet.dataset.rafexB2BClearance="75mm-v124";
     });
   }
   function renderSharedFeet(state,svg){
@@ -186,6 +191,7 @@ for (const required of [
   'dataset.rafexB2BRowGap="v73"',
   'A single frame stays continuous.',
   'dataset.rafexB2BPalletGap="v73"',
+  'dataset.rafexB2BClearance="75mm-v124"',
   'nodes.length===2',
   'rack.b2bLayout.palletType==="mr"',
   'merged.style.setProperty("transform","none","important")',
