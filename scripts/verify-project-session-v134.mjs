@@ -63,6 +63,11 @@ try{
   const second=await context.newPage();await openCommon(second);
   await second.locator('#rafexAuthorityProjectName').fill('Session test');await second.locator('#rafexNewProjectV133').click();
   const secondUuid=await second.evaluate(()=>window.rafexProjectIdentityV133.uuid);assert.notEqual(secondUuid,opened.uuid,'Two tabs must allocate different project identities');assert.equal((await state()).uuid,opened.uuid);
+  await second.locator('#nav button[data-page="b2b"]').click();await second.waitForTimeout(200);
+  await second.evaluate(()=>{document.getElementById('m2ProjectName').value='Standalone draft';rafexStartNewProjectV133();});
+  assert(await second.evaluate(()=>Boolean(window.rafexProjectIdentityV133)));
+  await second.locator('#nav button[data-page="free"]').click();await second.waitForTimeout(500);
+  assert.equal(await second.evaluate(()=>rafexCanEditProjectV134()),false,'A standalone draft does not authorize a new Common session');
   assert.equal(errors.length,0,errors.join('\n'));
   console.log('PASS v134: locked inputs, required name, zero-write draft, stable identity across systems, normal save/reopen and separate concurrent tabs');
 }finally{await browser.close();}

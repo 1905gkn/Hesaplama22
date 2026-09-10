@@ -82,7 +82,7 @@
   m2RenderLayout=function(){const result=render.apply(this,arguments);schedule();return result;};window.m2RenderLayout=m2RenderLayout;
   const navigate=showPage;
   showPage=function(name){
-    if(name!=='free'&&common()){active=null;window.rafexProjectIdentityV133=null;window.rafexProjectTypesV133=null;}
+    if((name!=='free'&&common())||(name==='free'&&!common())){active=null;window.rafexProjectIdentityV133=null;window.rafexProjectTypesV133=null;}
     const result=navigate.apply(this,arguments);schedule();return result;
   };window.showPage=showPage;
   // Observe editor replacement only, not thousands of SVG descendants.
