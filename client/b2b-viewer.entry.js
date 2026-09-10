@@ -817,6 +817,8 @@ async function captureB2BViews(options = {}, settings = {}) {
 let active = null;
 window.RafexB2BViewer = {
   mount(canvas, options) {
+    // Customize owns a detached scene; legacy recovery hooks must not take its canvas.
+    if (canvas?.id === 'm2CustomizeCanvas' && window.rafexMountB2BCustomizeViewerV118) return null;
     if (!(canvas instanceof HTMLCanvasElement)) throw new Error("B2B 3D tuvali bulunamadı.");
     active?.destroy();
     active = new B2BViewer(canvas, options);
