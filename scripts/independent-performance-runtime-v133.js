@@ -106,14 +106,16 @@
       const text='Proje · '+new Date(identity.createdAt).toLocaleString('tr-TR');if(info.textContent!==text)info.textContent=text;
     }else if(info)info.remove();
     document.getElementById('rafexIndependentSaveV133')?.remove();
-    if(!save||document.getElementById('rafexNewProjectV133'))return;
+    const field=name?.closest('label'),existing=document.getElementById('rafexNewProjectV133');
+    if(existing){if(field&&existing.nextElementSibling!==field)field.insertAdjacentElement('beforebegin',existing);return;}
+    if(!save)return;
     const button=document.createElement('button');button.id='rafexNewProjectV133';button.type='button';button.className=save.className;
     button.textContent='Yeni proje aç';button.title='Boş çizim alanı ve yeni proje kimliğiyle başla';
-    button.style.marginBottom='10px';button.addEventListener('click',window.rafexStartNewProjectV133);
-    const field=name?.closest('label');if(field)field.insertAdjacentElement('beforebegin',button);else save.insertAdjacentElement('beforebegin',button);
+    button.style.whiteSpace='nowrap';button.style.flexShrink='0';button.addEventListener('click',window.rafexStartNewProjectV133);
+    if(field)field.insertAdjacentElement('beforebegin',button);else save.insertAdjacentElement('beforebegin',button);
   }
   // Page navigation replaces the editor, so install on those bounded events.
-  document.addEventListener('click',event=>{if(event.target.closest('#nav button,.rafex-system-option,#rafexUnifiedContinue'))requestAnimationFrame(installButton);},true);
+  document.addEventListener('click',event=>{if(event.target.closest('#nav button,.rafex-system-option,#rafexUnifiedContinue')){requestAnimationFrame(installButton);setTimeout(installButton,250);setTimeout(installButton,1000);}},true);
   const baseRender=m2RenderLayout;
   m2RenderLayout=function(){const result=baseRender.apply(this,arguments);installButton();return result;};
   window.m2RenderLayout=m2RenderLayout;
