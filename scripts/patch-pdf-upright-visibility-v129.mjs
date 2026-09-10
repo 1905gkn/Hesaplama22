@@ -44,12 +44,9 @@ const runtime = String.raw`
 <script data-rafex-pdf-upright-visibility="v132">(function(){
   if(window.__rafexPdfUprightVisibilityV132)return;
   window.__rafexPdfUprightVisibilityV132=true;
-  function paintLine(original,className,color,strokeWidth){
-    var node=document.createElementNS('http://www.w3.org/2000/svg','line');
-    var x=Number(original.getAttribute('x'))||0,y=Number(original.getAttribute('y'))||0;
-    var width=Number(original.getAttribute('width'))||0,height=Number(original.getAttribute('height'))||0;
-    node.setAttribute('x1',String(x+width/2));node.setAttribute('x2',String(x+width/2));
-    node.setAttribute('y1',String(y));node.setAttribute('y2',String(y+height));
+  function paintPath(segments,className,color,strokeWidth){
+    var node=document.createElementNS('http://www.w3.org/2000/svg','path');
+    node.setAttribute('d',segments);
     node.setAttribute('class',className);node.setAttribute('aria-hidden','true');node.setAttribute('pointer-events','none');
     node.style.setProperty('display','inline','important');node.style.setProperty('visibility','visible','important');
     node.style.setProperty('fill','none','important');node.style.setProperty('stroke',color,'important');node.style.setProperty('stroke-width',strokeWidth,'important');
@@ -59,11 +56,19 @@ const runtime = String.raw`
   }
   function enhance(svg){
     if(!svg)return 0;
-    svg.querySelectorAll('.rafex-pdf-upright-overlay-v129,.rafex-pdf-upright-halo-v130,.rafex-pdf-upright-overlay-v130,.rafex-pdf-upright-halo-v131,.rafex-pdf-upright-overlay-v131,.rafex-pdf-upright-halo-v132,.rafex-pdf-upright-overlay-v132').forEach(function(node){node.remove()});
+    svg.querySelectorAll('.rafex-pdf-upright-overlay-v129,.rafex-pdf-upright-halo-v130,.rafex-pdf-upright-overlay-v130,.rafex-pdf-upright-halo-v131,.rafex-pdf-upright-overlay-v131,line.rafex-pdf-upright-halo-v132,line.rafex-pdf-upright-overlay-v132').forEach(function(node){node.remove()});
     var originals=Array.from(svg.querySelectorAll('.m2-b2b-plan-upright:not(.rafex-profile-merge-source-v61)'));
+    var groups=new Map();
     originals.forEach(function(original){
-      original.parentNode.appendChild(paintLine(original,'rafex-pdf-upright-halo-v132','#002c45','5px'));
-      original.parentNode.appendChild(paintLine(original,'rafex-pdf-upright-overlay-v132','#0a8dcc','3px'));
+      var x=(Number(original.getAttribute('x'))||0)+(Number(original.getAttribute('width'))||0)/2,y=Number(original.getAttribute('y'))||0,h=Number(original.getAttribute('height'))||0,parent=original.parentNode;
+      groups.set(parent,(groups.get(parent)||'')+'M'+x+' '+y+'V'+(y+h));
+    });
+    groups.forEach(function(segments,parent){
+      [['rafex-pdf-upright-halo-v132','#002c45','5px'],['rafex-pdf-upright-overlay-v132','#0a8dcc','3px']].forEach(function(style){
+        var node=parent.querySelector(':scope > path.'+style[0]);
+        if(!node)parent.appendChild(paintPath(segments,style[0],style[1],style[2]));
+        else if(node.getAttribute('d')!==segments)node.setAttribute('d',segments);
+      });
     });
     svg.dataset.rafexPdfUprights=String(originals.length);
     return originals.length;

@@ -36,4 +36,6 @@ node scripts/verify-common-layout-zoom-crisp-v126.mjs
 node scripts/verify-common-layout-physical-scale-v127.mjs
 node scripts/patch-pdf-upright-visibility-v129.mjs
 node scripts/verify-pdf-upright-visibility-v129.mjs
+node scripts/patch-independent-performance-v133.mjs
+node scripts/verify-independent-project-v133.mjs
 node scripts/emit-static-index-v1.mjs
