@@ -73,7 +73,7 @@
   }
 
   function collectionOptions(options,state) {
-    if(!state.collectionLevels?.enabled)return options;
+    if(!state?.collectionLevels?.enabled)return options;
     const plan=b2bCollectionPlanV109(state);
     const out={...options,firstPalletPosition:'traverse',firstFloorGap:plan.totalHeight,collectionFloors:plan.floors};
     out.footHeight=state.footHeightMode==='manual'&&Number(state.footHeight)>0?Number(state.footHeight):b2bHeightV109(out).automatic;

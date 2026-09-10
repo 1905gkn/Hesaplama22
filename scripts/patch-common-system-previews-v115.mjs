@@ -70,6 +70,9 @@ const runtime=String.raw`
  window.rafexB2BCustomizeOptionsV120=b2bCustomizeOptions;
  window.rafexMountB2BCustomizeViewerV118=mountB2BCustomizeViewer;
  window.rafexUpdateB2BCustomizeViewerV119=updateB2BCustomizeViewer;
+ const oldPreviewV120=window.m2PreviewRackCustomization;
+ window.m2PreviewRackCustomization=function(){const rack=racks().find(r=>r.id===b2bCustomizeRackId);if(rack&&systemOf(rack)==='b2b'){updateB2BCustomizeViewer();return;}return oldPreviewV120?.apply(this,arguments)};
+ try{m2PreviewRackCustomization=window.m2PreviewRackCustomization}catch(_){}
 })();
 </script>`;
 
@@ -80,6 +83,7 @@ const validationAnchor='if(!b2bValidateHeightV109(o,candidateV109.b2b))return;';
 if(!html.includes(validationAnchor))throw Error('Collection validation anchor missing');
 html=html.replace(validationAnchor,'window.rafexCustomizeCollectionOptionsV119?.(o,candidateV109);'+validationAnchor);
 const saveGeometry='rack.b2b.footHeight=rack.sideUprightHeight;m2B2BResizeRack(rack,count);';
+html=html.replace('const o=m2Rack3DOptions(candidateV109);','const o=window.rafexB2BDetailOptionsV117(candidateV109);');
 if(!html.includes(saveGeometry))throw Error('Tunnel save geometry anchor missing');
 html=html.replace(saveGeometry,'rack.b2b.footHeight=rack.sideUprightHeight;window.rafexSaveTunnelV120?.(rack);m2B2BResizeRack(rack,count);');
 html=html.replace('window.rafexCustomizeCollectionOptionsV119?.(o,candidateV109);','const planV120=window.rafexB2BCustomizeOptionsV120(candidateV109);if(planV120.invalidTunnel){alert("Tünel yüksekliği mevcut ayak boyu ve üst palet kotuna sığmıyor.");return;}Object.assign(o,planV120);');

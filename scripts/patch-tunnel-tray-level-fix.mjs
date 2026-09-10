@@ -54,6 +54,7 @@ if (!portal.includes(marker)) {
   },true);
 
   function targetTunnelLevel(){
+    return 1;
     const count=levelCount();
     const tunnelHeight=Math.max(500,Number(byId('m2CustomizeTunnelHeight')?.value)||3600);
     let cumulative=0;
@@ -88,7 +89,6 @@ if (!portal.includes(marker)) {
       if(typeof window.m2SetCustomizeRackTrayWidth==='function')window.m2SetCustomizeRackTrayWidth('tray',300);
       const selected=new Set(Array.isArray(tray.levels)?tray.levels.map(Number):[]);
       if(typeof window.m2ToggleCustomizeRackAccessoryLevel==='function'){
-        [...selected].filter((level)=>level!==target).forEach((level)=>window.m2ToggleCustomizeRackAccessoryLevel('tray',level));
         if(!selected.has(target))window.m2ToggleCustomizeRackAccessoryLevel('tray',target);
       }
       preview();

@@ -558,7 +558,7 @@ class B2BViewer {
     const topPallet = this.loadBottom(this.options.levels - 1) + this.palletHeightAt(this.options.levels - 1);
     if (this.options.dimensions.markers) {
       this.addLevelMarker(markersLayer, markerX, frontY, topPallet, `ÜST PALET KOTU  ·  ${this.dimensionValue(topPallet)}`, 0);
-      this.addLevelMarker(markersLayer, markerX, frontY, this.uprightHeight(), `AYAK BOYU  ·  ${this.dimensionValue(this.uprightHeight())}`, 0);
+      this.addLevelMarker(markersLayer, rackWidth + 1400, frontY, this.uprightHeight(), `AYAK BOYU  ·  ${this.dimensionValue(this.uprightHeight())}`, rackWidth);
     }
 
     const eyeStart = SOURCE_CLEAR_LEFT * sectionScale;
