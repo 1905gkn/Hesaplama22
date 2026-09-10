@@ -168,7 +168,7 @@
       traverseHeight,
       footHeight,
       footWidth: Math.max(60, number(drawing?.footType ?? state.footWidth, 120)),
-      showPallets: true,
+      showPallets: state.showPallets !== false,
       footColor: state.footColor || "ral5010",
       traverseColor: state.traverseColor || "ral1007",
       dimensionLabelScale: Math.max(.7, Math.min(1.5, number(state.dimensionTextScale, typeof b2bDimensionTextScale === "number" ? b2bDimensionTextScale : 1))),
@@ -185,7 +185,7 @@
     const fallback = fallbackViewerOptions(drawing);
     const merged = { ...fallback, ...(options || {}) };
     merged.moduleCount = 1;
-    merged.showPallets = true;
+    merged.showPallets = fallback.showPallets;
     merged.palletCount = fallback.palletCount;
     merged.palletWidth = fallback.palletWidth;
     merged.palletDepth = fallback.palletDepth;
@@ -340,7 +340,7 @@
     const levelCandidates=list.filter((item)=>levelsOf(item)===maxLevels);
     const tallest=levelCandidates.reduce((best,item)=>!best||score(item)>score(best)?item:best,null)||list[0]||{};
     const maxFootHeight=list.reduce((max,item)=>Math.max(max,number(item?.footHeight,0),number(item?.uprightHeight,0)),0);
-    return {...tallest,levels:maxLevels,footHeight:Math.max(maxFootHeight,number(tallest?.footHeight,0)),moduleCount:1,moduleOptions:null,showPallets:true};
+    return {...tallest,levels:maxLevels,footHeight:Math.max(maxFootHeight,number(tallest?.footHeight,0)),moduleCount:1,moduleOptions:null,showPallets:tallest?.showPallets!==false};
   }
 
   async function captureCombinedVariants(){
@@ -352,7 +352,7 @@
     if(combinedVariantPending)return combinedVariantPending;
     combinedVariantPending=(async()=>{
       const moduleOptions=entries.map((entry)=>viewerOptions(entry.drawing));
-      const base={...moduleOptions[0],moduleCount:moduleOptions.length,moduleOptions,showPallets:true};
+      const base={...moduleOptions[0],moduleCount:moduleOptions.length,moduleOptions,showPallets:moduleOptions[0]?.showPallets!==false};
       const capture=window.RafexB2BViewer?.captureViews;
       if(typeof capture!=="function")throw new Error("Birleşik B2B 3D yakalama servisi hazır değil.");
       const settings={width:2600,height:2400,pixelRatio:2.25,cameraPadding:adaptiveCameraPadding(base,true),frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"};
@@ -386,7 +386,7 @@
       if(corporateCombinedPending.has(group.id)){await corporateCombinedPending.get(group.id);continue;}
       const task=(async()=>{
         const moduleOptions=group.entries.map((entry)=>viewerOptions(entry.drawing));
-        const base={...moduleOptions[0],moduleCount:moduleOptions.length,moduleOptions,showPallets:true};
+        const base={...moduleOptions[0],moduleCount:moduleOptions.length,moduleOptions,showPallets:moduleOptions[0]?.showPallets!==false};
         const capture=window.RafexB2BViewer?.captureViews;
         if(typeof capture!=="function")throw new Error("Tip bazlı birleşik B2B 3D yakalama servisi hazır değil.");
         const settings={width:2600,height:2400,pixelRatio:2.25,cameraPadding:adaptiveCameraPadding(base,true),frontDimensions:{levels:true,markers:true,eye:true,width:false,depth:false},sideDimensions:{levels:false,markers:false,eye:false,width:false,depth:true},side:"right"};
