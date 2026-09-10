@@ -12,13 +12,19 @@ export function physicalLevels(o) {
 }
 export function manualOptions(o,rows) {
   if(!Array.isArray(rows)||!rows.length)return o;
-  o={...o,firstPalletPosition:'traverse',traverseBottoms:[],traverseHeights:[],palletHeights:[],levelClearances:[]};
+  const firstPalletPosition=o.firstPalletPosition==='traverse'?'traverse':'ground';
+  o={...o,firstPalletPosition,traverseBottoms:[],traverseHeights:[],palletHeights:[],levelClearances:[]};
+  const selected=rows.slice(0,o.levels);
+  o.palletHeights=selected.map(r=>Number(r.palletHeight)||o.palletHeight||1200);
+  const traverseCount=firstPalletPosition==='traverse'?selected.length:Math.max(0,selected.length-1);
   let bottom=0;
-  rows.slice(0,o.levels).forEach((r,i)=>{
+  selected.slice(0,traverseCount).forEach((r,i)=>{
     bottom+=Number(r.distance)||0;
     o.traverseBottoms.push(bottom);o.traverseHeights.push(Number(String(r.traverseType).match(/\d+/)?.[0])||o.traverseHeight||140);
-    o.palletHeights.push(Number(r.palletHeight)||o.palletHeight||1200);
-    if(i)o.levelClearances[i-1]=Math.max(0,Number(r.distance)-o.traverseHeights[i-1]-o.palletHeights[i-1]);
+    if(firstPalletPosition==='traverse'){
+      if(i)o.levelClearances[i-1]=Math.max(0,Number(r.distance)-o.traverseHeights[i-1]-o.palletHeights[i-1]);
+    }else if(i===0)o.levelClearances[0]=Math.max(0,Number(r.distance)-o.palletHeights[0]);
+    else o.levelClearances[i]=Math.max(0,Number(r.distance)-o.traverseHeights[i-1]-o.palletHeights[i]);
   });
-  o.firstFloorGap=o.traverseBottoms[0];return o;
+  o.firstFloorGap=o.traverseBottoms[0]||0;return o;
 }
