@@ -14,7 +14,7 @@ html=html.replace(/\s*<div class="b2b-field"><span>Tünel olacak bölüm<\/span>
 // 2) Customize accessory runtime: Palet Dayama icin ZEMIN (level 0) secimini destekle.
 const levelCountNeedle="const levelCount=()=>Math.max(1,Math.min(15,Math.round(Number(document.getElementById('m2CustomizeLevels')?.value)||1)));";
 if(html.includes(levelCountNeedle) && !html.includes('const rafexGroundPalletStopAllowed=')){
-  html=html.replace(levelCountNeedle, levelCountNeedle+"\n  const rafexGroundPalletStopAllowed=()=>{try{const id=Number(typeof m2CustomizeRackId!=='undefined'?m2CustomizeRackId:0);const racks=(typeof m2LayoutState!=='undefined'&&Array.isArray(m2LayoutState?.racks))?m2LayoutState.racks:[];const rack=racks.find((item)=>Number(item?.id)===id);return String(rack?.b2b?.firstPalletPosition||'ground').toLowerCase()==='ground';}catch{return false}};");
+  html=html.replace(levelCountNeedle, levelCountNeedle+"\n  const rafexGroundPalletStopAllowed=()=>{if(document.getElementById('m2CustomizeTunnel')?.checked||window.rafexManualCustomizeActiveV121?.())return false;try{const id=Number(typeof m2CustomizeRackId!=='undefined'?m2CustomizeRackId:0);const racks=(typeof m2LayoutState!=='undefined'&&Array.isArray(m2LayoutState?.racks))?m2LayoutState.racks:[];const rack=racks.find((item)=>Number(item?.id)===id);return String(rack?.b2b?.firstPalletPosition||'ground').toLowerCase()==='ground';}catch{return false}};");
 }
 
 html=html.replace(
@@ -22,20 +22,20 @@ html=html.replace(
   "window.m2CollectCustomizeRackAccessories=()=>clone(draft).map((item)=>({...item,levels:item.levels.filter((level)=>(level>=1&&level<=levelCount())||(level===0&&item.type==='palletStop'&&rafexGroundPalletStopAllowed()))}));"
 );
 html=html.replace(
-  "draft=draft.map((item)=>({...item,levels:(item.levels||[]).filter((level)=>level>=1&&level<=count)}));",
-  "draft=draft.map((item)=>({...item,levels:(item.levels||[]).filter((level)=>(level>=1&&level<=count)||(level===0&&item.type==='palletStop'&&rafexGroundPalletStopAllowed()))}));"
+  "draft=draft.map((item)=>({...item,levels:(item.levels||[]).filter((level)=>validLevels().includes(level))}));",
+  "draft=draft.map((item)=>({...item,levels:(item.levels||[]).filter((level)=>(validLevels().includes(level))||(level===0&&item.type==='palletStop'&&rafexGroundPalletStopAllowed()))}));"
 );
 html=html.replace(
-  "const selected=new Set(item.levels||[]);\n        const levels=Array.from({length:count},(_,i)=>i+1).map((level)=>'<button type=\"button\" data-level=\"'+level+'\" class=\"'+(selected.has(level)?'active':'')+'\">K'+level+'</button>').join('');",
-  "const selected=new Set(item.levels||[]);\n        const groundButton=type==='palletStop'&&rafexGroundPalletStopAllowed()?'<button type=\"button\" data-level=\"0\" class=\"'+(selected.has(0)?'active':'')+'\">ZEMİN</button>':'';\n        const levels=Array.from({length:count},(_,i)=>i+1).map((level)=>'<button type=\"button\" data-level=\"'+level+'\" class=\"'+(selected.has(level)?'active':'')+'\">K'+level+'</button>').join('');"
+  "const selected=new Set(item.levels||[]);\n        const levels=validLevels().map((level)=>'<button type=\"button\" data-level=\"'+level+'\" class=\"'+(selected.has(level)?'active':'')+'\">K'+level+'</button>').join('');",
+  "const selected=new Set(item.levels||[]);\n        const groundButton=type==='palletStop'&&rafexGroundPalletStopAllowed()?'<button type=\"button\" data-level=\"0\" class=\"'+(selected.has(0)?'active':'')+'\">ZEMİN</button>':'';\n        const levels=validLevels().map((level)=>'<button type=\"button\" data-level=\"'+level+'\" class=\"'+(selected.has(level)?'active':'')+'\">K'+level+'</button>').join('');"
 );
 html=html.replace(
   "<div class=\"m2-customize-accessory-levels\">'+levels+'</div>",
   "<div class=\"m2-customize-accessory-levels\">'+groundButton+levels+'</div>"
 );
 html=html.replace(
-  "const count=levelCount();item.levels=(item.levels||[]).filter((level)=>level>=1&&level<=count).length===count?[]:Array.from({length:count},(_,i)=>i+1);window.m2RenderCustomizeRackAccessories();preview();",
-  "const count=levelCount();const all=(item.type==='palletStop'&&rafexGroundPalletStopAllowed()?[0]:[]).concat(Array.from({length:count},(_,i)=>i+1));const valid=(item.levels||[]).filter((level)=>all.includes(level));item.levels=valid.length===all.length?[]:all;window.m2RenderCustomizeRackAccessories();preview();"
+  "const count=levelCount();item.levels=(item.levels||[]).filter((level)=>validLevels().includes(level)).length===count?[]:validLevels();window.m2RenderCustomizeRackAccessories();preview();",
+  "const count=levelCount();const all=(item.type==='palletStop'&&rafexGroundPalletStopAllowed()?[0]:[]).concat(validLevels());const valid=(item.levels||[]).filter((level)=>all.includes(level));item.levels=valid.length===all.length?[]:all;window.m2RenderCustomizeRackAccessories();preview();"
 );
 
 // Final capture handler level 0'i de kabul etsin.

@@ -53,31 +53,13 @@ if (!portal.includes(marker)) {
     window.m2ToggleCustomizeRackAccessoryLevel(type,level);
   },true);
 
-  function targetTunnelLevel(){
-    return 1;
-    const count=levelCount();
-    const tunnelHeight=Math.max(500,Number(byId('m2CustomizeTunnelHeight')?.value)||3600);
-    let cumulative=0;
-    const manual=byId('m2CustomizeManualLevels')?.checked===true;
-    const rows=manual?[...document.querySelectorAll('#m2CustomizeLevelRows .m2-custom-level-row')]:[];
-    const palletHeight=Math.max(300,Number(byId('m2CustomizePalletHeight')?.value)||1200);
-    let gap=200,traverse=100;
-    try{if(typeof b2bPalletTraverseGap==='number'&&Number.isFinite(b2bPalletTraverseGap))gap=b2bPalletTraverseGap;}catch{}
-    try{if(typeof b2bTraverseHeight==='function'){const value=Number(b2bTraverseHeight());if(value>0)traverse=value;}}catch{}
-    const fallbackInterval=Math.max(1,palletHeight+gap+traverse);
-    for(let index=0;index<count;index++){
-      const rowInterval=Number(rows[index]?.querySelector('[data-custom-interval]')?.value);
-      cumulative+=manual&&rowInterval>0?rowInterval:fallbackInterval;
-      if(cumulative>tunnelHeight)return index+1;
-    }
-    return count;
-  }
+  function targetTunnelLevel(){return window.rafexFirstTunnelLevelV121?.()??null;}
 
   function normalizeTunnelTray(){
     if(tunnelSyncBusy||byId('m2CustomizeTunnel')?.checked!==true)return;
     tunnelSyncBusy=true;
     try{
-      const target=targetTunnelLevel();
+      const target=targetTunnelLevel();if(target==null)return;
       let items=collect();
       let tray=Array.isArray(items)?items.find((item)=>item&&item.type==='tray'):null;
       if(!tray&&typeof window.m2EnableCustomizeRackAccessory==='function'){

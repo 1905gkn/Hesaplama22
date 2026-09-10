@@ -8,4 +8,6 @@ replace('tray, mrTraverse, mrTray]','tray, mrTraverse, mrTray, zs55Traverse, zs5
 replace('loader.loadAsync("/mr-tava.glb?v=b2b-collection-zs-103"),','loader.loadAsync("/mr-tava.glb?v=b2b-collection-zs-103"),\n          loader.loadAsync('+JSON.stringify(uri('b2b-zs55-hr-traverse.glb'))+'),\n          loader.loadAsync('+JSON.stringify(uri('b2b-zs55-tray.glb'))+'),');
 replace('mrTray: mrTray.scene.clone(true),','mrTray: mrTray.scene.clone(true),\n        zs55Traverse: zs55Traverse.scene, zs55Tray: zs55Tray.scene,');
 replace('floors.forEach((floor, floorIndex) => {','floors.forEach((floor, floorIndex) => {\n      if(String(floor.traverse).startsWith("ZS55")){layer.add(zs55Collection(THREE,this,section,floor,floorIndex));return;}');
+source=source.replaceAll('const supportTop = this.traverseBottom(level) + this.options.traverseHeight;', 'const supportTop = this.traverseTop(level);');
+source=source.replaceAll('this.traverseTop(level) <= this.options.tunnelHeight', 'this.traverseBottom(level) < this.options.tunnelHeight');
 fs.writeFileSync(file,source);

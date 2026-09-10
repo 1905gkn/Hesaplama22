@@ -73,11 +73,11 @@ assert.equal(context.window.rafexCustomizeCollectionOptionsV119({...preview},{..
 withCollection.b2b.tunnelHeight=1000;
 assert.equal(context.window.rafexB2BDetailOptionsV117(withCollection).collectionFloors.length,0,'Tunnel must remove all collection floors');
 const tunnelPreview=context.window.rafexCustomizeCollectionOptionsV119({...preview,tunnelHeight:3600,accessories:[{type:'hTraverse',levels:[5]}]},withCollection);
-assert.equal(tunnelPreview.firstFloorGap,3600);
+assert.equal(tunnelPreview.firstFloorGap,1960);
 assert.equal(tunnelPreview.footHeight,6150);
-assert(tunnelPreview.levels<5);
-assert(!tunnelPreview.accessories.some(a=>a.type==='hTraverse'));
-assert(tunnelPreview.accessories.some(a=>a.type==='tray'&&a.levels.includes(1)));
+assert.equal(tunnelPreview.levels,5);
+assert(tunnelPreview.accessories.some(a=>a.type==='hTraverse'&&a.levels.includes(5)));
+assert(tunnelPreview.accessories.some(a=>a.type==='tray'&&a.levels.includes(2)));
 const roundTrip=JSON.parse(JSON.stringify(withCollection));
 roundTrip.b2b.tunnelHeight=3600;
 context.window.rafexSaveTunnelV120(roundTrip);

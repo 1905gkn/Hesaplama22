@@ -91,6 +91,7 @@ if (!html.includes(runtimeMarker)) {
   let palletsVisible=true;
   const clone=(items)=>Array.isArray(items)?items.filter((item)=>TYPES[item?.type]).map((item)=>({type:item.type,levels:Array.isArray(item.levels)?[...new Set(item.levels.map(Number).filter(Number.isFinite))].sort((a,b)=>a-b):[],...(item.type==='tray'?{width:[200,250,300].includes(Number(item.width))?Number(item.width):300}:{})})):[];
   const levelCount=()=>Math.max(1,Math.min(15,Math.round(Number(document.getElementById('m2CustomizeLevels')?.value)||1)));
+  const validLevels=()=>window.rafexAccessoryLevelsV121?.()||Array.from({length:levelCount()},(_,i)=>i+1);
   const preview=()=>{try{if(typeof window.m2PreviewRackCustomization==='function')window.m2PreviewRackCustomization();}catch{}try{window.RafexB2BViewer?.update({showPallets:palletsVisible,accessories:clone(draft)});}catch{}};
   const itemFor=(type)=>draft.find((item)=>item.type===type)||null;
   const setSectionOpen=(open)=>{const section=document.getElementById('m2CustomizeAccessories');if(!section)return;section.classList.toggle('open',!!open);section.querySelector('.m2-customize-section-head')?.setAttribute('aria-expanded',String(!!open));};
@@ -101,25 +102,25 @@ if (!html.includes(runtimeMarker)) {
   window.m2ToggleCustomizePallets=()=>{palletsVisible=!palletsVisible;renderPalletButton();preview();};
   window.m2ToggleCustomizeAccessoriesSection=()=>{const section=document.getElementById('m2CustomizeAccessories');setSectionOpen(!section?.classList.contains('open'));if(section?.classList.contains('open'))window.m2RenderCustomizeRackAccessories();};
 
-  window.m2CollectCustomizeRackAccessories=()=>{const items=clone(draft).map((item)=>({...item,levels:item.levels.filter((level)=>level>=1&&level<=levelCount())}));if(document.getElementById('m2CustomizeTunnel')?.checked){let tray=items.find(i=>i.type==='tray');if(!tray){tray={type:'tray',width:300,levels:[]};items.push(tray)}if(!tray.levels.includes(1))tray.levels.unshift(1)}return items;};
+  window.m2CollectCustomizeRackAccessories=()=>{const items=clone(draft).map((item)=>({...item,levels:item.levels.filter((level)=>validLevels().includes(level))}));if(document.getElementById('m2CustomizeTunnel')?.checked){let tray=items.find(i=>i.type==='tray');if(!tray){tray={type:'tray',width:300,levels:[]};items.push(tray)}const first=window.rafexFirstTunnelLevelV121?.();if(first!=null&&!tray.levels.includes(first))tray.levels.unshift(first)}return items;};
   window.m2LoadCustomizeRackAccessories=(items)=>{draft=clone(items);expandedType=null;setSectionOpen(false);window.m2RenderCustomizeRackAccessories();};
   window.m2ToggleCustomizeRackAccessoryPanel=(type)=>{if(!TYPES[type])return;expandedType=expandedType===type?null:type;setSectionOpen(true);window.m2RenderCustomizeRackAccessories();};
   window.m2EnableCustomizeRackAccessory=(type)=>{if(!TYPES[type])return;if(!itemFor(type))draft.push({type,levels:[],...(type==='tray'?{width:300}:{})});expandedType=type;setSectionOpen(true);window.m2RenderCustomizeRackAccessories();preview();};
   window.m2RemoveCustomizeRackAccessory=(type)=>{draft=draft.filter((item)=>item.type!==type);expandedType=type;window.m2RenderCustomizeRackAccessories();preview();};
   window.m2ToggleCustomizeRackAccessoryLevel=(type,level)=>{const item=itemFor(type);if(!item)return;const set=new Set(item.levels||[]);set.has(level)?set.delete(level):set.add(level);item.levels=[...set].sort((a,b)=>a-b);window.m2RenderCustomizeRackAccessories();preview();};
-  window.m2AllCustomizeRackAccessoryLevels=(type)=>{const item=itemFor(type);if(!item)return;const count=levelCount();item.levels=(item.levels||[]).filter((level)=>level>=1&&level<=count).length===count?[]:Array.from({length:count},(_,i)=>i+1);window.m2RenderCustomizeRackAccessories();preview();};
+  window.m2AllCustomizeRackAccessoryLevels=(type)=>{const item=itemFor(type);if(!item)return;const count=levelCount();item.levels=(item.levels||[]).filter((level)=>validLevels().includes(level)).length===count?[]:validLevels();window.m2RenderCustomizeRackAccessories();preview();};
   window.m2SetCustomizeRackTrayWidth=(type,width)=>{const item=itemFor(type);if(!item||item.type!=='tray')return;item.width=[200,250,300].includes(Number(width))?Number(width):300;window.m2RenderCustomizeRackAccessories();preview();};
   window.m2RenderCustomizeRackAccessories=()=>{
     const host=document.getElementById('m2CustomizeAccessoryList');if(!host)return;
     const count=levelCount();
-    if(document.getElementById('m2CustomizeTunnel')?.checked){let tray=itemFor('tray');if(!tray){tray={type:'tray',width:300,levels:[]};draft.push(tray)}if(!tray.levels.includes(1))tray.levels.unshift(1)}
-    draft=draft.map((item)=>({...item,levels:(item.levels||[]).filter((level)=>level>=1&&level<=count)}));
+    if(document.getElementById('m2CustomizeTunnel')?.checked){let tray=itemFor('tray');if(!tray){tray={type:'tray',width:300,levels:[]};draft.push(tray)}const first=window.rafexFirstTunnelLevelV121?.();if(first!=null&&!tray.levels.includes(first))tray.levels.unshift(first)}
+    draft=draft.map((item)=>({...item,levels:(item.levels||[]).filter((level)=>validLevels().includes(level))}));
     host.innerHTML=Object.entries(TYPES).map(([type,title])=>{
       const item=itemFor(type),enabled=!!item,open=expandedType===type;
       let body='<button type="button" class="m2-customize-accessory-enable">BU AKSESUARI EKLE</button>';
       if(item){
         const selected=new Set(item.levels||[]);
-        const levels=Array.from({length:count},(_,i)=>i+1).map((level)=>'<button type="button" class="'+(selected.has(level)?'active':'')+'">K'+level+'</button>').join('');
+        const levels=validLevels().map((level)=>'<button type="button" data-level="'+level+'" class="'+(selected.has(level)?'active':'')+'">K'+level+'</button>').join('');
         const tray=type==='tray'?'<div class="m2-customize-accessory-tray"><span>Tava eni</span>'+[200,250,300].map((width)=>'<button type="button" class="'+(Number(item.width)===width?'active':'')+'">'+width+' mm</button>').join('')+'</div>':'';
         body=tray+'<div class="m2-customize-accessory-level-title"><span>Eklenecek katlar</span><button type="button">'+(selected.size===count?'Tümünü Kaldır':'Tüm Katlar')+'</button></div><div class="m2-customize-accessory-levels">'+levels+'</div><button type="button" class="m2-customize-accessory-remove">Aksesuarı Kaldır</button>';
       }

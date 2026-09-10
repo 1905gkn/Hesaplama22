@@ -399,7 +399,10 @@ const inventoryRuntime = `
         var traverseQty=levelCount*2*rowCount;
         var traverseLength=n(rack.b2bLayout.sectionWidth||rack.widthMm);
         var traverseType=String((rack.b2b&&rack.b2b.traverseType)||rack.traverseRecommendation||'CC140');
-        add('Travers',traverseQty,(traverseLength?textNumber(traverseLength)+' mm · ':'')+traverseType);
+        if(rack.b2b?.manualLevelSpecs?.length&&window.rafexPhysicalLevelsV121){
+          var levelOptions=window.rafexB2BDetailOptionsV117(rack);
+          window.rafexPhysicalLevelsV121(levelOptions).filter(function(f){return !(levelOptions.tunnelHeight>0&&f.bottom<levelOptions.tunnelHeight)}).forEach(function(f){add('Travers',2*rowCount,textNumber(traverseLength)+' mm · '+(rack.b2b.manualLevelSpecs[f.index]?.traverseType||traverseType));});
+        }else add('Travers',traverseQty,(traverseLength?textNumber(traverseLength)+' mm · ':'')+traverseType);
         add('Emniyet pimi',traverseQty*2,'');
         try{
           if(typeof b2bStraightTiePlan==='function'){

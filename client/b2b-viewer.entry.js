@@ -182,6 +182,8 @@ class B2BViewer {
       palletTraverseGap: clamp(Number.isFinite(Number(next.palletTraverseGap)) ? Number(next.palletTraverseGap) : 200, 0, 2000),
       levelClearances: Array.isArray(next.levelClearances) ? next.levelClearances.map((value) => clamp(Number(value) || 0, 0, 5000)) : [],
       palletHeights: Array.isArray(next.palletHeights) ? next.palletHeights.map((value) => clamp(Number(value) || 800, 300, 3000)) : [],
+      traverseBottoms: Array.isArray(next.traverseBottoms)?next.traverseBottoms.map(Number):[],
+      traverseHeights: Array.isArray(next.traverseHeights)?next.traverseHeights.map(Number):[],
       tunnelHeight: clamp(Number(next.tunnelHeight) || 0, 0, 30000),
       firstPalletPosition: next.firstPalletPosition === "traverse" ? "traverse" : "ground",
       firstFloorGap: clamp(Number.isFinite(Number(next.firstFloorGap)) ? Number(next.firstFloorGap) : 200, 0, 30000),
@@ -369,7 +371,7 @@ class B2BViewer {
     const traverseCount = this.options.firstPalletPosition === "traverse" ? this.options.levels : Math.max(0, this.options.levels - 1);
     for (let level = 0; level < traverseCount; level += 1) {
       if (this.options.tunnelHeight > 0 && this.traverseTop(level) <= this.options.tunnelHeight) continue;
-      const verticalScale = this.options.traverseHeight / SOURCE_TRAVERSE_BEAM_HEIGHT;
+      const verticalScale = this.beamHeightAt(level) / SOURCE_TRAVERSE_BEAM_HEIGHT;
       [SOURCE_TRAVERSE_FRONT_OFFSET, SOURCE_TRAVERSE_BACK_OFFSET].forEach((depthOffset, side) => {
         const traverse = this.models.traverse.clone(true);
         traverse.name = `B2B Travers K${level + 1} ${side === 0 ? "Ön" : "Arka"}`;
@@ -425,7 +427,7 @@ class B2BViewer {
     const gap = (sectionWidth - palletCount * palletWidth) / (palletCount + 1);
     for (let level = 0; level < levels; level += 1) {
       const loadBottom = this.loadBottom(level);
-      if (this.options.tunnelHeight > 0 && loadBottom < this.options.tunnelHeight) continue;
+      if (this.options.tunnelHeight > 0 && (level===0&&this.options.firstPalletPosition==="ground" || this.traverseBottom(this.options.firstPalletPosition==="traverse"?level:level-1)<this.options.tunnelHeight)) continue;
       for (let position = 0; position < palletCount; position += 1) {
         const x = SOURCE_CLEAR_LEFT * sectionScale + gap + position * (palletWidth + gap);
         const levelPalletHeight = this.palletHeightAt(level);
@@ -479,10 +481,13 @@ class B2BViewer {
   loadBottom(level) {
     if (this.options.firstPalletPosition === "ground" && level === 0) return 0;
     const supportingTraverse = this.options.firstPalletPosition === "traverse" ? level : level - 1;
-    return this.traverseBottom(supportingTraverse) + this.options.traverseHeight;
+    return this.traverseBottom(supportingTraverse) + this.beamHeightAt(supportingTraverse);
   }
 
+  beamHeightAt(level) { return this.options.traverseHeights[level] || this.options.traverseHeight; }
+
   traverseBottom(level) {
+    if(Number.isFinite(this.options.traverseBottoms[level]))return this.options.traverseBottoms[level];
     if (this.options.firstPalletPosition === "traverse") {
       if (level === 0) return this.options.firstFloorGap;
       return this.loadBottom(level - 1) + this.palletHeightAt(level - 1) + this.clearanceAt(level - 1);
@@ -539,10 +544,12 @@ class B2BViewer {
           );
         });
       } else {
-        const firstLevelHeight = this.traverseBottom(0);
+        const firstLevelHeight = this.options.tunnelHeight>0?this.options.tunnelHeight:this.traverseBottom(0);
+        if(this.options.tunnelHeight>0){const first=Array.from({length:traverseCount},(_,i)=>i).find(i=>this.traverseBottom(i)>=this.options.tunnelHeight);if(first!==undefined&&this.traverseBottom(first)>this.options.tunnelHeight)this.addVerticalDimension(levelsLayer,lineX,frontY,this.options.tunnelHeight,this.traverseBottom(first),`TÜNEL – K${first+1} · ${this.dimensionValue(this.traverseBottom(first)-this.options.tunnelHeight)}`,0);}
         this.addVerticalDimension(levelsLayer,lineX,frontY,0,firstLevelHeight,`${this.options.tunnelHeight > 0 ? "TÜNEL" : "Z+TRAVERS"}  ·  ${this.dimensionValue(firstLevelHeight)}`,0);
       }
       for (let level = 1; level < traverseCount; level += 1) {
+        if(this.options.tunnelHeight>0&&this.traverseBottom(level-1)<this.options.tunnelHeight)continue;
         this.addVerticalDimension(
           levelsLayer,
           lineX,
@@ -580,7 +587,7 @@ class B2BViewer {
   }
 
   traverseTop(level) {
-    return this.traverseBottom(level) + this.options.traverseHeight;
+    return this.traverseBottom(level) + this.beamHeightAt(level);
   }
 
   dimensionMaterial() {
