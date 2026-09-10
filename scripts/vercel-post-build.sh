@@ -37,5 +37,7 @@ node scripts/verify-common-layout-physical-scale-v127.mjs
 node scripts/patch-pdf-upright-visibility-v129.mjs
 node scripts/verify-pdf-upright-visibility-v129.mjs
 node scripts/patch-independent-performance-v133.mjs
+node scripts/patch-layout-performance-v135.mjs
+node scripts/verify-layout-runtime-v135.mjs
 node scripts/verify-independent-project-v133.mjs
 node scripts/emit-static-index-v1.mjs
