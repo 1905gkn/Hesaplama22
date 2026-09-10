@@ -1,4 +1,6 @@
 import {physicalLevels,manualOptions} from './b2b-level-plan-v121.mjs';
+export function netLevelRows(rows){return rows.map((r,i)=>({...r,distance:r.distance-(i?Number(String(rows[i-1].traverseType).match(/\d+/)?.[0])||140:0)}))}
+export function storedLevelRows(rows){return rows.map((r,i)=>({...r,distance:r.distance+(i?Number(String(rows[i-1].traverseType).match(/\d+/)?.[0])||140:0)}))}
 export const manualRuntime=String.raw`
 <style>
 #m2CustomizeModal label:has(>#m2CustomizeManualLevels),#m2CustomizeLevelRows{display:none!important}
@@ -11,6 +13,7 @@ export const manualRuntime=String.raw`
 </style><script data-rafex-manual-height="v121">
 (function(){
 const physicalLevels=${physicalLevels.toString()},manualOptions=${manualOptions.toString()},copy=x=>JSON.parse(JSON.stringify(x));
+const netLevelRows=${netLevelRows.toString()},storedLevelRows=${storedLevelRows.toString()};
 let mainRows=[],customRows=[],customId=null,editing='main';
 const value=(id,fallback)=>Number(document.getElementById(id)?.value)||fallback;
 function height(o){const p=physicalLevels(o),last=p.at(-1);return last?last.bottom+last.beam:500}
@@ -22,18 +25,18 @@ window.rafexCustomizeManualOptionsV121=(o,rack)=>rack.id===customId?manualOption
 window.rafexSaveManualV121=rack=>{if(rack.id!==customId)return;rack.b2b.manualLevelSpecs=copy(customRows);if(customRows.length){rack.b2b.firstPalletPosition='traverse';rack.b2b.firstFloorGap=customRows[0].distance;rack.b2b.customLevels=customRows.map((r,i)=>({interval:customRows[i+1]?.distance||r.palletHeight+200+140,palletHeight:r.palletHeight,weight:r.weight,traverseType:r.traverseType}));}};
 function open(kind){
  editing=kind;const custom=kind==='custom',rack=custom?m2LayoutState.racks.find(r=>r.id===customId):null;
- const o=custom?window.rafexB2BCustomizeOptionsV120(rack):b2b3DOptions(),saved=custom?customRows:mainRows,physical=physicalLevels({...o,tunnelHeight:0});
+ const o=custom?window.rafexB2BCustomizeOptionsV120(rack):b2b3DOptions(),saved=netLevelRows(custom?customRows:mainRows),physical=physicalLevels({...o,tunnelHeight:0});
  const count=custom?value('m2CustomizeLevels',o.levels):value('b2bLevels',o.levels),pallet=custom?value('m2CustomizePalletHeight',1200):value('b2bPalletHeight',1200),weight=custom?(rack?.palletWeight||rack?.b2b?.palletWeight||1000)*o.palletCount:value('b2bPalletWeight',1000)*o.palletCount;
  let dialog=document.getElementById('rafexManualHeightV121');if(!dialog){dialog=document.createElement('dialog');dialog.id='rafexManualHeightV121';document.body.appendChild(dialog)}
- dialog.innerHTML='<h3>Manuel yükseklik</h3><p>Mesafeler travers alt kotları arasındadır. Kat ağırlığı bir sıradaki katın toplam yüküdür.</p><div class="rows">'+Array.from({length:count},(_,i)=>{const r=saved[i]||{},distance=r.distance??(i===0?physical[0]?.bottom??200:(physical[i]?.bottom-physical[i-1]?.bottom)||pallet+340);return '<div class="level-row"><label>'+(i===0?'Zemin – 1. kat':i+'. kat – '+(i+1)+'. kat')+' mesafesi (mm)<input data-distance type="number" min="0" max="30000" value="'+distance+'"></label><label>Kat ağırlığı (kg)<input data-weight type="number" min="0" max="100000" value="'+(r.weight??weight)+'"></label><label>Palet yüksekliği (mm)<input data-pallet type="number" min="300" max="3000" value="'+(r.palletHeight||pallet)+'"></label><label>Travers tipi<select data-traverse>'+['CC100','CC120','CC140','CC160','CC180'].map(t=>'<option'+(t===(r.traverseType||rack?.b2b?.traverseType||'CC140')?' selected':'')+'>'+t+'</option>').join('')+'</select></label></div>'}).join('')+'</div><p role="alert" class="error"></p><footer><button data-clear>Otomatik düzene dön</button><button data-cancel>Vazgeç</button><button data-save>Uygula</button></footer>';
+ dialog.innerHTML='<h3>Manuel yükseklik</h3><p>Kat arası mesafe, alt traversin üstünden üst traversin altına kadar olan net boşluktur; travers yüksekliği dahil değildir. Zemin mesafesi ilk traversin altına kadardır. Kat ağırlığı bir sıradaki katın toplam yüküdür.</p><div class="rows">'+Array.from({length:count},(_,i)=>{const r=saved[i]||{},distance=r.distance??(i===0?physical[0]?.bottom??200:(physical[i]?.bottom-physical[i-1]?.bottom-physical[i-1]?.beam)||pallet+200);return '<div class="level-row"><label>'+(i===0?'Zemin – 1. kat':i+'. kat – '+(i+1)+'. kat')+' mesafesi (mm)<input data-distance type="number" min="0" max="30000" value="'+distance+'"></label><label>Kat ağırlığı (kg)<input data-weight type="number" min="0" max="100000" value="'+(r.weight??weight)+'"></label><label>Palet yüksekliği (mm)<input data-pallet type="number" min="300" max="3000" value="'+(r.palletHeight||pallet)+'"></label><label>Travers tipi<select data-traverse>'+['CC100','CC120','CC140','CC160','CC180'].map(t=>'<option'+(t===(r.traverseType||rack?.b2b?.traverseType||'CC140')?' selected':'')+'>'+t+'</option>').join('')+'</select></label></div>'}).join('')+'</div><p role="alert" class="error"></p><footer><button data-clear>Otomatik düzene dön</button><button data-cancel>Vazgeç</button><button data-save>Uygula</button></footer>';
  dialog.querySelector('[data-cancel]').onclick=()=>dialog.close();
  const commit=rows=>{if(custom)customRows=rows;else mainRows=rows;dialog.close();if(custom)window.rafexUpdateB2BCustomizeViewerV119?.();else b2bApplyInputs();};
  dialog.querySelector('[data-clear]').onclick=()=>commit([]);
  dialog.querySelector('[data-save]').onclick=()=>{
  const rows=[...dialog.querySelectorAll('.level-row')].map(row=>({distance:Number(row.querySelector('[data-distance]').value),weight:Number(row.querySelector('[data-weight]').value),palletHeight:Number(row.querySelector('[data-pallet]').value),traverseType:row.querySelector('[data-traverse]').value}));
- let error='';rows.forEach((r,i)=>{if(!Number.isFinite(r.distance)||r.distance<0||r.distance>30000||!Number.isFinite(r.weight)||r.weight<0||r.weight>100000||r.palletHeight<300||r.palletHeight>3000)error='Geçerli mesafe, ağırlık ve palet yüksekliği girin.';if(i&&r.distance<rows[i-1].palletHeight+Number(rows[i-1].traverseType.slice(2)))error=(i+1)+'. kat mesafesi alt kattaki palet ve travers yüksekliğinden kısa olamaz.'});
- const planned=manualOptions({...o,tunnelHeight:0},rows);if(rack?.b2b?.footHeightMode==='manual'&&height(planned)>o.footHeight)error='Kat düzeni manuel ayak boyunu aşıyor.';
- if(error){dialog.querySelector('.error').textContent=error;return}commit(rows);
+ let error='';rows.forEach((r,i)=>{if(!Number.isFinite(r.distance)||r.distance<0||r.distance>30000||!Number.isFinite(r.weight)||r.weight<0||r.weight>100000||r.palletHeight<300||r.palletHeight>3000)error='Geçerli mesafe, ağırlık ve palet yüksekliği girin.';if(i&&r.distance<rows[i-1].palletHeight)error=(i+1)+'. kat mesafesi alt kattaki palet yüksekliğinden kısa olamaz.'});
+ const stored=storedLevelRows(rows),planned=manualOptions({...o,tunnelHeight:0},stored);if(rack?.b2b?.footHeightMode==='manual'&&height(planned)>o.footHeight)error='Kat düzeni manuel ayak boyunu aşıyor.';
+ if(error){dialog.querySelector('.error').textContent=error;return}commit(stored);
  };dialog.showModal();
 }
 window.rafexOpenManualHeightV121=open;
