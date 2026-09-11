@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {transform} from './patch-shared-feet-performance-v146.mjs';
+const s=fs.readFileSync(process.argv[2]||'dist/server/index.js','utf8'),html=Buffer.from(s.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/)[1],'base64').toString();
+assert(html.includes('/* shared-feet-cache-v146 */'));
+assert.equal(transform(html),html);
+for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))if(m[1].trim()&&!/type="(?:module|application\/json)"/.test(m[0]))new vm.Script(m[1]);
+assert(html.includes('if(window.__rafexCommonLayoutZoomCrispV126)return true;'));
+console.log('PASS v146: shared foot cache, viewport ownership, idempotence and runtime syntax.');
