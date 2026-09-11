@@ -7,7 +7,7 @@
   const base={};
   const nav=()=>document.querySelector('#nav button.active[data-page]')?.dataset.page||'';
   const key=()=>nav()==='free'?'common:'+ (window.rafexProjectIdentityV133?.uuid||'unopened'):nav();
-  const panel=()=>document.querySelector('#page .m2-report-panel');
+  const panel=()=>document.querySelector('#page #m2ReportType')?.closest('.m2-report-panel');
   function invalidate(){const p=panel();if(p){delete p.dataset.rafexReadyV136;p.dataset.rafexOutputVisible='0';}window.__rafexFreeOutputDirty=true;}
   function capture(){if(!currentPanel?.isConnected||!currentKey||currentKey!==key())return;const saved={};for(const id of fields){const input=currentPanel.querySelector('#'+id);if(input)saved[id]=input.type==='checkbox'?input.checked:input.value;}settings.set(currentKey,saved);}
   window.rafexScreenStateV136=()=>({key:key(),currentKey,settings:Array.from(settings)});

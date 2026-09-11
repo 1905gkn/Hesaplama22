@@ -53,16 +53,21 @@ try{
     assert.equal(result.type,'summary');assert.equal(result.lang,'en');assert.equal(result.three,true);assert.equal(result.button,1);assert.equal(result.newButtons,1);assert(result.photo);
   }
   for(const [route,label] of [['b2b','B2B'],['mekik2','MEKİK'],['konsol','KONSOL KOLLU'],['mr','MR']]){
+    await page.locator('input[name="rafexUnifiedSystem"][value="konsol"]').evaluate(e=>e.click());await page.waitForTimeout(1400);
     await page.locator('#nav [data-page="'+route+'"]').click();await page.waitForTimeout(900);
     assert.equal(await page.locator('#page .hero h2,#page .mr-hero h2').first().innerText(),label);
     assert.equal(await page.evaluate(()=>window.rafexProjectIdentityV133?.uuid||null),null,'common identity must not contaminate standalone');
-    await page.locator('#nav [data-page="free"]').click();await page.waitForTimeout(900);
+    console.log('STANDALONE',route,await page.evaluate(()=>({floor:document.querySelectorAll('#page .m2-floor-editor').length,report:document.querySelectorAll('#page .m2-report-panel').length,nav:document.querySelector('#nav button.active')?.dataset.page})));
+    await page.locator('#nav [data-page="free"]').click();await page.waitForTimeout(3500);
     const result=await page.evaluate(()=>({uuid:window.rafexProjectIdentityV133?.uuid,editable:window.rafexCanEditProjectV134(),racks:JSON.stringify(m2LayoutState.racks),symbols:JSON.stringify(m2LayoutSymbols)}));
+    assert.equal(await page.locator('#m2ReportType').count(),1,'missing output controls after '+route+': '+await page.locator('#page').innerText().then(s=>s.slice(-1500)));
     console.log('RETURN',route,result.uuid,result.editable,await page.locator('#m2ReportType').inputValue());
     console.log('SETTINGS',JSON.stringify(await page.evaluate(()=>window.rafexScreenStateV136())));
     assert.equal(await page.locator('#m2ReportType').inputValue(),'summary','settings after standalone '+route);
     assert.equal(result.uuid,fixture.uuid);assert(result.editable);assert.equal(result.racks,fixture.racks);assert.equal(result.symbols,fixture.symbols);
   }
+  await page.locator('input[name="rafexUnifiedSystem"][value="b2b"]').evaluate(e=>e.click());await page.waitForTimeout(1400);
+  assert.equal(await page.evaluate(()=>JSON.stringify(m2LayoutState.racks)),fixture.racks,'returning from Konsol retains racks after switching editor');
   await page.locator('#m2CreateOutputButton').click();await page.waitForTimeout(4500);
   console.log('OUTPUT',await page.locator('#m2FloorStatus').innerText());
   assert.equal(await page.locator('#m2ReportType').inputValue(),'summary');
@@ -73,5 +78,6 @@ try{
   await page.locator('#m2CreateOutputButton').click();await page.waitForTimeout(4500);
   assert(await page.locator('#m2CorporatePreview').isVisible());
   assert.equal(writes.length,0,'audit must never send writes');
+  assert.deepEqual(errors,[],'browser runtime errors');
   console.log('PASS v136: scoped sessions, geometry preserved, settings retained, preview visible, writes=0',errors);
 }finally{await browser.close();}

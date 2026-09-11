@@ -29,7 +29,13 @@ export function transform(html) {
       if(leavingPage){delete leavingPage.dataset.rafexFreeDrawing;delete leavingPage.dataset.rafexFreeContextSystem;leavingPage.classList.remove('rafex-free-drawing-page','rafex-common-independent');}`);
   // A fresh picker must describe the engine actually rendered.
   replace("free.pending=free.selected||null;", "free.selected=free.selected||'b2b';free.pending=free.selected;");
+  // Konsol must restore the shared layout too when returning from standalone.
+  replace("    if(target==='konsol'){ensureUnifiedState();m2ActiveModule='konsol';free.currentEngine='konsol';}\n    else restoreEngine(target);", "    restoreEngine(target);");
   replace("      page.dataset.rafexFreeContextSystem=target;", "      page.dataset.rafexFreeContextSystem=target;page.dataset.rafexFreeDrawing='1';");
+  // Standalone Konsol has no shared floor editor; create its host before adapting it.
+  replace("    var page=document.getElementById('page'),floor=page&&page.querySelector('.m2-floor-editor');", "    var page=document.getElementById('page'),floor=page&&page.querySelector('#m2ReportType')?.closest('.m2-floor-editor');");
+  replace("    if(target==='b2b')renderB2B();else if(target==='mr')renderMR();else if(target==='drive')renderDrive();else if(target==='konsol')renderKonsolCommon();else renderMekik2();",
+    "    if(target==='konsol'&&!page?.querySelector('#m2ReportType')){renderMekik2();m2ActiveModule='konsol';}\n    if(target==='b2b')renderB2B();else if(target==='mr')renderMR();else if(target==='drive')renderDrive();else if(target==='konsol')renderKonsolCommon();else renderMekik2();");
   replace('if(reportType){reportType.value="corporate";', 'if(reportType){if(!m2CommonDrawingActive())reportType.value="corporate";');
   replace('if($("m2ReportType")){$("m2ReportType").value="corporate";', 'if($("m2ReportType")&&!m2CommonDrawingActive()){$("m2ReportType").value="corporate";');
   // Report photos belong to the shared document, not the last input editor.
