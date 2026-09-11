@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 const s=fs.readFileSync(process.argv[2]||'dist/server/index.js','utf8');
 const html=Buffer.from(s.match(/const\s+HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/)[1],'base64').toString();
+const markup=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/g,'');
+assert(markup.includes('<style data-plan-annotations="v136">.m2-lane-flow-marker{stroke-width:.10em!important}</style>'),'arrow outline style must be in the main document, outside script strings');
 for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))if(m[1].trim()&&!m[0].includes('type="module"')&&!m[0].includes('application/json'))new vm.Script(m[1]);
 const sizing=html.slice(html.indexOf('const areaPointsV136='),html.indexOf('if ($("m2ShowFlowArrows")',html.indexOf('const areaPointsV136=')));
 const size=new Function('cellW','palletRowH','m2LayoutState',sizing+'return {flowFont,flowH};');

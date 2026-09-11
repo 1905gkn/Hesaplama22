@@ -20,6 +20,8 @@ replace('label.style.display=selected&&shortPx>=78?"":"none"});', 'label.style.d
 replace('paint(layer.querySelector(\'[data-rack="\'+rackId+\'"]\'),true);', 'paint(layer.querySelector(\'[data-rack="\'+rackId+\'"]\'),true);window.rafexFitNameplatesV136?.();');
 replace('window.rafexCommonDrawingMoveSelectedV50=moveSelected;', 'window.rafexFitNameplatesV136=()=>{svg()?.querySelectorAll("[data-rack]").forEach(compactNameplateV136)};window.rafexCommonDrawingMoveSelectedV50=moveSelected;');
 const css='<style data-plan-annotations="v136">.m2-lane-flow-marker{stroke-width:.10em!important}</style>';
-html=html.replace('</body>',css+'</body>');
+const bodyEnd=html.lastIndexOf('</body>');
+if(bodyEnd<0)throw Error('Main document body missing');
+html=html.slice(0,bodyEnd)+css+html.slice(bodyEnd);
 fs.writeFileSync(file,source.replace(m[0],m[0].replace(m[2],Buffer.from(html).toString('base64'))));
 console.log('v136: pallet-relative flow arrows, text-fitted nameplates and distinct block colors.');
