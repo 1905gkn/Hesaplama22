@@ -93,6 +93,7 @@ grep -q 'function m2B2BEffectiveFootHeight(drawing)' portal.html
 grep -q 'drawing = m2LastDrawing;' portal.html
 grep -q 'sideUprightHeight:liveB2BHeight' portal.html
 
+node scripts/patch-viewer-visibility-v147.mjs
 bash scripts/build.sh
 node scripts/build-drive-in-assets-v1.mjs
 node scripts/inject-b2b-section-positioner.mjs

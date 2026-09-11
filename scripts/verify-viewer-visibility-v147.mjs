@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {viewerVisibleV147} from './viewer-visibility-v147.mjs';
+const listeners=new Map();let callback,disconnected=false,scheduled=0;
+globalThis.document={hidden:false,addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)};
+globalThis.IntersectionObserver=class {constructor(fn){callback=fn}observe(){}disconnect(){disconnected=true}};
+globalThis.requestAnimationFrame=()=>++scheduled;
+const viewer={canvas:{},animationFrame:null,animate(){},destroyed:false};
+assert(viewerVisibleV147(viewer));
+callback([{isIntersecting:false}]);assert.equal(viewerVisibleV147(viewer),false);assert.equal(scheduled,0);
+callback([{isIntersecting:true}]);assert.equal(scheduled,1);assert(viewerVisibleV147(viewer));
+callback([{isIntersecting:true}]);assert.equal(scheduled,1,'Do not start a duplicate loop');
+viewer.animationFrame=null;document.hidden=true;assert.equal(viewerVisibleV147(viewer),false);
+document.hidden=false;listeners.get('visibilitychange')();assert.equal(scheduled,2);
+viewer.destroyed=true;viewer.animationFrame=null;callback([{isIntersecting:true}]);assert.equal(scheduled,2);
+viewer.visibilityV147.dispose();assert(disconnected);assert.equal(listeners.size,0);
+console.log('v147: offscreen pause, visible resume, tab resume, single loop and disposal passed.');
