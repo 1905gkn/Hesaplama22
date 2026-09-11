@@ -60,6 +60,8 @@ node scripts/verify-type-colors-v144.mjs
 node scripts/patch-shared-feet-performance-v146.mjs
 node scripts/verify-shared-feet-runtime-v146.mjs
 node scripts/patch-idle-dom-performance-v147.mjs
+node scripts/patch-static-selection-v148.mjs
+node scripts/verify-rack-gap-search-v148.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
