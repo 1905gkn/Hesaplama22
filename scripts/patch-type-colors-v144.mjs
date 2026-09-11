@@ -12,7 +12,7 @@ for(const signature of ['function m2TypeColor(typeName) {','function colorFor(va
   html=html.replace(signature,signature+'return window.rafexTypeColorV144('+(signature.includes('typeName')?'typeName':'value')+');');
 }
 const runtime=`<script data-rafex-type-colors="v144">(function(){
-const create=${createTypeColors.toString()},key='rafex-type-colors-v144';let saved={};try{saved=JSON.parse(localStorage.getItem(key)||'{}')||{}}catch(_){}
+const create=${createTypeColors.toString()},key='rafex-type-colors-v145';let saved={};try{saved=JSON.parse(localStorage.getItem(key)||'{}')||{}}catch(_){}
 const registry=create(saved);window.rafexTypeColorV144=function(name){const before=Object.keys(registry.assigned).length,color=registry.color(name);if(Object.keys(registry.assigned).length!==before)try{localStorage.setItem(key,JSON.stringify(registry.assigned))}catch(_){}return color};
 window.rafexTypeLetterV144=function(i){let n=i+1,s='';while(n>0){n--;s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26)}return s};
 })();</script>`;
