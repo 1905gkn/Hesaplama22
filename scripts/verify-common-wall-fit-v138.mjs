@@ -5,9 +5,11 @@ import {createRequire} from 'node:module';
 import {transform as session} from './patch-screen-session-v136.mjs';
 import {transform as controls} from './patch-common-konsol-controls-v137.mjs';
 import {transform} from './patch-common-wall-fit-v138.mjs';
+import {transform as zoomHeader} from './patch-common-zoom-header-v139.mjs';
 const source=fs.readFileSync(process.argv[2]||'.perf-production.html','utf8');
 const match=source.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1/);
-const html=transform(controls(session(match?Buffer.from(match[2],'base64').toString():source)));
+const html=zoomHeader(transform(controls(session(match?Buffer.from(match[2],'base64').toString():source))));
+assert.equal(zoomHeader(html),html);
 assert.equal(transform(html),html);
 for(const s of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g))if(!/\bsrc=|type=["'](?:module|application\/)/.test(s[1]))new vm.Script(s[2]);
 const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE_PATH||'playwright');
@@ -26,6 +28,8 @@ try{
  await page.goto('https://rafex.test/');await page.waitForTimeout(2500);
  await page.locator('#nav [data-page="free"]').click();await page.waitForTimeout(600);
  await page.locator('#rafexAuthorityProjectName').fill('Wall fit regression');await page.locator('#rafexNewProjectV133').click();await page.waitForTimeout(400);
+ const header=await page.evaluate(()=>{const a=document.querySelector('.top-actions'),h=a.closest('.top');return{gap:h.getBoundingClientRect().right-a.getBoundingClientRect().right,padding:parseFloat(getComputedStyle(h).paddingRight)};});
+ assert(Math.abs(header.gap-header.padding)<2,'common header actions align to right padding');
  for(const [w,h] of [[100000,100000],[200000,200000],[50000,30000],[200000,100000]]){
   await page.locator('#m2AreaW').fill(String(w));await page.locator('#m2AreaH').fill(String(h));
   await page.getByRole('button',{name:'Alanı Belirle',exact:true}).click();await page.waitForTimeout(400);
@@ -39,8 +43,18 @@ try{
   await page.evaluate(()=>{m2ZoomLayout(.2);m2ZoomLayout(0,true);});await page.waitForTimeout(150);
   assert.equal(await page.evaluate(()=>JSON.stringify({points:m2LayoutState.points,scale:m2LayoutState.scale,racks:m2LayoutState.racks})),baseline,'fit/zoom cannot change project geometry');
   console.log('FIT',w,h,result);
+  await page.getByRole('button',{name:'Yerleşimi uzaklaştır',exact:true}).click();await page.waitForTimeout(250);
+  const out=await page.evaluate(()=>({v:rafexCommonLayoutZoomCrispV126.getView(),label:document.getElementById('m2LayoutZoomLabel').textContent}));
+  assert.equal(out.label,'78%');assert(Math.abs(out.v.w-result.v.w*1.28)<.001);
+  assert(Math.abs(out.v.x+out.v.w/2-result.v.x-result.v.w/2)<.001,'zoom out stays centered');
+  await page.evaluate(()=>{for(let i=0;i<20;i++)m2ZoomLayout(-.2);m2RenderLayout();});await page.waitForTimeout(300);
+  assert.equal(await page.locator('#m2LayoutZoomLabel').textContent(),'25%');
+  await page.locator('#m2LayoutZoomLabel').click();await page.waitForTimeout(150);
+  assert.deepEqual(await page.evaluate(()=>rafexCommonLayoutZoomCrispV126.getView()),result.v,'percentage button restores fitted view');
+  assert.equal(await page.evaluate(()=>JSON.stringify({points:m2LayoutState.points,scale:m2LayoutState.scale,racks:m2LayoutState.racks})),baseline);
  }
  const rackId=await page.evaluate(()=>{drawMekik2();const d=b2bLayoutDrawing({...m2LastDrawing,b2b:b2bReadInputState()});m2AddRack(d,'A');const r=m2LayoutState.racks[0];r.staged=false;r.freePlacement=false;m2LayoutState.selected=r.id;m2LayoutState.mode='idle';m2LayoutTool=null;m2AutoFillDraft=null;m2RenderLayout();return r.id;});
+ await page.getByRole('button',{name:'Yerleşimi uzaklaştır',exact:true}).click();
  await page.waitForTimeout(250);
  const rack=page.locator('#m2LayoutSvg [data-rack="'+rackId+'"] > .m2-layout-rack');await rack.scrollIntoViewIfNeeded();
  const box=await rack.boundingBox(),before=await page.evaluate(()=>({x:m2LayoutState.racks[0].x,y:m2LayoutState.racks[0].y,view:rafexCommonLayoutZoomCrispV126.getView(),height:document.getElementById('m2LayoutSvg').getBoundingClientRect().height}));
@@ -57,5 +71,11 @@ try{
  assert.notEqual(await page.locator('#m2LayoutSvg').getAttribute('viewBox'),'0 0 1000 650');
  await page.locator('#m2LayoutSvg').scrollIntoViewIfNeeded();await page.screenshot({path:'.wall-fit-v138.png'});
  assert.deepEqual(errors,[]);assert.deepEqual(writes,[]);
+ for(const width of [900,390,1440]){
+  await page.setViewportSize({width,height:1000});await page.waitForTimeout(200);
+  const h=await page.evaluate(()=>{const a=document.querySelector('.top-actions'),t=a.closest('.top');return{gap:t.getBoundingClientRect().right-a.getBoundingClientRect().right,padding:parseFloat(getComputedStyle(t).paddingRight)};});
+  assert(Math.abs(h.gap-h.padding)<2,'header remains right aligned at '+width+'px');
+ }
  console.log('PASS v138: wall fill, scale, pointer mapping, zoom and navigation preserved');
+ console.log('PASS v139: existing percentage zoom below 100, reset, drag and responsive right header');
 }finally{await browser.close();}
