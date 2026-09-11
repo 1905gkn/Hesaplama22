@@ -40,4 +40,6 @@ node scripts/patch-independent-performance-v133.mjs
 node scripts/patch-layout-performance-v135.mjs
 node scripts/verify-layout-runtime-v135.mjs
 node scripts/verify-independent-project-v133.mjs
+node scripts/patch-screen-session-v136.mjs
+node scripts/verify-screen-runtime-v136.mjs
 node scripts/emit-static-index-v1.mjs
