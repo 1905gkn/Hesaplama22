@@ -8,3 +8,4 @@ Kullanıcı talebi: “Rafı Kaydet” anında raf nasıl görünüyorsa daha so
 - Teknik ayar değişikliği yeni bir taslak oluşturur. Kaydetmeden kaynak kayıt değişmez. Taşıma, döndürme ve blok adı değiştirme teknik detayı değiştirmez.
 - Eski kayıtta görünüm detayı yoksa yalnızca o kaydın kendi teknik verileri kullanılır. Eksik geçmiş bilgiler başka açık formdan alınmaz.
 - Yeni görünüm eklenirken bu sözleşme ve `verify-rack-detail-snapshot-v135.mjs` korunmalıdır.
+- Mekik/Drive-In üst görünümünde ayak, pabuç, arabağ, palet konumları, ekstra profil ve çaprazlar milimetre cinsinden ortak modelle çizilir; `rackDetail.views.top` içinde saklanır. 50×50 ve 100×100 depo yalnızca dış ölçeği değiştirir; parçalara sabit piksel alt sınırı uygulanmaz.

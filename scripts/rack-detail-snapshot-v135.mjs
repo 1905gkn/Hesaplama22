@@ -8,7 +8,11 @@ export function detailSignature(d) {
   const system=detailSystem(d),data={system,levels:d.levels,palletHeight:d.palletHeight};
   if(system==='b2b'||system==='mr')data.settings=d.b2b;
   else if(system==='konsol')data.settings=d.konsol||d.spec;
-  else for(const k of ['bays','depth','palW','palD','palletWeight','railHeight','levelH','firstRailHeight','sideUprightHeight','firstPalletGap','palletGap','palletPositions','palletGaps','hasExtra','footType','plan'])data[k]=d[k];
+  else {
+    for(const k of ['bays','depth','palW','palD','palletWeight','railHeight','levelH','firstRailHeight','sideUprightHeight','firstPalletGap','palletGap','palletPositions','palletGaps','hasExtra','footType','footProfile','plan'])data[k]=d[k];
+    data.width=Number(d.totalWidth||d.widthMm)||0;data.length=Number(d.railLength||d.depthMm)||0;
+    data.topVBraceBays=d.topVBraceBays||[];data.showPallets=d.showPallets!==false;data.showFlowArrows=d.showFlowArrows!==false;
+  }
   const stable=value=>Array.isArray(value)?value.map(stable):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().filter(k=>value[k]!==undefined).map(k=>[k,stable(value[k])])):value;
   return JSON.stringify(stable(data));
 }
