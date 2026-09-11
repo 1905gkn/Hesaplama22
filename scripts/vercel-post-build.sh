@@ -55,4 +55,6 @@ node scripts/patch-pdf-page-ruler-v142.mjs
 node scripts/verify-screen-runtime-v136.mjs
 node scripts/patch-plan-detail-v143.mjs
 node scripts/verify-plan-detail-v143.mjs
+node scripts/patch-type-colors-v144.mjs
+node scripts/verify-type-colors-v144.mjs
 node scripts/emit-static-index-v1.mjs
