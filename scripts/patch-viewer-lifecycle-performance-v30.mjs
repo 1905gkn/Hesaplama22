@@ -32,7 +32,7 @@ patchFile("client/b2b-viewer.entry.js", (src) => {
 `  animate() {
     if (this.destroyed) return;
     this.controls.update();
-    this.dimensionLabels.forEach((object)=>{object.getWorldPosition(this.dimensionWorldPosition);const ratio=clamp(this.camera.position.distanceTo(this.dimensionWorldPosition)/12000,1,2.65),base=object.userData.baseScale;object.scale.set(base.x*ratio,base.y*ratio,1);});
+    this.dimensionLabels.forEach((object)=>{object.getWorldPosition(this.dimensionWorldPosition).applyMatrix4(this.camera.matrixWorldInverse);const base=object.userData.baseScale,depth=Math.max(1,-this.dimensionWorldPosition.z),height=Math.max(1,this.canvas.clientHeight),ratio=2*depth*Math.tan(THREE.MathUtils.degToRad(this.camera.fov/2))*28/(height*220);object.scale.set(base.x*ratio,base.y*ratio,1);});
     this.renderer.render(this.scene, this.camera);
     requestAnimationFrame(this.animate);
   }
@@ -46,7 +46,7 @@ patchFile("client/b2b-viewer.entry.js", (src) => {
 `  animate() {
     if (this.destroyed) return;
     this.controls.update();
-    this.dimensionLabels.forEach((object)=>{object.getWorldPosition(this.dimensionWorldPosition);const ratio=clamp(this.camera.position.distanceTo(this.dimensionWorldPosition)/12000,1,2.65),base=object.userData.baseScale;object.scale.set(base.x*ratio,base.y*ratio,1);});
+    this.dimensionLabels.forEach((object)=>{object.getWorldPosition(this.dimensionWorldPosition).applyMatrix4(this.camera.matrixWorldInverse);const base=object.userData.baseScale,depth=Math.max(1,-this.dimensionWorldPosition.z),height=Math.max(1,this.canvas.clientHeight),ratio=2*depth*Math.tan(THREE.MathUtils.degToRad(this.camera.fov/2))*28/(height*220);object.scale.set(base.x*ratio,base.y*ratio,1);});
     this.renderer.render(this.scene, this.camera);
     this.animationFrame = requestAnimationFrame(this.animate);
   }
@@ -94,9 +94,9 @@ patchFile("client/mr-viewer.entry.js", (src) => {
   );
 
   src = src.replace(
-`  animate() { if (!this.destroyed) { this.controls.update(); this.renderer.render(this.scene, this.camera); requestAnimationFrame(this.animate); } }
+`  animate() { if (!this.destroyed) { this.controls.update(); this.dimensionLabels.forEach(label=>{label.getWorldPosition(this.dimensionWorldPosition).applyMatrix4(this.camera.matrixWorldInverse);const depth=Math.max(1,-this.dimensionWorldPosition.z),height=2*depth*Math.tan(THREE.MathUtils.degToRad(this.camera.fov/2))*28*this.config.dimensionScale/Math.max(1,this.canvas.clientHeight);label.scale.set(height*(label.userData.savedAspect||1),height,1)});this.renderer.render(this.scene, this.camera); requestAnimationFrame(this.animate); } }
   destroy() { this.destroyed = true; this.loadToken += 1; this.disposeDimensions(); this.canvas.removeEventListener("click", this.onCanvasClick); this.canvas.removeEventListener("pointermove", this.onCanvasPointerMove); this.resizeObserver.disconnect(); this.controls.dispose(); this.ground.geometry.dispose(); this.ground.material.dispose(); this.renderer.dispose(); }`,
-`  animate() { if (!this.destroyed) { this.controls.update(); this.renderer.render(this.scene, this.camera); this.animationFrame = requestAnimationFrame(this.animate); } }
+`  animate() { if (!this.destroyed) { this.controls.update(); this.dimensionLabels.forEach(label=>{label.getWorldPosition(this.dimensionWorldPosition).applyMatrix4(this.camera.matrixWorldInverse);const depth=Math.max(1,-this.dimensionWorldPosition.z),height=2*depth*Math.tan(THREE.MathUtils.degToRad(this.camera.fov/2))*28*this.config.dimensionScale/Math.max(1,this.canvas.clientHeight);label.scale.set(height*(label.userData.savedAspect||1),height,1)});this.renderer.render(this.scene, this.camera); this.animationFrame = requestAnimationFrame(this.animate); } }
   destroy() {
     if (this.destroyed) return;
     this.destroyed = true;

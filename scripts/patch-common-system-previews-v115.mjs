@@ -1,4 +1,5 @@
 import {shortcutRuntime} from './common-shortcuts-v122.mjs';
+import {unifyDetailSource} from './b2b-detail-source-v134.mjs';
 import {manualRuntime} from './b2b-manual-height-v121.mjs';
 import fs from 'node:fs';
 import {runtime as collectionRuntime} from './b2b-customize-collection-v119.mjs';
@@ -103,6 +104,7 @@ close=html.lastIndexOf('</body>');
 if(close<0)throw new Error('Common previews v115: body close missing');
 html=html.slice(0,close)+shortcutRuntime+manualRuntime+collectionRuntime+runtime+'\n'+html.slice(close);
 for(const required of ['data-rafex-common-system-previews="v115"','rafexLoadViewerOnDemandV3(sys)','RafexMRViewer?.createDetached','RafexKonsolViewer?.createDetached','ÖNDEN GÖRÜNÜŞ','YANDAN GÖRÜNÜŞ','#m2SelectedRackDetailV50{display:none!important}','rafexB2BDetailOptionsV117','rafexMountB2BCustomizeViewerV118'])if(!html.includes(required))throw new Error('Common previews v115 missing: '+required);
+html=unifyDetailSource(html);
 const encoded=Buffer.from(html).toString('base64');
 source=source.slice(0,match.index)+match[0].replace(match[2],encoded)+source.slice(match.index+match[0].length);
 fs.writeFileSync(file,source);

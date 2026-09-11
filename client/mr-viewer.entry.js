@@ -99,6 +99,7 @@ class MRViewer {
     this.destroyed = false;
     this.loadToken = 0;
     this.dimensionLabels = [];
+    this.dimensionWorldPosition = new THREE.Vector3();
     this.dimensionLayer = null;
     this.configSignature = "";
     this.config = this.cleanConfig(options.config);
@@ -204,6 +205,7 @@ class MRViewer {
   }
 
   async build(config = {}) {
+    if(this.canvas?.id==='mrCanvas')config=window.rafexCopiedDetailV135?.('mr')||config;
     this.config = this.cleanConfig(config);
     const signature = JSON.stringify(this.config);
     if (signature === this.configSignature && this.root.children.length) return;
@@ -303,6 +305,7 @@ class MRViewer {
     const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace;
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map:texture, depthTest:false, transparent:true }));
     const factor = this.config.dimensionScale; sprite.position.set(x, y, z); sprite.scale.set(width * factor, labelHeight * factor, 1); sprite.renderOrder = 101; sprite.userData.mrEditKey = editKey; this.dimensionLabels.push(sprite); layer.add(sprite);
+    sprite.userData.savedAspect=width/labelHeight;
   }
   addVerticalDimension(layer, x, z, from, to, label, witnessX = 0, editKey = "") {
     const bottom = new THREE.Vector3(x, from, z), top = new THREE.Vector3(x, to, z), arrow = 55;
@@ -388,12 +391,13 @@ class MRViewer {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
   }
-  animate() { if (!this.destroyed) { this.controls.update(); this.renderer.render(this.scene, this.camera); requestAnimationFrame(this.animate); } }
+  animate() { if (!this.destroyed) { this.controls.update(); this.dimensionLabels.forEach(label=>{label.getWorldPosition(this.dimensionWorldPosition).applyMatrix4(this.camera.matrixWorldInverse);const depth=Math.max(1,-this.dimensionWorldPosition.z),height=2*depth*Math.tan(THREE.MathUtils.degToRad(this.camera.fov/2))*28*this.config.dimensionScale/Math.max(1,this.canvas.clientHeight);label.scale.set(height*(label.userData.savedAspect||1),height,1)});this.renderer.render(this.scene, this.camera); requestAnimationFrame(this.animate); } }
   destroy() { this.destroyed = true; this.loadToken += 1; this.disposeDimensions(); this.canvas.removeEventListener("click", this.onCanvasClick); this.canvas.removeEventListener("pointermove", this.onCanvasPointerMove); this.resizeObserver.disconnect(); this.controls.dispose(); this.ground.geometry.dispose(); this.ground.material.dispose(); this.renderer.dispose(); }
 }
 
 let active = null;
 window.RafexMRViewer = {
+  getSavedDetail() { return active?.canvas?.id === 'mrCanvas' ? JSON.parse(JSON.stringify(active.config)) : null; },
   mount(canvas, options) { if (!(canvas instanceof HTMLCanvasElement)) throw new Error("MR 3D alanı bulunamadı."); active?.destroy(); active = new MRViewer(canvas, options); return active; },
   setConfiguration(config) { return active?.setConfiguration(config); },
   setView(view) { active?.setView(view); },

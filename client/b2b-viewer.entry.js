@@ -756,7 +756,7 @@ class B2BViewer {
   animate() {
     if (this.destroyed) return;
     this.controls.update();
-    this.dimensionLabels.forEach((object)=>{object.getWorldPosition(this.dimensionWorldPosition);const ratio=clamp(this.camera.position.distanceTo(this.dimensionWorldPosition)/12000,1,2.65),base=object.userData.baseScale;object.scale.set(base.x*ratio,base.y*ratio,1);});
+    this.dimensionLabels.forEach((object)=>{object.getWorldPosition(this.dimensionWorldPosition).applyMatrix4(this.camera.matrixWorldInverse);const base=object.userData.baseScale,depth=Math.max(1,-this.dimensionWorldPosition.z),height=Math.max(1,this.canvas.clientHeight),ratio=2*depth*Math.tan(THREE.MathUtils.degToRad(this.camera.fov/2))*28/(height*220);object.scale.set(base.x*ratio,base.y*ratio,1);});
     this.renderer.render(this.scene, this.camera);
     requestAnimationFrame(this.animate);
   }
@@ -823,6 +823,7 @@ async function captureB2BViews(options = {}, settings = {}) {
 
 let active = null;
 window.RafexB2BViewer = {
+  getSavedDetail() { return active?.canvas?.id === 'b2bMain3DCanvas' ? JSON.parse(JSON.stringify(active.options)) : null; },
   mount(canvas, options) {
     // Customize owns a detached scene; legacy recovery hooks must not take its canvas.
     if (canvas?.id === 'm2CustomizeCanvas' && window.rafexMountB2BCustomizeViewerV118) return null;

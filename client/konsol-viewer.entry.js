@@ -82,6 +82,7 @@ class KonsolViewer {
   }
 
   update(next = {}, refit = true) {
+    if(this.canvas?.id==='konsolCanvas')next=window.rafexCopiedDetailV135?.('konsol')||next;
     this.options = this.normalize({ ...this.options, ...next });
     if (this.root) {
       disposeObject(this.root);
@@ -248,9 +249,13 @@ class KonsolViewer {
   }
 }
 
+let savedMainViewer = null;
 window.RafexKonsolViewer = {
+  getSavedDetail() { return savedMainViewer&&!savedMainViewer.destroyed ? JSON.parse(JSON.stringify(savedMainViewer.options)) : null; },
   mount(canvas, options) {
-    return new KonsolViewer(canvas, options);
+    const viewer=new KonsolViewer(canvas, options);
+    if(canvas?.id==='konsolCanvas')savedMainViewer=viewer;
+    return viewer;
   },
   createDetached(canvas, options) {
     return new KonsolViewer(canvas, options);
