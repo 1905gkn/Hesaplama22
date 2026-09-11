@@ -46,5 +46,6 @@ node scripts/patch-common-wall-fit-v138.mjs
 node scripts/patch-common-zoom-header-v139.mjs
 node scripts/patch-pdf-layout-margin-v140.mjs
 node scripts/patch-pdf-tight-fit-v141.mjs
+node scripts/patch-pdf-page-ruler-v142.mjs
 node scripts/verify-screen-runtime-v136.mjs
 node scripts/emit-static-index-v1.mjs
