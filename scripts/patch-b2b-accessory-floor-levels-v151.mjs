@@ -16,8 +16,8 @@ export function transform(html){
     `  /* b2b-accessory-floor-levels-v151 */
   const levelCount=()=>Math.max(1,Math.min(15,Math.round(Number(document.getElementById('m2CustomizeLevels')?.value)||1)));
   const groundRackV151=()=>{try{const id=Number(typeof m2CustomizeRackId!=='undefined'?m2CustomizeRackId:0),rack=(typeof m2LayoutState!=='undefined'&&Array.isArray(m2LayoutState?.racks)?m2LayoutState.racks:[]).find(item=>Number(item?.id)===id);return String(rack?.b2b?.firstPalletPosition||'ground')!=='traverse'}catch{return true}};
-  const levelValuesV151=(type)=>{const count=levelCount(),ground=groundRackV151(),base=validLevels();if(!ground||type==='tray')return base;return type==='palletStop'?[0,...base.filter(level=>level<count)]:base.filter(level=>level<count)};
-  const levelLabelV151=(type,level)=>'K'+(groundRackV151()&&type!=='tray'?Number(level)+1:Number(level));`
+  const levelValuesV151=(type)=>{const count=levelCount(),ground=groundRackV151(),base=validLevels();if(!ground)return base;return type==='palletStop'?[0,...base.filter(level=>level<count)]:base.filter(level=>level<count)};
+  const levelLabelV151=(type,level)=>'K'+(groundRackV151()?Number(level)+1:Number(level));`
   );
   replace(
     "window.m2CollectCustomizeRackAccessories=()=>{const items=clone(draft).map((item)=>({...item,levels:item.levels.filter((level)=>validLevels().includes(level))}));",
@@ -40,8 +40,8 @@ export function transform(html){
     "  const levelCount = () => Math.max(1, Math.min(15, Math.round(Number(document.getElementById('b2bLevels')?.value) || 1)));",
     `  const levelCount = () => Math.max(1, Math.min(15, Math.round(Number(document.getElementById('b2bLevels')?.value) || 1)));
   const groundV151=()=>document.getElementById('b2bFirstPalletPosition')?.value!=='traverse';
-  const levelValuesV151=(type,count=levelCount())=>{const values=Array.from({length:count},(_,i)=>i+1);if(!groundV151()||type==='tray')return values;if(type==='palletStop')return [0,...values.filter(level=>level<count)];if(type==='hTraverse')return values.filter(level=>level<count);return values};
-  const levelLabelV151=(type,level)=>'K'+(groundV151()&&type!=='tray'?Number(level)+1:Number(level));`
+  const levelValuesV151=(type,count=levelCount())=>{const values=Array.from({length:count},(_,i)=>i+1);if(!groundV151())return values;if(type==='palletStop')return [0,...values.filter(level=>level<count)];return values.filter(level=>level<count)};
+  const levelLabelV151=(type,level)=>'K'+(groundV151()?Number(level)+1:Number(level));`
   );
   replace(
     "accessories = accessories.map((item) => ({ ...item, levels: (item.levels || []).filter((level) => (item.type === 'palletStop' && level === 0) || (level >= 1 && level <= levels)) }));",
@@ -68,11 +68,15 @@ export function transform(html){
   );
   replace(
     "const level = Math.max(0, Math.min(14, Math.round(Number(humanLevel) || 1) - 1));",
-    "if(this.options.firstPalletPosition!=='traverse'&&(accessory.type==='palletStop'||accessory.type==='hTraverse')&&numericLevel>=this.options.levels)return;\n          const level = Math.max(0, Math.min(14, Math.round(Number(humanLevel) || 1) - 1));"
+    "if(this.options.firstPalletPosition!=='traverse'&&(accessory.type==='palletStop'||accessory.type==='hTraverse'||accessory.type==='tray')&&numericLevel>=this.options.levels)return;\n          const level = Math.max(0, Math.min(14, Math.round(Number(humanLevel) || 1) - 1));"
   );
   replace(
     "h.name = `H Travers K${humanLevel}`;",
     "h.name = `H Travers K${this.options.firstPalletPosition==='traverse'?humanLevel:Number(humanLevel)+1}`;"
+  );
+  replace(
+    "tray.name = `Tava K${humanLevel}-${pieceIndex + 1} · ${pieceWidth} mm`;",
+    "tray.name = `Tava K${this.options.firstPalletPosition==='traverse'?humanLevel:Number(humanLevel)+1}-${pieceIndex + 1} · ${pieceWidth} mm`;"
   );
   replace(
     "if(tunnel<=0){valid.push({human:0,height:0});valid.push({human:0,height:250});}",
@@ -84,7 +88,7 @@ export function transform(html){
   );
   replace(
     "if(human<1||human>Math.max(1,Number(b.levels)||Number(d?.levels)||1))return;",
-    "const count=Math.max(1,Number(b.levels)||Number(d?.levels)||1),ground=String(b?.firstPalletPosition)!=='traverse';if(human<1||human>count||(ground&&(item.type==='palletStop'||item.type==='hTraverse')&&human>=count))return;"
+    "const count=Math.max(1,Number(b.levels)||Number(d?.levels)||1),ground=String(b?.firstPalletPosition)!=='traverse';if(human<1||human>count||(ground&&(item.type==='palletStop'||item.type==='hTraverse'||item.type==='tray')&&human>=count))return;"
   );
   return html;
 }
