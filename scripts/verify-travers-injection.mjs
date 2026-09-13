@@ -7,7 +7,7 @@ import {execFileSync} from 'node:child_process';
 const fixture=fs.mkdtempSync(path.join(os.tmpdir(),'rafex-travers-'));
 fs.mkdirSync(path.join(fixture,'dist/server'),{recursive:true});
 fs.mkdirSync(path.join(fixture,'client'));
-for(const name of ['travers-calculator.js','travers-calculator.css','travers-table.json'])fs.copyFileSync(`client/${name}`,path.join(fixture,'client',name));
+for(const name of ['travers-calculator.js','travers-calculator.css','travers-table.json','mini-rack-table.json'])fs.copyFileSync(`client/${name}`,path.join(fixture,'client',name));
 const nested=`<!doctype html><html><body><main id="page"></main><script>const printHtml='<html><body>Print view</body></html>';</script></body></html>`;
 fs.writeFileSync(path.join(fixture,'dist/server/index.js'),`const HTML_BASE64 = "${Buffer.from(nested).toString('base64')}";`);
 const patch=path.resolve('scripts/patch-travers-calculator.mjs');

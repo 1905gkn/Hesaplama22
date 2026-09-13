@@ -1,0 +1,6552 @@
+{
+  "lengths": [
+    800,
+    900,
+    1000,
+    1100,
+    1200,
+    1300,
+    1400,
+    1500,
+    1600,
+    1700,
+    1800,
+    1900,
+    2000,
+    2100,
+    2200,
+    2300,
+    2400,
+    2500,
+    2600,
+    2700,
+    2800,
+    2900,
+    3000,
+    3100,
+    3200,
+    3300,
+    3400,
+    3500,
+    3600
+  ],
+  "loads": [
+    200,
+    300,
+    400,
+    500,
+    600,
+    700,
+    800,
+    900,
+    1000,
+    1100,
+    1200,
+    1300,
+    1400,
+    1500
+  ],
+  "groups": [
+    "ZS ST37",
+    "Kutu ST37"
+  ],
+  "source": "ZS_Kutu_ST37_800-3600.xlsx",
+  "records": [
+    {
+      "length": 800,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": "ZS30.35.2,0 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": "ZS30.35.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": "ZS30.65.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": "ZS30.65.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": "ZS30.65.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 600,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 600,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": "ZS30.65.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": "ZS30.65.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": "ZS30.65.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": "ZS30.75.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": "ZS30.65.2,0 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 700,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 700,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": "ZS30.65.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": "ZS30.65.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": "ZS30.65.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": "ZS30.75.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": "ZS30.75.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": "ZS30.75.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": "ZS30.65.2,0 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 800,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 800,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": "ZS30.55.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": "ZS30.65.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": "ZS30.65.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": "ZS30.65.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": "ZS30.75.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": "ZS30.75.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": "ZS30.85.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": "ZS30.85.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": "ZS30.65.2,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 900,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 900,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": "ZS30.65.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": "ZS30.65.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": "ZS30.65.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": "ZS30.75.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": "ZS30.75.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": "ZS30.85.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": "ZS30.85.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": "ZS30.75.2,0 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": "ZS30.65.2,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 1000,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 1000,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": "ZS30.65.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": "ZS30.65.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": "ZS30.75.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": "ZS30.75.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": "ZS30.85.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": "ZS30.85.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": "ZS30.75.2,0 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": "ZS30.85.2,0 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 1100,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 1100,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": "ZS30.65.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": "ZS30.75.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": "ZS30.75.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": "ZS30.85.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": "ZS30.85.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": "ZS30.75.2,0 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": "ZS30.85.2,0 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": "ZS30.85.2,0 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 1200,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 1200,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": "ZS30.75.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": "ZS30.75.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": "ZS30.85.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": "ZS30.85.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": "ZS30.75.2,0 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": "ZS30.85.2,0 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": "ZS30.85.2,0 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": "ZS30.85.2,0 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 1300,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 1300,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": "ZS30.75.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": "ZS30.85.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": "ZS30.85.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": "ZS30.75.2,0 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": "ZS30.85.2,0 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": "ZS30.85.2,0 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": "ZS30.75.2,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": "ZS30.85.2,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 1400,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 1400,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": "ZS30.75.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": "ZS30.85.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": "ZS30.75.2,0 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": "ZS30.85.2,0 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": "ZS30.85.2,0 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": "ZS30.85.2,0 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": "ZS30.85.2,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": "ZS30.85.2,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 1500,
+      "group": "ZS ST37",
+      "section": null,
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 800,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 900,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1000,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1100,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1200,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1300,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1400,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1500,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1600,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1700,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1800,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 1900,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2000,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.100.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2100,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2200,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2300,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2400,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2500,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.120.1,5 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2600,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2700,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2800,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 2900,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3000,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3100,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3200,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3300,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3400,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3500,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    },
+    {
+      "length": 3600,
+      "load": 1500,
+      "group": "Kutu ST37",
+      "section": "Kutu50.140.1,50 ST37",
+      "manual": false,
+      "note": ""
+    }
+  ]
+}
