@@ -15,6 +15,14 @@ assert.equal(context.window.RafexTravers.recommend(3000,3000)[3].section,'Kutu50
 assert.equal(table.records.filter(r=>r.manual).length,1);
 const mini=JSON.parse(fs.readFileSync('client/mini-rack-table.json','utf8'));
 assert.equal(mini.records.length,812);
+assert.equal(mini.source,'ZS_35_55_65_Yeni_Adlar.xlsx');
+for(const row of mini.records){
+  assert.equal(row.preliminary,row.group==='ZS ST37');
+  if(row.preliminary){
+    assert.equal(row.note,'Burkulma kontrolü hariç ön seçim');
+    if(row.section)assert.match(row.section,/^ZS30\.(35|55|65)\./);
+  }
+}
 assert.equal(new Set(mini.records.map(r=>`${r.length}:${r.load}:${r.group}`)).size,812);
 for(const [data,fn] of [[table,context.window.RafexTravers.recommend],[mini,context.window.RafexTravers.recommendMini]]) {
   for(let li=0;li<data.lengths.length;li++)for(let qi=0;qi<data.loads.length;qi++) {
