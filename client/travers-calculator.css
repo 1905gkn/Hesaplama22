@@ -1,0 +1,16 @@
+.trv-calculator{max-width:1120px;margin:0 auto;color:var(--ink,#17201b);font-size:16px}
+.trv-heading{margin:0 0 24px}.trv-heading>span{font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--g,#214f3b)}
+.trv-heading h2{font-size:28px;margin:8px 0 10px;line-height:1.2}.trv-heading p{margin:0;color:#536058;line-height:1.5}
+.trv-form{display:grid;grid-template-columns:1fr 1fr auto;gap:20px;align-items:start;background:#fff;border:1px solid #dfe5e0;border-radius:14px;padding:24px}
+.trv-form label{display:flex;flex-direction:column;gap:10px;font-size:15px;font-weight:700;min-width:0}
+.trv-form select{width:100%;height:48px;border:1px solid #b7c5bc;border-radius:8px;background:#fff;padding:0 12px;font:inherit;font-weight:400;color:#17201b}
+.trv-form small{font-size:13px;line-height:1.4;font-weight:400;color:#536058}
+.trv-form button{height:48px;margin-top:28px;background:var(--g,#214f3b);color:#fff;font-size:15px;padding:0 22px;border-radius:8px}
+.trv-form select:focus-visible,.trv-form button:focus-visible{outline:3px solid #d5ae00;outline-offset:3px}
+.trv-empty{padding:30px 20px;text-align:center;color:#536058;background:#fff;border:1px dashed #c9d4cc;border-radius:12px;margin:24px 0}
+.trv-result-title{font-size:20px;margin:28px 0 16px}.trv-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.trv-option{background:#fff;border:1px solid #dfe5e0;border-top:4px solid #214f3b;border-radius:12px;padding:22px;min-width:0}
+.trv-option h4{margin:0 0 14px;font-size:16px;color:#536058}.trv-section{font-size:22px;font-weight:700;margin:0 0 12px;line-height:1.35;overflow-wrap:anywhere}
+.trv-status{font-size:14px;line-height:1.5;color:#536058;margin:0}.trv-manual{border-color:#c38b22;background:#fff9ec}.trv-manual .trv-status{color:#934018;font-weight:700}
+.trv-scope{font-size:14px;line-height:1.6;color:#536058;margin:24px 0}
+@media(max-width:760px){.trv-form{grid-template-columns:1fr;padding:18px;gap:18px}.trv-form button{margin-top:0}.trv-options{grid-template-columns:1fr}.trv-heading h2{font-size:24px}}
