@@ -26,13 +26,13 @@ const runtime = String.raw`<script data-rafex-b2b-collection-products="v110">(fu
     collection.floors.forEach(function(floor){
       var traverse=String(floor&&floor.traverse||'ZS55|1.5').split('|'),traverseType=traverse[0]||'ZS55',traverseThickness=Number(traverse[1])||1.5;
       var trayWidth=[200,250,300].includes(Number(floor&&floor.trayWidth))?Number(floor.trayWidth):300,trayThickness=Number(floor&&floor.trayThickness)||.8;
-      add('Toplama Katı ZS Travers',traverseType+' · '+fmtDecimal(traverseThickness)+' mm · L '+clear.toLocaleString('tr-TR')+' mm',2*rows*multiplier);
+      add(traverseType.startsWith('Kutu')?'Toplama Katı Kutu Travers':'Toplama Katı ZS Travers',traverseType+' · '+fmtDecimal(traverseThickness)+' mm · L '+clear.toLocaleString('tr-TR')+' mm',2*rows*multiplier);
       add('Toplama Katı Tava',trayWidth+' mm · '+fmtDecimal(trayThickness)+' mm',trayCount(clear,trayWidth)*rows*multiplier);
     });
     return Array.from(map.values());
   }
   window.rafexB2BCollectionProductRowsV110=collectionRows;
-  function isCollectionRow(row){return /^toplama katı (zs travers|tava)/.test(low(row&& (row.item||row.name)))}
+  function isCollectionRow(row){return /^toplama katı (zs travers|kutu travers|tava)/.test(low(row&& (row.item||row.name)))}
   function mergeBom(rows,extras){var out=(Array.isArray(rows)?rows:[]).filter(function(row){return !isCollectionRow(row)}).map(function(row){return Object.assign({},row)});extras.forEach(function(extra){var found=out.find(function(row){return low(row&&row.item)===low(extra.item)&&low(row&&row.spec)===low(extra.spec)});if(found)found.qty=(Number(found.qty)||0)+extra.qty;else out.push(Object.assign({},extra))});return out}
   function mergeLayout(rows,extras){var out=(Array.isArray(rows)?rows:[]).filter(function(row){return !isCollectionRow(row)}).map(function(row){return Object.assign({},row)});extras.forEach(function(extra){var row={name:extra.item,spec:extra.spec,qty:extra.qty,unit:extra.unit},found=out.find(function(item){return low(item&&item.name)===low(row.name)&&low(item&&item.spec)===low(row.spec)});if(found)found.qty=(Number(found.qty)||0)+row.qty;else out.push(row)});return out}
   try{

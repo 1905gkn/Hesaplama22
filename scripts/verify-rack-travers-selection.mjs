@@ -1,0 +1,14 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
+import {runtime} from './b2b-customize-collection-v119.mjs';
+const source=fs.readFileSync('client/rack-travers-selection.js','utf8').replace('__RACK_NORMAL__',fs.readFileSync('client/travers-table.json','utf8')).replace('__RACK_COLLECTION__',fs.readFileSync('client/mini-rack-table.json','utf8'));
+const ctx={window:{}};vm.runInNewContext(source,ctx);const api=ctx.window.RafexRackTravers;
+assert.equal(api.choices('normal',2650,2950).length,3);
+assert.ok(api.choices('normal',2700,3000).some(r=>r.value==='Kutu140x50x1,50 ST52'));
+assert.equal(api.height('Kutu140x50x1,50 ST52'),140);assert.equal(api.height('ZS35|1.5'),55);assert.equal(api.height('ZS65|2.5'),85);
+assert.equal(api.choices('collection',3601,200).length,0);
+const f={load:500,selectionMode:'auto',traverse:'ZS65|2'};api.updateFloor(f,800);assert.equal(f.traverse,'ZS35|1.5');
+f.selectionMode='manual';f.traverse='ZS65|2';api.updateFloor(f,800);assert.equal(f.traverse,'ZS65|2');
+f.selectionMode='auto';f.load=1501;api.updateFloor(f,800);assert.equal(f.traverse,'');
+assert.match(api.floorFields({load:650,selectionMode:'auto'},0,2650,false),/2700 mm \/ 700 kg/);
+new vm.Script(runtime.match(/<script[^>]*>([\s\S]*)<\/script>/)[1]);
+console.log('B2B/table mapping, collection auto/manual persistence, bounds and physical heights passed.');

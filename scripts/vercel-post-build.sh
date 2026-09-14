@@ -66,6 +66,7 @@ node scripts/patch-static-deselection-v149.mjs
 node scripts/patch-plan-toolbar-v150.mjs
 node scripts/patch-b2b-accessory-floor-levels-v151.mjs
 node scripts/verify-travers-calculator.mjs
+node scripts/verify-rack-travers-selection.mjs
 node scripts/verify-travers-injection.mjs
 node scripts/patch-travers-calculator.mjs
 node scripts/emit-static-index-v1.mjs

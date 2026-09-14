@@ -8,7 +8,7 @@ export const helpers=String.raw`
         if(!collection?.enabled)return {floors:[],totalHeight:0};
         let cursor=Math.max(0,Number(collection.groundGap)||0);
         const floors=(collection.floors||[]).map((floor,index)=>{
-          const zsHeight=({ZS35:55,ZS55:75,ZS65:85})[String(floor.traverse).split('|')[0]]||55;
+          const zsHeight=(typeof window!=='undefined'?window.RafexRackTravers?.height(floor.traverse):null)||({ZS35:55,ZS55:75,ZS65:85})[String(floor.traverse).split('|')[0]]||Number(String(floor.traverse).match(/Kutu(\d+)/)?.[1])||55;
           const bottom=cursor;cursor+=zsHeight+Math.max(100,Number(floor.height)||500);
           return {...floor,index,bottom,zsHeight,top:cursor};
         });
