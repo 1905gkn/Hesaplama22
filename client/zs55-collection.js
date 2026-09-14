@@ -26,7 +26,7 @@ export function zs55Collection(THREE, viewer, section, floor, index) {
   const front=Math.min(...frameBoxes.map(b=>b.min.y)),rear=Math.max(...frameBoxes.map(b=>b.max.y));
   const beamLeft=left+4,beamRight=right-4,beamLength=beamRight-beamLeft;
   const bottom=Number(floor.bottom)||0,height=Number(floor.zsHeight)||75;
-  const layer=new THREE.Group();layer.name='ZS55 HR Toplama '+(index+1);
+  const layer=new THREE.Group();layer.name=String(floor.traverse||'ZS55').split('|')[0]+' HR Toplama '+(index+1);
   for(const back of [false,true]){
     const beam=viewer.models.zs55Traverse.clone(true);
     beam.traverse(mesh=>{
@@ -49,7 +49,11 @@ export function zs55Collection(THREE, viewer, section, floor, index) {
         const x=body?along*beamLength/2692:along+(longConnector?0:beamLength-2692);
         // In the supplied HR90 + ZS55 assembly, both connectors cross the
         // upright's outer face by 4 mm and seat 59 mm into the 80 mm profile.
-        p.setXYZ(i,back?beamLeft+x:beamRight-x,back?rear+CONNECTOR_FACE_OFFSET-depth:front-CONNECTOR_FACE_OFFSET+depth,z+50.73630142211914-bottom);
+        // Resize only the beam web for the renamed 55/75/85 mm profiles.
+        // Keep the supplied connector and the 18 mm tray-support folds intact.
+        const up=-(z+50.73630142211914);
+        const adjusted=body?(up<=18?up:up>=57?up+height-75:18+(up-18)*(height-36)/39):up;
+        p.setXYZ(i,back?beamLeft+x:beamRight-x,back?rear+CONNECTOR_FACE_OFFSET-depth:front-CONNECTOR_FACE_OFFSET+depth,-adjusted-bottom);
       }
       if(!body&&!/KONNEKTÖR/i.test(mesh.name))mesh.name+=' KONNEKTÖR';
       finish(mesh.geometry);

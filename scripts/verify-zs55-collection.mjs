@@ -12,6 +12,18 @@ const loader=new GLTFLoader();
 async function model(file){const b=fs.readFileSync(file);return(await loader.parseAsync(b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength),'')).scene;}
 const models={zs55Traverse:await model('assets/b2b-zs55-hr-traverse.glb'),zs55Tray:await model('assets/b2b-zs55-tray.glb')};
 const sourceBefore=new THREE.Box3().setFromObject(models.zs55Traverse).clone();
+for(const [name,height] of [['ZS35',55],['ZS55',75],['ZS65',85]]){
+ const section=new THREE.Group();
+ for(const x of [45,2835])for(const y of [40,1060]){const foot=new THREE.Mesh(new THREE.BoxGeometry(90,80,5000));foot.name='HR90 AYAK';foot.position.set(x,y,-2500);section.add(foot);}
+ const layer=zs55Collection(THREE,{models,applyRackMaterials(){},trayPiecePlan(){return [300]}},section,{bottom:500,zsHeight:height,trayWidth:300,traverse:name+'|1.5'},0);
+ assert.match(layer.name,new RegExp('^'+name+' HR'));
+ layer.children[0].traverse(m=>{if(!m.isMesh)return;const b=m.geometry.boundingBox;
+  if(/Z_TRAVERS|Z TRAVERS/i.test(m.name)){assert(Math.abs(b.min.z+500+height)<.01);assert(Math.abs(b.max.z+500)<.01);}
+  else assert(Math.abs(b.max.z-b.min.z-155)<.01,'Connector retains source height for every ZS name');
+ });
+ assert(Math.abs(new THREE.Box3().setFromObject(layer.children[2]).max.z+500+height-18)<.01,'Tray follows original support seat');
+}
+assert(fs.readFileSync('scripts/patch-zs55-collection-models.mjs','utf8').includes('ZS(?:35|55|65)'), 'All renamed ZS products must use the supplied assembly');
 for(const width of [1800,2700,3600])for(const depth of [900,1050,1100]){
  const section=new THREE.Group();
  for(const x of [45,135+width])for(const y of [40,depth-40]){const foot=new THREE.Mesh(new THREE.BoxGeometry(90,80,5000));foot.name='HR90 AYAK';foot.position.set(x,y,-2500);section.add(foot);}
