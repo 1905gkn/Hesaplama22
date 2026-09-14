@@ -24,9 +24,9 @@ const runtime = String.raw`<script data-rafex-b2b-collection-products="v110">(fu
     var multiplier=Math.max(1,Number(entry&&entry.rackCount)||1),rows=rowCount(d),clear=clearWidth(d),unit=labels&&labels.unitEach||'adet',map=new Map();
     function add(item,spec,qty){qty=Math.max(0,Math.round(Number(qty)||0));if(!qty)return;var key=low(item)+'|'+low(spec),current=map.get(key)||{item:item,spec:spec,code:spec,qty:0,unit:unit};current.qty+=qty;map.set(key,current)}
     collection.floors.forEach(function(floor){
-      var traverse=String(floor&&floor.traverse||'ZS55|1.5').split('|'),traverseType=traverse[0]||'ZS55',traverseThickness=Number(traverse[1])||1.5;
+      var traverse=String(floor&&floor.traverse||'').split('|'),traverseType=traverse[0]||'',traverseThickness=Number(traverse[1])||1.5;
       var trayWidth=[200,250,300].includes(Number(floor&&floor.trayWidth))?Number(floor.trayWidth):300,trayThickness=Number(floor&&floor.trayThickness)||.8;
-      add(traverseType.startsWith('Kutu')?'Toplama Katı Kutu Travers':'Toplama Katı ZS Travers',traverseType+' · '+fmtDecimal(traverseThickness)+' mm · L '+clear.toLocaleString('tr-TR')+' mm',2*rows*multiplier);
+      if(traverseType)add(traverseType.startsWith('Kutu')?'Toplama Katı Kutu Travers':'Toplama Katı ZS Travers',traverseType+' · '+fmtDecimal(traverseThickness)+' mm · L '+clear.toLocaleString('tr-TR')+' mm',2*rows*multiplier);
       add('Toplama Katı Tava',trayWidth+' mm · '+fmtDecimal(trayThickness)+' mm',trayCount(clear,trayWidth)*rows*multiplier);
     });
     return Array.from(map.values());
