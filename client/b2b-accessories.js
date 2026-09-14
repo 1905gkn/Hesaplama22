@@ -9,8 +9,9 @@
   const ZS_HEIGHTS = { 'ZS35|1.5':55, 'ZS35|2':55, 'ZS55|1.5':75, 'ZS55|2':75, 'ZS55|2.5':75, 'ZS65|1.5':85, 'ZS65|2':85, 'ZS65|2.5':85 };
   const freshCollectionFloor = () => ({ trayWidth:300, trayThickness:.8, traverse:'ZS55|1.5', load:200, selectionMode:'auto', height:500 });
   let collection = { enabled:false, groundGap:500, floors:[freshCollectionFloor()] };
+  let appliedCollection={enabled:false,groundGap:500,floors:[]};
   const normalizeCollection = (raw = {}) => ({ enabled:raw.enabled===true, groundGap:Math.max(0,Math.min(5000,Number(raw.groundGap)||500)), floors:(Array.isArray(raw.floors)&&raw.floors.length?raw.floors:[freshCollectionFloor()]).slice(0,12).map((f)=>({trayWidth:[200,250,300].includes(Number(f?.trayWidth))?Number(f.trayWidth):300,trayThickness:[.6,.8,1,1.2,1.5].includes(Number(f?.trayThickness))?Number(f.trayThickness):.8,load:Number(f?.load)||0,selectionMode:f?.selectionMode||'manual',traverse:(ZS_HEIGHTS[f?.traverse]||/^Kutu/.test(f?.traverse||''))?f.traverse:'',height:Math.max(100,Math.min(5000,Number(f?.height)||500))})) });
-  const collectionPlan = () => { collection.floors.forEach(f=>window.RafexRackTravers?.updateFloor(f,sectionWidth())); const s=normalizeCollection(collection);let cursor=s.groundGap;const floors=s.enabled?s.floors.map((f,index)=>{const bottom=cursor,zsHeight=window.RafexRackTravers?.height(f.traverse)||ZS_HEIGHTS[f.traverse]||75;cursor+=zsHeight+f.height;return{...f,index,bottom,zsHeight,top:cursor};}):[];return{floors,totalHeight:s.enabled?cursor:0}; };
+  const collectionPlan = (raw=appliedCollection) => { const s=normalizeCollection(raw);let cursor=s.groundGap;const floors=s.enabled?s.floors.map((f,index)=>{const bottom=cursor,zsHeight=window.RafexRackTravers?.height(f.traverse)||ZS_HEIGHTS[f.traverse]||75;cursor+=zsHeight+f.height;return{...f,index,bottom,zsHeight,top:cursor};}):[];return{floors,totalHeight:s.enabled?cursor:0}; };
 
   const cloneState = () => accessories.map((item) => ({
     type: item.type,
@@ -81,7 +82,7 @@
   }
   function notify() {
     try {
-      if (typeof window.b2bRefreshSummary === 'function') window.b2bRefreshSummary();
+      if(typeof window.b2bApplyInputs==='function')window.b2bApplyInputs({accessoryChange:true});else if(typeof window.b2bRefreshSummary==='function')window.b2bRefreshSummary();
       if(window.RafexB2BViewer?.getActiveViewer?.())window.RafexB2BViewer.update(window.b2b3DOptions());
     } catch (error) { console.warn('Aksesuar güncelleme', error); }
   }
@@ -123,9 +124,10 @@
 
   function renderCollection() {
     const host=document.getElementById('b2bCollection');if(!host)return;host.hidden=!collection.enabled;if(!collection.enabled){host.innerHTML='';return;}
+    collection.floors.forEach(f=>window.RafexRackTravers?.updateFloor(f,sectionWidth()));
     const p=collectionPlan(),opts=(values,current,label=(v)=>v)=>values.map((v)=>`<option value="${v}" ${String(v)===String(current)?'selected':''}>${label(v)}</option>`).join('');
-    const floors=collection.floors.map((f,index)=>`<section class="b2b-collection-floor"><div class="b2b-collection-floor-head"><b>${index+1}. Kat</b>${collection.floors.length>1?`<button class="b2b-accessory-remove" type="button" onclick="rafexCollectionRemoveFloor(${index})">Katı Kaldır</button>`:''}</div><div class="b2b-collection-form">${index===0?`<label class="b2b-collection-row"><span>Z – 1. kat arası mesafe</span><input aria-label="Z – 1. kat arası mesafe" type="number" min="0" max="5000" step="10" value="${collection.groundGap}" onchange="rafexCollectionSet(${index},'groundGap',this.value)"></label>`:''}<label class="b2b-collection-row"><span>Tava seçimi</span><select aria-label="${index+1}. kat tava seçimi" onchange="rafexCollectionSet(${index},'trayWidth',this.value)">${opts([300,250,200],f.trayWidth,(v)=>v+' mm')}</select></label><label class="b2b-collection-row"><span>Kalınlık seçimi</span><select aria-label="${index+1}. kat kalınlık seçimi" onchange="rafexCollectionSet(${index},'trayThickness',this.value)">${opts([.6,.8,1,1.2,1.5],f.trayThickness,(v)=>String(v).replace('.',',')+' mm')}</select></label>${(window.RafexRackTravers?.floorFields(f,index,sectionWidth(),false)||'').replace(/data-collection-index="(\d+)" data-collection-field="(\w+)"/g,(_,i,key)=>`onchange="rafexCollectionSet(${i},'${key}',this.value)"`)}<label class="b2b-collection-row"><span>Kat yüksekliği</span><input aria-label="${index+1}. kat yüksekliği" type="number" min="100" max="5000" step="10" value="${f.height}" onchange="rafexCollectionSet(${index},'height',this.value)"></label></div></section>`).join('');
-    host.innerHTML=`<div class="b2b-accessory-card-head"><b>Toplama Katları</b><div class="b2b-collection-head-actions"><button class="b2b-collection-add-floor" type="button" onclick="rafexCollectionAddFloor()">+ Kat Ekle</button><button class="b2b-accessory-remove" type="button" onclick="rafexCollectionRemove()">Tümünü Kaldır</button></div></div>${floors}<div class="b2b-accessory-note"><b>ZS toplama yüksekliği · ${p.totalHeight.toLocaleString('tr-TR')} mm</b>${p.floors.map((floor,index)=>`${index?'+ ':''}${index===0?collection.groundGap+' mm zemin + ':''}${floor.zsHeight} mm ZS + ${floor.height} mm kat`).join(' ')}. Sonrasında CC traversli normal katlar başlar.</div>`;
+    const floors=collection.floors.map((f,index)=>`<section class="b2b-collection-floor"><div class="b2b-collection-floor-head"><b>${index+1}. Kat</b>${collection.floors.length>1?`<button class="b2b-accessory-remove" type="button" onclick="rafexCollectionRemoveFloor(${index})">Katı Kaldır</button>`:''}</div><div class="b2b-collection-form">${index===0?`<label class="b2b-collection-row"><span>Z – 1. kat arası mesafe</span><input aria-label="Z – 1. kat arası mesafe" type="number" min="0" max="5000" step="10" value="${collection.groundGap}" onchange="rafexCollectionSet(${index},'groundGap',this.value)"></label>`:''}<label class="b2b-collection-row"><span>Tava seçimi</span><select aria-label="${index+1}. kat tava seçimi" onchange="rafexCollectionSet(${index},'trayWidth',this.value)">${opts([300,250,200],f.trayWidth,(v)=>v+' mm')}</select></label><label class="b2b-collection-row"><span>Kalınlık seçimi</span><select aria-label="${index+1}. kat kalınlık seçimi" onchange="rafexCollectionSet(${index},'trayThickness',this.value)">${opts([.6,.8,1,1.2,1.5],f.trayThickness,(v)=>String(v).replace('.',',')+' mm')}</select></label>${(window.RafexRackTravers?.floorFields(f,index,sectionWidth(),false)||'').replace(/data-collection-index="(\d+)" data-collection-field="(\w+)"/g,(_,i,key)=>`onchange="rafexCollectionSet(${i},'${key}',this.value)"`)}<label class="b2b-collection-row"><span>Kat yüksekliği</span><input aria-label="${index+1}. kat yüksekliği" type="number" min="100" max="5000" step="10" value="${f.height}" onchange="rafexCollectionSet(${index},'height',this.value)"></label><button type="button" class="b2b-collection-add-floor" style="width:100%;min-height:38px" onclick="rafexCollectionSave(${index})">Toplama Katını Kaydet</button><small role="status" style="color:${f.error?'#a71930':'#365b46'};line-height:1.4">${f.error||f.savedMessage||'Görsele eklemek için kaydedin.'}</small></div></section>`).join('');
+    host.innerHTML=`<div class="b2b-accessory-card-head"><b>Toplama Katları</b><div class="b2b-collection-head-actions"><button class="b2b-collection-add-floor" type="button" onclick="rafexCollectionAddFloor()">+ Kat Ekle</button><button class="b2b-accessory-remove" type="button" onclick="rafexCollectionRemove()">Tümünü Kaldır</button></div></div>${floors}<div class="b2b-accessory-note"><b>Kaydedilen toplama yüksekliği · ${p.totalHeight.toLocaleString('tr-TR')} mm</b>${p.floors.map((floor,index)=>`${index?'+ ':''}${index===0?collection.groundGap+' mm zemin + ':''}${floor.zsHeight} mm travers + ${floor.height} mm kat`).join(' ')}. Sonrasında CC traversli normal katlar başlar.</div>`;
   }
 
   window.rafexAccessoryToggle = () => {
@@ -154,11 +156,28 @@
     item.width = [200,250,300].includes(Number(width)) ? Number(width) : 300; render(); notify();
   };
   window.rafexAccessoryState = () => cloneState();
-  window.rafexCollectionAdd=()=>{collection=normalizeCollection({...collection,enabled:true});document.getElementById('b2bAccessoryArea')?.classList.add('open');render();notify();};
-  window.rafexCollectionRemove=()=>{collection.enabled=false;render();notify();};
-  window.rafexCollectionAddFloor=()=>{if(collection.floors.length<12)collection.floors.push(freshCollectionFloor());render();notify();};
-  window.rafexCollectionRemoveFloor=(index)=>{if(collection.floors.length>1)collection.floors.splice(index,1);render();notify();};
-  window.rafexCollectionSet=(index,key,value)=>{const f=collection.floors[index]||freshCollectionFloor();if(key==='groundGap')collection.groundGap=Math.max(0,Math.min(5000,Number(value)||0));else if(key==='trayWidth')f.trayWidth=[200,250,300].includes(Number(value))?Number(value):300;else if(key==='trayThickness')f.trayThickness=[.6,.8,1,1.2,1.5].includes(Number(value))?Number(value):.8;else if(key==='load'){f.load=Math.max(0,Number(value)||0);f.selectionMode='auto';}else if(key==='selectionMode')f.selectionMode=value==='manual'?'manual':'auto';else if(key==='traverse'){f.traverse=value;f.selectionMode='manual';}else if(key==='height')f.height=Math.max(100,Math.min(5000,Number(value)||500));collection.floors[index]=f;render();notify();};
+  window.rafexCollectionAdd=()=>{collection=normalizeCollection({...collection,enabled:true});document.getElementById('b2bAccessoryArea')?.classList.add('open');render();};
+  window.rafexCollectionRemove=()=>{collection.enabled=false;appliedCollection={enabled:false,groundGap:500,floors:[]};render();notify();};
+  window.rafexCollectionAddFloor=()=>{if(collection.floors.length<12)collection.floors.push(freshCollectionFloor());render();};
+  window.rafexCollectionRemoveFloor=(index)=>{if(collection.floors.length>1){collection.floors.splice(index,1);appliedCollection.floors.splice(index,1);appliedCollection.enabled=appliedCollection.floors.length>0;}render();notify();};
+  window.rafexCollectionSet=(index,key,value)=>{const f=collection.floors[index]||freshCollectionFloor();if(key==='groundGap')collection.groundGap=value===''?'':Number(value);else if(key==='trayWidth')f.trayWidth=[200,250,300].includes(Number(value))?Number(value):300;else if(key==='trayThickness')f.trayThickness=[.6,.8,1,1.2,1.5].includes(Number(value))?Number(value):.8;else if(key==='load'){f.load=Math.max(0,Number(value)||0);f.selectionMode='auto';}else if(key==='selectionMode')f.selectionMode=value==='manual'?'manual':'auto';else if(key==='traverse'){f.traverse=value;f.selectionMode='manual';}else if(key==='height')f.height=value===''?'':Number(value);f.error='';f.savedMessage='';collection.floors[index]=f;render();};
+  window.rafexCollectionSave=(index)=>{
+    const f=collection.floors[index];if(!f)return;
+    const host=document.querySelectorAll('#b2bCollection .b2b-collection-floor')[index];
+    if(host){for(const el of host.querySelectorAll('input,select')){const key=el.getAttribute('onchange')?.match(/rafexCollectionSet\(\d+,'(\w+)'/)?.[1];if(!key)continue;const value=el.value;if(key==='groundGap')collection.groundGap=value===''?'':Number(value);else f[key]=['traverse','selectionMode'].includes(key)?value:value===''?'':Number(value);}}
+    const errors=[];
+    if(collection.groundGap===''||!Number.isFinite(Number(collection.groundGap))||Number(collection.groundGap)<0||Number(collection.groundGap)>5000)errors.push('Zemin mesafesini 0–5000 mm arasında girin.');
+    if(!(Number(f.load)>0&&Number(f.load)<=1500))errors.push('Kat yükünü 1–1500 kg arasında girin.');
+    if(!(Number(f.height)>=100&&Number(f.height)<=5000))errors.push('Kat yüksekliğini 100–5000 mm arasında girin.');
+    if(![200,250,300].includes(Number(f.trayWidth)))errors.push('Tava enini seçin.');
+    if(![.6,.8,1,1.2,1.5].includes(Number(f.trayThickness)))errors.push('Tava kalınlığını seçin.');
+    if(!f.traverse)errors.push('Travers seçin; boy ve yük için öneriyi kontrol edin.');
+    if(index>appliedCollection.floors.length)errors.push('Önce önceki toplama katını kaydedin.');
+    if(errors.length){f.error=errors.join(' ');f.savedMessage='';render();return;}
+    const saved={...f};delete saved.error;delete saved.savedMessage;
+    appliedCollection.groundGap=Number(collection.groundGap);appliedCollection.floors[index]=saved;appliedCollection.enabled=true;
+    f.error='';f.savedMessage='Kat görsele eklendi.';notify();render();
+  };
   window.rafexTrayPlan = trayPlan;
 
   function hook(name, factory) {
@@ -169,7 +188,7 @@
 
   function installHooks() {
     hook('b2bVerticalLayout',(previous)=>function(...args){
-      const out=previous.apply(this,args);if(!collection.enabled)return out;
+      const out=previous.apply(this,args);if(!appliedCollection.enabled)return out;
       const plan=collectionPlan(),firstLoadBottom=plan.totalHeight+out.traverseHeight;
       const automaticFootHeight=Math.ceil((firstLoadBottom+(out.levels-1)*out.levelStep+Number(typeof b2bLastPalletOverlap==='number'?b2bLastPalletOverlap:out.palletHeight/2))/50)*50;
       const input=document.getElementById('b2bFootHeight'),manual=document.getElementById('b2bFootHeightMode')?.value==='manual';
@@ -185,11 +204,11 @@
     });
     hook('b2bReadInputState', (previous) => function (...args) {
       const state = previous.apply(this, args);
-      return state ? { ...state, accessories: cloneState(), collectionLevels:normalizeCollection(collection), ...(collection.enabled?{firstPalletPosition:'traverse',firstFloorGap:collectionPlan().totalHeight}:{}) } : state;
+      return state ? { ...state, accessories: cloneState(), collectionLevels:normalizeCollection(appliedCollection), ...(appliedCollection.enabled?{firstPalletPosition:'traverse',firstFloorGap:collectionPlan().totalHeight}:{}) } : state;
     });
     hook('b2bApplySavedInputState', (previous) => function (state, ...args) {
       accessories = Array.isArray(state?.accessories) ? state.accessories.filter((item) => TYPES[item?.type]).map((item) => ({ type:item.type, levels:Array.isArray(item.levels)?item.levels.map(Number).filter(Number.isFinite):[], ...(item.type === 'tray' ? { width:[200,250,300].includes(Number(item.width))?Number(item.width):300 } : {}) })) : [];
-      collection = normalizeCollection(state?.collectionLevels);
+      collection = normalizeCollection(state?.collectionLevels);appliedCollection=JSON.parse(JSON.stringify(collection));
       const result = previous.call(this, state, ...args);
       setTimeout(() => { render(); notify(); }, 0);
       return result;
@@ -197,12 +216,12 @@
     hook('b2b3DOptions', (previous) => function (...args) {
       const options = previous.apply(this, args);
       const plan=collectionPlan();
-      return collectionOptions({...options,accessories:cloneState(),collectionLevels:normalizeCollection(collection),collectionFloors:plan.floors},window.b2bReadInputState());
+      return collectionOptions({...options,accessories:cloneState(),collectionLevels:normalizeCollection(appliedCollection),collectionFloors:plan.floors},window.b2bReadInputState());
     });
     hook('m2Rack3DOptions', (previous) => function (rack, ...args) {
       const options = previous.call(this, rack, ...args);
       const saved = Array.isArray(rack?.b2b?.accessories) ? rack.b2b.accessories : cloneState();
-      const savedCollection=normalizeCollection(rack?.b2b?.collectionLevels), oldCollection=collection;collection=savedCollection;const plan=collectionPlan();collection=oldCollection;
+      const savedCollection=normalizeCollection(rack?.b2b?.collectionLevels), oldCollection=appliedCollection;appliedCollection=savedCollection;const plan=collectionPlan();appliedCollection=oldCollection;
       const result=collectionOptions({...options,accessories:saved.map(item=>({...item,levels:[...(item.levels||[])]})),collectionLevels:savedCollection,collectionFloors:plan.floors},rack?.b2b||{});
       if(!rack?.b2b?.mr)result.dimensions={levels:true,markers:true,eye:true,width:true,depth:true};
       return result;

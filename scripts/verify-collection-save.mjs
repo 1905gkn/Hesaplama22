@@ -1,0 +1,11 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
+let source=fs.readFileSync('client/b2b-accessories.js','utf8');
+source=source.slice(0,source.lastIndexOf('  style();'))+`render=()=>{};notify=()=>{};window.test={draft:()=>collection,applied:()=>appliedCollection,plan:collectionPlan};})();`;
+const ctx={window:{},document:{getElementById:()=>null,querySelectorAll:()=>[]},console};vm.runInNewContext(source,ctx);
+const w=ctx.window,t=w.test;
+w.rafexCollectionAdd();assert.equal(t.applied().enabled,false);assert.equal(t.plan().floors.length,0);
+w.rafexCollectionSet(0,'load','');w.rafexCollectionSave(0);assert.match(t.draft().floors[0].error,/Kat yükünü/);assert.equal(t.applied().enabled,false);
+w.rafexCollectionSet(0,'load','650');w.rafexCollectionSave(0);assert.equal(t.applied().floors[0].load,650);assert.equal(t.plan().floors.length,1);
+w.rafexCollectionSet(0,'height','');assert.equal(t.applied().floors[0].height,500);w.rafexCollectionSave(0);assert.match(t.draft().floors[0].error,/Kat yüksekliğini/);assert.equal(t.applied().floors[0].height,500);
+w.rafexCollectionAddFloor();assert.equal(t.plan().floors.length,1);w.rafexCollectionRemove();assert.equal(t.plan().floors.length,0);
+console.log('Collection draft/save, required fields and committed geometry verified');
