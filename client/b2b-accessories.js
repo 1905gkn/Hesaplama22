@@ -215,7 +215,7 @@
     });
     hook('b2bApplySavedInputState', (previous) => function (state, ...args) {
       accessories = Array.isArray(state?.accessories) ? state.accessories.filter((item) => TYPES[item?.type]).map((item) => ({ type:item.type, levels:Array.isArray(item.levels)?item.levels.map(Number).filter(Number.isFinite):[], ...(item.type === 'tray' ? { width:[200,250,300].includes(Number(item.width))?Number(item.width):300 } : {}) })) : [];
-      collection = normalizeCollection(state?.collectionLevels);appliedCollection=JSON.parse(JSON.stringify(collection));
+      collection = normalizeCollection(state?.collectionLevels);appliedCollection=collection.enabled?JSON.parse(JSON.stringify(collection)):{enabled:false,groundGap:500,floors:[]};
       const result = previous.call(this, state, ...args);
       setTimeout(() => { render(); notify(); }, 0);
       return result;
