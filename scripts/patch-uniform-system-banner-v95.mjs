@@ -111,6 +111,9 @@ body.rafex-common-header-v95 #pageTitle{display:none!important}
   sync();setTimeout(sync,100);setTimeout(sync,500);
 })();</script>`;
 
+// The uniform banner removes the legacy capacity badge. Calculations must
+// continue to render their result cards when that optional badge is absent.
+html = html.replace(/\$\("fcap"\)\.textContent\s*=/g, 'if ($("fcap")) $("fcap").textContent =');
 const closing = html.lastIndexOf("</body>");
 if (closing < 0) throw new Error("Uniform system banner v95: </body> bulunamadi");
 html = html.slice(0, closing) + runtime + "\n" + html.slice(closing);
