@@ -32,6 +32,6 @@
    queue();
  },true);
  document.addEventListener('input',event=>{event.target.removeAttribute?.('aria-invalid');const card=event.target.closest?.('.b2b-accessory-card');card?.querySelector('.common-error')?.remove();},true);
- const page=document.getElementById('page');if(page)new MutationObserver(queue).observe(page,{childList:true,subtree:true});
+ const page=document.getElementById('page');if(page)new MutationObserver(records=>{if(records.some(record=>[...record.addedNodes].some(node=>node.nodeType===1&&(node.matches('input,select,button,label')||node.querySelector('input,select,button,label')))))queue();}).observe(page,{childList:true,subtree:true});
  queue();
 })();
