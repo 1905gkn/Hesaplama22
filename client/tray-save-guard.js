@@ -3,7 +3,7 @@
  function allowed(items,width,depth,kind){
    return (items||[]).filter(item=>item.type==='tray').every(item=>window.RafexRackTray.canSave({trayWidth:item.width,load:item.load},width,depth,kind));
  }
- function reject(){alert(message);return false;}
+ function reject(){if(!window.RafexCommonFeedback?.(message,document.getElementById('b2bAccessoryArea')||document.getElementById('mrTraySelection')))alert(message);return false;}
  if(typeof m2SaveRackType==='function'){
    const save=m2SaveRackType;
    m2SaveRackType=window.m2SaveRackType=function(){
