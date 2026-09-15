@@ -6,7 +6,7 @@
  window.RafexCommonFeedback=function(message,host){host=host||root();if(!host)return false;let box=host.querySelector(':scope > .common-error');if(!box){box=document.createElement('div');box.className='common-error';box.setAttribute('role','alert');host.prepend(box);}text(box,message);box.scrollIntoView({block:'nearest',behavior:'smooth'});return true;};
  function sync(){const p=root();if(!p)return;
    const mekikCard=p.querySelector('#m2Bays')?.closest('.card');if(mekikCard&&!mekikCard.classList.contains('rafex-common-mekik-input-card'))mekikCard.classList.add('rafex-common-mekik-input-card');
-   for(const id of ['m2SaveRackButton','mrSaveRackButton'])text(document.getElementById(id),'Raf Tipini Kaydet');
+   for(const id of ['m2SaveRackButton','mrSaveRackButton','rafexKonsolCommonSaveRack'])text(document.getElementById(id),'Raf Tipini Kaydet');
    p.querySelectorAll('button[onclick^="rafexCollectionSave"]').forEach(el=>text(el,'Katı Görsele Ekle'));
    label('b2bPalletWeight','Palet başına ağırlık (kg)');
    const weight=document.getElementById('b2bPalletWeight'),count=document.getElementById('b2bPalletCount');
