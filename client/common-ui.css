@@ -66,3 +66,7 @@
 #page#page[data-rafex-common-active="1"] .rafex-common-mekik-input-card .m2-segment button.active{background:#761b2a!important;border-color:#761b2a!important;color:white!important}
 #page#page[data-rafex-common-active="1"] .rafex-common-mekik-input-card .m2-project-name{display:none!important}
 @media(max-width:900px){#page#page[data-rafex-common-active="1"] .rafex-common-mekik-input-card{max-height:none!important}}
+/* Shared header spacing: MR's outer grid must not add 14px to each margin. */
+#page#page[data-rafex-common-active="1"]>.mr-page{row-gap:0!important}
+#page#page[data-rafex-common-active="1"] :is([data-rafex-system-banner="common"],#rafexUnifiedSystemPicker){margin:0 0 10px!important}
+#page#page[data-rafex-common-active="1"] .mr-page>.mr-workspace{margin-top:14px!important}
