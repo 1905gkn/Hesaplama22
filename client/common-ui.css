@@ -50,3 +50,19 @@
 
 #page#page[data-rafex-common-active="1"] .rafex-native-project-name-v87,
 #page#page[data-rafex-common-active="1"] [hidden]{display:none!important}
+/* Use the actual Mekik form, independently of the system-name alias. */
+#page#page[data-rafex-common-active="1"] .rafex-common-mekik-input-card{padding:0!important;border:1px solid #dcc5ca!important;background:white!important;overflow:auto!important;max-height:calc(100vh - 108px)!important}
+#page#page[data-rafex-common-active="1"] .rafex-common-mekik-input-card>.card-title{position:sticky!important;top:0!important;z-index:3!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;padding:16px 18px 12px!important;margin:0!important;border-bottom:1px solid #eadcdf!important;background:white!important}
+#page#page[data-rafex-common-active="1"] .rafex-common-mekik-input-card>.card-title h3{margin:0!important;color:#17231c!important;font:900 17px/1.2 Arial,sans-serif!important}
+#page#page[data-rafex-common-active="1"] .rafex-common-mekik-input-card>.card-title span{font:700 9px/1.2 Arial,sans-serif!important;color:#8a7c7f!important}
+#page#page[data-rafex-common-active="1"] .rafex-common-mekik-input-card>.m2-form{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px 9px!important;padding:14px 18px 18px!important}
+#page#page[data-rafex-common-active="1"] .rafex-common-mekik-input-card .input-field{min-width:0!important;margin:0!important;gap:6px!important;align-content:start!important;color:#5f3038!important;font:850 10px/1.25 Arial,sans-serif!important}
+#page#page[data-rafex-common-active="1"] .rafex-common-mekik-input-card .input-field>span:not(.m2-segment){font:inherit!important}
+#page#page[data-rafex-common-active="1"] .rafex-common-mekik-input-card :is(.m2-foot-choice,.m2-spec-choice,.m2-traverse-placeholder,.choice-field){grid-column:1/-1!important}
+#page#page[data-rafex-common-active="1"] .rafex-common-mekik-input-card .m2-foot-choice-row{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:8px!important}
+#page#page[data-rafex-common-active="1"] .rafex-common-mekik-input-card .m2-foot-manual-button{width:100%!important;min-width:0!important;min-height:40px!important;padding:8px 12px!important;border:0!important;border-radius:8px!important;background:#f0f0f0!important;color:#111!important;font:850 10px/1.3 Arial,sans-serif!important}
+#page#page[data-rafex-common-active="1"] .rafex-common-mekik-input-card .m2-segment{display:flex!important;gap:6px!important;padding:0!important;border:0!important;background:transparent!important}
+#page#page[data-rafex-common-active="1"] .rafex-common-mekik-input-card .m2-segment button{flex:1;min-width:0!important;padding:7px 5px!important;border:1px solid #d7c0c5!important;border-radius:8px!important;background:#f8f0f2!important;color:#6b2835!important}
+#page#page[data-rafex-common-active="1"] .rafex-common-mekik-input-card .m2-segment button.active{background:#761b2a!important;border-color:#761b2a!important;color:white!important}
+#page#page[data-rafex-common-active="1"] .rafex-common-mekik-input-card .m2-project-name{display:none!important}
+@media(max-width:900px){#page#page[data-rafex-common-active="1"] .rafex-common-mekik-input-card{max-height:none!important}}
