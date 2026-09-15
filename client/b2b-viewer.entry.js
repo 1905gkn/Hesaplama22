@@ -279,6 +279,14 @@ class B2BViewer {
       const changed = materials.map((source) => {
         const material = source.clone();
         const name = `${object.name || ""} ${material.name || ""}`.toLocaleUpperCase("tr-TR");
+        if (name.includes("KONNEKTÖR")) {
+          // CAD mating faces touch the upright. Bias only their rendered depth;
+          // keep the actual connector geometry and mounting position unchanged.
+          material.polygonOffset = true;
+          material.polygonOffsetFactor = -1;
+          material.polygonOffsetUnits = -1;
+          object.receiveShadow = false;
+        }
         if (name.includes("DİAGONEL") || name.includes("DIAGONEL") || name.includes("ÇAĞRAZ")) material.color.setHex(COLORS.galvanized);
         else if (name.includes("TRAVERS") || name.includes("KONNEKTÖR")) material.color.setHex(traverseColor);
         else if (name.includes("AYAK") || name.includes("HRTD")) material.color.setHex(footColor);

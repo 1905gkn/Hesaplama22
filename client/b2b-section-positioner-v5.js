@@ -257,8 +257,12 @@
         viewer?.setView?.("perspective");
         viewer?.setCameraAngles?.(settings.azimuth, settings.elevation);
         viewer?.controls?.update?.();
+        // Resolve thin connector edges at a fixed export resolution, independent
+        // of the monitor's pixel ratio, without lossy colour artefacts.
+        viewer?.renderer?.setPixelRatio?.(2);
+        viewer?.renderer?.setSize?.(width, height, false);
         viewer?.renderer?.render?.(viewer.scene, viewer.camera);
-        const src = canvas.toDataURL("image/webp", 0.9);
+        const src = canvas.toDataURL("image/png");
         previewCache.set(key, { signature, src });
         trimPreviewCache();
         return src;
