@@ -71,6 +71,7 @@ node scripts/verify-travers-calculator.mjs
 node scripts/verify-rack-travers-selection.mjs
 node scripts/verify-travers-injection.mjs
 node scripts/patch-travers-calculator.mjs
+node scripts/patch-shared-camera-panel.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
