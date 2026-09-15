@@ -56,3 +56,14 @@ vm.runInNewContext(fs.readFileSync('client/tray-save-guard.js','utf8'),guardCont
 guardContext.m2SaveRackType();assert.equal(saves,0);assert.equal(alerts,1);
 guardContext.b2bReadInputState=()=>({accessories:[{type:'tray',width:200,load:500}]});guardContext.m2SaveRackType();assert.equal(saves,1);
 console.log('PASS: missing recommendation blocks save even with manual thickness; valid recommendation permits save.');
+
+for(const kind of ['MR','HR'])for(const custom of [false,true]){
+ const item={trayWidth:200,load:500,traySelectionMode:'auto'};
+ const product=()=>context.window.RafexRackTray.fields(item,0,2700,1050,custom,kind).match(/<select[^>]*"trayThickness"[^>]*>[\s\S]*?<\/select>/)[0];
+ let control=product();assert.match(control,/ disabled/);assert.equal((control.match(/<option/g)||[]).length,1);assert.match(control,/Önerilen/);
+ item.traySelectionMode='manual';control=product();assert.ok(!control.includes('disabled'));assert.equal((control.match(/<option/g)||[]).length,7);
+ item.trayThickness=1.5;product();assert.equal(item.trayThickness,1.5);
+ item.traySelectionMode='auto';product();assert.equal(item.trayThickness,kind==='HR'?.6:.8);
+ item.load=100000;control=product();assert.match(control,/Tabloda öneri yok/);assert.equal((control.match(/<option/g)||[]).length,1);
+}
+console.log('PASS: automatic shows one locked recommendation; manual opens alternatives; automatic restores recommendation.');
