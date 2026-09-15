@@ -1,6 +1,6 @@
 (function(){
  if(typeof mrUpdateSummary!=='function')return;
- let selection={trayWidth:300,trayThickness:0,load:200,traySelectionMode:'auto'};
+ let selection={trayWidth:200,trayThickness:0,load:200,traySelectionMode:'auto'};
  function sync(){
    const anchor=document.getElementById('mrTraverseType');if(!anchor)return;
    if(mrTrayAccessoryV5)selection.trayWidth=mrTrayAccessoryV5.width;
@@ -17,7 +17,7 @@
  const state=mrAccessoryStateV5;mrAccessoryStateV5=function(){return state.apply(this,arguments).map(item=>({...item,thickness:selection.trayThickness,load:selection.load,traySelectionMode:selection.traySelectionMode}));};
  const restore=mrApplyDrawingToFormV4;mrApplyDrawingToFormV4=window.mrApplyDrawingToFormV4=function(drawing){
    const item=drawing?.b2b?.accessories?.find(x=>x.type==='tray');
-   selection={trayWidth:item?.width||300,trayThickness:item?.thickness||0,load:item?.load||200,traySelectionMode:item?.traySelectionMode||(item?.thickness?'manual':'auto')};
+   selection={trayWidth:item?.width||200,trayThickness:item?.thickness||0,load:item?.load||200,traySelectionMode:item?.traySelectionMode||(item?.thickness?'manual':'auto')};
    const result=restore.apply(this,arguments);sync();return result;
  };
 })();

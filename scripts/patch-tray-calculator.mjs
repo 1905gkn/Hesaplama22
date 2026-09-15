@@ -4,6 +4,7 @@ const file='dist/server/index.js';let source=fs.readFileSync(file,'utf8');
 const match=source.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1/);
 if(!match)throw Error('HTML_BASE64 missing');
 let html=Buffer.from(match[2],'base64').toString('utf8');
+html=html.replaceAll('mrTrayAccessoryV5={type:"tray",width:300,levels:', 'mrTrayAccessoryV5={type:"tray",width:200,levels:');
 const js=['client/tray-calculator.js','client/rack-tray-selection.js','client/mr-tray-selection.js','client/tray-save-guard.js'].map(file=>fs.readFileSync(file,'utf8').replace('__TRAY_DATA__',fs.readFileSync('client/tray-capacities.json','utf8')).replace('__TRAY_CALCULATE__',calculateTray.toString())).join('\n');
 const end=html.lastIndexOf('</body>');
 html=html.slice(0,end)+'<style>'+fs.readFileSync('client/tray-calculator.css','utf8')+'</style><script>'+js+'</script>'+html.slice(end);

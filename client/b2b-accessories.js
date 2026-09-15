@@ -7,7 +7,7 @@
   };
   let accessories = [];
   const ZS_HEIGHTS = { 'ZS35|1.5':55, 'ZS35|2':55, 'ZS55|1.5':75, 'ZS55|2':75, 'ZS55|2.5':75, 'ZS65|1.5':85, 'ZS65|2':85, 'ZS65|2.5':85 };
-  const freshCollectionFloor = () => ({ trayWidth:300, trayThickness:.8, traySelectionMode:'auto', traverse:'ZS55|1.5', load:200, selectionMode:'auto', height:500 });
+  const freshCollectionFloor = () => ({ trayWidth:200, trayThickness:.8, traySelectionMode:'auto', traverse:'ZS55|1.5', load:200, selectionMode:'auto', height:500 });
   let collection = { enabled:false, groundGap:500, floors:[freshCollectionFloor()] };
   let appliedCollection={enabled:false,groundGap:500,floors:[]};
   const normalizeCollection = (raw = {}) => ({ enabled:raw.enabled===true, groundGap:Math.max(0,Math.min(5000,Number(raw.groundGap)||500)), floors:(Array.isArray(raw.floors)&&raw.floors.length?raw.floors:[freshCollectionFloor()]).slice(0,12).map((f)=>({trayWidth:[200,250,300].includes(Number(f?.trayWidth))?Number(f.trayWidth):300,trayThickness:[.6,.8,1,1.2,1.5,2].includes(Number(f?.trayThickness))?Number(f.trayThickness):.8,traySelectionMode:f?.traySelectionMode||'manual',load:Number(f?.load)||0,selectionMode:f?.selectionMode||'manual',traverse:(ZS_HEIGHTS[f?.traverse]||/^Kutu/.test(f?.traverse||''))?f.traverse:'',height:Math.max(100,Math.min(5000,Number(f?.height)||500))})) });
@@ -147,7 +147,7 @@
   window.rafexAccessoryAdd = (type) => {
     if (!TYPES[type]) return;
     const existing = accessories.findIndex((item) => item.type === type);
-    if (existing < 0) accessories.push({ type, levels: [], ...(type === 'tray' ? { width:300,load:0,thickness:0,traySelectionMode:'auto' } : {}) });
+    if (existing < 0) accessories.push({ type, levels: [], ...(type === 'tray' ? { width:200,load:0,thickness:0,traySelectionMode:'auto' } : {}) });
     document.getElementById('b2bAccessoryArea')?.classList.add('open');
     render();
     notify();

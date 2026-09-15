@@ -12,7 +12,7 @@ export const runtime=String.raw`
  let draft={enabled:false,groundGap:500,floors:[]},rackId=null;
 ${tunnelRuntime}
  const clone=value=>JSON.parse(JSON.stringify(value));
- const fresh=()=>({traverse:'ZS55|1.5',trayWidth:300,trayThickness:.8,traySelectionMode:'auto',height:500,load:200,selectionMode:'auto'});
+ const fresh=()=>({traverse:'ZS55|1.5',trayWidth:200,trayThickness:.8,traySelectionMode:'auto',height:500,load:200,selectionMode:'auto'});
  const zs={'ZS35|1.5':55,'ZS35|2':55,'ZS55|1.5':75,'ZS55|2':75,'ZS65|1.5':85,'ZS65|2':85};
  function plan(state){let cursor=Math.max(0,Number(state?.groundGap)||0);const floors=state?.enabled?(state.floors||[]).map((floor,index)=>{const bottom=cursor,zsHeight=window.RafexRackTravers?.height(floor.traverse)||zs[floor.traverse]||75;cursor+=zsHeight+Math.max(100,Number(floor.height)||500);return {...floor,index,bottom,zsHeight,top:cursor}}):[];return {floors,totalHeight:floors.length?cursor:0}}
  function enrich(options,state){const p=plan(state);options.collectionLevels=clone(state||{enabled:false,floors:[]});options.collectionFloors=options.tunnelHeight>0?[]:p.floors;if(p.floors.length){options.firstPalletPosition='traverse';options.firstFloorGap=p.totalHeight;}return options}
