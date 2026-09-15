@@ -32,3 +32,16 @@ floor.traySelectionMode='auto';context.window.RafexRackTray.update(floor,2700,10
 floor.load=100000;context.window.RafexRackTray.update(floor,2700,1050);assert.equal(floor.trayThickness,0);
 new vm.Script(fs.readFileSync('client/mr-tray-selection.js','utf8'));
 console.log('PASS: 360 source capacities, MR/HR example, exact threshold, rounded depth, invalid inputs and overload.');
+
+const accessory={trayWidth:200,load:500,traySelectionMode:'auto'};
+const hrHtml=context.window.RafexRackTray.fields(accessory,0,2700,1050,false,'HR');
+assert.equal(accessory.trayThickness,.6);
+assert.ok(hrHtml.includes('HR tava seçimi'));
+accessory.traySelectionMode='manual';accessory.trayThickness=1.2;
+context.window.RafexRackTray.update(accessory,2700,1050,'HR');
+assert.equal(accessory.trayThickness,1.2);
+const mrFloor={trayWidth:200,load:500,traySelectionMode:'auto'};
+assert.ok(context.window.RafexRackTray.fields(mrFloor,0,2700,1050,false).includes('MR tava seçimi'));
+assert.equal(mrFloor.trayThickness,.8);
+assert.ok(fs.readFileSync('client/b2b-accessories.js','utf8').includes("fields(f,index,clear,window.RafexRackTray.depth(),false,'HR')"));
+console.log('Accessory HR and collection MR selection verified.');

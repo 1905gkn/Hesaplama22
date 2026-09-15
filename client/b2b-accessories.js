@@ -109,7 +109,7 @@
         const width = [200,250,300].includes(Number(item.width)) ? Number(item.width) : 300;
         const plan = trayPlan(clear, width);
         const f={trayWidth:width,trayThickness:Number(item.thickness)||0,load:Number(item.load)||0,traySelectionMode:item.traySelectionMode||'auto'};
-        const fields=window.RafexRackTray?.fields(f,index,clear,window.RafexRackTray.depth(),false)||'';
+        const fields=window.RafexRackTray?.fields(f,index,clear,window.RafexRackTray.depth(),false,'HR')||'';
         item.thickness=f.trayThickness;
         trayControls = `<label class="b2b-collection-row" style="margin-top:10px"><span>Seçilen her katın yükü (kg)</span><input type="number" min="1" required value="${item.load||''}" placeholder="Kat yükünü girin" oninput="event.stopPropagation();rafexAccessorySetTraySelection(${index},'load',this.value,true)" onchange="rafexAccessorySetTraySelection(${index},'load',this.value)"></label>`+fields.replace(/data-collection-index="(\d+)" data-collection-field="(\w+)"/g,(_,i,key)=>`oninput="event.stopPropagation()" onchange="rafexAccessorySetTraySelection(${i},'${key}',this.value)"`);
 
