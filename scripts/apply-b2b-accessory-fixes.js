@@ -197,7 +197,11 @@ const uiWidthFixes = [
   ["    item.width = [200,250,300].includes(Number(width)) ? Number(width) : 300; render(); notify();", "    item.width = [200,250].includes(Number(width)) ? Number(width) : 250; render(); notify();"],
   ["...(item.type === 'tray' ? { width:[200,250,300].includes(Number(item.width))?Number(item.width):300 } : {})", "...(item.type === 'tray' ? { width:[200,250].includes(Number(item.width))?Number(item.width):250 } : {})"],
 ];
-for (const [from, to] of uiWidthFixes) ui = replaceRequired(ui, from, to, `Tava arayüz ölçüsü: ${from}`);
+// The load-based selector already supports 200/250/300 and persists its
+// additional fields. Do not temporarily rewrite it into the old width buttons.
+if (!ui.includes('window.rafexAccessorySetTraySelection=')) {
+  for (const [from, to] of uiWidthFixes) ui = replaceRequired(ui, from, to, `Tava arayüz ölçüsü: ${from}`);
+}
 
 ui = replaceRequired(
   ui,
