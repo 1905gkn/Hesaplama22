@@ -25,7 +25,7 @@ build = replaceRequired(
 build = replaceRequired(
   build,
   '            this.seatAccessoryOnTraverses(tray, traySpan, 0.14);\n            section.add(tray);',
-  '            this.seatAccessoryOnTraverses(tray, traySpan, 0.14);\n            tray.position.z += 50;\n            section.add(tray);',
+  '            if (traySpan) {\n              tray.updateMatrixWorld(true);\n              const trayBounds = new THREE.Box3().setFromObject(tray);\n              tray.position.z += traySpan.seatZ + 17 - trayBounds.max.z;\n            }\n            section.add(tray);',
   'tray offset',
 );
 
@@ -41,4 +41,6 @@ ui = replaceRequired(
 );
 fs.writeFileSync(uiPath, ui);
 
-console.log('H traverse and tray lowered by 50 mm without changing orientation.');
+build = build.replace('            if (traySpan) tray.position.y += 11;\n', '');
+fs.writeFileSync(buildPath, build);
+console.log('H traverse offset retained; tray centered and seated on the beam using its 17 mm folded edge.');
