@@ -42,6 +42,7 @@ node scripts/patch-layout-performance-v135.mjs
 node scripts/verify-layout-runtime-v135.mjs
 node scripts/verify-independent-project-v133.mjs
 node scripts/verify-delete-saved-types.mjs
+node scripts/verify-api-proxy.mjs
 node scripts/patch-rack-detail-snapshot-v135.mjs
 node scripts/verify-rack-detail-snapshot-v135.mjs
 node scripts/patch-plan-annotations-v136.mjs

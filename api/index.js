@@ -35,6 +35,14 @@ async function proxyApi(request) {
   const incoming = new URL(request.url);
   const target = new URL(incoming.pathname + incoming.search, LEGACY_API_ORIGIN);
   const headers = new Headers(request.headers);
+  // The incoming connection's framing cannot be forwarded to Node fetch.
+  // In particular, Vercel supplies transfer-encoding for streamed PATCH bodies.
+  const connectionHeaders = (headers.get("connection") || "").split(",");
+  for (const name of [...connectionHeaders, "connection", "keep-alive",
+    "proxy-authenticate", "proxy-authorization", "te", "trailer",
+    "transfer-encoding", "upgrade", "content-length", "expect"]) {
+    if (name.trim()) headers.delete(name.trim());
+  }
   headers.set("host", target.host);
   headers.set("accept-encoding", "identity");
 
