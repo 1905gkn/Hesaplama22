@@ -33,7 +33,7 @@
 #page#page[data-rafex-common-active="1"] :is(.b2b-input-body,.rafex-common-mekik-input-card .m2-form){padding:14px 18px 18px!important;gap:12px!important}
 #page#page[data-rafex-common-active="1"] :is(.b2b-field-row,.mr-form,.mr-form-row,.konsol-grid,.m2-form-row){gap:9px!important;align-items:start!important}
 #page#page[data-rafex-common-active="1"] :is(.mr-form,.konsol-grid){grid-template-columns:repeat(2,minmax(0,1fr))!important}
-#page#page[data-rafex-common-active="1"] :is(.b2b-input-body,.mr-form,.konsol-panel,.rafex-common-mekik-input-card) label:not(:has(input[type=checkbox])):not(:has(input[type=radio])){display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:6px!important;min-width:0!important;margin-top:0!important;margin-bottom:0!important;color:#5f3038!important;font:850 10px/1.25 Arial,sans-serif!important}
+#page#page[data-rafex-common-active="1"] :is(.b2b-input-body,.mr-form,.konsol-panel,.rafex-common-mekik-input-card) label:not(:has(input[type=checkbox])):not(:has(input[type=radio])){flex-direction:column!important;align-items:stretch!important;gap:6px!important;min-width:0!important;margin-top:0!important;margin-bottom:0!important;color:#5f3038!important;font:850 10px/1.25 Arial,sans-serif!important}
 #page#page[data-rafex-common-active="1"] :is(.b2b-input-body,.mr-form,.konsol-panel,.rafex-common-mekik-input-card) :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=range]):not([type=color]),select){width:100%!important;min-height:40px!important;padding:9px 10px!important;border-radius:9px!important;color:#351218!important;font:800 12px/1.2 Arial,sans-serif!important;text-align:left!important}
 #page#page[data-rafex-common-active="1"] :is(.b2b-input-head,.rafex-common-measure-head,.mr-panel-head) :is(h3,b){margin:0!important;color:#17231c!important;font:900 17px/1.2 Arial,sans-serif!important}
 #page#page[data-rafex-common-active="1"] :is(.b2b-input-body,.mr-panel,.konsol-panel,.rafex-common-mekik-input-card) button{font-family:Arial,sans-serif!important;font-size:10px!important;font-weight:850!important;min-height:40px!important}
@@ -47,3 +47,6 @@
 @media(max-width:520px){#page#page[data-rafex-common-active="1"] :is(.mr-form,.konsol-grid,.b2b-field-row,.m2-form-row){grid-template-columns:minmax(0,1fr)!important}}
 #page#page[data-rafex-common-active="1"] :is(.b2b-input-body,.mr-form,.konsol-panel,.rafex-common-mekik-input-card) label>span{font:inherit!important}
 #page#page[data-rafex-common-active="1"] :is(.b2b-input-body,.mr-form,.konsol-grid,.m2-form-row)>button{align-self:end!important;height:40px!important}
+
+#page#page[data-rafex-common-active="1"] .rafex-native-project-name-v87,
+#page#page[data-rafex-common-active="1"] [hidden]{display:none!important}
