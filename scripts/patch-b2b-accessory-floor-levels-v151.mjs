@@ -56,11 +56,11 @@ export function transform(html){
     "const all=levelValuesV151(item.type),selected=(item.levels||[]).filter(level=>all.includes(level));item.levels=selected.length===all.length?[]:all;render();notify();"
   );
 
-  // One pallet stop is installed at K1 on the floor. Upper selections and H traverses keep
+  // One pallet stop is installed at K1 with its lower edge 200 mm above the floor. Upper selections and H traverses keep
   // using their actual supporting beam index; their visible name follows the pallet level.
   replace(
     "[0, 250].forEach((baseHeight, groundIndex) => {\n              const stop = this.accessoryModel(this.models.palletStop, { x:clearWidth, y:163 * depthScale, z:90 }, false);\n              stop.name = groundIndex === 0 ? 'Palet Dayama ZEMIN' : 'Palet Dayama ZEMIN +250';\n              stop.position.set(clearLeft - 4 * sectionScale, 42 * depthScale, -(baseHeight + 45));\n              section.add(stop);\n            });",
-    "const stop = this.accessoryModel(this.models.palletStop, { x:clearWidth, y:163 * depthScale, z:90 }, false);\n            stop.name = 'Palet Dayama K1';\n            stop.position.set(clearLeft - 4 * sectionScale, 42 * depthScale, -45);\n            section.add(stop);"
+    "const stop = this.accessoryModel(this.models.palletStop, { x:clearWidth, y:163 * depthScale, z:90 }, false);\n            stop.name = 'Palet Dayama K1';\n            stop.position.set(clearLeft - 4 * sectionScale, 42 * depthScale, -(200 + 45));\n            section.add(stop);"
   );
   replace(
     "stop.name = `Palet Dayama K${humanLevel}`;",
@@ -80,11 +80,11 @@ export function transform(html){
   );
   replace(
     "if(tunnel<=0){valid.push({human:0,height:0});valid.push({human:0,height:250});}",
-    "if(tunnel<=0){valid.push({human:0,height:0});}"
+    "if(tunnel<=0){valid.push({human:0,height:200});}"
   );
   replace(
     "else {if(0>=tunnel)valid.push({human:0,height:0});if(250>=tunnel)valid.push({human:0,height:250});}",
-    "else {if(0>=tunnel)valid.push({human:0,height:0});}"
+    "else {if(200>=tunnel)valid.push({human:0,height:200});}"
   );
   replace(
     "if(human<1||human>Math.max(1,Number(b.levels)||Number(d?.levels)||1))return;",
