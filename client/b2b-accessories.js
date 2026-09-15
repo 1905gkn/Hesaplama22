@@ -16,7 +16,7 @@
   const cloneState = () => accessories.map((item) => ({
     type: item.type,
     levels: [...new Set((item.levels || []).map(Number).filter(Number.isFinite))].sort((a,b) => a-b),
-    ...(item.type === 'tray' ? { width: [200,250,300].includes(Number(item.width)) ? Number(item.width) : 300 } : {}),
+    ...(item.type === 'tray' ? { width: [200,250,300].includes(Number(item.width)) ? Number(item.width) : 300,load:Number(item.load)||0,thickness:Number(item.thickness)||0,traySelectionMode:item.traySelectionMode||'auto' } : {}),
   }));
   const levelCount = () => Math.max(1, Math.min(15, Math.round(Number(document.getElementById('b2bLevels')?.value) || 1)));
   const sectionWidth = () => {
@@ -108,7 +108,11 @@
       if (item.type === 'tray') {
         const width = [200,250,300].includes(Number(item.width)) ? Number(item.width) : 300;
         const plan = trayPlan(clear, width);
-        trayControls = `<div class="b2b-accessory-tray-width"><span>Tava eni</span>${[200,250,300].map((w) => `<button type="button" class="${width === w ? 'active' : ''}" onclick="rafexAccessorySetTrayWidth(${index},${w})">${w} mm</button>`).join('')}</div>`;
+        const f={trayWidth:width,trayThickness:Number(item.thickness)||0,load:Number(item.load)||0,traySelectionMode:item.traySelectionMode||'auto'};
+        const fields=window.RafexRackTray?.fields(f,index,clear,window.RafexRackTray.depth(),false)||'';
+        item.thickness=f.trayThickness;
+        trayControls = `<label class="b2b-collection-row" style="margin-top:10px"><span>Seçilen her katın yükü (kg)</span><input type="number" min="1" required value="${item.load||''}" placeholder="Kat yükünü girin" oninput="event.stopPropagation();rafexAccessorySetTraySelection(${index},'load',this.value,true)" onchange="rafexAccessorySetTraySelection(${index},'load',this.value)"></label>`+fields.replace(/data-collection-index="(\d+)" data-collection-field="(\w+)"/g,(_,i,key)=>`oninput="event.stopPropagation()" onchange="rafexAccessorySetTraySelection(${i},'${key}',this.value)"`);
+
         const pieceText = plan.pieces.map((p) => `${p.count} × ${p.width} mm`).join(' + ') || 'Tava yok';
         note = `<div class="b2b-accessory-note">${clear.toLocaleString('tr-TR')} mm travers için: <b>${pieceText}</b>${plan.ignoredRemainder ? ` · kalan ${plan.ignoredRemainder} mm (&lt;50 mm) için tava eklenmez` : ''}.</div>`;
       }
@@ -143,7 +147,7 @@
   window.rafexAccessoryAdd = (type) => {
     if (!TYPES[type]) return;
     const existing = accessories.findIndex((item) => item.type === type);
-    if (existing < 0) accessories.push({ type, levels: [], ...(type === 'tray' ? { width: 300 } : {}) });
+    if (existing < 0) accessories.push({ type, levels: [], ...(type === 'tray' ? { width:300,load:0,thickness:0,traySelectionMode:'auto' } : {}) });
     document.getElementById('b2bAccessoryArea')?.classList.add('open');
     render();
     notify();
@@ -151,15 +155,25 @@
   window.rafexAccessoryRemove = (index) => { accessories.splice(index, 1); render(); notify(); };
   window.rafexAccessoryToggleLevel = (index, level) => {
     const item = accessories[index]; if (!item) return;
+    if(item.type==='tray'&&!item.levels.includes(level)&&(!(item.load>0)||!(item.thickness>0))){render();return;}
     const set = new Set(item.levels || []); set.has(level) ? set.delete(level) : set.add(level); item.levels = [...set].sort((a,b) => a-b); render(); notify();
   };
   window.rafexAccessoryAllLevels = (index) => {
     const item = accessories[index]; if (!item) return;
+    if(item.type==='tray'&&item.levels.length!==levelCount()&&(!(item.load>0)||!(item.thickness>0))){render();return;}
     const count = levelCount(); item.levels = (item.levels || []).length === count ? [] : Array.from({length:count},(_,i)=>i+1); render(); notify();
   };
   window.rafexAccessorySetTrayWidth = (index, width) => {
     const item = accessories[index]; if (!item || item.type !== 'tray') return;
     item.width = [200,250,300].includes(Number(width)) ? Number(width) : 300; render(); notify();
+  };
+  window.rafexAccessorySetTraySelection=(index,key,value,deferRender=false)=>{
+    const item=accessories[index];if(item?.type!=='tray')return;
+    if(key==='trayWidth')item.width=Number(value);
+    else if(key==='trayThickness'){item.thickness=Number(value);item.traySelectionMode='manual';}
+    else if(key==='traySelectionMode')item.traySelectionMode=value==='manual'?'manual':'auto';
+    else if(key==='load')item.load=Number(value)||0;
+    if(!deferRender){render();notify();}
   };
   window.rafexAccessoryState = () => cloneState();
   window.rafexCollectionAdd=()=>{collection=normalizeCollection({...collection,enabled:true});document.getElementById('b2bAccessoryArea')?.classList.add('open');render();};
@@ -215,7 +229,7 @@
       return state ? { ...state, accessories: cloneState(), collectionLevels:normalizeCollection(appliedCollection), ...(appliedCollection.enabled?{firstPalletPosition:'traverse',firstFloorGap:collectionPlan().totalHeight}:{}) } : state;
     });
     hook('b2bApplySavedInputState', (previous) => function (state, ...args) {
-      accessories = Array.isArray(state?.accessories) ? state.accessories.filter((item) => TYPES[item?.type]).map((item) => ({ type:item.type, levels:Array.isArray(item.levels)?item.levels.map(Number).filter(Number.isFinite):[], ...(item.type === 'tray' ? { width:[200,250,300].includes(Number(item.width))?Number(item.width):300 } : {}) })) : [];
+      accessories = Array.isArray(state?.accessories) ? state.accessories.filter((item) => TYPES[item?.type]).map((item) => ({ type:item.type, levels:Array.isArray(item.levels)?item.levels.map(Number).filter(Number.isFinite):[], ...(item.type === 'tray' ? { width:[200,250,300].includes(Number(item.width))?Number(item.width):300,load:Number(item.load)||0,thickness:Number(item.thickness)||0,traySelectionMode:item.traySelectionMode||(item.thickness?'manual':'auto') } : {}) })) : [];
       collection = normalizeCollection(state?.collectionLevels);appliedCollection=collection.enabled?JSON.parse(JSON.stringify(collection)):{enabled:false,groundGap:500,floors:[]};
       const result = previous.call(this, state, ...args);
       setTimeout(() => { render(); notify(); }, 0);

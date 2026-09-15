@@ -9,3 +9,10 @@ w.rafexCollectionSet(0,'load','650');w.rafexCollectionSave(0);assert.equal(t.app
 w.rafexCollectionSet(0,'height','');assert.equal(t.applied().floors[0].height,500);w.rafexCollectionSave(0);assert.equal(t.draft().floors[0].height,500);const card=t.card(t.applied().floors[0],0);assert.match(card,/Toplama Katı 1/);assert.ok(!/<input|<select/.test(card));assert.equal(t.applied().floors[0].height,500);
 w.rafexCollectionAddFloor();assert.equal(t.plan().floors.length,1);w.rafexCollectionRemove();assert.equal(t.plan().floors.length,0);
 console.log('Collection draft/save, required fields and committed geometry verified');
+w.rafexAccessoryAdd('tray');w.rafexAccessoryToggleLevel(0,1);assert.equal(w.rafexAccessoryState()[0].levels.length,0);
+w.rafexAccessorySetTraySelection(0,'load','500',true);
+w.rafexAccessorySetTraySelection(0,'trayWidth','200');
+w.rafexAccessorySetTraySelection(0,'trayThickness','1.2');w.rafexAccessoryToggleLevel(0,1);
+const tray=w.rafexAccessoryState()[0];assert.equal(tray.load,500);assert.equal(tray.width,200);assert.equal(tray.thickness,1.2);assert.equal(tray.traySelectionMode,'manual');assert.equal(tray.levels[0],1);
+w.rafexAccessorySetTraySelection(0,'traySelectionMode','auto');assert.equal(w.rafexAccessoryState()[0].traySelectionMode,'auto');
+console.log('Tray accessory requires load and selection; width, thickness, mode and levels persist.');
