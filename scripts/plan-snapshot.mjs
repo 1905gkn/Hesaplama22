@@ -35,3 +35,18 @@ export function freezePlanPaint(source, copy) {
   copy.setAttribute('data-rafex-live-snapshot','v1');
   return copy;
 }
+
+// Use the editor's complete coordinate frame, not a bounding box around the
+// objects. Fitting objects independently removes the empty space at corners.
+export function preservePlanFrame(source, copy) {
+  copy.setAttribute('viewBox',source.getAttribute('viewBox'));
+  copy.setAttribute('preserveAspectRatio','xMidYMid meet');
+  copy.setAttribute('data-rafex-pdf-margin','v141');
+  copy.setAttribute('data-rafex-editor-frame','v1');
+  copy.style.removeProperty('aspect-ratio');
+  for(const prop of ['width','height','max-width','max-height'])copy.style.setProperty(prop,'100%','important');
+  copy.style.setProperty('margin','0','important');
+  copy.style.setProperty('overflow','hidden','important');
+  [...copy.children].filter(node=>node.tagName.toLowerCase()==='rect'&&node.getAttribute('fill')==='url(#m2FloorGrid)').forEach(node=>node.remove());
+  return copy;
+}

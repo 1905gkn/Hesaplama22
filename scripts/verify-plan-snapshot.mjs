@@ -4,7 +4,23 @@ import assert from 'node:assert/strict';
 import {transform as margin} from './patch-pdf-layout-margin-v140.mjs';
 import {transform as fit} from './patch-pdf-tight-fit-v141.mjs';
 import {transform} from './patch-plan-snapshot.mjs';
-import {freezePlanPaint} from './plan-snapshot.mjs';
+import {freezePlanPaint,preservePlanFrame} from './plan-snapshot.mjs';
+
+// Corner offsets must remain relative to the editor frame, including a panned
+// origin and empty space outside the occupied rack bounds.
+for(const frame of ['0 0 1280 900','-36 -36 1072 1072','120 80 640 450']){
+  const source={getAttribute:()=>frame},attrs={},styles={};
+  const copy={children:[],setAttribute:(k,v)=>attrs[k]=v,style:{setProperty:(k,v)=>styles[k]=v,removeProperty:k=>delete styles[k]}};
+  preservePlanFrame(source,copy);
+  assert.equal(attrs.viewBox,frame);
+  assert.equal(attrs.preserveAspectRatio,'xMidYMid meet');
+  assert.equal(styles.overflow,'hidden');
+  const [x,y,w,h]=frame.split(' ').map(Number),rack={x:x+w*.23,y:y+h*.17};
+  for(const scale of [.5,1,2]){
+    assert(Math.abs(((rack.x-x)*scale)/(w*scale)-.23)<1e-10);
+    assert(Math.abs(((rack.y-y)*scale)/(h*scale)-.17)<1e-10);
+  }
+}
 
 const runtime=name=>fs.readFileSync('scripts/'+name,'utf8').replaceAll('\r\n','\n').match(/const runtime = String.raw`([\s\S]*?)`;/)[1];
 const upright=runtime('patch-pdf-upright-visibility-v129.mjs');
