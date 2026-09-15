@@ -104,8 +104,11 @@ const runtime = String.raw`<style data-rafex-unified-free-system-controls="v1">
       '<span class="rafex-free-shortcut-chip"><kbd>DEL</kbd>/<kbd>⌫</kbd> Sil</span>'+
       '<span class="rafex-free-shortcut-chip"><kbd>ENTER</kbd> Ölçüyü uygula</span>'+
       '<span class="rafex-free-shortcut-chip"><kbd>0–9</kbd> Ölçü girişi</span>'+
+      '<span class="rafex-free-shortcut-chip"><kbd>Ctrl+S</kbd> Seç</span>'+
+      '<span class="rafex-free-shortcut-chip"><kbd>Ctrl+D</kbd> 90° Döndür</span>'+
+      '<span class="rafex-free-shortcut-chip"><kbd>Ctrl+Z</kbd> Geri al</span>'+
       '<span class="rafex-free-shortcut-chip" data-b2b-shortcut><kbd>O</kbd> B2B Özelleştir</span>'+
-      '<span class="rafex-free-shortcut-chip" data-b2b-shortcut><kbd>C</kbd> B2B Çoğalt</span>'+
+      '<span class="rafex-free-shortcut-chip" data-b2b-shortcut><kbd>Ctrl+V</kbd> Çoğalt</span>'+
       '<span class="rafex-free-shortcut-chip" data-b2b-shortcut><kbd>ÇİFT TIK</kbd> B2B Uzat</span>';
     if(note)note.insertAdjacentElement('afterend',host);else if(floor)floor.insertAdjacentElement('beforebegin',host);else page.appendChild(host);
   }
