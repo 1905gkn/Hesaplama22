@@ -8,6 +8,7 @@ if (!match) throw new Error("v100: HTML_BASE64 bulunamadı");
 
 let html = Buffer.from(match[2], "base64").toString("utf8");
 html = html.replace(/<script\s+data-rafex-sidebar-order="v100">[\s\S]*?<\/script>/g, "");
+html = html.replace(/<style\s+data-rafex-module-visibility>[\s\S]*?<\/style>/g, "");
 
 const runtime = `<script data-rafex-sidebar-order="v100">
 (function(){
@@ -42,7 +43,13 @@ const runtime = `<script data-rafex-sidebar-order="v100">
 
 const closing = html.lastIndexOf("</body>");
 if (closing < 0) throw new Error("v100: </body> bulunamadı");
-html = html.slice(0, closing) + runtime + "\n" + html.slice(closing);
+// Author display:grid/flex rules override the browser's default [hidden]
+// styling. Keep permission-hidden navigation absent at every screen size.
+const visibility = `<style data-rafex-module-visibility>
+html body #nav button[data-page][hidden],
+html body #mobileTabs button[data-mobile-page][hidden]{display:none!important}
+</style>`;
+html = html.slice(0, closing) + visibility + runtime + "\n" + html.slice(closing);
 
 for (const required of ['data-rafex-sidebar-order="v100"', "const order=['home','free','b2b','ayak','travers','mr','drive','mekik2','konsol','admin']", "nav.insertBefore(free,b2b)"]) {
   if (!html.includes(required)) throw new Error(`v100 doğrulaması eksik: ${required}`);
