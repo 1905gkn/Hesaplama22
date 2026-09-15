@@ -1,11 +1,13 @@
 import fs from 'node:fs';
 if(process.argv.includes('--source')){
   const file='client/mr-viewer.entry.js';let source=fs.readFileSync(file,'utf8');
+  source=source.replace('type: "tray",\n        width:', 'type: "tray", thickness:Number(item.thickness)||0,load:Number(item.load)||0,traySelectionMode:item.traySelectionMode||"manual",\n        width:');
   if(!source.includes('*14*this.config.dimensionScale')){
     if(!source.includes('*28*this.config.dimensionScale'))throw Error('MR dimension size anchor missing');
     source=source.replaceAll('*28*this.config.dimensionScale','*14*this.config.dimensionScale');
     fs.writeFileSync(file,source);
   }
+  fs.writeFileSync(file,source);
 }else{
   const file='dist/server/index.js';let source=fs.readFileSync(file,'utf8');
   const match=source.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1/);

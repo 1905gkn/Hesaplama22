@@ -22,4 +22,13 @@ assert.equal(calculateTray(data,'MR',200,1050,35*13,2700).recommended.thickness,
 assert.equal(calculateTray(data,'MR',200,1050,35*13+.01,2700).recommended.thickness,.8);
 const js=fs.readFileSync('client/tray-calculator.js','utf8').replace('__TRAY_DATA__',JSON.stringify(data)).replace('__TRAY_CALCULATE__',calculateTray.toString());
 new vm.Script(js);
+const context={window:{}};vm.createContext(context);
+vm.runInContext(fs.readFileSync('client/rack-tray-selection.js','utf8').replace('__TRAY_DATA__',JSON.stringify(data)).replace('__TRAY_CALCULATE__',calculateTray.toString()),context);
+const floor={trayWidth:200,load:500,traySelectionMode:'auto'};
+context.window.RafexRackTray.update(floor,2700,1050);assert.equal(floor.trayThickness,.8);
+floor.trayThickness=1.2;floor.traySelectionMode='manual';floor.load=700;
+context.window.RafexRackTray.update(floor,2700,1050);assert.equal(floor.trayThickness,1.2);
+floor.traySelectionMode='auto';context.window.RafexRackTray.update(floor,2700,1050);assert.equal(floor.trayThickness,.8);
+floor.load=100000;context.window.RafexRackTray.update(floor,2700,1050);assert.equal(floor.trayThickness,0);
+new vm.Script(fs.readFileSync('client/mr-tray-selection.js','utf8'));
 console.log('PASS: 360 source capacities, MR/HR example, exact threshold, rounded depth, invalid inputs and overload.');
