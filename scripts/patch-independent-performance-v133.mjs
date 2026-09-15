@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import {independentProject} from './independent-project-v133.mjs';
+import {deleteSavedTypes} from './delete-saved-types.mjs';
 
 export function transform(html) {
   if (html.includes('data-rafex-independent-performance="v133"')) return html;
@@ -67,6 +68,32 @@ export function transform(html) {
   replace('var rect=frame&&frame.getBoundingClientRect(),shortPx=rect?Math.min(rect.width,rect.height):0,', 'var shortPx=frame?Math.min(Number(frame.getAttribute("width"))||0,Number(frame.getAttribute("height"))||0)*(Number(screenScaleV133)||1):0,');
   replace('function decorateRacks(){var node=svg();if(!node)return;node.querySelectorAll("[data-rack]").forEach(decorateRack)}', 'function decorateRacks(){var node=svg();if(!node)return;var matrix=node.getScreenCTM(),scale=matrix?Math.hypot(matrix.a,matrix.b):1;node.querySelectorAll("[data-rack]").forEach(function(group){decorateRack(group,scale)})}');
   replace('    var panel=ensureDetail(),rack=selectedRack(),node=svg();if(!panel||!node)return;', '    return; // Retired detail panel is permanently hidden by v115.');
+  // The final common-catalog owner must delete persisted records even while
+  // an independent project is open. Previously this branch only emptied RAM.
+  replace('  async function loadCatalog(force){', '  async function loadCatalog(force){\n    if(deletingSavedTypes)return catalog;');
+  const deleteStart=html.indexOf('  async function deleteAllCommon(){');
+  const deleteEnd=html.indexOf('  var previousDeleteAll=',deleteStart);
+  if(deleteStart<0||deleteEnd<0)throw Error('Common catalog delete handler missing');
+  html=html.slice(0,deleteStart)+`  let deletingSavedTypes=false;
+  async function deleteAllCommon(){
+    if(!isFree()&&typeof previousDeleteAll==='function')return previousDeleteAll.apply(this,arguments);
+    if(deletingSavedTypes)return;
+    if(!confirm('Tüm sistemlerdeki kayıtlı raf tipleri kalıcı olarak silinsin mi? Yerleşimdeki raflar korunur.'))return;
+    deletingSavedTypes=true;
+    const owner=window.rafexProjectIdentityV133?.uuid;
+    try{
+      if(catalogLoading)await catalogLoading;
+      await (${deleteSavedTypes.toString()})(req);
+      catalog=[];catalogReady=true;catalogLoadedAt=Date.now();
+      if(owner===window.rafexProjectIdentityV133?.uuid){
+        if(window.rafexProjectTypesV133)window.rafexProjectTypesV133=[];
+        m2SavedRackTypes=[];m2SelectedSavedType=null;installCatalog();
+      }
+      status('Tüm sistemlerdeki kayıtlı raf tipleri kalıcı olarak silindi.');
+    }catch(error){status(error?.message||'Kayıtlı raf tipleri silinemedi.');}
+    finally{deletingSavedTypes=false;}
+  }
+`+html.slice(deleteEnd);
   const runtime = `<script data-rafex-independent-performance="v133">\nwindow.rafexIndependentProjectV133=${independentProject.toString()};\n${fs.readFileSync(new URL('./independent-performance-runtime-v133.js',import.meta.url),'utf8')}\n${fs.readFileSync(new URL('./project-session-v134.js',import.meta.url),'utf8')}\n</script>`;
   const end=html.lastIndexOf('</body>');
   return html.slice(0,end)+runtime+html.slice(end);
