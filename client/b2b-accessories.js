@@ -188,6 +188,7 @@
     window.RafexRackTravers?.updateFloor(f,sectionWidth());
     window.RafexRackTray?.update(f,sectionWidth(),window.RafexRackTray.depth());
     const errors=[];
+    if(!window.RafexRackTray?.canSave(f,sectionWidth(),window.RafexRackTray.depth()))errors.push("Tabloda uygun tava önerisi yok. Kat kaydedilemez.");
     if(collection.groundGap===''||!Number.isFinite(Number(collection.groundGap))||Number(collection.groundGap)<0||Number(collection.groundGap)>5000)errors.push('Zemin mesafesini 0–5000 mm arasında girin.');
     if(!(Number(f.load)>0&&Number(f.load)<=1500))errors.push('Kat yükünü 1–1500 kg arasında girin.');
     if(!(Number(f.height)>=100&&Number(f.height)<=5000))errors.push('Kat yüksekliğini 100–5000 mm arasında girin.');

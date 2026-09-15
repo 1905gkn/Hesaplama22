@@ -9,7 +9,7 @@ files['client/b2b-accessories.js']=files['client/b2b-accessories.js'].replace('b
 const fakeFs={readFileSync:p=>files[p],writeFileSync:(p,v)=>files[p]=v};
 for(const name of ['apply-b2b-accessory-fixes.js','apply-b2b-accessory-placement-v2.js','apply-b2b-accessory-fit-v3.js','apply-b2b-h-traverse-lower-v5.js'])vm.runInNewContext(fs.readFileSync('scripts/'+name,'utf8'),{require:()=>fakeFs,console});
 const built=files['scripts/build.sh'];
-assert.ok(!built.includes('tray.position.z += 50'));
+assert.ok(built.includes('traySpan.seatZ + 17 + 50 - trayBounds.max.z'));
 assert.ok(!built.includes('tray.position.y += 11'));
 const start=built.indexOf('            if (traySpan) {');
 assert.ok(start>=0);
@@ -21,8 +21,7 @@ for(const beamHeight of [80,110,125,140,160])for(const level of [500,1500,3000])
  vm.runInNewContext(body,{THREE,tray,traySpan});
  tray.updateMatrixWorld(true);
  const bounds=new THREE.Box3().setFromObject(tray);
- assert.equal(bounds.max.z-17,traySpan.seatZ);
+ assert.equal(bounds.max.z-17-50,traySpan.seatZ);
  assert.equal(tray.position.y,700);
 }
-console.log('PASS: production patch chain; tray seating at 15 beam/level combinations, no fixed offsets.');
-
+console.log('PASS: production patch chain; tray seating at 15 beam/level combinations, requested 50 mm drop and no lateral offset.');

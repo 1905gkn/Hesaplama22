@@ -45,3 +45,14 @@ assert.ok(context.window.RafexRackTray.fields(mrFloor,0,2700,1050,false).include
 assert.equal(mrFloor.trayThickness,.8);
 assert.ok(fs.readFileSync('client/b2b-accessories.js','utf8').includes("fields(f,index,clear,window.RafexRackTray.depth(),false,'HR')"));
 console.log('Accessory HR and collection MR selection verified.');
+
+assert.equal(context.window.RafexRackTray.canSave({trayWidth:200,load:500},2700,1050,'HR'),true);
+assert.equal(context.window.RafexRackTray.canSave({trayWidth:200,load:100000,trayThickness:2,traySelectionMode:'manual'},2700,1050,'HR'),false);
+assert.equal(context.window.RafexRackTray.canSave({trayWidth:200,load:500},2700,1300,'HR'),false);
+let saves=0,alerts=0;
+const guardContext={window:{RafexRackTray:context.window.RafexRackTray},m2ActiveModule:'b2b',document:{querySelector:()=>null},b2b3DOptions:()=>({sectionWidth:2700}),b2bReadInputState:()=>({accessories:[{type:'tray',width:200,load:100000,thickness:2,traySelectionMode:'manual'}]}),m2SaveRackType:()=>{saves++},alert:()=>{alerts++}};
+guardContext.window.RafexRackTray.depth=()=>1050;
+vm.runInNewContext(fs.readFileSync('client/tray-save-guard.js','utf8'),guardContext);
+guardContext.m2SaveRackType();assert.equal(saves,0);assert.equal(alerts,1);
+guardContext.b2bReadInputState=()=>({accessories:[{type:'tray',width:200,load:500}]});guardContext.m2SaveRackType();assert.equal(saves,1);
+console.log('PASS: missing recommendation blocks save even with manual thickness; valid recommendation permits save.');

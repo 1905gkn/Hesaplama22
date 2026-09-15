@@ -1,7 +1,7 @@
 import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
 let source=fs.readFileSync('client/b2b-accessories.js','utf8');
 source=source.slice(0,source.lastIndexOf('  style();'))+`render=()=>{};notify=()=>{};window.test={draft:()=>collection,applied:()=>appliedCollection,plan:collectionPlan,card:savedCollectionCard};})();`;
-const ctx={window:{},document:{getElementById:()=>null,querySelectorAll:()=>[]},console};vm.runInNewContext(source,ctx);
+const ctx={window:{RafexRackTray:{update:()=>{},canSave:()=>true,depth:()=>1100}},document:{getElementById:()=>null,querySelectorAll:()=>[]},console};vm.runInNewContext(source,ctx);
 const w=ctx.window,t=w.test;
 w.rafexCollectionAdd();assert.equal(t.applied().enabled,false);assert.equal(t.plan().floors.length,0);
 w.rafexCollectionSet(0,'load','');w.rafexCollectionSave(0);assert.match(t.draft().floors[0].error,/Kat yükünü/);assert.equal(t.applied().enabled,false);
@@ -16,3 +16,7 @@ w.rafexAccessorySetTraySelection(0,'trayThickness','1.2');w.rafexAccessoryToggle
 const tray=w.rafexAccessoryState()[0];assert.equal(tray.load,500);assert.equal(tray.width,200);assert.equal(tray.thickness,1.2);assert.equal(tray.traySelectionMode,'manual');assert.equal(tray.levels[0],1);
 w.rafexAccessorySetTraySelection(0,'traySelectionMode','auto');assert.equal(w.rafexAccessoryState()[0].traySelectionMode,'auto');
 console.log('Tray accessory requires load and selection; width, thickness, mode and levels persist.');
+
+w.rafexCollectionAdd();w.RafexRackTray.canSave=()=>false;
+w.rafexCollectionSave(0);assert.equal(t.applied().enabled,false);assert.match(t.draft().floors[0].error,/uygun tava önerisi yok/);
+

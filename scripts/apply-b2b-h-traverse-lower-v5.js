@@ -25,7 +25,7 @@ build = replaceRequired(
 build = replaceRequired(
   build,
   '            this.seatAccessoryOnTraverses(tray, traySpan, 0.14);\n            section.add(tray);',
-  '            if (traySpan) {\n              tray.updateMatrixWorld(true);\n              const trayBounds = new THREE.Box3().setFromObject(tray);\n              tray.position.z += traySpan.seatZ + 17 - trayBounds.max.z;\n            }\n            section.add(tray);',
+  '            if (traySpan) {\n              tray.updateMatrixWorld(true);\n              const trayBounds = new THREE.Box3().setFromObject(tray);\n              tray.position.z += traySpan.seatZ + 17 + 50 - trayBounds.max.z;\n            }\n            section.add(tray);',
   'tray offset',
 );
 
