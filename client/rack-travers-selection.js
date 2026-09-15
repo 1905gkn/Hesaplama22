@@ -17,8 +17,8 @@
  function bindLevels(dialog,width,ground,saved){
   const rows=[...dialog.querySelectorAll('.level-row')];
   const refresh=()=>rows.forEach((row,i)=>{const select=row.querySelector('[data-traverse]');if(select.disabled)return;const loadRow=rows[ground?i+1:i],load=Number(loadRow?.querySelector('[data-weight]')?.value)||0;const found=choices('normal',width,load);const chosen=select.dataset.manual==='true'?select.value:found[0]?.value||'';select.innerHTML=options('normal',width,load,chosen,select.dataset.manual==='true');select.value=chosen;row.querySelector('[data-selection-note]').textContent=found.length?'Tablo: '+found[0].length+' mm / '+found[0].load+' kg':'Tabloda öneri yok';});
-  rows.forEach((row,i)=>{const select=row.querySelector('[data-traverse]');select.dataset.manual=String(saved[i]?.selectionMode==='manual');const note=document.createElement('small');note.dataset.selectionNote='';select.after(note);const button=document.createElement('button');button.type='button';button.textContent='Manuel / otomatik';button.onclick=()=>{select.dataset.manual=String(select.dataset.manual!=='true');refresh();};select.after(button);select.onchange=()=>{select.dataset.manual='true';refresh();};});
-  dialog.oninput=refresh;refresh();
+  rows.forEach((row,i)=>{const select=row.querySelector('[data-traverse]');select.dataset.manual=String(saved[i]?.selectionMode==='manual');if(saved[i]?.selectionMode==='manual'&&saved[i]?.traverseType){select.innerHTML=options('normal',width,1,saved[i].traverseType,true);select.value=saved[i].traverseType;}const note=document.createElement('small');note.dataset.selectionNote='';select.after(note);const button=document.createElement('button');button.type='button';button.textContent='Manuel / otomatik';button.onclick=()=>{select.dataset.manual=String(select.dataset.manual!=='true');refresh();};select.after(button);select.onchange=()=>{select.dataset.manual='true';refresh();};});
+  dialog.oninput=event=>{if(event.target?.matches('[data-traverse]'))event.target.dataset.manual='true';refresh();};refresh();
  }
  window.RafexRackTravers={choices,catalog,options,height,updateFloor,floorFields,bindLevels};
 
