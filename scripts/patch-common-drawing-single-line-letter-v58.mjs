@@ -15,8 +15,7 @@ const runtime = String.raw`
 #page #m2LayoutSvg [data-rack] .m2-b2b-plan-label,
 #page #m2LayoutSvg [data-rack] .m2-rack-name{display:none!important}
 #page .rafex-single-line-letter-v58{pointer-events:none}
-#page .rafex-single-line-letter-v58 path{fill:none;stroke-width:2px;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;shape-rendering:geometricPrecision}
-#page #m2LayoutSvg .rafex-single-line-letter-v58 path{stroke-width:3.4px!important}
+#page .rafex-single-line-letter-v58 path{fill:none;stroke-width:1.5px;stroke-linecap:round;stroke-linejoin:round;vector-effect:none;shape-rendering:geometricPrecision}
 </style>
 <script data-rafex-common-single-line-letter="v58">
 (function(){
@@ -38,9 +37,11 @@ const runtime = String.raw`
     labels.forEach(function(label){label.style.display="none";label.setAttribute("aria-hidden","true")});
     var label=labels[0],letter=(String(label.textContent||"").trim().toUpperCase().match(/[A-Z0-9]/)||[])[0],pathData=GLYPHS[letter],parent=label.parentNode,old=parent&&existing(parent);
     if(!pathData||!parent){if(old)old.remove();return}
-    var color=group.getAttribute("data-type-color")||"#2878d0",x=Number(label.getAttribute("x"))||0,y=Number(label.getAttribute("y"))||0,baseSize=Math.max(7,Math.min(12,parseFloat(label.style.fontSize)||parseFloat(getComputedStyle(label).fontSize)||11)),fontSize=baseSize*letterScale(),contrast=letterContrast(),opacity=Math.min(1,contrast),strokeColor=contrastColor(color,contrast),sx=fontSize*.72/10,sy=fontSize*.92/10,signature=[letter,color,x,y,fontSize,contrast].join("|");
+    // The glyph uses one local size for both single and double rows. Its stroke
+    // scales with the SVG, including detached report/PDF copies.
+    var color=group.getAttribute("data-type-color")||"#2878d0",x=Number(label.getAttribute("x"))||0,y=Number(label.getAttribute("y"))||0,baseSize=11,fontSize=baseSize*letterScale(),contrast=letterContrast(),opacity=Math.min(1,contrast),strokeColor=contrastColor(color,contrast),sx=fontSize*.72/10,sy=fontSize*.92/10,signature=[letter,color,x,y,fontSize,contrast].join("|");
     if(old&&old.getAttribute("data-signature")===signature)return;if(old)old.remove();
-    var mark=document.createElementNS(NS,"g"),path=document.createElementNS(NS,"path");mark.setAttribute("class","rafex-single-line-letter-v58");mark.setAttribute("data-signature",signature);mark.setAttribute("data-letter",letter);mark.setAttribute("aria-label",letter);mark.setAttribute("opacity",String(opacity));mark.setAttribute("transform","translate("+(x-fontSize*.36)+" "+(y-fontSize*.46)+") scale("+sx+" "+sy+")");path.setAttribute("d",pathData);path.setAttribute("stroke",strokeColor);mark.appendChild(path);parent.appendChild(mark);
+    var mark=document.createElementNS(NS,"g"),path=document.createElementNS(NS,"path");mark.setAttribute("class","rafex-single-line-letter-v58");mark.setAttribute("data-signature",signature);mark.setAttribute("data-letter",letter);mark.setAttribute("aria-label",letter);mark.setAttribute("opacity",String(opacity));mark.setAttribute("transform","translate("+(x-fontSize*.36)+" "+(y-fontSize*.46)+") scale("+sx+" "+sy+")");path.setAttribute("d",pathData);path.setAttribute("stroke",strokeColor);path.setAttribute("style","fill:none;stroke-width:1.5px;stroke-linecap:round;stroke-linejoin:round;vector-effect:none");mark.appendChild(path);parent.appendChild(mark);
   }
   function decorate(){var node=svg();if(!node)return;node.querySelectorAll("[data-rack]").forEach(decorateGroup)}
   function schedule(){clearTimeout(pending);pending=setTimeout(function(){pending=0;decorate()},20)}
@@ -59,9 +60,9 @@ for (const required of [
   'data-rafex-common-single-line-letter="v58"',
   "rafexCommonSingleLineLetterV58",
   "rafex-single-line-letter-v58",
-  "fill:none;stroke-width:2px",
-  "stroke-width:3.4px!important",
-  "Math.max(7,Math.min(12",
+  "fill:none;stroke-width:1.5px",
+  "vector-effect:none",
+  "baseSize=11",
   "rafexCommonTypeLetterScaleV65",
   "rafexCommonTypeLetterContrastV65",
   "contrastColor",
@@ -75,4 +76,4 @@ for (const required of [
 const encoded = Buffer.from(html).toString("base64");
 source = source.slice(0, match.index) + match[0].replace(match[2], encoded) + source.slice(match.index + match[0].length);
 fs.writeFileSync(file, source);
-console.log("v58: Serbest Cizim blok harfleri 7-12 px, dolgusuz ve cift kontursuz, 3.4 px bold tek merkez cizgisiyle ciziliyor.");
+console.log("v58: Tekli/cift sira ve cikti harfleri ortak olcu ve olceklenen kontur kullaniyor.");
