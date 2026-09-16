@@ -16,9 +16,16 @@ export function detailSignature(d) {
   const stable=value=>Array.isArray(value)?value.map(stable):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().filter(k=>value[k]!==undefined).map(k=>[k,stable(value[k])])):value;
   return JSON.stringify(stable(data));
 }
+export function mrDetailMatches(d,view) {
+  if(!view)return false;
+  const b=d.b2b||{},l=d.b2bLayout||{};
+  const expected={width:b.width||l.palletWidth||d.palW,modules:b.modules||d.bays};
+  return Object.entries(expected).every(([key,value])=>!(Number(value)>0)||Math.abs(Number(view[key])-Number(value))<.01);
+}
 export function readDetail(d,kind) {
   const s=d?.rackDetail;
   if(!s||s.version!==1||s.signature!==detailSignature(d))return null;
+  if(kind==='mr'&&!mrDetailMatches(d,s.views.mr))return null;
   return s.views[kind]==null?null:JSON.parse(JSON.stringify(s.views[kind]));
 }
 export function sealDetail(d,views) {
@@ -29,7 +36,7 @@ export function sealDetail(d,views) {
 
 export const runtime=String.raw`<script data-rafex-rack-detail="v135">
 (function(){
- const detailSystem=${detailSystem.toString()},detailSignature=${detailSignature.toString()},readDetail=${readDetail.toString()},sealDetail=${sealDetail.toString()};
+ const detailSystem=${detailSystem.toString()},detailSignature=${detailSignature.toString()},mrDetailMatches=${mrDetailMatches.toString()},readDetail=${readDetail.toString()},sealDetail=${sealDetail.toString()};
  const clone=x=>JSON.parse(JSON.stringify(x));
  let copied=null;
  window.rafexReadRackDetailV135=readDetail;
@@ -46,7 +53,7 @@ export const runtime=String.raw`<script data-rafex-rack-detail="v135">
    const clean=clone(d);delete clean.rackDetail;
    const views={};
    if(sys==='b2b')views.b2b=clone((preferLive?window.RafexB2BViewer?.getSavedDetail?.():null)||clean.b2bViewerOptions||window.rafexB2BDetailOptionsV117(clean));
-   else if(sys==='mr')views.mr=clone((preferLive?window.RafexMRViewer?.getSavedDetail?.():null)||window.rafexMrConfigFromRackV37(clean));
+   else if(sys==='mr'){const live=preferLive?window.RafexMRViewer?.getSavedDetail?.():null;views.mr=clone(live&&mrDetailMatches(clean,live)?live:window.rafexMrConfigFromRackV37(clean));}
    else if(sys==='konsol')views.konsol=clone((preferLive?window.RafexKonsolViewer?.getSavedDetail?.():null)||window.rafexKonsolDetailOptionsV135(clean));
    else {views[sys]=clone(clean);views.front=m2ReportElevationSvg(clean,'front',true);views.side=m2ReportElevationSvg(clean,'side',true);}
    return sealDetail(clean,views);

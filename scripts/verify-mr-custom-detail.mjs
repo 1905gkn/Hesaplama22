@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {runtime,sealDetail,readDetail} from './rack-detail-snapshot-v135.mjs';
+const source={b2b:{mr:true,width:2400,modules:1,levels:4},palW:2400,bays:1};
+const custom={...source,palW:950,b2b:{...source.b2b,width:950}};
+const stale=sealDetail(custom,{mr:{width:2400,modules:1,levels:4}});
+assert.equal(readDetail(stale,'mr'),null,'legacy detail with standard width must be rejected');
+const valid=sealDetail(custom,{mr:{width:950,modules:1,levels:4}});
+assert.equal(readDetail(valid,'mr').width,950);
+const ctx=vm.createContext({window:{RafexMRViewer:{getSavedDetail:()=>({width:2400,modules:1,levels:4})},rafexMrConfigFromRackV37:d=>({width:d.b2b.width,modules:d.b2b.modules,levels:4})},document:{addEventListener(){}}});
+vm.runInContext(runtime.match(/<script[^>]*>([\s\S]*)<\/script>/)[1],ctx);
+const saved=ctx.window.rafexSealRackDetailV135(custom,true);
+assert.equal(saved.rackDetail.views.mr.width,950,'custom save must not borrow the open standard viewer');
+assert.equal(ctx.window.rafexSealRackDetailV135(stale,true).rackDetail.views.mr.width,950,'re-saving legacy data repairs its detail');
+assert.equal(ctx.window.rafexSealRackDetailV135(source,true).rackDetail.views.mr.width,2400);
+assert.equal(custom.b2b.width,950);
+console.log('PASS: custom MR width, legacy stale detail rejection, repaired saves and standard geometry preservation');
