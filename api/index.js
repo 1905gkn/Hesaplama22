@@ -83,9 +83,36 @@ async function proxyApi(request) {
   });
 }
 
+async function rackCatalog(request) {
+  // Reads must use the same deployed stores as the existing save endpoints.
+  const endpoints = ['/api/b2b-types', '/api/mekik2-types'];
+  const responses = await Promise.all(endpoints.map(path => {
+    const url = new URL(request.url); url.pathname = path; url.search = '';
+    return proxyApi(new Request(url, {headers: request.headers}));
+  }));
+  const failed = responses.find(response => !response.ok);
+  if (failed) return failed;
+  const types = [];
+  for (let i = 0; i < responses.length; i++) {
+    const data = await responses[i].json();
+    if (!Array.isArray(data.types)) return Response.json({error:'Kayıtlı raf listesi alınamadı.'},{status:502});
+    for (const entry of data.types) {
+      const drawing = entry.drawing || {};
+      let system = String(entry.system || drawing.rafexSystem || drawing.systemType || '').toLowerCase();
+      if (drawing.b2b?.mr || drawing.plan?.mr) system = 'mr';
+      if (['konsol-kollu','cantilever'].includes(system)) system = 'konsol';
+      if (['drive-in','drivein'].includes(system)) system = 'drive';
+      if (!['b2b','mr','mekik2','drive','konsol'].includes(system)) system = i === 0 ? 'b2b' : 'mekik2';
+      types.push({...entry,system,__rafexApi:endpoints[i]});
+    }
+  }
+  return Response.json({types},{headers:{'cache-control':'no-store'}});
+}
+
 export default {
   async fetch(request) {
     const path = new URL(request.url).pathname;
+    if (path === '/api/rack-types' && request.method === 'GET') return rackCatalog(request);
     if (path.startsWith("/api/")) return proxyApi(request);
     return worker.fetch(request, {});
   },

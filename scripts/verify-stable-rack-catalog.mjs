@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import {mergeRackCatalog} from './stable-rack-catalog.mjs';
+import {mergeRackCatalog,catalogRecordFingerprint} from './stable-rack-catalog.mjs';
 import {independentProject} from './independent-project-v133.mjs';
 import {transform} from './patch-stable-rack-catalog.mjs';
 const row=(id,name,width=2700,system='b2b')=>({id,name,__rafexSystem:system,system,drawing:{plan:{feet:[1200]},totalWidth:width,levels:4}});
@@ -34,6 +34,14 @@ if(file){
   const clicks={window:{},m2SavedRackTypes:registry,m2SavedTypeClickTimer:null,clearTimeout(){},m2ChooseSavedRackType(i){clicks.selected=i;},m2AddSelectedSavedRack(){clicks.added=clicks.selected;}};
   vm.createContext(clicks);vm.runInContext(html.slice(c,d),clicks);clicks.m2HandleSavedRackTypeClick(1,{detail:1});assert.equal(clicks.selected,1,'Selection must happen immediately before Add');
   clicks.m2HandleSavedRackTypeClick(2,{detail:2});assert.equal(clicks.added,2);
+  for(const system of ['b2b','mr','konsol','mekik2','drive']){
+    const saved=row(55,'A',4500,system),state={window:{rafexMergeRackCatalog:mergeRackCatalog,rafexCatalogFingerprint:catalogRecordFingerprint,rafexProjectIdentityV133:{uuid:'one',excludedRackTypes:[catalogRecordFingerprint(saved)]},rafexProjectTypesV133:[]},isFree:()=>true,normalizeCatalogEntry:e=>e,systemOf:e=>e.system,entryKey:e=>e.system+':'+e.id,installCatalog(){state.rendered=state.window.rafexProjectTypesV133;},req:async()=>saved};
+    vm.createContext(state);vm.runInContext(html.slice(html.indexOf('  const saveRequestBase=req;'),html.indexOf('  function reconcileCatalogRacks')),state);
+    await state.req('/api/b2b-types',{method:'POST',body:'{}'});
+    assert.equal(state.rendered.length,1,'Successful save appears before any refresh: '+system);
+    assert.equal(state.window.rafexProjectIdentityV133.excludedRackTypes.length,0,'Explicit re-save restores a removed type');
+    assert.equal(state.window.rafexSelectedCatalogKey,system+':55');
+  }
   for(const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))if(match[1].trim())new vm.Script(match[1]);
 }
 console.log('PASS: stable identities, unique names, legacy dedup, single request, project race/error protection and immediate selection.');

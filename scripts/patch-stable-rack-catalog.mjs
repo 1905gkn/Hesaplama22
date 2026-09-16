@@ -19,7 +19,7 @@ export function transform(html){
       if(!Array.isArray(response?.types))throw Error('Kayıtlı raf listesi alınamadı; mevcut liste korundu.');
       const records=response.types.filter(validEntry).map(entry=>{
         const row=normalizeCatalogEntry(entry,entry.system||systemOf(entry));
-        row.__rafexApi='/api/rack-types';return row;
+        row.__rafexApi=entry.__rafexApi||'/api/rack-types';return row;
       });
       catalog=records;catalogReady=true;catalogLoadedAt=Date.now();
       const local=window.rafexProjectTypesV133;
@@ -30,6 +30,26 @@ export function transform(html){
     })();
     try{return await catalogLoading;}catch(error){status(error.message||'Kayıtlar alınamadı; mevcut liste korundu.');return m2SavedRackTypes;}finally{catalogLoading=null;}
   }
+  const saveRequestBase=req;
+  req=async function(url,options={}){
+    const owner=window.rafexProjectIdentityV133?.uuid;
+    const response=await saveRequestBase.apply(this,arguments);
+    if(options.method==='POST'&&['/api/b2b-types','/api/mekik2-types','/api/mr-types','/api/rack-types'].includes(url)&&isFree()&&owner&&owner===window.rafexProjectIdentityV133?.uuid){
+      const saved=response?.type||response?.rackType||response;
+      if(saved?.id!=null){
+        const drawing=saved.drawing||JSON.parse(options.body||'{}').drawing;
+        const entry=normalizeCatalogEntry({...saved,drawing},saved.system||systemOf({drawing}));entry.__rafexApi=url;
+        const fingerprint=window.rafexCatalogFingerprint(entry),identity=window.rafexProjectIdentityV133;
+        identity.excludedRackTypes=(identity.excludedRackTypes||[]).filter(value=>value!==fingerprint);
+        const merged=window.rafexMergeRackCatalog(window.rafexProjectTypesV133||[],[entry]);
+        window.rafexProjectTypesV133=merged.entries;
+        const selected=merged.entries.find(item=>window.rafexCatalogFingerprint(item)===fingerprint);
+        if(selected)window.rafexSelectedCatalogKey=entryKey(selected);
+        installCatalog();
+      }
+    }
+    return response;
+  };
   function reconcileCatalogRacks(merged){
     window.rafexSelectedCatalogKey=merged.aliases[window.rafexSelectedCatalogKey]||window.rafexSelectedCatalogKey;
     for(const rack of m2LayoutState?.racks||[]){
