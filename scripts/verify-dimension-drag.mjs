@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+import {transform} from './patch-dimension-drag.mjs';
+const path=process.argv[2]||'dist/server/index.js';
+const source=fs.readFileSync(path,'utf8');
+const encoded=source.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/);
+const original=encoded?Buffer.from(encoded[1],'base64').toString():source;
+const html=transform(original);
+assert.equal(transform(html),html,'Injection must be idempotent');
+for(const [i,match] of [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].entries())new vm.Script(match[1],{filename:'inline-'+i});
+const tricky='<html><body><script>const example="</body>";</script></body></html>';
+assert.ok(transform(tricky).startsWith('<html><body><script>const example="</body>";</script>'),'Do not inject into print templates');
+assert.match(html,/data-dimension-lines/);
+assert.match(html,/rafex-dimension-witness/);
+console.log('Dimension drag injection and complete inline syntax passed');
