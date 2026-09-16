@@ -63,7 +63,7 @@ export function transform(html){
   // behind a pending click or while a different system editor is rebuilt.
   replace('m2SavedRackTypes=structuredClone(window.rafexProjectTypesV133||catalog).sort(function(a,b){return letterNo(a.name)-letterNo(b.name);});','m2SavedRackTypes=structuredClone(window.rafexProjectTypesV133||catalog);');
   replace('    var selectedKey=entryKey(selected);','    var selectedKey=window.rafexSelectedCatalogKey||entryKey(selected);');
-  const clickStart=html.indexOf('      function m2HandleSavedRackTypeClick(index, event) {'),clickEnd=html.indexOf('      async function m2SaveRackType()',clickStart);
+  const clickStart=html.indexOf('      function m2HandleSavedRackTypeClick(index, event) {'),clickEnd=html.indexOf('      function m2B2BRecordV108(',clickStart);
   if(clickStart<0||clickEnd<0)throw Error('Catalog click handler missing');
   html=html.slice(0,clickStart)+`      function m2HandleSavedRackTypeClick(index,event){
         clearTimeout(m2SavedTypeClickTimer);m2SavedTypeClickTimer=null;

@@ -34,6 +34,10 @@ if(file){
   const clicks={window:{},m2SavedRackTypes:registry,m2SavedTypeClickTimer:null,clearTimeout(){},m2ChooseSavedRackType(i){clicks.selected=i;},m2AddSelectedSavedRack(){clicks.added=clicks.selected;}};
   vm.createContext(clicks);vm.runInContext(html.slice(c,d),clicks);clicks.m2HandleSavedRackTypeClick(1,{detail:1});assert.equal(clicks.selected,1,'Selection must happen immediately before Add');
   clicks.m2HandleSavedRackTypeClick(2,{detail:2});assert.equal(clicks.added,2);
+  assert.equal(typeof clicks.m2B2BRecordV108,'function','Click patch must retain the B2B save serializer');
+  assert.equal(typeof clicks.m2B2BInfoOptionsV108,'function','Click patch must retain the B2B preview serializer');
+  clicks.b2bLayoutDrawing=d=>d;
+  assert.equal(clicks.m2B2BRecordV108({b2b:{levels:4,footHeight:5200},konsol:{}}).sideUprightHeight,5200);
   for(const system of ['b2b','mr','konsol','mekik2','drive']){
     const saved=row(55,'A',4500,system),state={window:{rafexMergeRackCatalog:mergeRackCatalog,rafexCatalogFingerprint:catalogRecordFingerprint,rafexProjectIdentityV133:{uuid:'one',excludedRackTypes:[catalogRecordFingerprint(saved)]},rafexProjectTypesV133:[]},isFree:()=>true,normalizeCatalogEntry:e=>e,systemOf:e=>e.system,entryKey:e=>e.system+':'+e.id,installCatalog(){state.rendered=state.window.rafexProjectTypesV133;},req:async()=>saved};
     vm.createContext(state);vm.runInContext(html.slice(html.indexOf('  const saveRequestBase=req;'),html.indexOf('  function reconcileCatalogRacks')),state);
