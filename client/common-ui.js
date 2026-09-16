@@ -5,8 +5,10 @@
  function label(id,value){const el=document.getElementById(id),host=el?.closest('label');if(!host)return;const span=host.querySelector('span');if(span)text(span,value);else for(const n of host.childNodes)if(n.nodeType===3&&n.textContent.trim()){if(n.textContent!==value)n.textContent=value;break;}}
  window.RafexCommonFeedback=function(message,host){host=host||root();if(!host)return false;let box=host.querySelector(':scope > .common-error');if(!box){box=document.createElement('div');box.className='common-error';box.setAttribute('role','alert');host.prepend(box);}text(box,message);box.scrollIntoView({block:'nearest',behavior:'smooth'});return true;};
  function sync(){const p=root();if(!p)return;
-   const konsolCard=p.querySelector('.konsol-view-card'),konsolSave=p.querySelector('.rafex-konsol-common-savebar');
-   if(konsolCard&&konsolSave&&konsolSave.parentElement!==konsolCard)konsolCard.append(konsolSave);
+   for(const [workspaceSelector,barSelector] of [['.mr-workspace','.mr-rack-save'],['.konsol-shell','.rafex-konsol-common-savebar']]){
+     const workspace=p.querySelector(workspaceSelector),bar=p.querySelector(barSelector);
+     if(workspace&&bar){if(workspace.nextElementSibling!==bar)workspace.after(bar);bar.classList.add('common-full-savebar');}
+   }
 
    const mekikCard=p.querySelector('#m2Bays')?.closest('.card');if(mekikCard&&!mekikCard.classList.contains('rafex-common-mekik-input-card'))mekikCard.classList.add('rafex-common-mekik-input-card');
    for(const id of ['m2SaveRackButton','mrSaveRackButton','rafexKonsolCommonSaveRack'])text(document.getElementById(id),'Raf Tipini Kaydet');

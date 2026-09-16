@@ -90,3 +90,13 @@
 #page#page[data-rafex-common-active="1"] .konsol-view-wrap{display:grid!important;grid-template-rows:auto minmax(0,1fr) auto!important;min-height:0!important;height:100%!important}
 #page#page[data-rafex-common-active="1"] #konsolCanvas{height:100%!important;min-height:0!important;max-height:100%!important;width:100%!important;box-sizing:border-box!important}
 }
+
+/* One save strip beneath both the form and preview, matching B2B. */
+#page#page[data-rafex-common-active="1"] .common-full-savebar{display:flex!important;flex-direction:column!important;align-items:stretch!important;width:100%!important;box-sizing:border-box!important;margin:12px 0 0!important;padding:0!important;gap:0!important;border:0!important;background:transparent!important}
+#page#page[data-rafex-common-active="1"] .common-full-savebar>button{order:0;flex:0 0 auto!important}
+#page#page[data-rafex-common-active="1"] .common-full-savebar>small{order:1;margin:6px 0 0!important}
+#page#page[data-rafex-common-active="1"] .common-full-savebar>.mr-block-panel{order:2}
+@media(min-width:1051px){
+#page#page[data-rafex-common-active="1"] .mr-view-card{grid-template-rows:auto minmax(510px,1fr)!important}
+#page#page[data-rafex-common-active="1"] .konsol-view-card{grid-template-rows:minmax(0,1fr)!important}
+}
