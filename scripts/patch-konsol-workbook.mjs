@@ -37,6 +37,8 @@ export function transform(html){
  replace('var computed=Math.max(100,Math.round((levels*Math.max(100,Number(gap.value)||1000))/100)*100);', 'var rows=window.rafexKonsolLevels?.snapshot().levelRows;var computed=rows?rows.reduce((sum,r)=>sum+r.distance,0)+(Number(gap.value)||1000):levels*(Number(gap.value)||1000);');
  replace("return{uprightCount:Math.max(2,num('konsolUprightCount'", "return{...window.rafexKonsolLevels?.snapshot(),levelGap:num('konsolLevelGap',1000),uprightCount:Math.max(2,num('konsolUprightCount'");
  replace('getCurrentSpec:function(){return spec()}', 'getCurrentSpec:function(){return window.rafexKonsolLevels?.enrich(spec())||spec()}');
+ replace(" function spec(){return{count:Math.max(2,n('konsolUprightCount',5))", " function spec(){const value=baseSpec();return window.rafexKonsolLevels?.enrich(value)||value;}\n function baseSpec(){return{count:Math.max(2,n('konsolUprightCount',5))");
+ html=html.replaceAll('En üst kol kotu Htop / seçim H (mm)','Ayak yüksekliği (mm)');
  replace(' function applySpec(s){var map=', ' function applySpec(s){window.rafexKonsolLevels?.load(s);var map=');
  replace('konsolSide:s.side,femProductLength:s.productLength', 'konsolSide:s.side,konsolLevelGap:s.levelGap||1000,femUnitLoad:s.levelLoad||1000,konsolBaseDepth:s.baseDepth||1000,femProductLength:s.productLength');
  html=html.replaceAll("armProfile:k.armProfile||'npi100',", "armProfile:k.armProfile||'npi100',levelRows:k.levelRows,levelGap:k.levelGap,firstLevel:k.firstLevel,");
