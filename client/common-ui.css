@@ -75,3 +75,11 @@
 #page#page[data-rafex-common-active="1"] :is(.m2-export,.mr-rack-save,.rafex-system-savebar){display:flex!important;flex-wrap:wrap!important;gap:0!important;width:100%!important;box-sizing:border-box!important;padding:0!important}
 #page#page[data-rafex-common-active="1"] :is(#m2SaveRackButton,#mrSaveRackButton,#rafexKonsolCommonSaveRack){display:block!important;flex:0 0 100%!important;grid-column:1/-1!important;grid-row:auto!important;width:100%!important;max-width:none!important;min-height:64px!important;margin:0!important;padding:15px 18px!important;border:1px solid #d8b100!important;border-radius:0 0 12px 12px!important;background:#ffd400!important;color:#111!important;font:850 16px/1.3 Arial,sans-serif!important;text-align:center!important}
 #page#page[data-rafex-common-active="1"] :is(.m2-export-copy,.m2-export-actions,.common-help){flex-basis:100%}
+
+/* Fill the workspace beside the MR form; keep Save anchored at its bottom. */
+@media(min-width:1051px){
+#page#page[data-rafex-common-active="1"] .mr-view-card{align-self:stretch!important;height:100%!important;box-sizing:border-box!important;grid-template-rows:auto minmax(510px,1fr) auto!important}
+#page#page[data-rafex-common-active="1"] .mr-canvas-wrap{min-height:510px!important;height:auto!important;min-width:0!important}
+#page#page[data-rafex-common-active="1"] .mr-canvas-wrap>#mrCanvas{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;min-height:0!important}
+#page#page[data-rafex-common-active="1"] .mr-rack-save{align-self:end!important}
+}
