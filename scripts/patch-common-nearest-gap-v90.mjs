@@ -187,9 +187,9 @@ html=html.slice(0,closing)+runtime+"\n"+html.slice(closing);
 
 for (const required of [
   'data-rafex-common-nearest-gap="v90"',
-  'var best=null,bestDistance=Infinity',
-  'return best?[best]:[];',
-  '<span>En yakın raf arası '+(index+1)+'</span>',
+  'var relations=typeof window.rafexRackGapRelationsV46',
+  'return pairs;',
+  "<span>En yakın raf arası '+(index+1)+'</span>",
   'data-rafex-common-save-only="v92"',
   "body.module='ortak'",
   "nav.classList.contains('active')",
