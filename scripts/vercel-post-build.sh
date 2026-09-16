@@ -86,6 +86,8 @@ node scripts/patch-stable-rack-catalog.mjs
 node scripts/patch-dimension-drag.mjs
 node scripts/patch-all-section-systems.mjs
 node scripts/verify-all-section-systems.mjs
+node scripts/patch-multi-area.mjs
+node scripts/verify-multi-area.mjs
 node scripts/verify-dimension-drag.mjs
 node scripts/verify-stable-rack-catalog.mjs dist/server/index.js
 node scripts/verify-common-performance.mjs dist/server/index.js

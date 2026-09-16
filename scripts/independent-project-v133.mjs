@@ -2,10 +2,14 @@
 // replacing arbitrary numbers (which could also be physical measurements).
 export function independentProject(record, uuid, timestamp) {
   const copy = JSON.parse(JSON.stringify(record));
-  const payload = copy.payload, layout = payload.layout || {};
-  const racks = layout.racks || [], types = payload.rackTypes || [];
+  const payload = copy.payload;
+  const layouts = payload.areas?.length ? payload.areas.map(area => area.layout) : [payload.layout || {}];
+  const layout = payload.areas?.find(area => area.id === payload.activeAreaId)?.layout || layouts[0];
+  payload.layout = layout;
+  const racks = layouts.flatMap(item => item.racks || []), types = payload.rackTypes || [];
+  const symbols = layouts.flatMap(item => item.symbols || []), notes = layouts.flatMap(item => item.userNotes || []);
   let sequence = 0;
-  const used = new Set([...racks, ...types, ...(layout.symbols || []), ...(layout.userNotes || [])].map(x => String(x.id)));
+  const used = new Set([...racks, ...types, ...symbols, ...notes].map(x => String(x.id)));
   const nextId = () => { let id; do { id = timestamp * 1000 + ++sequence; } while (used.has(String(id))); used.add(String(id)); return id; };
   const rackIds = new Map(racks.map(r => [String(r.id), nextId()]));
   if (rackIds.size !== racks.length) throw new Error('Aynı kimlikli raflar var; bağımsız kayıt oluşturulamadı.');
@@ -25,7 +29,7 @@ export function independentProject(record, uuid, timestamp) {
     const matches = types.map((type, index) => String(type.id) === String(id) ? newTypeIds[index] : null).filter(value => value != null);
     return matches.length === 1 ? matches[0] : id;
   };
-  const symbolIds = new Map((layout.symbols || []).map(r => [String(r.id), nextId()]));
+  const symbolIds = new Map(symbols.map(r => [String(r.id), nextId()]));
   const groups = new Map(), braces = new Map();
   const mapped = (map, id) => id == null ? id : map.get(String(id)) ?? id;
   const named = (map, id, kind) => { if (id == null || id === '') return id; const key = String(id); if (!map.has(key)) map.set(key, uuid + ':' + kind + ':' + map.size); return map.get(key); };
@@ -52,8 +56,9 @@ export function independentProject(record, uuid, timestamp) {
     type.projectUuid = uuid;
     remapCatalogKey(type.drawing); remapCatalogKey(type.__rafexSnapshot);
   });
-  for (const symbol of layout.symbols || []) { symbol.id = mapped(symbolIds, symbol.id); for (const key of ['rackId', 'tunnelRackId']) if (key in symbol) symbol[key] = mapped(rackIds, symbol[key]); }
-  for (const note of layout.userNotes || []) note.id = nextId();
+  for (const symbol of symbols) { symbol.id = mapped(symbolIds, symbol.id); for (const key of ['rackId', 'tunnelRackId']) if (key in symbol) symbol[key] = mapped(rackIds, symbol[key]); }
+  for (const note of notes) note.id = nextId();
+  for (const layout of layouts) {
   for (const key of ['distanceRackId', 'pinnedRackId']) if (key in layout) layout[key] = mapped(rackIds, layout[key]);
   layout.pinnedDimensionsByRack = Object.fromEntries(Object.entries(layout.pinnedDimensionsByRack || {}).map(([id, value]) => [mapped(rackIds, id), value]));
   const dimensionKey = key => String(key)
@@ -64,6 +69,7 @@ export function independentProject(record, uuid, timestamp) {
   if (layout.hiddenSummaryDimensions) layout.hiddenSummaryDimensions = layout.hiddenSummaryDimensions.map(dimensionKey);
   for (const key of ['length', 'depth']) if (layout.visibleRackDimensions?.[key]) layout.visibleRackDimensions[key] = layout.visibleRackDimensions[key].map(id => mapped(rackIds, id));
   for (const key of ['selected', 'drag', 'hover']) delete layout[key];
+  }
   payload.projectIdentity = { uuid, createdAt: new Date(timestamp).toISOString(), independent: true, schemaVersion: 1, excludedRackTypes: payload.projectIdentity?.excludedRackTypes || [] };
   return copy;
 }
