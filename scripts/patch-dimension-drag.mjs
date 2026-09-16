@@ -1,5 +1,19 @@
 import fs from 'node:fs';
 
+export function pinMovedDimension(key){
+  const wall=/^wall:([^:]+):(left|right|top|bottom)$/.exec(key);
+  if(wall){
+    const rack=m2LayoutState.racks.find(r=>String(r.id)===wall[1]);if(!rack)return;
+    const state={...m2PinnedForRack(rack.id),[wall[2]]:true};
+    m2PinnedDimensionsByRack[String(rack.id)]=state;m2PinnedDimensions=state;m2LayoutState.pinnedRackId=rack.id;
+    return;
+  }
+  const pair=/^pair-gap:([^:]+):([^:]+)$/.exec(key);
+  if(pair&&typeof window.rafexToggleRackPairGap==='function')window.rafexToggleRackPairGap(Number(pair[1]),Number(pair[2]),true);
+  const gap=/^gap:([^:]+)(?::[^:]+)?$/.exec(key);
+  if(gap){const state={...m2PinnedForRack(gap[1]),gap:true};m2PinnedDimensionsByRack[gap[1]]=state;m2PinnedDimensions=state;}
+}
+
 function installDimensionDrag(){
   const ns='http://www.w3.org/2000/svg';
   let drag=null,frame=0,observerFrame=0,observer=null,observed=null;
@@ -49,7 +63,7 @@ function installDimensionDrag(){
     m2DimensionOffsets[drag.key]={x:(Number(drag.base.x)||0)+dx,y:(Number(drag.base.y)||0)+dy};
     if(!frame)frame=requestAnimationFrame(()=>{frame=0;m2RenderLayout();});
   },true);
-  function finish(event){if(!drag||event.pointerId!==drag.id)return;event.preventDefault();event.stopImmediatePropagation();const old=drag;drag=null;if(frame){cancelAnimationFrame(frame);frame=0;}old.svg.releasePointerCapture?.(old.id);m2RenderLayout();}
+  function finish(event){if(!drag||event.pointerId!==drag.id)return;event.preventDefault();event.stopImmediatePropagation();const old=drag;drag=null;if(frame){cancelAnimationFrame(frame);frame=0;}old.svg.releasePointerCapture?.(old.id);if(old.moved&&event.type==='pointerup')pinMovedDimension(old.key);m2RenderLayout();}
   document.addEventListener('pointerup',finish,true);document.addEventListener('pointercancel',finish,true);
   refresh();
 }
@@ -61,7 +75,7 @@ export function transform(html){
 #m2LayoutSvg .rafex-dimension-witness{pointer-events:none}
 #page #m2LayoutSvg.m2-dimension-editing [data-dimension-key],#page #m2LayoutSvg.m2-dimension-editing .m2-measure-hit[data-dimension-key^="wall:"]{pointer-events:all!important;cursor:move!important}
 #page #m2LayoutSvg.m2-dimension-editing .rafex-dimension-hit{pointer-events:stroke!important;cursor:move!important}
-</style><script>(${installDimensionDrag.toString()})();</script>`;
+</style><script>${pinMovedDimension.toString()};(${installDimensionDrag.toString()})();</script>`;
   const end=html.lastIndexOf('</body>');if(end<0)throw Error('Missing document body');
   return html.slice(0,end)+payload+html.slice(end);
 }

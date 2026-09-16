@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
-import {transform} from './patch-dimension-drag.mjs';
+import {transform,pinMovedDimension} from './patch-dimension-drag.mjs';
 const path=process.argv[2]||'dist/server/index.js';
 const source=fs.readFileSync(path,'utf8');
 const encoded=source.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/);
@@ -14,3 +14,13 @@ assert.ok(transform(tricky).startsWith('<html><body><script>const example="</bod
 assert.match(html,/data-dimension-lines/);
 assert.match(html,/rafex-dimension-witness/);
 console.log('Dimension drag injection and complete inline syntax passed');
+const context={m2LayoutState:{racks:[{id:12}]},m2PinnedDimensionsByRack:{12:{right:true}},m2PinnedForRack:id=>context.m2PinnedDimensionsByRack[id]||{},m2PinnedDimensions:{},window:{rafexToggleRackPairGap:(...args)=>context.pair=args}};
+vm.createContext(context);vm.runInContext(pinMovedDimension.toString(),context);
+vm.runInContext("pinMovedDimension('wall:12:left')",context);
+assert.equal(context.m2PinnedDimensionsByRack[12].left,true);
+assert.equal(context.m2PinnedDimensionsByRack[12].right,true,'Preserve other visible dimensions');
+vm.runInContext("pinMovedDimension('pair-gap:12:13')",context);
+assert.equal(JSON.stringify(context.pair),'[12,13,true]');
+vm.runInContext("pinMovedDimension('wall:999:left')",context);
+assert.equal(context.m2PinnedDimensionsByRack[999],undefined,'Ignore deleted racks');
+console.log('Moved wall and rack-pair dimensions are pinned without clearing other dimensions');
