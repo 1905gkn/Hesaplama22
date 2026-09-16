@@ -5,7 +5,7 @@ export function konsolLevelGeometry(rows,extension){
 export function evaluateKonsolLevels(u,a,s){
  const E=200000,G=E/2.6,fy=235,g=9.81,area=u.areaCm2*100,I=u.ixCm4*1e4,W=u.wxCm3*1e3;
  const round=(v,d)=>Math.round(v*10**d)/10**d;
- const geometry=konsolLevelGeometry(s.levelRows,s.gap),H=geometry.at(-1).top+s.gap;
+ const geometry=konsolLevelGeometry(s.levelRows,s.gap),H=s.capacityHeight||geometry.at(-1).top+s.gap;
  if(geometry[0].top-a.heightMm<=u.heightMm||geometry.some((r,i)=>i&&r.distance<=a.heightMm))return {safe:false};
  const rows=geometry.map(r=>{const L=r.depth,qArm=round(a.massKgM*g/1000,5),qLoad=round((r.load/s.count)*g/L,5),q=qArm+qLoad;
  return {...r,y:r.top-a.heightMm/2,L,q,force:q*L,moment:round(q*L*L/2,2),designMoment:round((qArm*1.3+qLoad*1.4)*L*L/2,2),local:round(q*L**4/(8*E*a.ixCm4*1e4),2)+q*L*L/(2*G*a.heightMm*a.webMm)};});

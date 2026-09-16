@@ -205,7 +205,7 @@
   window.rafexTrayPlan = trayPlan;
   window.rafexCollectionFootLoads=()=>{
     const plan=collectionPlan();
-    return {enabled:appliedCollection.enabled&&plan.floors.length>0,load:plan.floors.reduce((sum,f)=>sum+Math.max(0,Number(f.load)||0),0),firstSupportHeight:plan.floors.length?plan.floors[0].bottom+plan.floors[0].zsHeight:0,missing:plan.floors.some(f=>!(Number(f.load)>0))};
+    return {enabled:appliedCollection.enabled&&plan.floors.length>0,load:plan.floors.reduce((sum,f)=>sum+Math.max(0,Number(f.load)||0),0),firstSupportHeight:plan.floors.length?plan.totalHeight+(Number(window.b2bTraverseHeight?.())||140):0,missing:plan.floors.some(f=>!(Number(f.load)>0))};
   };
   window.rafexCollectionCompleteLoad=index=>{
     const saved=appliedCollection.floors[index];if(!saved||Number(saved.load)>0)return;

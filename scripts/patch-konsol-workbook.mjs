@@ -14,7 +14,8 @@ export function transform(html){
  functionReplace('  function syncDepths(){','  function syncProfiles(',`  function syncDepths(){var sel=el('konsolArmLength');if(!sel)return;var old=Number(sel.value)||1000,values=[400,600,800,1000,1200,1250,1500,1800,2000,2500,3000];if(!values.includes(old))values.push(old);values.sort((a,b)=>a-b);sel.innerHTML=values.map(v=>'<option value="'+v+'">'+fmt(v)+' mm</option>').join('');sel.value=String(old);sel.disabled=false;syncProfiles(true);}`);
  functionReplace(' function compute(){',' function updateSelection(){',` function compute(){
   if(!e('konsolUprightProfile')||!e('konsolArmProfile'))return null;
-  return window.rafexKonsolWorkbook.recommend({...window.rafexKonsolLevels?.snapshot(),count:n('femSupportArms',0),levels:n('konsolLevels',0),gap:n('konsolLevelGap',0),arm:n('konsolArmLength',0),base:n('konsolBaseDepth',0),load:n('femUnitLoad',0),sides:e('konsolSide')?.value==='double'?2:1});
+  const height=n('konsolHeight',0);if(!(height>0))return {valid:false,reason:'Ayak yüksekliğini girin.'};
+  return window.rafexKonsolWorkbook.recommend({...window.rafexKonsolLevels?.snapshot(),actualHeight:height,capacityHeight:Math.ceil(height/1000)*1000,count:n('konsolUprightCount',0),levels:n('konsolLevels',0),gap:n('konsolLevelGap',0),arm:n('konsolArmLength',0),base:n('konsolBaseDepth',0),load:n('femUnitLoad',0),sides:e('konsolSide')?.value==='double'?2:1});
  }
 `);
  functionReplace(' function updateSelection(){',' function scheduleSelection(){',` function updateSelection(){
@@ -42,6 +43,13 @@ export function transform(html){
  replace(' function applySpec(s){var map=', ' function applySpec(s){window.rafexKonsolLevels?.load(s);var map=');
  replace('konsolSide:s.side,femProductLength:s.productLength', 'konsolSide:s.side,konsolLevelGap:s.levelGap||1000,femUnitLoad:s.levelLoad||1000,konsolBaseDepth:s.baseDepth||1000,femProductLength:s.productLength');
  html=html.replaceAll("armProfile:k.armProfile||'npi100',", "armProfile:k.armProfile||'npi100',levelRows:k.levelRows,levelGap:k.levelGap,firstLevel:k.firstLevel,");
+ functionReplace('  function syncHeight(fromMode){','  function syncDepths(){',`  function syncHeight(fromMode){var mode=el('konsolHeightMode'),h=el('konsolHeight'),gap=el('konsolLevelGap');if(!mode||!h||!gap)return;var rows=window.rafexKonsolLevels?.snapshot().levelRows,computed=rows?rows.reduce((sum,r)=>sum+r.distance,0)+Number(gap.value):600+Number(el('konsolLevels')?.value||4)*Number(gap.value);if(mode.value==='auto')h.value=String(computed);h.disabled=mode.value==='auto';gap.disabled=false;if(!fromMode)syncDepths();}`);
+ replace('<select id="konsolHeight"></select>','<input id="konsolHeight" type="number" min="1000" max="15000" step="1" value="4600">');
+ replace("if(el('konsolHeightMode').value==='manual'){el('konsolLevelGap').value=String(Math.round(num('konsolHeight',4000)/Math.max(1,num('konsolLevels',4))))}",'');
+ functionReplace(' function syncDemand(){',' function compute(){',` function syncDemand(){if(applying)return;var hidden=e('konsolLevelLoad'),arms=e('femSupportArms');if(hidden)hidden.value=String(n('femUnitLoad',0));if(arms)arms.value=String(n('konsolUprightCount',2));}`);
+ replace("'femUnitLoad','femSupportArms'].forEach", "'femUnitLoad','femSupportArms','konsolUprightCount','konsolHeightMode'].forEach");
+ replace("auto.insertAdjacentElement('afterend',details);", "auto.insertAdjacentElement('afterend',details);fem.after(auto);fem.style.display='none';");
+ replace("+'Ayak kullanım %'", "+'Gerçek ayak '+fmt(result.actualHeight)+' mm · Kapasite hesabı '+fmt(result.capacityHeight)+' mm · Ayak kullanım %'");
  return html;
 }
 if(process.argv[1]?.replaceAll('\\','/').endsWith('/patch-konsol-workbook.mjs')){

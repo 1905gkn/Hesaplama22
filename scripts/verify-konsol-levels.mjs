@@ -6,6 +6,10 @@ const {profiles}=JSON.parse(fs.readFileSync('data/konsol-workbook.json','utf8'))
 const rows=[600,1000,1000,1000].map(distance=>({distance,depth:1000,load:1000}));
 const s={arm:1000,base:1000,gap:1000,levels:4,load:1000,count:2,sides:1,levelRows:rows};
 const u=profiles.find(p=>p.name==='IPE 270'),a=profiles.find(p=>p.name==='NPI 140');
+const rounded=evaluateKonsolLevels(u,a,{...s,actualHeight:4800,capacityHeight:5000});
+assert.equal(rounded.height,5000);
+assert.equal(rounded.checks.at(-1).top,3600,'Capacity rounding must not move actual arm elevations');
+assert.equal(recommendKonsolWorkbook(profiles,{...s,actualHeight:3500,capacityHeight:4000}).valid,false);
 const variable=evaluateKonsolLevels(u,a,s),uniform=evaluateKonsolWorkbook(u,a,{arm:1000,base:1000,gap:1000,levels:4,load:500,height:4600,first:530});
 for(const k of ['columnUsage','armUsage','total','mass'])assert.ok(Math.abs(variable[k]-uniform[k])<1e-9,k);
 assert.deepEqual(konsolLevelGeometry(rows,1000).map(r=>r.top),[600,1600,2600,3600]);

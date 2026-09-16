@@ -7,7 +7,7 @@ export function transform(source){
  replace('    const visualTopArmSupport = uprightSection.h + visualLevelGap * o.levels;', `    /* konsol-level-geometry */
     const levelGeometry=o.levelRows?.length===o.levels?konsolLevelGeometry(o.levelRows,o.levelGap):null;
     const visualTopArmSupport = levelGeometry?levelGeometry.at(-1).top:uprightSection.h + visualLevelGap * o.levels;`);
- replace('    const visualTopExtension = Math.max(0, visualLevelGap);','    const visualTopExtension = levelGeometry?o.levelGap:Math.max(0, visualLevelGap);');
+ replace('    const visualTopExtension = Math.max(0, visualLevelGap);','    const visualTopExtension = levelGeometry?Math.max(0,o.height-visualTopArmSupport):Math.max(0, visualLevelGap);');
  const start=source.indexOf('      for (let level = 1; level <= o.levels; level += 1) {'),end=source.indexOf('    // Ürünü tek parça',start);
  if(start<0||end<0)throw Error('Arm loop boundary missing');
  let block=source.slice(start,end).replaceAll('o.armLength','levelDepth').replace('        const y = uprightSection.h + visualLevelGap * level - armSection.h / 2;', '        const levelDepth=levelGeometry?.[level-1]?.depth??o.armLength;\n        const y = (levelGeometry?.[level-1]?.top??(uprightSection.h + visualLevelGap * level)) - armSection.h / 2;');

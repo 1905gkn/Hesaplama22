@@ -39,6 +39,7 @@ export function recommendKonsolWorkbook(profiles,s) {
   if(s.sides!==1)return {valid:false,reason:'Bu Excel tek taraflı yük durumunu hesaplıyor. Çift taraflı raf için doğrulanmış yük durumu gerekli.'};
   if(!Number.isInteger(s.levels)||s.levels<2||s.levels>12)return {valid:false,reason:'Kaynak hesap bu uygulamada 2–12 kol katı için kullanılır. Tek kat için kaynak dönme formülü ayrıca doğrulanmalı.'};
   if(s.levelRows){const error=validateKonsolLevels(s.levelRows,s.levels);if(error)return {valid:false,reason:error};}
+  if(s.actualHeight&&s.levelRows&&s.actualHeight<s.levelRows.reduce((sum,r)=>sum+r.distance,0))return {valid:false,reason:'Ayak yüksekliği en üst kol kotundan kısa olamaz.'};
   const candidates=[];
   for(const u of profiles.filter(p=>p.name.startsWith('IPE ')))for(const a of profiles.filter(p=>p.name.startsWith('NPI '))) {
     // Same elevations as the existing 3D viewer: base profile top + n net gaps.

@@ -17,7 +17,7 @@ assert.equal(w.rafexCollectionFootLoads().missing,true);
 ctx.document.getElementById=()=>({value:'700'});
 w.rafexCollectionCompleteLoad(0);
 assert.equal(w.rafexCollectionFootLoads().load,700);
-assert.equal(w.rafexCollectionFootLoads().firstSupportHeight,575);
+assert.equal(w.rafexCollectionFootLoads().firstSupportHeight,1215);
 assert.equal(w.rafexCollectionFootLoads().missing,false);
 ctx.document.getElementById=()=>null;w.rafexCollectionRemove();
 w.rafexAccessoryAdd('tray');w.rafexAccessoryToggleLevel(0,1);assert.equal(w.rafexAccessoryState()[0].levels.length,0);
