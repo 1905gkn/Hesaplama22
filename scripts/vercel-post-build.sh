@@ -82,6 +82,8 @@ node scripts/verify-konsol-levels.mjs
 node scripts/verify-konsol-render-budget.mjs
 node scripts/verify-konsol-plan-products.mjs
 node scripts/patch-konsol-workbook.mjs
+node scripts/patch-stable-rack-catalog.mjs
+node scripts/verify-stable-rack-catalog.mjs dist/server/index.js
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
