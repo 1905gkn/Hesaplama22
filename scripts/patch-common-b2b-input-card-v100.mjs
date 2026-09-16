@@ -12,6 +12,9 @@ html = html
   .replace(/<script\s+data-rafex-common-b2b-input="v100">[\s\S]*?<\/script>\s*/g, "");
 
 const runtime = String.raw`<style data-rafex-common-b2b-input="v100">
+#page .b2b-summary-details{border:1px solid #dcc5ca;border-radius:10px;padding:12px;margin-top:14px}
+#page .b2b-summary-details>summary{cursor:pointer;font-weight:700;color:#701c2b}
+#page .b2b-summary-details>.b2b-result{margin-top:12px}
 /* Yalniz Ortak Cizim > B2B hesap girdileri. Diger sistemler ve bagimsiz B2B etkilenmez. */
 #page[data-rafex-common-active="1"][data-rafex-common-system="b2b"].b2b-mode .b2b-input-card{
   width:100%!important;max-width:420px!important;padding:0!important;overflow:auto!important;
@@ -109,7 +112,13 @@ const runtime = String.raw`<style data-rafex-common-b2b-input="v100">
     if(title&&title.textContent!=='Raf Ölçüleri')title.textContent='Raf Ölçüleri';
     if(note&&note.textContent!=='Anında güncellenir')note.textContent='Anında güncellenir';
     var result=body.querySelector('.b2b-result'),accessories=body.querySelector('#b2bAccessoryArea,.b2b-accessory-area');
-    if(result&&accessories&&accessories.nextElementSibling!==result)body.insertBefore(accessories,result);
+    if(result&&accessories){
+      var details=body.querySelector('.b2b-summary-details');
+      if(!details){details=document.createElement('details');details.className='b2b-summary-details';var summary=document.createElement('summary');summary.textContent='Ölçü ve yük özeti';details.append(summary);result.before(details);details.append(result);var rule=body.querySelector('#b2bWidthRule')?.closest('.b2b-special-summary');if(rule)details.append(rule);}
+      var anchor=accessories;
+      ['b2bFootProfile','b2bTraverseType'].forEach(function(id){var recommendation=body.querySelector('#'+id)?.closest('.b2b-recommendation');if(recommendation){if(anchor.nextElementSibling!==recommendation)anchor.after(recommendation);anchor=recommendation;}});
+      if(anchor.nextElementSibling!==details)anchor.after(details);
+    }
   }
   function queue(){if(!frame)frame=requestAnimationFrame(sync);}
   new MutationObserver(queue).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','data-rafex-common-active','data-rafex-common-system']});
@@ -127,7 +136,7 @@ for (const required of [
   '[data-rafex-common-system="b2b"].b2b-mode .b2b-input-card',
   "title.textContent='Raf Ölçüleri'",
   "note.textContent='Anında güncellenir'",
-  "body.insertBefore(accessories,result)",
+  "summary.textContent='Ölçü ve yük özeti'",
   '.m2-views>.m2-export{display:none!important}',
   "replacement.innerHTML='<h3>Raf Ölçüleri</h3><span>Anında güncellenir</span>'",
 ]) {
