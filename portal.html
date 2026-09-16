@@ -2911,9 +2911,8 @@
         const snapshot=m2UndoHistory.pop();if(!snapshot){m2UpdateUndoButton();return;}
         m2LayoutState={...m2LayoutState,...snapshot.layout,drag:null,hover:null,mode:snapshot.layout.mode||"idle"};m2LayoutSymbols=snapshot.symbols;m2UserNotes=snapshot.notes;m2DimensionOffsets=snapshot.dimensionOffsets;m2DimensionFontSizes=snapshot.dimensionFontSizes;m2HiddenSummaryDimensions=new Set(snapshot.hidden);m2VisibleRackDimensions={length:new Set(snapshot.visible.length),depth:new Set(snapshot.visible.depth)};m2PinnedDimensionsByRack=snapshot.pinned;m2PinnedDimensions=m2EmptyPinnedDimensions();m2FreeMeasure=snapshot.freeMeasure;m2SelectedSymbolId=null;m2SelectedNoteId=null;m2SelectedDimensionKey=null;m2ClearMultiSelection();m2ClearAllSelections(`${snapshot.label} geri alındı.`);m2UpdateUndoButton();
       }
-      // Duvar kalınlığı yalnız görseldir; serbest yerleşim ölçüleri ve
-      // çakışma hesabı duvar eksenini esas alır, çizgi kalınlığını saymaz.
-      const m2WallMeasurementInset = 0;
+      // The 2-unit wall stroke extends 1 unit inward; zero clearance touches its inner face.
+      const m2WallMeasurementInset = 1;
       function m2SvgPoint(event) {
         const svg = $("m2LayoutSvg"), rect = svg.getBoundingClientRect();
         return { x: (event.clientX - rect.left) * 1000 / rect.width, y: (event.clientY - rect.top) * 650 / rect.height };

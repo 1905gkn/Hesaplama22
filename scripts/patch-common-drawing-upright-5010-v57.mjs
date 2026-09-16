@@ -35,7 +35,7 @@ const runtime = String.raw`
     var originals=Array.from(group.querySelectorAll(".m2-b2b-plan-upright:not(.rafex-shared-upright-v60)"));
     originals.forEach(function(node){node.classList.remove("rafex-profile-merge-source-v61")});
     group.removeAttribute("data-b2b-profile-gap");
-    if(!rack||!rack.b2bLayout||isMrRack(rack))return;
+    if(!rack||!rack.b2bLayout)return;
     var columns={};
     originals.forEach(function(node){var x=Number(node.getAttribute("x"))||0,key=x.toFixed(2);(columns[key]||(columns[key]=[])).push(node)});
     Object.keys(columns).forEach(function(key){

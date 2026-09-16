@@ -155,9 +155,9 @@ assert.doesNotMatch(portal, /b2b-orthographic-strip|ÜSTTEN GLB/, "B2B ekranınd
 assert.match(portal, /#page\.b2b-mode \{[\s\S]*?--g: #761b2a;[\s\S]*?--g2: #430c15;/, "B2B koyu kırmızı görsel kimlik kullanmalı");
 assert.match(source, /CREATE TABLE IF NOT EXISTS b2b_rack_types/, "B2B raf tipleri için ayrı kalıcı tablo bulunmalı");
 assert.match(source, /path === "\/api\/b2b-types"/, "B2B raf tipi API'si bulunmalı");
-assert.match(portal, /const m2WallMeasurementInset = 0;/, "Serbest yerleşim ölçülerinde duvar çizgi kalınlığı hesaba katılmamalı");
+assert.match(portal, /const m2WallMeasurementInset = 1;/, "Serbest yerleşim ölçülerinde duvar iç yüzü esas alınmalı");
 assert.doesNotMatch(portal, /m2WallHalfThickness/, "Duvarın görsel kalınlığı ölçü ve çakışma hesabına geri bağlanmamalı");
-assert.match(portal, /leftSurface = leftWall \+ m2WallMeasurementInset, rightSurface = rightWall - m2WallMeasurementInset/, "Raf-duvar ölçüleri duvar ekseninden hesaplanmalı");
+assert.match(portal, /leftSurface = leftWall \+ m2WallMeasurementInset, rightSurface = rightWall - m2WallMeasurementInset/, "Raf-duvar ölçüleri duvar iç yüzünden hesaplanmalı");
 assert.match(portal, /\.m2-floor-area \{[^}]*stroke-width: 2;/, "Serbest yerleşimde iki duvar çizgisi birbirine çok yakın görünmeli");
 assert.match(portal, /\.m2-floor-area-inner \{[^}]*stroke-width:\.4;/, "İç ve dış duvar çizgisi arasındaki görsel boşluk en aza indirilmeli");
 assert.match(portal, /id="m2A4Sheet"/, "Yatay A4 Proje Sayfası korunmalı");
@@ -300,7 +300,7 @@ assert.notEqual(rackVisualStart, -1, "Raf dış sınırı hesabı bulunamadı");
 assert.notEqual(wallMeasureStart, -1, "Raf-duvar ölçü hesabı bulunamadı");
 const wallContext = vm.createContext({
   Math,
-  m2WallMeasurementInset: 0,
+  m2WallMeasurementInset: 1,
   m2CombinedRackBounds: (rack) => ({ left:rack.x, right:rack.x+rack.w, top:rack.y, bottom:rack.y+rack.h, cx:rack.x+rack.w/2, cy:rack.y+rack.h/2 }),
   m2LayoutState: {
     points: [{ x: 100, y: 100 }, { x: 900, y: 100 }, { x: 900, y: 550 }, { x: 100, y: 550 }],
@@ -310,10 +310,12 @@ const wallContext = vm.createContext({
 });
 vm.runInContext(`${portal.slice(rackVisualStart, rackVisualEnd)}\n${portal.slice(wallMeasureStart, wallMeasureEnd)}`, wallContext);
 const netWallDistances = wallContext.m2WallMeasurements({ x: 200, y: 200, w: 100, h: 200, angle: 0, plan: { feet: [] } });
-assert.equal(netWallDistances.left.px, 100, "Sol raf-duvar ölçüsü görsel duvar kalınlığını düşmemeli");
-assert.equal(netWallDistances.right.px, 600, "Sağ raf-duvar ölçüsü görsel duvar kalınlığını düşmemeli");
-assert.equal(netWallDistances.top.px, 100, "Üst raf-duvar ölçüsü görsel duvar kalınlığını düşmemeli");
-assert.equal(netWallDistances.bottom.px, 150, "Alt raf-duvar ölçüsü görsel duvar kalınlığını düşmemeli");
+assert.equal(netWallDistances.left.px, 99, "Sol raf-duvar ölçüsü duvarın iç yüzünü esas almalı");
+assert.equal(netWallDistances.right.px, 599, "Sağ raf-duvar ölçüsü duvarın iç yüzünü esas almalı");
+assert.equal(netWallDistances.top.px, 99, "Üst raf-duvar ölçüsü duvarın iç yüzünü esas almalı");
+assert.equal(netWallDistances.bottom.px, 149, "Alt raf-duvar ölçüsü duvarın iç yüzünü esas almalı");
+const flushWall = wallContext.m2WallMeasurements({x:101,y:101,w:798,h:448,angle:0,plan:{feet:[]}});
+for(const side of ['left','right','top','bottom'])assert.equal(flushWall[side].px,0,'Zero clearance touches the inner wall face');
 assert.match(portal, /const sy = \(z\) => rackHeightMm - z/, "Yan görünüşte kot arttıkça çizim yukarı gitmeli");
 assert.match(portal, /const floorY = sy\(0\)/, "Yan görünüş zemini sıfır kotunda ve altta olmalı");
 assert.match(portal, /data-side-auto-framing="last-pallet-top-safe"/, "Yan görünüş son paletin üstünü güvenli kadrajda tutmalı");
