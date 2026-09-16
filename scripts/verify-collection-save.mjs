@@ -9,6 +9,17 @@ w.rafexCollectionSet(0,'load','650');w.rafexCollectionSave(0);assert.equal(t.app
 w.rafexCollectionSet(0,'height','');assert.equal(t.applied().floors[0].height,500);w.rafexCollectionSave(0);assert.equal(t.draft().floors[0].height,500);const card=t.card(t.applied().floors[0],0);assert.match(card,/Toplama Katı 1/);assert.ok(!/<input|<select/.test(card));assert.equal(t.applied().floors[0].height,500);
 w.rafexCollectionAddFloor();assert.equal(t.plan().floors.length,1);w.rafexCollectionRemove();assert.equal(t.plan().floors.length,0);
 console.log('Collection draft/save, required fields and committed geometry verified');
+// Legacy records retain geometry while their missing load is completed.
+w.rafexCollectionAdd();w.rafexCollectionSet(0,'load',650);w.rafexCollectionSave(0);
+t.applied().floors[0].load=0;t.draft().floors[0].load=0;
+assert.match(t.card(t.applied().floors[0],0),/Yük bilgisi eksik/);
+assert.equal(w.rafexCollectionFootLoads().missing,true);
+ctx.document.getElementById=()=>({value:'700'});
+w.rafexCollectionCompleteLoad(0);
+assert.equal(w.rafexCollectionFootLoads().load,700);
+assert.equal(w.rafexCollectionFootLoads().firstSupportHeight,575);
+assert.equal(w.rafexCollectionFootLoads().missing,false);
+ctx.document.getElementById=()=>null;w.rafexCollectionRemove();
 w.rafexAccessoryAdd('tray');w.rafexAccessoryToggleLevel(0,1);assert.equal(w.rafexAccessoryState()[0].levels.length,0);
 w.rafexAccessorySetTraySelection(0,'load','500',true);
 w.rafexAccessorySetTraySelection(0,'trayWidth','200');

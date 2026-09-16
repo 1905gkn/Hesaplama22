@@ -127,6 +127,7 @@
   }
 
   function savedCollectionCard(f,index){
+    if(!(Number(f.load)>0))return `<section class="b2b-collection-floor" aria-label="Toplama Katı ${index+1} yük eksik"><b>Toplama Katı ${index+1} · Yük bilgisi eksik</b><p>Eski kayıtta kat yükü bulunmuyor. Ayak hesabını tamamlamak için girin.</p><label>Kat yükü (kg)<input id="collectionMissingLoad${index}" type="number" min="1" max="1500" required></label><button type="button" onclick="rafexCollectionCompleteLoad(${index})">Yükü Tamamla</button><small role="alert">${collection.floors[index]?.error||''}</small></section>`;
     const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const product=String(f.traverse).replace(/^Kutu(\d+)\|/,'Kutu $1×50 / ').replace('|',' / ')+' mm';
     return `<section class="b2b-collection-floor b2b-collection-saved" aria-label="Toplama Katı ${index+1} kaydedildi" style="padding:10px"><div class="b2b-collection-floor-head"><b>Toplama Katı ${index+1}</b><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><button class="b2b-accessory-remove" type="button" aria-label="Toplama Katı ${index+1} kaldır" onclick="rafexCollectionRemoveFloor(${index})">Kaldır</button><span style="font-size:9px;color:#365b46">✓ Kaydedildi</span></div></div><div style="margin-top:6px;font-size:10px;line-height:1.5;color:#5f4b50;overflow-wrap:anywhere">${esc(product)} · ST37<br>${Number(f.load)} kg · Kat yüksekliği ${Number(f.height)} mm<br>Tava ${Number(f.trayWidth)} × ${Number(f.trayThickness)} mm</div></section>`;
@@ -202,6 +203,19 @@
     f.error='';f.savedMessage='Kat görsele eklendi.';notify();render();
   };
   window.rafexTrayPlan = trayPlan;
+  window.rafexCollectionFootLoads=()=>{
+    const plan=collectionPlan();
+    return {enabled:appliedCollection.enabled&&plan.floors.length>0,load:plan.floors.reduce((sum,f)=>sum+Math.max(0,Number(f.load)||0),0),firstSupportHeight:plan.floors.length?plan.floors[0].bottom+plan.floors[0].zsHeight:0,missing:plan.floors.some(f=>!(Number(f.load)>0))};
+  };
+  window.rafexCollectionCompleteLoad=index=>{
+    const saved=appliedCollection.floors[index];if(!saved||Number(saved.load)>0)return;
+    const load=Number(document.getElementById('collectionMissingLoad'+index)?.value);
+    collection.floors[index]={...saved,load,selectionMode:'auto',traySelectionMode:'auto'};
+    appliedCollection.floors[index]=null;
+    window.rafexCollectionSave(index);
+    if(!appliedCollection.floors[index])appliedCollection.floors[index]=saved;
+    render();notify();
+  };
 
   function hook(name, factory) {
     const current = window[name];
@@ -332,6 +346,11 @@
   }
 
   style();
+  document.addEventListener('click',event=>{
+    const button=event.target?.closest?.('button');
+    if(!button||!['m2SaveRackButton','m2ProjectSaveButton'].includes(button.id))return;
+    if(document.getElementById('b2bAccessoryArea')&&window.rafexCollectionFootLoads().missing){event.preventDefault();event.stopImmediatePropagation();alert('Toplama katlarında yük bilgisi eksik. Önce eksik kat yüklerini tamamlayın.');}
+  },true);
   installHooks();
   installViewerAccessoryPlacementFix();
   setTimeout(render, 0);
