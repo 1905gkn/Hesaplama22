@@ -1,5 +1,6 @@
 import fs from 'node:fs';
-import {mergeRackCatalog} from './stable-rack-catalog.mjs';
+import {mergeRackCatalog,catalogRecordFingerprint} from './stable-rack-catalog.mjs';
+import {namespaceSvgCopy} from './namespace-svg-copy.mjs';
 export function transform(html){
   if(html.includes('data-rafex-stable-catalog'))return html;
   const replace=(a,b)=>{if(!html.includes(a))throw Error('Catalog anchor missing: '+a.slice(0,100));html=html.replace(a,b);};
@@ -22,7 +23,7 @@ export function transform(html){
       });
       catalog=records;catalogReady=true;catalogLoadedAt=Date.now();
       const local=window.rafexProjectTypesV133;
-      const merged=window.rafexMergeRackCatalog(local||[],records);
+      const merged=window.rafexMergeRackCatalog(local||[],records,window.rafexProjectIdentityV133?.excludedRackTypes||[]);
       if(local)window.rafexProjectTypesV133=merged.entries;else catalog=merged.entries;
       reconcileCatalogRacks(merged);
       installCatalog();status(m2SavedRackTypes.length+' kayıtlı raf tipi yüklendi.');return m2SavedRackTypes;
@@ -64,7 +65,13 @@ export function transform(html){
   // Remove the earlier catalog's independent import path. The final controller
   // handles the single endpoint and protects the active project from late replies.
   replace('  async function refreshUnified(force=false){','  async function refreshUnified(force=false){\n    if(isFree()&&window.__rafexStableCatalog)return window.m2RefreshSavedRackTypes();');
-  const script='<script data-rafex-stable-catalog>window.__rafexStableCatalog=true;window.rafexMergeRackCatalog='+mergeRackCatalog.toString()+';</script>';
+  const deletion="window.rafexProjectTypesV133=window.rafexProjectTypesV133.filter(item=>item.id!==entry.id);";
+  if(!html.includes(deletion))throw Error('Project catalog deletion missing');
+  html=html.replaceAll(deletion,`const identity=window.rafexProjectIdentityV133;if(identity){identity.excludedRackTypes=Array.from(new Set([...(identity.excludedRackTypes||[]),window.rafexCatalogFingerprint(entry)]));}window.rafexProjectTypesV133=window.rafexProjectTypesV133.filter(item=>item.id!==entry.id);`);
+  html=html.replaceAll('m2SavedRackTypes=structuredClone(window.rafexProjectTypesV133);','m2SavedRackTypes=window.rafexCatalogView(window.rafexProjectTypesV133);');
+  html=html.replaceAll('m2SavedRackTypes=structuredClone(window.rafexProjectTypesV133||catalog);','m2SavedRackTypes=window.rafexCatalogView(window.rafexProjectTypesV133||catalog);');
+  replace("clone.setAttribute('aria-label','Konsol kollu serbest yerleşim çıktısı');right.appendChild(clone)","clone.setAttribute('aria-label','Konsol kollu serbest yerleşim çıktısı');window.rafexNamespaceSvgCopy(clone,'konsol-output-'+(++window.rafexSvgCopySequence));right.appendChild(clone)");
+  const script='<script data-rafex-stable-catalog>'+catalogRecordFingerprint.toString()+';window.rafexCatalogFingerprint=catalogRecordFingerprint;window.rafexSvgCopySequence=0;window.rafexNamespaceSvgCopy='+namespaceSvgCopy.toString()+';window.__rafexStableCatalog=true;window.rafexMergeRackCatalog='+mergeRackCatalog.toString()+`;(()=>{const cache=new WeakMap();window.rafexCatalogView=function(source){let old=cache.get(source);if(!old||old.refs.length!==source.length||source.some((e,i)=>old.refs[i]!==e)){old={refs:source.slice(),view:structuredClone(source)};cache.set(source,old);}return old.view;};})();</script>`;
   const first=html.indexOf('<script');return html.slice(0,first)+script+html.slice(first);
 }
 if(process.argv[1]?.replaceAll('\\','/').endsWith('/patch-stable-rack-catalog.mjs')){

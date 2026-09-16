@@ -53,7 +53,7 @@
       project=structuredClone(project);
       if(asCopy||!project.payload.projectIdentity){
         const uuid=crypto.randomUUID();
-        project.payload.projectIdentity={uuid,independent:true,createdAt:new Date().toISOString(),displayNumber:asCopy||!project.serial_no?'P-'+uuid.replaceAll('-','').slice(0,12).toUpperCase():'K-'+String(project.serial_no).padStart(4,'0')};
+        project.payload.projectIdentity={excludedRackTypes:project.payload.projectIdentity?.excludedRackTypes||[],uuid,independent:true,createdAt:new Date().toISOString(),displayNumber:asCopy||!project.serial_no?'P-'+uuid.replaceAll('-','').slice(0,12).toUpperCase():'K-'+String(project.serial_no).padStart(4,'0')};
       }
     }
     const isolated=project?.payload?.projectIdentity?.independent;

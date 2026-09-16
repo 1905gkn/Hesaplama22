@@ -141,22 +141,25 @@ const runtime=String.raw`
     frag.appendChild(hit);frag.appendChild(shell);
     group.dataset.rafexKonsolPlan='v38';
     group.replaceChildren(frag);
-    window.rafexCommonSingleLineLetterV58?.decorate?.();
+    return true;
   }
   function process(){
     raf=0;if(working)return;working=true;
     try{
       const layer=document.getElementById('m2LayoutContent');if(!layer)return;
       const racks=rackList();
+      const byId=new Map(racks.map(rack=>[Number(rack.id),rack]));
+      let changed=false;
       layer.querySelectorAll('[data-rack]').forEach((group)=>{
-        const id=Number(group.dataset.rack),rack=racks.find((item)=>Number(item?.id)===id);
+        const id=Number(group.dataset.rack),rack=byId.get(id);
         if(!rack||!isKonsol(rack,group))return;
-        drawPlan(group,rack);
+        if(drawPlan(group,rack))changed=true;
       });
+      if(changed)window.rafexCommonSingleLineLetterV58?.decorate?.();
     }finally{working=false}
   }
   function schedule(){if(!raf)raf=requestAnimationFrame(process)}
-  const observer=new MutationObserver((records)=>{if(working)return;if(records.some((r)=>r.addedNodes?.length||r.removedNodes?.length))schedule()});
+  const observer=new MutationObserver((records)=>{if(working)return;if(records.some(r=>Array.from(r.addedNodes||[]).some(n=>n.nodeType===1&&(n.id==='m2LayoutContent'||n.matches?.('[data-rack]')||n.querySelector?.('#m2LayoutContent,[data-rack]')))))schedule()});
   function boot(){observer.observe(document.body||document.documentElement,{childList:true,subtree:true});schedule()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
   window.rafexRefreshKonsolFreePlanV38=schedule;

@@ -1,11 +1,14 @@
 // Project copies keep their own IDs; registry identity survives every import.
-export function mergeRackCatalog(current, incoming) {
+export function catalogRecordFingerprint(e) {
+  const ignored=new Set(['rafexCatalogKey','rafexOriginalTypeName','rafexGlobalTypeLetter','rafexSystemLabel','rafexSystem','typeName','typeColor','name','logId','createdAt','projectUuid']);
+  const canonical=value=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().filter(k=>!ignored.has(k)).map(k=>[k,canonical(value[k])])):value;
+  return JSON.stringify([e.__rafexSystem||e.system||e.drawing?.rafexSystem||e.drawing?.systemType||'b2b',canonical(e.__rafexSnapshot||e.drawing||{})]);
+}
+export function mergeRackCatalog(current, incoming, excluded=[]) {
   const clone=value=>JSON.parse(JSON.stringify(value));
   const system=e=>e.__rafexSystem||e.system||e.drawing?.rafexSystem||e.drawing?.systemType||'b2b';
   const key=e=>system(e)+':'+e.id;
-  const ignored=new Set(['rafexCatalogKey','rafexOriginalTypeName','rafexGlobalTypeLetter','rafexSystemLabel','rafexSystem','typeName','typeColor','name','logId','createdAt','projectUuid']);
-  const canonical=value=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().filter(k=>!ignored.has(k)).map(k=>[k,canonical(value[k])])):value;
-  const fingerprint=e=>JSON.stringify([system(e),canonical(e.__rafexSnapshot||e.drawing||{})]);
+  const fingerprint=catalogRecordFingerprint;
   const letter=n=>{let s='';for(;n;n=Math.floor((n-1)/26))s=String.fromCharCode(65+(n-1)%26)+s;return s;};
   const result=[],byOrigin=new Map(),byContent=new Map(),names=new Set();
   const aliases={};
@@ -24,6 +27,6 @@ export function mergeRackCatalog(current, incoming) {
     result.push(entry);byContent.set(fp,entry);if(origin)byOrigin.set(origin,entry);
   }
   (current||[]).forEach(e=>add(e,false));
-  (incoming||[]).forEach(e=>add(e,true));
+  (incoming||[]).filter(e=>!excluded.includes(fingerprint(e))).forEach(e=>add(e,true));
   return {entries:result,aliases};
 }
