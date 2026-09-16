@@ -26,6 +26,8 @@ html=html
 const runtime=String.raw`
 <style data-rafex-konsol-free-plan="v38">
 #m2LayoutContent [data-rack][data-rafex-konsol-plan="v38"] .rafex-konsol-plan-footprint{pointer-events:none}
+#m2LayoutContent [data-rafex-konsol-plan="v38"] .m2-layout-rack{fill:transparent!important;stroke:none!important}
+#m2LayoutContent [data-rafex-konsol-plan="v38"] .m2-layout-rack.selected{stroke:#214c3b!important;stroke-dasharray:3 2;fill:none!important}
 </style>
 <script data-rafex-konsol-free-plan="v38">
 (()=>{
@@ -87,41 +89,59 @@ const runtime=String.raw`
     const count=countOf(rack),side=sideOf(rack);
     const frag=document.createDocumentFragment();
     const shell=node('g',{'class':'rafex-konsol-plan-footprint','pointer-events':'none'});
-    const minor=Math.max(.8,Math.min(w,h)*.055),major=Math.max(1.2,Math.min(w,h)*.085);
-    shell.appendChild(node('rect',{x:box.x,y:box.y,width:w,height:h,rx:Math.min(w,h)*.06,fill:'#005387', 'fill-opacity':'.035',stroke:'#005387','stroke-opacity':'.35','stroke-width':minor*.55}));
-    if(wide){
-      const axisY=side==='double'?box.y+h/2:box.y+Math.max(major*1.2,h*.12);
-      const edgeA=box.y+Math.max(minor,h*.035),edgeB=box.y+h-Math.max(minor,h*.035);
-      shell.appendChild(node('line',{x1:box.x,y1:axisY,x2:box.x+w,y2:axisY,stroke:'#005387','stroke-width':major,'stroke-linecap':'square'}));
-      for(let i=0;i<count;i++){
-        const x=box.x+(count===1?w/2:(w*i/(count-1)));
-        const armEnd=side==='double'?edgeB:edgeB;
-        shell.appendChild(node('line',{x1:x,y1:axisY,x2:x,y2:armEnd,stroke:'#E1A100','stroke-width':minor,'stroke-linecap':'square'}));
-        if(side==='double')shell.appendChild(node('line',{x1:x,y1:axisY,x2:x,y2:edgeA,stroke:'#E1A100','stroke-width':minor,'stroke-linecap':'square'}));
-        shell.appendChild(node('rect',{x:x-major*.7,y:axisY-major*.7,width:major*1.4,height:major*1.4,fill:'#005387',rx:major*.15}));
-        shell.appendChild(node('line',{x1:x-minor*.6,y1:armEnd,x2:x+minor*.6,y2:armEnd,stroke:'#E25303','stroke-width':minor*.8,'stroke-linecap':'round'}));
-        if(side==='double')shell.appendChild(node('line',{x1:x-minor*.6,y1:edgeA,x2:x+minor*.6,y2:edgeA,stroke:'#E25303','stroke-width':minor*.8,'stroke-linecap':'round'}));
-      }
-    }else{
-      const axisX=side==='double'?box.x+w/2:box.x+Math.max(major*1.2,w*.12);
-      const edgeA=box.x+Math.max(minor,w*.035),edgeB=box.x+w-Math.max(minor,w*.035);
-      shell.appendChild(node('line',{x1:axisX,y1:box.y,x2:axisX,y2:box.y+h,stroke:'#005387','stroke-width':major,'stroke-linecap':'square'}));
-      for(let i=0;i<count;i++){
-        const y=box.y+(count===1?h/2:(h*i/(count-1)));
-        shell.appendChild(node('line',{x1:axisX,y1:y,x2:edgeB,y2:y,stroke:'#E1A100','stroke-width':minor,'stroke-linecap':'square'}));
-        if(side==='double')shell.appendChild(node('line',{x1:axisX,y1:y,x2:edgeA,y2:y,stroke:'#E1A100','stroke-width':minor,'stroke-linecap':'square'}));
-        shell.appendChild(node('rect',{x:axisX-major*.7,y:y-major*.7,width:major*1.4,height:major*1.4,fill:'#005387',rx:major*.15}));
-        shell.appendChild(node('line',{x1:edgeB,y1:y-minor*.6,x2:edgeB,y2:y+minor*.6,stroke:'#E25303','stroke-width':minor*.8,'stroke-linecap':'round'}));
-        if(side==='double')shell.appendChild(node('line',{x1:edgeA,y1:y-minor*.6,x2:edgeA,y2:y+minor*.6,stroke:'#E25303','stroke-width':minor*.8,'stroke-linecap':'round'}));
+    const saved=savedFor(rack),d=rack.drawing||saved?.drawing||{};
+    const spec={...(d.spec||{}),...(d.konsol||{}),...(rack.spec||{}),...(rack.konsol||{})};
+    const length=wide?w:h,depth=wide?h:w;
+    const widthMm=num(rack.widthMm,spec.totalWidth,(count-1)*num(spec.spacing,1500)+130);
+    const scale=length/widthMm;
+    const foot=Math.min(depth*.15,130*scale),armWidth=Math.min(depth*.06,70*scale);
+    const span=Math.min(length-foot,(count-1)*num(spec.spacing,1500)*scale);
+    const first=(length-span)/2,axis=side==='double'?depth/2:foot/2;
+    const steel=node('g',{'class':'rafex-konsol-plan-steel',transform:wide?'translate('+box.x+' '+box.y+')':'translate('+box.x+' '+box.y+') matrix(0 1 1 0 0 0)'});
+    shell.appendChild(steel);
+    // Uprights meet the arms directly; no decorative longitudinal back strip.
+    for(let i=0;i<count;i++){
+      const x=first+span*i/(count-1);
+      steel.appendChild(node('rect',{x:x-armWidth/2,y:side==='double'?0:axis,width:armWidth,height:side==='double'?depth:depth-axis,fill:spec.armColor==='ral2004'?'#E25303':'#E1A100'}));
+      steel.appendChild(node('rect',{x:x-foot/2,y:axis-foot/2,width:foot,height:foot,fill:'#005387'}));
+    }
+    const load=spec.loadType||'profile';
+    const rows=spec.levelRows||spec.levelsData;
+    const hasLoad=!Array.isArray(rows)||rows.some(row=>Number(row.load)>0);
+    const productLength=Math.min(length,num(spec.productLength,widthMm)*scale);
+    function goods(a,b){
+      const pad=Math.min(30*scale,(b-a)*.05),height=b-a-2*pad;
+      if(height<=0)return;
+      const x=(length-productLength)/2;
+      const goods=node('g',{'class':'rafex-konsol-plan-product','data-load-type':load});
+      steel.appendChild(goods);
+      if(load==='profile'){
+        for(let j=0;j<5;j++)goods.appendChild(node('rect',{x,y:a+pad+j*height/5,width:productLength,height:height*.14,fill:'#aeb7bc',stroke:'#65757d','stroke-width':Math.min(.35,10*scale)}));
+      }else if(load==='pallet'){
+        const bays=Math.max(1,Math.ceil(productLength/(1200*scale)));
+        for(let j=0;j<bays;j++){
+          const px=x+j*productLength/bays,pw=productLength/bays;
+          goods.appendChild(node('rect',{x:px+pad,y:a+pad,width:Math.max(.01,pw-2*pad),height,fill:'#c99648',stroke:'#79551f','stroke-width':Math.min(.35,10*scale)}));
+          goods.appendChild(node('line',{x1:px+pw/2,y1:a+pad,x2:px+pw/2,y2:b-pad,stroke:'#ad7e35','stroke-width':Math.min(.45,15*scale)}));
+        }
       }
     }
+    if(hasLoad&&load!=='unpacked'){
+      goods(axis+foot/2,depth);
+      if(side==='double')goods(0,axis-foot/2);
+    }
+    // Reuse B2B's letter decorator and its size/contrast controls.
+    const label=node('text',{'class':'m2-rack-name',x:box.x+w/2,y:box.y+h/2,'text-anchor':'middle','dominant-baseline':'central'});
+    label.textContent=String(rack.typeName||saved?.name||rack.name||'');
+    shell.appendChild(label);
     // Keep the standard hit surface used by selection, dragging and drag caches.
     const hit=group.querySelector('.m2-layout-rack')||node('rect',{'class':'m2-layout-rack'});
     for(const [key,value] of Object.entries({x:box.x,y:box.y,width:w,height:h,fill:'transparent',stroke:'none','pointer-events':'all'}))hit.setAttribute(key,String(value));
-    hit.style.fill='transparent';hit.style.stroke='none';hit.style.pointerEvents='all';
+    hit.style.setProperty('fill','transparent','important');hit.style.setProperty('stroke','none','important');hit.style.pointerEvents='all';
     frag.appendChild(hit);frag.appendChild(shell);
     group.dataset.rafexKonsolPlan='v38';
     group.replaceChildren(frag);
+    window.rafexCommonSingleLineLetterV58?.decorate?.();
   }
   function process(){
     raf=0;if(working)return;working=true;
