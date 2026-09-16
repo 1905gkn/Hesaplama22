@@ -31,6 +31,13 @@ if(process.argv[2]){
  const runtime=html.match(/<script data-rafex-stable-catalog>([\s\S]*?)<\/script>/)[1];
  let clones=0;const context={window:{},structuredClone(value){clones++;return structuredClone(value);}};
  vm.runInNewContext(runtime,context);
+ context.window.rafexProjectIdentityV133={};
+ context.window.rafexProjectTypesV133=[row,{...row,system:'b2b'}];
+ context.entry=row;
+ const deletion=html.match(/const identity=window.rafexProjectIdentityV133;if\(identity\)[^\n]*?filter\(item=>[^;]+;/)[0];
+ vm.runInNewContext(deletion,context);
+ assert.equal(context.window.rafexProjectTypesV133.length,1,'Same numeric ID in another system must survive deletion');
+ assert.equal(context.window.rafexProjectTypesV133[0].system,'b2b');
  const data=[row],one=context.window.rafexCatalogView(data);
  for(let i=0;i<100;i++)assert.equal(context.window.rafexCatalogView(data),one);
  assert.equal(clones,1);one[0].name='local';assert.equal(data[0].name,'A');
