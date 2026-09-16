@@ -1,11 +1,11 @@
 (function(){
  if(window.rafexKonsolLevels)return;
- let manual=null,first=600,dialog=null;
+ let manual=null,first=1000,dialog=null;
  const el=id=>document.getElementById(id),num=(id,f)=>{const n=Number(el(id)?.value);return Number.isFinite(n)?n:f;};
  function defaults(){return Array.from({length:Math.max(1,num('konsolLevels',4))},(_,i)=>({distance:i?num('konsolLevelGap',1000):num('konsolFirstLevel',first),load:num('femUnitLoad',1000),depth:num('konsolArmLength',1000)}));}
  function snapshot(){const rows=defaults();if(manual)rows.forEach((r,i)=>{if(manual[i])rows[i]={...manual[i]};});rows[0].distance=num('konsolFirstLevel',first);return {firstLevel:rows[0].distance,levelRows:rows,manualLevels:!!manual};}
  function refresh(){first=num('konsolFirstLevel',first);if(manual?.[0])manual[0].distance=first;document.dispatchEvent(new Event('rafex-konsol-levels-change'));const note=el('konsolLevelModeNote');if(note)note.textContent=manual?'Kat ölçüleri manuel düzenlendi.':'Diğer katlar genel mesafe, yük ve derinlik değerlerini kullanır.';}
- function load(spec){if(el('konsolHeightMode'))el('konsolHeightMode').value=spec?.heightMode||'auto';if(el('konsolHeight')&&spec?.height)el('konsolHeight').value=String(spec.height);manual=spec?.manualLevels&&Array.isArray(spec.levelRows)?spec.levelRows.map(r=>({...r})):null;first=Number(spec?.firstLevel)||600;if(el('konsolFirstLevel'))el('konsolFirstLevel').value=String(first);refresh();}
+ function load(spec){if(el('konsolHeightMode'))el('konsolHeightMode').value=spec?.heightMode||'auto';if(el('konsolHeight')&&spec?.height)el('konsolHeight').value=String(spec.height);manual=spec?.manualLevels&&Array.isArray(spec.levelRows)?spec.levelRows.map(r=>({...r})):null;first=Number(spec?.firstLevel)||1000;if(el('konsolFirstLevel'))el('konsolFirstLevel').value=String(first);refresh();}
  function open(){
   dialog?.remove();dialog=document.createElement('dialog');dialog.id='konsolLevelsDialog';dialog.setAttribute('aria-label','Konsol katlarını özelleştir');
   dialog.innerHTML='<h3>Katları özelleştir</h3><p>İlk mesafe zeminden ilk kolun üst yüzeyine kadardır. Diğer mesafeler, bir alt kolun üst yüzeyinden bu kolun üst yüzeyine ölçülür. Yük, ilgili katın toplam yüküdür; derinlik kol uzunluğudur.</p><div class="kl-scroll"><table><thead><tr><th>Kat</th><th>Mesafe (mm)</th><th>Kat yükü (kg)</th><th>Kol derinliği (mm)</th></tr></thead><tbody></tbody></table></div><p role="alert" class="kl-error"></p><footer><button type="button" data-action="auto">Otomatik düzene dön</button><button type="button" data-action="cancel">Vazgeç</button><button type="button" data-action="apply">Uygula</button></footer>';
