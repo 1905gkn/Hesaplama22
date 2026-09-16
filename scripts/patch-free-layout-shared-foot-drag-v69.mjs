@@ -84,9 +84,11 @@ const cornerHelpers = `      function m2FreeAreaCenter(){
       function m2SmoothFreeGroupTranslation(origins,targetDx,targetDy){
         if(m2FreeGroupTranslationValid(origins,targetDx,targetDy))return{dx:targetDx,dy:targetDy,exact:true};
         const seeds=[],candidates=[];
-        if(m2FreeGroupTranslationValid(origins,0,0))seeds.push({dx:0,dy:0});
+        const first=origins[0],member=first&&m2LayoutState.racks.find(item=>item.id===first.id);
+        const current={dx:member?member.x-first.x:0,dy:member?member.y-first.y:0};
+        if(m2FreeGroupTranslationValid(origins,current.dx,current.dy))seeds.push(current);
         const boxes=origins.map((origin)=>{const member=m2LayoutState.racks.find((item)=>item.id===origin.id);return member?m2RackBounds(member,origin.x,origin.y,member.angle):null;}).filter(Boolean);
-        if(boxes.length){
+        if(!seeds.length&&boxes.length){
           const area=m2FreeAreaCenter(),left=Math.min(...boxes.map((box)=>box.left)),right=Math.max(...boxes.map((box)=>box.right)),top=Math.min(...boxes.map((box)=>box.top)),bottom=Math.max(...boxes.map((box)=>box.bottom)),center={dx:area.x-(left+right)/2,dy:area.y-(top+bottom)/2};
           if(m2FreeGroupTranslationValid(origins,center.dx,center.dy))seeds.push(center);
         }

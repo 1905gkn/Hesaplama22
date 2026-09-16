@@ -3712,16 +3712,19 @@
       }
       function m2SmoothGroupTranslation(origins, targetDx, targetDy) {
         if (m2GroupTranslationValid(origins, targetDx, targetDy)) return { dx:targetDx, dy:targetDy, exact:true };
-        const candidates = [];
+        const first=origins[0],member=first&&m2LayoutState.racks.find(item=>item.id===first.id);
+        const startDx=member?member.x-first.x:0,startDy=member?member.y-first.y:0;
+        const candidates = [{dx:startDx,dy:startDy,exact:false}];
         const approach = (endDx, endDy) => {
           let low = 0, high = 1;
           for (let i = 0; i < 20; i++) {
             const mid = (low + high) / 2;
-            if (m2GroupTranslationValid(origins, endDx * mid, endDy * mid)) low = mid; else high = mid;
+            if (m2GroupTranslationValid(origins, startDx+(endDx-startDx)*mid, startDy+(endDy-startDy)*mid)) low = mid; else high = mid;
           }
-          if (Math.hypot(endDx * low, endDy * low) > .001) candidates.push({ dx:endDx * low, dy:endDy * low, exact:false });
+          const dx=startDx+(endDx-startDx)*low,dy=startDy+(endDy-startDy)*low;
+          if(m2GroupTranslationValid(origins,dx,dy))candidates.push({dx,dy,exact:false});
         };
-        approach(targetDx,targetDy); approach(targetDx,0); approach(0,targetDy);
+        approach(targetDx,targetDy); approach(targetDx,startDy); approach(startDx,targetDy);
         candidates.sort((a,b)=>Math.hypot(a.dx-targetDx,a.dy-targetDy)-Math.hypot(b.dx-targetDx,b.dy-targetDy));
         return candidates[0] || { dx:0, dy:0, exact:false };
       }

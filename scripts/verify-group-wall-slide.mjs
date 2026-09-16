@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const source=fs.readFileSync('portal.html','utf8');
+const code=source.slice(source.indexOf('      function m2SmoothGroupTranslation('),source.indexOf('      function m2ClampGroupTranslationToCanvas('));
+const origins=[{id:1,x:100,y:100},{id:2,x:120,y:100}];
+const racks=origins.map(o=>({...o,x:o.x-99,y:o.y-50}));
+const context={m2LayoutState:{racks},m2GroupTranslationValid:(o,dx,dy)=>dx>=-99&&dx<=500&&dy>=-99&&dy<=500};
+vm.createContext(context);vm.runInContext(code,context);
+let next=context.m2SmoothGroupTranslation(origins,-120,-80);
+assert(Math.abs(next.dx+99)<.001,'Stay against inner wall');assert(Math.abs(next.dy+80)<.001,'Slide along wall without jumping back to drag origin');
+racks.forEach((r,i)=>{r.x=origins[i].x+next.dx;r.y=origins[i].y+next.dy});
+next=context.m2SmoothGroupTranslation(origins,-120,-120);
+assert(next.dx>=-99&&next.dy>=-99,'Never cross inner wall');assert(Math.abs(next.dy+99)<.01,'Reach corner');
+racks.forEach((r,i)=>{r.x=origins[i].x+next.dx;r.y=origins[i].y+next.dy});
+next=context.m2SmoothGroupTranslation(origins,-80,-80);assert.equal(next.exact,true,'Can pull away from corner');
+console.log('PASS: group slides along wall, reaches corner and pulls away without changing member spacing');
