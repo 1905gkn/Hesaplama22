@@ -1,3 +1,4 @@
+import {evaluateKonsolLevels,validateKonsolLevels} from './konsol-level-model.mjs';
 // Port of Gelismiş Statik Analiz F16:F19. Units: N, mm, MPa.
 // Source formulas and rounding are preserved; weak-axis restraint is fixed at 2000 mm.
 export function evaluateKonsolWorkbook(u,a,s) {
@@ -37,14 +38,15 @@ export function recommendKonsolWorkbook(profiles,s) {
   if(![s.arm,s.gap,s.levels,s.load,s.count].every(v=>Number.isFinite(v)&&v>0))return {valid:false,reason:'Yük, kol boyu, kat aralığı ve taşıyan kol adedini doldurun.'};
   if(s.sides!==1)return {valid:false,reason:'Bu Excel tek taraflı yük durumunu hesaplıyor. Çift taraflı raf için doğrulanmış yük durumu gerekli.'};
   if(!Number.isInteger(s.levels)||s.levels<2||s.levels>12)return {valid:false,reason:'Kaynak hesap bu uygulamada 2–12 kol katı için kullanılır. Tek kat için kaynak dönme formülü ayrıca doğrulanmalı.'};
+  if(s.levelRows){const error=validateKonsolLevels(s.levelRows,s.levels);if(error)return {valid:false,reason:error};}
   const candidates=[];
   for(const u of profiles.filter(p=>p.name.startsWith('IPE ')))for(const a of profiles.filter(p=>p.name.startsWith('NPI '))) {
     // Same elevations as the existing 3D viewer: base profile top + n net gaps.
     const first=u.heightMm+s.gap-a.heightMm/2;
     const height=u.heightMm+s.gap*(s.levels+1);
     if(first<=0||s.gap<=a.heightMm)continue;
-    const result=evaluateKonsolWorkbook(u,a,{...s,first,height,load:s.load/s.count});
-    if(result.safe)candidates.push({u:{...u,key:u.name.toLowerCase().replaceAll(' ','')},a:{...a,key:a.name.toLowerCase().replaceAll(' ','')},...result,height,first});
+    const result=s.levelRows?evaluateKonsolLevels(u,a,s):evaluateKonsolWorkbook(u,a,{...s,first,height,load:s.load/s.count});
+    if(result.safe)candidates.push({u:{...u,key:u.name.toLowerCase().replaceAll(' ','')},a:{...a,key:a.name.toLowerCase().replaceAll(' ','')},...result,height:result.height||height,first:result.first||first});
   }
   candidates.sort((x,y)=>x.mass-y.mass||x.u.heightMm-y.u.heightMm||x.a.heightMm-y.a.heightMm);
   return {valid:!!candidates.length,choice:candidates[0]||null,reason:candidates.length?'':'Excel kapasite ve sehim kontrollerini sağlayan ayak–kol çifti bulunamadı.',...s,armLoad:s.load/s.count};

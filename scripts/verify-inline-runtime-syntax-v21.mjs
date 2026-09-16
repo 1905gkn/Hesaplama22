@@ -34,6 +34,8 @@ await import(`./patch-konsol-viewer-top-v8.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-viewer-product-support-v12.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-viewer-load-types-v15.mjs?build=${Date.now()}`);
 
+{const {transform}=await import('./patch-konsol-viewer-levels.mjs');const fs=await import('node:fs');const p='client/konsol-viewer.entry.js';fs.writeFileSync(p,transform(fs.readFileSync(p,'utf8')));}
+
 // Konsol ana ekranı: exact SSI SCHÄFER KRS + kullanıcı akışı + FEM 10.2.09 ön kontrol katmanı.
 await import(`./patch-konsol-cantilever-v2.mjs?build=${Date.now()}`);
 await import(`./patch-konsol-request-v3.mjs?build=${Date.now()}`);
