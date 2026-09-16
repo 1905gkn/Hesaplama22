@@ -50,14 +50,10 @@ const nearestAllPairs = `  function allPairs(){
     if(activeId==null)return [];
     var active=racks.find(function(rack){return Number(rack.id)===Number(activeId);});
     if(!active)return [];
-    var best=null,bestDistance=Infinity;
-    for(var i=0;i<racks.length;i+=1){
-      var other=racks[i];if(!other||Number(other.id)===Number(active.id))continue;
-      var pair=pairCandidate(active,other);if(!pair)continue;
-      var distance=Math.max(0,Number(pair.distance)||0);
-      if(distance<bestDistance){bestDistance=distance;best=pair;}
-    }
-    return best?[best]:[];
+    var relations=typeof window.rafexRackGapRelationsV46==='function'?window.rafexRackGapRelationsV46(active):[];
+    var pairs=relations.slice(0,2).map(function(relation){return pairCandidate(active,relation.other);}).filter(Boolean);
+    pinnedPairGaps.forEach(function(key){var ids=String(key).split(':').map(Number),a=racks.find(function(r){return Number(r.id)===ids[0];}),b=racks.find(function(r){return Number(r.id)===ids[1];}),pair=pairCandidate(a,b);if(pair&&!pairs.some(function(item){return pairKey(item)===key;}))pairs.push(pair);});
+    return pairs;
   }`;
 html = replaceFunction(html, "  function allPairs(){", nearestAllPairs);
 
@@ -107,7 +103,7 @@ html = html.replace(copyNeedle, copyReplacement);
 
 html = html.replace(
   "label.innerHTML='<input type=\"checkbox\" '+(pinnedPairGaps.has(key)?'checked':'')+' onchange=\"rafexToggleRackPairGap('+pair.a.id+','+pair.b.id+',this.checked)\" aria-label=\"Raf arası '+(index+1)+' ölçüsünü göster\"><span>Raf arası '+(index+1)+'</span><input type=\"number\" min=\"0\" step=\"1\" value=\"'+mm+'\" oninput=\"event.stopPropagation()\" onchange=\"rafexSetRackPairDistance('+pair.a.id+','+pair.b.id+',this.value,'+rack.id+')\" aria-label=\"Raf arası '+(index+1)+' mesafesi milimetre\">';",
-  "label.innerHTML='<input type=\"checkbox\" '+(pinnedPairGaps.has(key)?'checked':'')+' onchange=\"rafexToggleRackPairGap('+pair.a.id+','+pair.b.id+',this.checked)\" aria-label=\"En yakın raf ölçüsünü göster\"><span>En yakın raf</span><input type=\"number\" min=\"0\" step=\"1\" value=\"'+mm+'\" oninput=\"event.stopPropagation()\" onchange=\"rafexSetRackPairDistance('+pair.a.id+','+pair.b.id+',this.value,'+rack.id+')\" aria-label=\"En yakın raf mesafesi milimetre\">';"
+  "label.innerHTML='<input type=\"checkbox\" '+(pinnedPairGaps.has(key)?'checked':'')+' onchange=\"rafexToggleRackPairGap('+pair.a.id+','+pair.b.id+',this.checked)\" aria-label=\"En yakın raf arası '+(index+1)+' ölçüsünü göster\"><span>En yakın raf arası '+(index+1)+'</span><input type=\"number\" min=\"0\" step=\"1\" value=\"'+mm+'\" oninput=\"event.stopPropagation()\" onchange=\"rafexSetRackPairDistance('+pair.a.id+','+pair.b.id+',this.value,'+rack.id+')\" aria-label=\"En yakın raf arası '+(index+1)+' mesafesi milimetre\">';"
 );
 
 // This runtime owns only common-project persistence/history normalization.
@@ -193,7 +189,7 @@ for (const required of [
   'data-rafex-common-nearest-gap="v90"',
   'var best=null,bestDistance=Infinity',
   'return best?[best]:[];',
-  '<span>En yakın raf</span>',
+  '<span>En yakın raf arası '+(index+1)+'</span>',
   'data-rafex-common-save-only="v92"',
   "body.module='ortak'",
   "nav.classList.contains('active')",

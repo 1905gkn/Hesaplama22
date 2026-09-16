@@ -267,8 +267,8 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
   function pairTouches(pair,rackId){return Number(pair.a.id)===Number(rackId)||Number(pair.b.id)===Number(rackId);}
   function renderPairControls(pairs){
     var wallEditor=document.getElementById('m2WallEditor'),rack=typeof m2MeasurementRack==='function'?m2MeasurementRack():null;if(!wallEditor||!rack)return;
-    Array.from(wallEditor.querySelectorAll('label')).forEach(function(label){var span=label.querySelector('span');if(span&&String(span.textContent||'').trim()==='En yakın raf arası')label.remove();});
-    var rackPairs=pairs.filter(function(pair){return pairTouches(pair,rack.id);}).sort(function(a,b){var order={left:0,right:1,top:2,bottom:3};return (order[a.direction]||0)-(order[b.direction]||0)||a.distance-b.distance;});
+    Array.from(wallEditor.querySelectorAll('label')).forEach(function(label){var span=label.querySelector('span');if(label.dataset.rafexPairField||span&&/^En yakın raf(?: arası)?(?: \d+)?$/.test(String(span.textContent||'').trim()))label.remove();});
+    var rackPairs=pairs.filter(function(pair){return pairTouches(pair,rack.id);}).sort(function(a,b){return a.distance-b.distance||Number(a.b.id)-Number(b.b.id);});
     if(m2PinnedDimensions&&m2PinnedDimensions.gap&&rackPairs[0]){pinnedPairGaps.add(pairKey(rackPairs[0]));m2PinnedDimensions.gap=false;}
     rackPairs.forEach(function(pair,index){
       var label=document.createElement('label'),key=pairKey(pair),mm=pairMm(pair);label.className='m2-edge-field dimension-field';label.dataset.rafexPairField=key;
@@ -304,6 +304,8 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
     if(typeof m2OpenMeasureEditor!=='function')return;
     m2OpenMeasureEditor('Seçilen iki rafın arası',current,function(value){setPairDistance(aId,bId,value,moveId);});
   };
+
+  window.rafexRefreshPairDistances=function(){if(isFree()){var pairs=allPairs();renderPairControls(pairs);renderPairGuides(pairs);}};
 
   var previousRender=typeof m2RenderLayout==='function'?m2RenderLayout:null;
   function commonRender(){

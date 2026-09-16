@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const source=fs.readFileSync('scripts/patch-common-drawing-independent-v44.mjs','utf8');
+const nearest=fs.readFileSync('scripts/patch-common-nearest-gap-v90.mjs','utf8');
+const all=nearest.split('const nearestAllPairs = `')[1].split('`;')[0];
+const owner={id:1,x:100,y:100},left={id:2},right={id:3};
+const relations=[{other:left,direction:'left',distance:20},{other:right,direction:'right',distance:40}];
+let moved;
+const c={window:{rafexRackGapRelationsV46:()=>relations},m2LayoutState:{racks:[owner,left,right],selected:1,scale:1},pinnedPairGaps:new Set(),pairCandidate:(a,b)=>b?{...relations.find(r=>r.other===b),a,b,clearanceMm:0}:null,pairKey:p=>[p.a.id,p.b.id].sort().join(':'),m2MoveRackOrJoinedGroup:(r,x,y)=>{moved={id:r.id,x,y};return true;},m2RenderLayout(){},status(){},fmt:String};
+vm.createContext(c);vm.runInContext(all,c);
+assert.equal(vm.runInContext('allPairs().length',c),2);
+const setter=source.slice(source.indexOf('  function setPairDistance('),source.indexOf('  window.rafexSetRackPairDistance='));
+vm.runInContext(setter,c);vm.runInContext('setPairDistance(1,3,60,1)',c);assert.deepEqual(moved,{id:1,x:80,y:100});
+assert.match(source,/rafexRefreshPairDistances/);
+assert.match(fs.readFileSync('scripts/patch-static-selection-v148.mjs','utf8'),/window\.rafexRefreshPairDistances\?\./);
+console.log('PASS: two nearest relations, second relation editing moves selected rack, static selection refresh hook.');

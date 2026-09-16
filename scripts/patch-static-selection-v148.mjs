@@ -55,6 +55,7 @@ export function transform(html){
     finally{table.activeComputes=Math.max(0,table.activeComputes-1)}
   };\n`+html.slice(relationEnd);
   replace('      /* static-selection-v148 */',rackGapSearchV148.toString()+'\n      /* static-selection-v148 */');
+  replace('        m2RenderSelectedRackInfo();\n      }\n      function m2DiscardUndo()', '        m2RenderSelectedRackInfo();\n        window.rafexRefreshPairDistances?.();\n      }\n      function m2DiscardUndo()');
   return html;
 }
 if(process.argv[1]?.replaceAll('\\','/').endsWith('/patch-static-selection-v148.mjs')){
