@@ -83,3 +83,10 @@
 #page#page[data-rafex-common-active="1"] .mr-canvas-wrap>#mrCanvas{position:absolute!important;inset:0!important;display:block!important;width:100%!important;height:100%!important;min-height:0!important}
 #page#page[data-rafex-common-active="1"] .mr-rack-save{align-self:end!important}
 }
+
+#page#page[data-rafex-common-active="1"] .konsol-view-card>.rafex-konsol-common-savebar{margin:0!important;align-self:end!important}
+@media(min-width:1051px){
+#page#page[data-rafex-common-active="1"] .konsol-view-card{display:grid!important;grid-template-rows:minmax(0,1fr) auto!important;align-self:stretch!important;height:100%!important;box-sizing:border-box!important;min-height:700px!important}
+#page#page[data-rafex-common-active="1"] .konsol-view-wrap{display:grid!important;grid-template-rows:auto minmax(0,1fr) auto!important;min-height:0!important;height:100%!important}
+#page#page[data-rafex-common-active="1"] #konsolCanvas{height:100%!important;min-height:0!important;max-height:100%!important;width:100%!important;box-sizing:border-box!important}
+}
