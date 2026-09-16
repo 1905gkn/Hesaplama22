@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {renderKonsolFrame} from '../client/konsol-render-budget.mjs';
+let callback,draws=0,scheduled=0,disposed=false;const listeners=new Map();
+globalThis.document={hidden:false,addEventListener:(k,f)=>listeners.set(k,f),removeEventListener:k=>listeners.delete(k)};
+globalThis.IntersectionObserver=class{constructor(cb){callback=cb}observe(){}disconnect(){disposed=true}};
+globalThis.requestAnimationFrame=()=>++scheduled;
+const v={canvas:{},camera:{position:{x:1,y:2,z:3},quaternion:{x:0,y:0,z:0,w:1},zoom:1,fov:36,aspect:1},controls:{update(){}},renderer:{render(){draws++}},loop(){},renderDirty:true,raf:null};
+for(let i=0;i<600;i++)assert(renderKonsolFrame(v));
+assert.equal(draws,1,'A stationary scene must render only once');
+v.camera.position.x++;renderKonsolFrame(v);assert.equal(draws,2);
+v.renderDirty=true;renderKonsolFrame(v);assert.equal(draws,3);
+callback([{isIntersecting:false}]);assert.equal(renderKonsolFrame(v),false);assert.equal(draws,3);
+callback([{isIntersecting:true}]);assert.equal(scheduled,1);callback([{isIntersecting:true}]);assert.equal(scheduled,1);
+document.hidden=true;assert.equal(renderKonsolFrame(v),false);
+v.raf=null;document.hidden=false;listeners.get('visibilitychange')();assert.equal(scheduled,2);
+v.destroyed=true;v.raf=null;callback([{isIntersecting:true}]);assert.equal(scheduled,2);
+v.renderVisibility.dispose();assert(disposed);assert.equal(listeners.size,0);
+console.log('PASS: 600 stationary frames -> 1 render; camera/geometry refresh; offscreen/tab pause; single resume; disposal.');

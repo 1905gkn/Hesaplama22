@@ -1,10 +1,12 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import {renderKonsolFrame} from './konsol-render-budget.mjs';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 function disposeObject(root) {
   root.traverse((node) => {
+    if(node.isInstancedMesh)node.dispose?.();
     if (node.geometry) node.geometry.dispose?.();
     const materials = Array.isArray(node.material) ? node.material : node.material ? [node.material] : [];
     materials.forEach((material) => material?.dispose?.());
@@ -83,7 +85,12 @@ class KonsolViewer {
 
   update(next = {}, refit = true) {
     if(this.canvas?.id==='konsolCanvas')next=window.rafexCopiedDetailV135?.('konsol')||next;
-    this.options = this.normalize({ ...this.options, ...next });
+    const normalized=this.normalize({ ...this.options, ...next });
+    const key=JSON.stringify(normalized);
+    if(this.geometryKey===key)return;
+    this.geometryKey=key;
+    this.options = normalized;
+    this.renderDirty=true;
     if (this.root) {
       disposeObject(this.root);
       this.scene.remove(this.root);
@@ -219,6 +226,7 @@ class KonsolViewer {
 
   resize() {
     if (this.destroyed) return;
+    this.renderDirty=true;
     const rect = this.canvas.getBoundingClientRect();
     const width = Math.max(1, Math.round(rect.width));
     const height = Math.max(1, Math.round(rect.height));
@@ -229,12 +237,12 @@ class KonsolViewer {
 
   loop() {
     if (this.destroyed) return;
+    this.raf=null;
     if (!this.canvas.isConnected) {
       this.destroy();
       return;
     }
-    this.controls.update();
-    this.renderer.render(this.scene, this.camera);
+    if(!renderKonsolFrame(this))return;
     this.raf = requestAnimationFrame(() => this.loop());
   }
 
@@ -242,6 +250,7 @@ class KonsolViewer {
     if (this.destroyed) return;
     this.destroyed = true;
     cancelAnimationFrame(this.raf);
+    this.renderVisibility?.dispose();
     this.resizeObserver?.disconnect();
     this.controls?.dispose();
     disposeObject(this.scene);
