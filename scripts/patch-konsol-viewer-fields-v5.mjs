@@ -11,17 +11,8 @@ function replaceRequired(from,to,label){
 if(!source.includes('const IPE_SECTIONS = {')){
   const classAnchor='class KonsolViewer {';
   if(!source.includes(classAnchor))throw new Error('Konsol viewer sınıf başlangıcı bulunamadı.');
-  const profileHelpers=`const IPE_SECTIONS = {
-  ipe180:{h:180,b:91,tw:5.3,tf:8.0}, ipe200:{h:200,b:100,tw:5.6,tf:8.5},
-  ipe220:{h:220,b:110,tw:5.9,tf:9.2}, ipe240:{h:240,b:120,tw:6.2,tf:9.8},
-  ipe270:{h:270,b:135,tw:6.6,tf:10.2}, ipe300:{h:300,b:150,tw:7.1,tf:10.7},
-};
-const NPI_SECTIONS = {
-  npi80:{h:80,b:42,tw:3.9,tf:5.9}, npi100:{h:100,b:50,tw:4.5,tf:6.8},
-  npi120:{h:120,b:58,tw:5.1,tf:7.7}, npi140:{h:140,b:66,tw:5.7,tf:8.6},
-  npi160:{h:160,b:74,tw:6.3,tf:9.5}, npi180:{h:180,b:82,tw:6.9,tf:10.4},
-  npi200:{h:200,b:90,tw:7.5,tf:11.3}, npi220:{h:220,b:98,tw:8.1,tf:12.2},
-};
+  const profileHelpers=`const IPE_SECTIONS = {"ipe80":{"h":80,"b":46,"tw":3.8,"tf":5.2},"ipe100":{"h":100,"b":55,"tw":4.1,"tf":5.7},"ipe120":{"h":120,"b":64,"tw":4.4,"tf":6.3},"ipe140":{"h":140,"b":73,"tw":4.7,"tf":6.9},"ipe160":{"h":160,"b":82,"tw":5,"tf":7.4},"ipe180":{"h":180,"b":91,"tw":5.3,"tf":8},"ipe200":{"h":200,"b":100,"tw":5.6,"tf":8.5},"ipe220":{"h":220,"b":110,"tw":5.9,"tf":9.2},"ipe240":{"h":240,"b":120,"tw":6.2,"tf":9.8},"ipe270":{"h":270,"b":135,"tw":6.6,"tf":10.2},"ipe300":{"h":300,"b":150,"tw":7.1,"tf":10.7},"ipe330":{"h":330,"b":160,"tw":7.5,"tf":11.5},"ipe360":{"h":360,"b":170,"tw":8,"tf":12.7},"ipe400":{"h":400,"b":180,"tw":8.6,"tf":13.5},"ipe450":{"h":450,"b":190,"tw":9.4,"tf":14.6}};
+const NPI_SECTIONS = {"npi80":{"h":80,"b":42,"tw":3.9,"tf":5.9},"npi100":{"h":100,"b":50,"tw":4.5,"tf":6.8},"npi120":{"h":120,"b":58,"tw":5.1,"tf":7.7},"npi140":{"h":140,"b":66,"tw":5.7,"tf":8.6},"npi160":{"h":160,"b":74,"tw":6.3,"tf":9.5},"npi180":{"h":180,"b":82,"tw":6.9,"tf":10.4},"npi200":{"h":200,"b":90,"tw":7.5,"tf":11.3},"npi220":{"h":220,"b":98,"tw":8.1,"tf":12.2},"npi240":{"h":240,"b":106,"tw":8.7,"tf":13.1},"npi260":{"h":260,"b":113,"tw":9.4,"tf":14.1},"npi280":{"h":280,"b":119,"tw":10.1,"tf":15.2},"npi300":{"h":300,"b":125,"tw":10.8,"tf":16.2},"npi320":{"h":320,"b":131,"tw":11.5,"tf":17.3},"npi340":{"h":340,"b":137,"tw":12.2,"tf":18.3},"npi360":{"h":360,"b":143,"tw":13,"tf":19.5},"npi400":{"h":400,"b":155,"tw":14.4,"tf":21.6},"npi450":{"h":450,"b":170,"tw":16.2,"tf":24.3}};
 function profileSpec(table,key,fallback){return table[key]||table[fallback]}
 function prepProfileMesh(mesh){mesh.castShadow=true;mesh.receiveShadow=true;return mesh}
 function iBeamAlongY(length,section,material){

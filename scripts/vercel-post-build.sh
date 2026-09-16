@@ -77,6 +77,8 @@ node scripts/verify-tray-calculator.mjs
 node scripts/patch-common-ui.mjs
 node scripts/patch-plan-snapshot.mjs
 node scripts/patch-section-print.mjs
+node scripts/verify-konsol-workbook.mjs
+node scripts/patch-konsol-workbook.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
