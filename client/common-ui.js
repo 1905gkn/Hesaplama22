@@ -1,10 +1,20 @@
 (function(){
+ let mrTrayOpen=false;
  const root=()=>document.querySelector('#page[data-rafex-common-active="1"]');
  function text(el,value){if(el&&el.textContent!==value)el.textContent=value;}
  function help(parent,id,value){if(!parent)return;let el=document.getElementById(id);if(!el){el=document.createElement('small');el.id=id;el.className='common-help';parent.append(el);}text(el,value);}
  function label(id,value){const el=document.getElementById(id),host=el?.closest('label');if(!host)return;const span=host.querySelector('span');if(span)text(span,value);else for(const n of host.childNodes)if(n.nodeType===3&&n.textContent.trim()){if(n.textContent!==value)n.textContent=value;break;}}
  window.RafexCommonFeedback=function(message,host){host=host||root();if(!host)return false;let box=host.querySelector(':scope > .common-error');if(!box){box=document.createElement('div');box.className='common-error';box.setAttribute('role','alert');host.prepend(box);}text(box,message);box.scrollIntoView({block:'nearest',behavior:'smooth'});return true;};
  function sync(){const p=root();if(!p)return;
+   p.querySelectorAll('#mrAccessoryList .mr-accessory-card').forEach(card=>{
+     const head=card.querySelector('.mr-accessory-head');if(!head)return;
+     let toggle=head.querySelector('[data-tray-expand]');
+     if(!toggle){toggle=document.createElement('button');toggle.type='button';toggle.dataset.trayExpand='';toggle.onclick=()=>{mrTrayOpen=!mrTrayOpen;sync();};head.append(toggle);}
+     card.classList.toggle('common-tray-closed',!mrTrayOpen);toggle.setAttribute('aria-expanded',String(mrTrayOpen));toggle.setAttribute('aria-label',mrTrayOpen?'Tava ayarlarını kapat':'Tava ayarlarını aç');text(toggle,mrTrayOpen?'Kapat ▴':'Aç ▾');
+   });
+   const camera=p.querySelector('.konsol-view-wrap [data-shared-camera]'),header=p.querySelector('.konsol-view-wrap>div:first-child');
+   if(camera&&header){const top=Math.ceil(header.getBoundingClientRect().bottom-camera.parentElement.getBoundingClientRect().top+16)+'px';if(camera.style.top!==top)camera.style.top=top;}
+
    for(const [workspaceSelector,barSelector] of [['.mr-workspace','.mr-rack-save'],['.konsol-shell','.rafex-konsol-common-savebar']]){
      const workspace=p.querySelector(workspaceSelector),bar=p.querySelector(barSelector);
      if(workspace&&bar){if(workspace.nextElementSibling!==bar)workspace.after(bar);bar.classList.add('common-full-savebar');}
@@ -29,6 +39,7 @@
    help(document.getElementById('m2SaveRackButton')?.parentElement,'common-rack-save-help','Raf tipini kaydeder. Yerleşimdeki raflar ve çizim, “Projeyi Kaydet” ile kaydedilir.');
  }
  let frame=0;function queue(){if(!frame)frame=requestAnimationFrame(()=>{frame=0;sync();});}
+ window.addEventListener('resize',queue);
  document.addEventListener('change',queue,true);
  document.addEventListener('input',queue,true);
  document.addEventListener('click',function(event){

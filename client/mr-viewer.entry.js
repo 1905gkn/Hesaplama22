@@ -370,7 +370,7 @@ class MRViewer {
     const fitHeight = Math.max(50, displayHeight) / (2 * Math.tan(vFov / 2));
     const horizontal = this.view === "side" ? this.size.z : this.size.x;
     const fitWidth = Math.max(50, horizontal) / (2 * Math.tan(vFov / 2) * Math.max(this.camera.aspect, 0.25));
-    const distance = Math.max(fitHeight, fitWidth, 200) * 1.55;
+    const distance = Math.max(fitHeight, fitWidth, 200) * 1.55 * (this.canvas.id === "mrCanvas" ? 1.2 : 1);
     const direction = this.view === "front" ? new THREE.Vector3(0, 0, 1)
       : this.view === "side" ? new THREE.Vector3(1, 0, 0)
       : this.view === "top" ? new THREE.Vector3(0, 1, 0.001)

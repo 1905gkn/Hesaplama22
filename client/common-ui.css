@@ -100,3 +100,12 @@
 #page#page[data-rafex-common-active="1"] .mr-view-card{grid-template-rows:auto minmax(510px,1fr)!important}
 #page#page[data-rafex-common-active="1"] .konsol-view-card{grid-template-rows:minmax(0,1fr)!important}
 }
+
+#page#page[data-rafex-common-active="1"] .common-tray-closed>:not(.mr-accessory-head){display:none!important}
+#page#page[data-rafex-common-active="1"] .mr-accessory-head{gap:6px}
+#page#page[data-rafex-common-active="1"] .mr-accessory-head>b{margin-right:auto}
+#page#page[data-rafex-common-active="1"] .mr-accessory-head button{min-height:28px!important;padding:4px 7px!important}
+#page#page[data-rafex-common-active="1"] [data-shared-camera]{width:230px!important;max-width:calc(100% - 24px)!important;padding:10px!important;border-radius:12px!important;right:12px!important}
+#page#page[data-rafex-common-active="1"] [data-shared-camera] button{min-height:28px!important;padding:5px 6px!important;font-size:10px!important;white-space:nowrap!important}
+#page#page[data-rafex-common-active="1"] [data-shared-camera] .b2b-camera-head{margin-bottom:7px!important;font-size:11px!important}
+#page#page[data-rafex-common-active="1"] [data-shared-camera] :is(.b2b-camera-presets,.b2b-camera-zoom){gap:4px!important}

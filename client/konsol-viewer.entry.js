@@ -205,7 +205,7 @@ class KonsolViewer {
     const bounds = this.contentBounds();
     const size = bounds.getSize(new THREE.Vector3());
     const center = bounds.getCenter(new THREE.Vector3());
-    const radius = Math.max(size.x, size.y, size.z, 1000) * 1.55;
+    const radius = Math.max(size.x, size.y, size.z, 1000) * 1.55 * (this.canvas.id === "konsolCanvas" ? 1.2 : 1);
     this.controls.target.copy(center);
     if (view === 'front') this.camera.position.set(center.x, center.y + size.y * 0.03, center.z + radius);
     else if (view === 'side') this.camera.position.set(center.x + radius, center.y + size.y * 0.03, center.z);
