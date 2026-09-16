@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+import {transform} from './patch-all-section-systems.mjs';
+const raw=fs.readFileSync(process.argv[2]||'dist/server/index.js','utf8'),encoded=raw.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/),html=transform(encoded?Buffer.from(encoded[1],'base64').toString():raw);
+assert.equal(transform(html),html);
+for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi))new vm.Script(m[1]);
+assert.ok(html.includes('grid-template-rows:28px minmax(0,1fr)!important'));
+const section=html.match(/<script data-rafex-b2b-section-positioner-fallback="v5">([\s\S]*?)<\/script>/)[1];
+assert.ok(section.includes("await ensureViewer(konsol?'konsol':mr?'mr':'b2b')"));
+assert.ok(!section.includes('if (!drawing || !(drawing?.b2b || drawing?.b2bLayout)) return;'));
+console.log('PASS: MR/Konsol section routing, compact report rows and complete inline syntax');
