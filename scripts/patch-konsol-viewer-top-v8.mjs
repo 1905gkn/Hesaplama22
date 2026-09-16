@@ -35,7 +35,7 @@ const newBlock=`  setView(view) {
 
     const size = bounds.getSize(new THREE.Vector3());
     const center = bounds.getCenter(new THREE.Vector3());
-    const radius = Math.max(size.x, size.y, size.z, 1000) * 1.55;
+    const radius = Math.max(size.x, size.y, size.z, 1000) * 1.55 * (this.canvas.id === "konsolCanvas" ? 1.2 : 1);
     this.controls.target.copy(center);
     this.topPlanViewVersion = 'RAFEX_KONSOL_TOP_V8';
 
