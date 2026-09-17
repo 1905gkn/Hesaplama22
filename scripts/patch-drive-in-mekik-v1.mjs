@@ -19,7 +19,7 @@ const runtime = String.raw`
 #page.drive-in-mode #m2Front .rafex-drive-front-wrap{position:absolute;inset:0;min-height:100%;background:linear-gradient(180deg,#fff,#f8faf8)}
 #page.drive-in-mode #m2Front .rafex-drive-front-wrap canvas{display:block;width:100%;height:100%;min-height:430px;touch-action:none}
 #page.drive-in-mode #m2Front .rafex-drive-front-status{position:absolute;left:12px;bottom:10px;padding:6px 9px;border:1px solid #dfe5e0;border-radius:7px;background:#ffffffdd;color:#536158;font-size:10px;font-weight:900;pointer-events:none}
-#page.drive-in-mode #m2Front .rafex-drive-dimensions{position:absolute;inset:0;z-index:3;width:100%;height:100%;pointer-events:none;overflow:visible}
+#page.drive-in-mode #m2Front .rafex-drive-dimensions{position:absolute;inset:0;z-index:3;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;margin:0!important;pointer-events:none;overflow:visible}
 #page.drive-in-mode #m2Front .rafex-drive-dimensions .dim-line{fill:none;stroke:#d7aa00;stroke-width:1;stroke-dasharray:2 2;vector-effect:non-scaling-stroke}
 #page.drive-in-mode #m2Front .rafex-drive-dimensions .dim-main{stroke-dasharray:none}
 #page.drive-in-mode #m2Front .rafex-drive-dimensions text{fill:#123f31;font:800 18px Arial,sans-serif;paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round}

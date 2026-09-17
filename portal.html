@@ -4992,6 +4992,7 @@
       function m2ViewCanvas(name) { return $({ top:"m2Top", side:"m2Side", front:"m2Front" }[name]); }
       function m2ApplyViewZoom(name) {
         const canvas = m2ViewCanvas(name), svg = canvas?.querySelector("svg"); if (!canvas || !svg) return;
+        if (svg.classList.contains("rafex-drive-dimensions")) return;
         if (canvas.clientWidth < 2 || canvas.clientHeight < 2 || canvas.closest("[data-m2-view]")?.hidden) return;
         const values = (svg.getAttribute("viewBox") || "0 0 1000 650").trim().split(/\s+/).map(Number), viewW = Math.max(1, values[2] || 1000), viewH = Math.max(1, values[3] || 650);
         const availableW = Math.max(1, canvas.clientWidth - 24), availableH = Math.max(1, canvas.clientHeight - 24), fitScale = Math.min(availableW / viewW, availableH / viewH), zoom = m2ViewZoom[name] || 1;
