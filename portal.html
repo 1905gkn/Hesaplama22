@@ -5833,7 +5833,6 @@
           if (isSide) {
             const canvasWidth = 920,
               canvasHeight = Math.max(610, Math.min(900, 440 + levels * 30)),
-              modelViewportLeft = 125,
               maxProjectionWidth = 680,
               modelTopPadding = 96,
               modelBottomReserve = 128,
@@ -5845,6 +5844,7 @@
               sideContentHeightMm = Math.max(sideUprightHeight, totalRackHeight),
               projectionHeightMm = sideContentHeightMm + sideMarginTop + sideMarginBottom,
               drawingScale = Math.min(maxProjectionWidth / Math.max(1, railLength), maxProjectionHeight / Math.max(1, sideContentHeightMm)),
+              modelViewportLeft = (canvasWidth - railLength * drawingScale) / 2,
               w = projectionWidthMm * drawingScale,
               h = projectionHeightMm * drawingScale,
               topLoadHeight = totalRackHeight,
@@ -5855,8 +5855,8 @@
               modelRight = modelLeft + railLength * drawingScale,
               modelBottom = topLoadY + sideContentHeightMm * drawingScale,
               modelTop = modelBottom - sideUprightHeight * drawingScale,
-              heightDimensionX = 55,
-              topLoadDimensionX = 22,
+              heightDimensionX = modelViewportLeft - 45,
+              topLoadDimensionX = modelViewportLeft - 78,
               dimensionY = canvasHeight - 42;
             const overallDimension = (x, y1, y2, label) => `<g class="m2-side-overall-dimension"><line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" class="m2-side-dimension-line"/><line x1="${x - 5}" y1="${y1}" x2="${x + 5}" y2="${y1}" class="m2-side-dimension-tick"/><line x1="${x - 5}" y1="${y2}" x2="${x + 5}" y2="${y2}" class="m2-side-dimension-tick"/><text x="${x - 8}" y="${(y1 + y2) / 2}" transform="rotate(-90 ${x - 8} ${(y1 + y2) / 2})" text-anchor="middle" class="m2-side-overall-label">${label}</text></g>`;
             const gapY = Math.min(canvasHeight - 102, modelBottom + 18), gapLabelY = gapY + 23;
@@ -5880,7 +5880,7 @@
               gapDimensions += `<line x1="${gapGroupStart}" y1="${gapY + 9}" x2="${gapGroupEnd}" y2="${gapY + 9}" stroke-dasharray="3 3"/><rect x="${groupX - gapLabelWidth / 2}" y="${gapLabelY - 12}" width="${gapLabelWidth}" height="17" rx="8.5"/><text x="0" y="0" transform="translate(${groupX} ${gapLabelY}) scale(.01)" text-anchor="middle" data-text-scale="0.01">${gapLabel}</text>`;
             }
             const liveGapSummary = m2PalletGapSummary(palletLayout.gaps);
-            let svg = `<svg viewBox="0 0 ${canvasWidth} ${canvasHeight}" role="img" data-side-auto-framing="last-pallet-top-safe" data-side-dimensions="visible-small-text" aria-label="Mekik raf yandan görünüşü; ilk kat ${fmt(firstRailHeight)} mm, kat arası ${fmt(levelH)} mm, palet yüksekliği ${fmt(palletHeight)} mm, palet boşlukları ${liveGapSummary}, palet üstü ile travers altı ${fmt(clearance)} mm net; ölçüler küçük yazıyla görünür"><text x="390" y="25" text-anchor="middle" class="m2-label" style="font-size:14px">Yandan Görünüş</text><text x="390" y="45" text-anchor="middle" class="m2-dim" style="font-size:9px">${fmt(levels)} kat · ${fmt(depth)} palet derinlik</text><text x="0" y="0" transform="translate(390 45) scale(.01)" text-anchor="middle" class="m2-dim m2-side-gap-summary-text" data-text-scale="0.01">${liveGapSummary}</text><g class="m2-side-spacing-badge"><rect x="${canvasWidth - 220}" y="14" width="200" height="28" rx="14"/><text x="${canvasWidth - 120}" y="32" text-anchor="middle">PALET YÜKSEKLİĞİ · ${fmt(palletHeight)} mm</text></g><g class="m2-set-projection m2-side-live-projection">${m2MekikSetProjection("side", m2LastDrawing, x0, y0, w, h)}</g>`;
+            let svg = `<svg viewBox="0 0 ${canvasWidth} ${canvasHeight}" role="img" data-side-auto-framing="last-pallet-top-safe" data-side-dimensions="visible-small-text" aria-label="Mekik raf yandan görünüşü; ilk kat ${fmt(firstRailHeight)} mm, kat arası ${fmt(levelH)} mm, palet yüksekliği ${fmt(palletHeight)} mm, palet boşlukları ${liveGapSummary}, palet üstü ile travers altı ${fmt(clearance)} mm net; ölçüler küçük yazıyla görünür"><text x="460" y="25" text-anchor="middle" class="m2-label" style="font-size:14px">Yandan Görünüş</text><text x="460" y="45" text-anchor="middle" class="m2-dim" style="font-size:9px">${fmt(levels)} kat · ${fmt(depth)} palet derinlik</text><text x="0" y="0" transform="translate(460 45) scale(.01)" text-anchor="middle" class="m2-dim m2-side-gap-summary-text" data-text-scale="0.01">${liveGapSummary}</text><g class="m2-set-projection m2-side-live-projection">${m2MekikSetProjection("side", m2LastDrawing, x0, y0, w, h)}</g>`;
             svg += `${overallDimension(topLoadDimensionX, topLoadY, modelBottom, `PALET ÜST KOTU · ${fmt(topLoadHeight)} mm`)}${overallDimension(heightDimensionX, modelTop, modelBottom, `AYAK UZUNLUĞU · ${fmt(sideUprightHeight)} mm`)}<g class="m2-side-gap-dimension" aria-label="Palet arası ölçüler">${gapDimensions}</g>${dimLine(modelLeft, dimensionY, modelRight, dimensionY)}<text x="${(modelLeft + modelRight) / 2}" y="${dimensionY + 15}" text-anchor="middle" class="m2-dim" style="font-size:9px;font-weight:900">${fmt(railLength)} mm · RAY SON AYAKTA BİTER</text></svg>`;
             return svg;
           }
