@@ -88,12 +88,12 @@ const runtime = String.raw`<style data-rafex-pdf-direct-types="v19">
 }
 .rafex-v19-type-card[data-rafex-system="mekik2"]>.rafex-v19-view:nth-of-type(1){grid-column:1!important;grid-row:2!important;border-bottom:1px solid #c6d2dc!important}
 .rafex-v19-type-card[data-rafex-system="mekik2"]>.rafex-v19-view:nth-of-type(2){grid-column:1!important;grid-row:3!important}
-/* B2B: its half-page is one full-height FRONT view. */
-.rafex-v19-type-card[data-rafex-system="b2b"]{
+/* Single-view systems keep a compact header and use the remaining height for the drawing. */
+.rafex-v19-type-card[data-rafex-system="b2b"],.rafex-v19-type-card[data-rafex-system="drive"]{
   grid-template-columns:minmax(0,1fr)!important;
   grid-template-rows:28px minmax(0,1fr)!important;
 }
-.rafex-v19-type-card[data-rafex-system="b2b"]>.rafex-v19-view{grid-column:1!important;grid-row:2!important}
+.rafex-v19-type-card[data-rafex-system="b2b"]>.rafex-v19-view,.rafex-v19-type-card[data-rafex-system="drive"]>.rafex-v19-view{grid-column:1!important;grid-row:2!important}
 /* Detailed Mekik callouts from the approved technical front view. */
 .rafex-v19-mekik-callouts{position:absolute;inset:20px 0 0;z-index:9;pointer-events:none;font-family:Arial,sans-serif}
 .rafex-v19-mekik-callouts .top-stack{position:absolute;top:4px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:3px;white-space:nowrap}
