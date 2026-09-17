@@ -8,6 +8,7 @@ export function transform(html){
  const start="      if(type==='summary')await base.m2RenderA4Report?.();else await base.m2RenderCorporateReport?.();";
  replace(start, "      await window.rafexRenderAreaOutput(target,async()=>{\n"+start);
  replace("      if(!target.querySelector('svg,img,canvas'))throw Error('Çizim önizlemesi üretilemedi.');", "      });\n      if(!target.querySelector('svg,img,canvas'))throw Error('Çizim önizlemesi üretilemedi.');");
+ replace("if(!depth&&panel()){invalidate();return;}return original.apply(this,arguments);", "if(!depth&&panel()){if(!window.rafexAreaOutputIsCurrent?.())invalidate();return;}return original.apply(this,arguments);");
  for(const name of ['rebuildHost','syncPdfHost'])replace('function '+name+'(host){', 'function '+name+'(host){\n    if(host?.querySelector("[data-rafex-area]"))return;');
  replace('racks = x.layout?.racks || []', 'racks = x.areas?.length ? x.areas.flatMap(area=>area.layout.racks||[]) : x.layout?.racks || []');
  const script='<script data-rafex-multi-area>window.rafexNamespaceAreaSvg='+namespaceSvgCopy.toString()+';\n'+fs.readFileSync(new URL('./multi-area-runtime.js',import.meta.url),'utf8')+'</script>';
