@@ -18,8 +18,9 @@ const start=html.indexOf('function compactNameplateV136('),end=html.indexOf('fun
 const text={textContent:'E',getBBox:()=>({x:30,y:20,width:8,height:12})},plate={setAttribute:(k,v)=>attributes[k]=Number(v)};
 const context=vm.createContext({getComputedStyle:()=>({display:'block',fontSize:'12px'})});
 vm.runInContext(html.slice(start,end),context);
-context.compactNameplateV136({querySelector:()=>plate,querySelectorAll:()=>[text]});
+context.compactNameplateV136({querySelector:selector=>selector.includes("nameplate")?plate:null,querySelectorAll:()=>[text]});
 assert.equal(attributes.width,8+12*.44);assert.equal(attributes.height,12+12*.44);
 assert(html.includes("'#4056a1','#087f8c','#b43f8d','#6b416f'"));
 assert(html.includes('typeColor = m2TypeColor(rack.typeName);'));
 console.log('PASS v136: 50m/100m arrow limits, compact nameplate, distinct E color and runtime syntax.');
+
