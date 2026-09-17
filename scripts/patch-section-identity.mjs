@@ -52,6 +52,8 @@ export function transform(html){
   // Old name-only settings cannot safely be assigned to a system.
   script=script.replace('rafex_b2b_perspective_by_type_v4','rafex_section_by_system_v1');
   script=script.replace('if (renderQueued) return;', 'while (renderQueued) await new Promise(resolve=>setTimeout(resolve,25));');
+  script=script.replace('    renderQueued = true;', '    renderQueued = true;window.__rafexSectionCaptureActive=true;');
+  script=script.replace('      renderQueued = false;', '      renderQueued = false;window.__rafexSectionCaptureActive=false;');
   script=script.replace('if (!src) continue;', 'if (!src) throw new Error(type.label+" kesit görüntüsü hazırlanamadı");');
   script=script.replace('sectionWidth: widthForCount(count, base.palletWidth),','sectionWidth: exact?.drawing ? base.sectionWidth : widthForCount(count, base.palletWidth),');
   script=script.replace('const mr = !konsol&&(type?.system === "mr" || isMrDrawing(seed?.drawing));','const mr = type?.system === "mr";');
@@ -62,6 +64,9 @@ export function transform(html){
     const konsol=type?.system==='konsol';`);
   script=script.replace('button.type = "button";', 'button.type = "button";\n      button.dataset.rafexSystem=section.system;button.dataset.rafexTypeLetter=section.label;button.dataset.rafexNativeSection="1";');
   html=html.replace(pattern,()=>match[1]+script+match[3]);
+  // Legacy delayed rebuilds must not replace cards while their asynchronous
+  // images are being captured, or replace completed captures with placeholders.
+  html=html.replace('  function rebuildHost(host){', '  function rebuildHost(host){\n    if(window.__rafexSectionCaptureActive||host?.querySelector(".rafex-perspective-output"))return;');
   const reportStart=html.indexOf('  function systemOf(entry){',html.indexOf('if(window.__rafexPdfDirectTypesV19)'));
   const reportEnd=html.indexOf('  function typeName(',reportStart);
   if(reportStart<0||reportEnd<0)throw Error('Report system discriminator missing');
