@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+import {transform as identity} from './patch-section-identity.mjs';
+import {transform} from './patch-native-technical-sections.mjs';
+const raw=fs.readFileSync(process.argv[2]||'dist/server/index.js','utf8');
+const m=raw.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/);
+const html=transform(identity(m?Buffer.from(m[1],'base64').toString():raw));
+assert.equal(transform(html),html);
+for(const script of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi))new vm.Script(script[1]);
+assert.ok(html.includes('return await window.rafexCaptureTechnicalViews(seed.drawing,type.system)'));
+assert.ok(html.includes('d.railLength=Number(d.depthMm||d.railLength)'));
+assert.ok(html.includes("['side','YAN GÖRÜNÜŞ']"));
+assert.ok(html.includes('topHost.__rafexTopMarkup!==top'));
+assert.ok(!html.includes('    try{drawMekik2()}catch{scheduleFront()}'));
+console.log('PASS: native front/side capture, stored layout dimensions, separate rows, stable top rendering and inline syntax');

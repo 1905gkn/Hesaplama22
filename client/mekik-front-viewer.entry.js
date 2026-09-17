@@ -221,10 +221,11 @@ async function loadModels() {
 }
 
 class MekikFrontViewer {
-  constructor(canvas, status) {
+  constructor(canvas, status, config = null, overlay = null) {
     this.canvas = canvas;
     this.status = status;
-    this.config = readConfig();
+    this.config = config || readConfig();
+    this.overlay = overlay;
     this.models = null;
     this.root = new THREE.Group();
     this.destroyed = false;
@@ -257,7 +258,7 @@ class MekikFrontViewer {
 
     this.resizeObserver = new ResizeObserver(() => this.scheduleResize());
     this.resizeObserver.observe(canvas.parentElement || canvas);
-    this.load();
+    this.ready = this.load();
   }
 
   async load() {
@@ -439,6 +440,7 @@ class MekikFrontViewer {
   }
 
   renderDimensionOverlay() {
+    const dimensions = this.overlay || window.rafexMekikFrontGlbV2?.dimensions;
     if (!dimensions || !this.models || !this.lastWidth || !this.lastHeight) return;
     const config = this.config;
     // Canvas, #m2Front'un 8 px iç dolgusundaki içerik kutusunda; SVG ise
@@ -992,6 +994,20 @@ new MutationObserver(scheduleMount).observe(document.documentElement, {
 
 window.rafexMekikFrontGlbV2 = {
   get viewer() { return viewer; },
+  get dimensions() { return dimensions; },
+  async capture(config) {
+    const host=document.createElement('div');host.style.cssText='position:fixed;left:-20000px;top:0;width:1260px;height:760px';
+    const canvas=document.createElement('canvas'),overlay=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    canvas.style.cssText='width:1260px;height:760px';host.append(canvas,overlay);document.body.appendChild(host);
+    const capture=new MekikFrontViewer(canvas,null,config,overlay);
+    try{
+      await capture.ready;if(!capture.models)throw Error('Mekik ön görünüşü yüklenemedi');
+      capture.resize();capture.fit(true);capture.render();
+      return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1260 760"><image width="1260" height="760" href="'+canvas.toDataURL('image/png')+'"/>'+overlay.innerHTML+'</svg>';
+    }finally{
+      capture.destroyed=true;cancelAnimationFrame(capture.pendingResize);capture.resizeObserver.disconnect();capture.renderer.dispose();host.remove();
+    }
+  },
   refresh: scheduleMount,
   referenceAsset: "/mekik-front-reference.glb",
   sourceFiles: ["mekik 3tam(3).glb", "mekik 3travers(2).glb", "mekik 3ayak(2).glb"],

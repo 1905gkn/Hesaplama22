@@ -90,7 +90,7 @@ class DriveInFrontViewer {
     this.resizeObserver = new ResizeObserver(() => this.scheduleResize());
     this.resizeObserver.observe(canvas.parentElement || canvas);
     this.scheduleResize(true);
-    this.load();
+    this.ready = this.load();
   }
 
   normalize(next = {}) {
@@ -332,6 +332,17 @@ class DriveInFrontViewer {
 
 let active = null;
 window.RafexDriveInViewer = {
+  async capture(config) {
+    const host=document.createElement('div');host.style.cssText='position:fixed;left:-20000px;top:0;width:1260px;height:760px';
+    const canvas=document.createElement('canvas');canvas.style.cssText='width:1260px;height:760px';host.append(canvas);document.body.appendChild(host);
+    let layout;canvas.addEventListener('drive-in-layout',event=>{layout=event.detail;});
+    const capture=new DriveInFrontViewer(canvas,config);
+    try{
+      await capture.ready;if(!capture.models)throw Error('Drive-In ön görünüşü yüklenemedi');
+      capture.resize(true);capture.render();
+      return {image:canvas.toDataURL('image/png'),layout,config:capture.config};
+    }finally{capture.destroy();host.remove();}
+  },
   mount(canvas, config = {}) {
     if (active && active.canvas === canvas && !active.destroyed) { active.update(config); return active; }
     if (active) active.destroy();

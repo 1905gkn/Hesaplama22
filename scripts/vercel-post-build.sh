@@ -89,6 +89,8 @@ node scripts/verify-all-section-systems.mjs
 node scripts/patch-multi-area.mjs
 node scripts/patch-section-identity.mjs
 node scripts/verify-section-identity.mjs
+node scripts/patch-native-technical-sections.mjs
+node scripts/verify-native-technical-sections.mjs
 node scripts/verify-multi-area.mjs
 node scripts/verify-mr-custom-detail.mjs
 node scripts/verify-dimension-drag.mjs
