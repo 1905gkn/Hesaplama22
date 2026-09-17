@@ -138,7 +138,7 @@ const runtime = String.raw`
     const ground=Number.isFinite(layout.groundY)?layout.groundY*sy:bottom,supportYs=Array.isArray(layout.supportYs)?layout.supportYs.map((value)=>value*sy):[];
     const lx=Math.max(108,left-Math.min(34,w*.035)),labelX=lx-16,rx=Math.min(w-150,right+Math.max(52,w*.045)),rx2=Math.min(w-72,right+Math.max(125,w*.1));
     const arrow='<defs><marker id="rafexDriveArrow" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto-start-reverse"><path d="M0,0 L5,2.5 L0,5 Z" fill="#d7aa00"/></marker></defs>';
-    let out=arrow+'<text class="dim-title" x="'+Math.max(8,labelX-6)+'" y="'+Math.max(18,top+14)+'">KOT ARALIKLARI</text>';
+    let out=arrow+'<text class="dim-title" x="'+Math.max(8,labelX-6)+'" y="'+Math.max(28,top-55)+'">KOT ARALIKLARI</text>';
     const targetX=(level,side)=>{const point=layout.palletPoints?.[level]?.[side];return point?point.x*sx:(side==='left'?left:right)};
     const first=Number.isFinite(supportYs[0])?supportYs[0]:ground;
     out+='<line class="dim-line dim-main" x1="'+lx+'" y1="'+ground+'" x2="'+lx+'" y2="'+first+'" marker-start="url(#rafexDriveArrow)" marker-end="url(#rafexDriveArrow)"/><line class="dim-line" x1="'+lx+'" y1="'+ground+'" x2="'+left+'" y2="'+ground+'"/><line class="dim-line" x1="'+lx+'" y1="'+first+'" x2="'+targetX(0,'left')+'" y2="'+first+'"/><text x="'+labelX+'" y="'+((ground+first)/2+4)+'" text-anchor="end">ZEMİN · '+Math.round(c.firstLevelHeight)+' mm</text>';

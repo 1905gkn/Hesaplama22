@@ -263,6 +263,11 @@ class DriveInFrontViewer {
     // Teknik kot ve toplam yükseklik ölçülerine iki yanda sabit okuma alanı bırak.
     halfW *= 1.22;
     halfH *= 1.22;
+    // Reserve screen space for dimension labels on both sides, even in a
+    // narrow/tall panel whose aspect ratio would otherwise fit only the rack.
+    const modelWidthPx = Math.max(120, width - 420);
+    halfW = Math.max(halfW, size.x * width / (2 * modelWidthPx));
+    halfH = Math.max(halfH, halfW / aspect);
     this.camera.left = -halfW;
     this.camera.right = halfW;
     this.camera.top = halfH;
