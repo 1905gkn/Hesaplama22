@@ -18,7 +18,7 @@ assert.deepEqual(copy.payload.areas.map(x=>x.name),['Ana Depo','Sevkiyat']);
 const raw=fs.readFileSync(process.argv[2]||'dist/server/index.js','utf8'),encoded=raw.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/),html=transform(encoded?Buffer.from(encoded[1],'base64').toString():raw);
 assert.equal(transform(html),html);
 for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi))new vm.Script(m[1]);
-assert.ok(html.includes('window.rafexRenderAreaOutput(target,async()=>{'));
+assert.ok(html.includes('window.rafexRenderAreaOutput(target,async(options={})=>{'));
 assert.ok(html.includes('documentV133=window.rafexAttachAreas?.(documentV133)'));
 const runtime=fs.readFileSync(new URL('./multi-area-runtime.js',import.meta.url),'utf8');
 const signatureCode=runtime.match(/  function outputSignature\(\)\{[\s\S]*?\n  \}/)[0];

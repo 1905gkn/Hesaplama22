@@ -6,7 +6,8 @@ export function transform(html){
  replace("document.querySelector('#nav button.active[data-page]')?.dataset.page==='free'&&m2LayoutState.racks.length>0", "document.querySelector('#nav button.active[data-page]')?.dataset.page==='free'");
  replace('if(independentV133)documentV133=window.rafexIndependentProjectV133', 'documentV133=window.rafexAttachAreas?.(documentV133)||documentV133;\n          if(independentV133)documentV133=window.rafexIndependentProjectV133');
  const start="      if(type==='summary')await base.m2RenderA4Report?.();else await base.m2RenderCorporateReport?.();";
- replace(start, "      await window.rafexRenderAreaOutput(target,async()=>{\n"+start);
+ replace(start, "      await window.rafexRenderAreaOutput(target,async(options={})=>{\n"+start);
+ replace("if(type==='corporate')await base.rafexRenderSelectedB2BSections?.(true);", "if(type==='corporate'&&options.sections!==false)await base.rafexRenderSelectedB2BSections?.(true);");
  replace("      if(!target.querySelector('svg,img,canvas'))throw Error('Çizim önizlemesi üretilemedi.');", "      });\n      if(!target.querySelector('svg,img,canvas'))throw Error('Çizim önizlemesi üretilemedi.');");
  replace("if(!depth&&panel()){invalidate();return;}return original.apply(this,arguments);", "if(!depth&&panel()){if(!window.rafexAreaOutputIsCurrent?.())invalidate();return;}return original.apply(this,arguments);");
  for(const name of ['rebuildHost','syncPdfHost'])replace('function '+name+'(host){', 'function '+name+'(host){\n    if(host?.querySelector("[data-rafex-area]"))return;');

@@ -63,17 +63,39 @@
   window.rafexAttachAreas=record=>{if(!common())return record;const state=window.rafexAreaDocument();record.payload.areas=state.areas;record.payload.activeAreaId=state.activeAreaId;record.payload.layout=clone(current().layout);record.payload.drawing=state.areas.flatMap(a=>a.layout.racks||[])[0]||record.payload.drawing;return record;};
   window.rafexRenderAreaOutput=async(target,render)=>{
     if(!common()){await render();return;}
-    ensure();remember();const active=documentState.activeAreaId,areas=clone(documentState.areas),fragments=[],undo=m2UndoHistory;output=true;preparedSignature=null;
+    ensure();remember();const active=documentState.activeAreaId,areas=clone(documentState.areas),fragments=[],plans=[],details=[],sharedSections=[],undo=m2UndoHistory;let cover=null;output=true;preparedSignature=null;
     const page=document.getElementById('page'),nav=document.getElementById('nav');page?.setAttribute('inert','');nav?.setAttribute('inert','');
     try{
       for(const area of areas){
-        documentState.activeAreaId=area.id;restore(area.layout);await render();
+        documentState.activeAreaId=area.id;restore(area.layout);await render({sections:false});
         const copy=document.createElement('div');copy.innerHTML=target.innerHTML;
         copy.querySelectorAll('.m2-corporate-page').forEach(section=>{section.dataset.rafexArea=area.id;const title=section.querySelector('.m2-corporate-page-header');if(title){const label=document.createElement('b');label.className='rafex-area-report-name';label.textContent=area.name;title.appendChild(label);}else{const subtitle=section.querySelector('.m2-corporate-cover-content p');if(subtitle)subtitle.textContent=area.name;}});
         if(!copy.querySelector('.m2-corporate-page')){const title=document.createElement('h3');title.textContent=area.name;copy.prepend(title);}
         window.rafexNamespaceAreaSvg(copy,'area-'+area.id);
-        fragments.push(...copy.childNodes);
+        const pages=[...copy.querySelectorAll(':scope>.m2-corporate-page')];
+        if(!pages.length)fragments.push(...copy.childNodes);
+        else for(const section of pages){
+          if(section.matches('.rafex-v19-type-page')||section.querySelector('.rafex-v19-type-card,.m2-corporate-type-grid'))continue;
+          if(section.querySelector('.m2-corporate-cover-content')){if(!cover)cover=section;continue;}
+          if(section.querySelector('.m2-corporate-floor'))plans.push(section);else details.push(section);
+        }
       }
+      if(plans.length){
+        // Render the shared catalog against all placed racks once. Only section
+        // pages are retained; each area's quantities remain in its own report.
+        const layout={...areas[0].layout,racks:areas.flatMap(area=>area.layout.racks||[])};
+        restore(layout);await render();
+        const copy=document.createElement('div');copy.innerHTML=target.innerHTML;
+        cover=copy.querySelector(':scope>.m2-corporate-cover')||cover;
+        if(cover){cover.dataset.rafexArea='shared';const subtitle=cover.querySelector('.m2-corporate-cover-content p');if(subtitle)subtitle.textContent=areas.map(area=>area.name).join(' · ');}
+        for(const section of copy.querySelectorAll(':scope>.rafex-v19-type-page')){
+          section.dataset.rafexArea='shared';
+          section.querySelectorAll('.rafex-area-report-name').forEach(label=>label.remove());
+          sharedSections.push(section);
+        }
+        window.rafexNamespaceAreaSvg(copy,'shared-sections');
+        fragments.push(...(cover?[cover]:[]),...plans,...sharedSections,...details);
+      }else if(details.length||cover)fragments.push(...(cover?[cover]:[]),...details);
     }finally{
       try{documentState.activeAreaId=active;restore(current().layout);m2UndoHistory=undo;m2UpdateUndoButton();}
       finally{output=false;page?.removeAttribute('inert');nav?.removeAttribute('inert');draw();}
