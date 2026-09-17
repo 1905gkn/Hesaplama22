@@ -22,8 +22,8 @@ const runtime = String.raw`
 #page.drive-in-mode #m2Front .rafex-drive-dimensions{position:absolute;inset:0;z-index:3;width:100%;height:100%;pointer-events:none;overflow:visible}
 #page.drive-in-mode #m2Front .rafex-drive-dimensions .dim-line{fill:none;stroke:#d7aa00;stroke-width:1;stroke-dasharray:2 2;vector-effect:non-scaling-stroke}
 #page.drive-in-mode #m2Front .rafex-drive-dimensions .dim-main{stroke-dasharray:none}
-#page.drive-in-mode #m2Front .rafex-drive-dimensions text{fill:#123f31;font:900 12px Arial,sans-serif;paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round}
-#page.drive-in-mode #m2Front .rafex-drive-dimensions .dim-title{font-size:14px}
+#page.drive-in-mode #m2Front .rafex-drive-dimensions text{fill:#123f31;font:800 18px Arial,sans-serif;paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round}
+#page.drive-in-mode #m2Front .rafex-drive-dimensions .dim-title{font-size:22px}
 #page.drive-in-mode .m2-view[data-m2-view="front"] .m2-zoom{display:none!important}
 #page.drive-in-mode .m2-view[data-m2-view="front"] .m2-view-header-tools>span{font-weight:900;color:#214f3b}
 </style>
@@ -140,12 +140,16 @@ const runtime = String.raw`
     const arrow='<defs><marker id="rafexDriveArrow" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto-start-reverse"><path d="M0,0 L5,2.5 L0,5 Z" fill="#d7aa00"/></marker></defs>';
     let out=arrow+'<text class="dim-title" x="'+Math.max(8,labelX-6)+'" y="'+Math.max(18,top+14)+'">KOT ARALIKLARI</text>';
     const first=Number.isFinite(supportYs[0])?supportYs[0]:ground;
-    out+='<line class="dim-line dim-main" x1="'+lx+'" y1="'+ground+'" x2="'+lx+'" y2="'+first+'" marker-start="url(#rafexDriveArrow)" marker-end="url(#rafexDriveArrow)"/><line class="dim-line" x1="'+lx+'" y1="'+ground+'" x2="'+left+'" y2="'+ground+'"/><line class="dim-line" x1="'+lx+'" y1="'+first+'" x2="'+left+'" y2="'+first+'"/><text x="'+labelX+'" y="'+(ground-7)+'" text-anchor="end">ZEMİN · '+Math.round(c.firstLevelHeight)+' mm</text>';
+    out+='<line class="dim-line dim-main" x1="'+lx+'" y1="'+ground+'" x2="'+lx+'" y2="'+first+'" marker-start="url(#rafexDriveArrow)" marker-end="url(#rafexDriveArrow)"/><line class="dim-line" x1="'+lx+'" y1="'+ground+'" x2="'+left+'" y2="'+ground+'"/><line class="dim-line" x1="'+lx+'" y1="'+first+'" x2="'+left+'" y2="'+first+'"/><text x="'+labelX+'" y="'+((ground+first)/2+4)+'" text-anchor="end">ZEMİN · '+Math.round(c.firstLevelHeight)+' mm</text>';
     for(let i=1;i<c.levels;i+=1){const y1=supportYs[i-1],y2=supportYs[i];if(!Number.isFinite(y1)||!Number.isFinite(y2))continue;const mid=(y1+y2)/2;out+='<line class="dim-line dim-main" x1="'+lx+'" y1="'+y1+'" x2="'+lx+'" y2="'+y2+'" marker-start="url(#rafexDriveArrow)" marker-end="url(#rafexDriveArrow)"/><line class="dim-line" x1="'+lx+'" y1="'+y2+'" x2="'+left+'" y2="'+y2+'"/><text x="'+labelX+'" y="'+(mid+4)+'" text-anchor="end">K'+i+' · '+Math.round(c.levelSpacing)+' mm</text>'}
     const lastSupport=c.firstLevelHeight+Math.max(0,c.levels-1)*c.levelSpacing,lastPallet=lastSupport,total=rackH,yp=supportYs[c.levels-1]??first,yt=Number.isFinite(layout.uprightTopY)?layout.uprightTopY*sy:top;
     out+='<line class="dim-line dim-main" x1="'+rx+'" y1="'+ground+'" x2="'+rx+'" y2="'+yp+'" marker-start="url(#rafexDriveArrow)" marker-end="url(#rafexDriveArrow)"/><line class="dim-line" x1="'+right+'" y1="'+yp+'" x2="'+rx+'" y2="'+yp+'"/><text x="'+(rx+20)+'" y="'+((ground+yp)/2)+'" text-anchor="middle" transform="rotate(-90 '+(rx+20)+' '+((ground+yp)/2)+')">SON PALET YÜKSEKLİĞİ · '+Math.round(lastPallet)+' mm</text>';
     out+='<line class="dim-line dim-main" x1="'+rx2+'" y1="'+ground+'" x2="'+rx2+'" y2="'+yt+'" marker-start="url(#rafexDriveArrow)" marker-end="url(#rafexDriveArrow)"/><line class="dim-line" x1="'+right+'" y1="'+yt+'" x2="'+rx2+'" y2="'+yt+'"/><line class="dim-line" x1="'+right+'" y1="'+ground+'" x2="'+rx2+'" y2="'+ground+'"/><text x="'+(rx2+22)+'" y="'+((ground+yt)/2)+'" text-anchor="middle" transform="rotate(-90 '+(rx2+22)+' '+((ground+yt)/2)+')">AYAK UZUNLUĞU · '+Math.round(total)+' mm</text>';
+    const columns=(layout.columnXs||[]).map(value=>value*sx),center=columns.length>1?(columns[0]+columns[1])/2:(left+right)/2,chipY=Math.max(8,(layout.loadTopY??layout.top)*sy-40);
+    out+='<g class="drive-column-chip"><rect rx="15" fill="#073c30"/><text x="'+center+'" y="'+(chipY+20)+'" text-anchor="middle" style="fill:#fff;stroke:none;font:900 15px Arial,sans-serif">KOLON ARALIĞI · '+fmt(layout.bayPitch||c.palletWidth+240)+' mm</text></g>';
+    out+='<style>.rafex-drive-dimensions .dim-line{fill:none;stroke:#d7a900;stroke-width:.9;stroke-dasharray:3 3}.rafex-drive-dimensions .dim-main{stroke-width:1.35;stroke-dasharray:none}.rafex-drive-dimensions text{fill:#073c30;font:800 18px Arial,sans-serif;stroke:none}.rafex-drive-dimensions .dim-title{font:900 22px Arial,sans-serif}.rafex-drive-dimensions text[transform]{font-size:16px}</style>';
     svg.setAttribute('viewBox','0 0 '+w+' '+h);svg.innerHTML=out;
+    const chip=svg.querySelector('.drive-column-chip'),text=chip.querySelector('text'),box=text.getBBox(),plate=chip.querySelector('rect');for(const [key,value] of Object.entries({x:box.x-10,y:box.y-5,width:box.width+20,height:box.height+10}))plate.setAttribute(key,String(value));
   }
 
   function mountFront(){

@@ -271,6 +271,15 @@ class DriveInFrontViewer {
     this.camera.updateProjectionMatrix();
     this.controls.update();
     this.camera.updateMatrixWorld();
+  }
+
+  emitLayout() {
+    if (!this.models) return;
+    const bounds = new THREE.Box3().setFromObject(this.root);
+    const center = bounds.getCenter(new THREE.Vector3());
+    const width = this.lastWidth || this.canvas.clientWidth;
+    const height = this.lastHeight || this.canvas.clientHeight;
+    this.camera.updateMatrixWorld();
     const project = (x, z) => {
       const point = new THREE.Vector3(x, center.y, z).project(this.camera);
       return { x: (point.x + 1) * width / 2, y: (1 - point.y) * height / 2 };
@@ -285,11 +294,14 @@ class DriveInFrontViewer {
       right: Math.max(rackEdgeA, rackEdgeB),
       top: Math.min(lowerLeft.y, upperRight.y),
       bottom: Math.max(lowerLeft.y, upperRight.y),
-      groundY: project(0, bounds.min.z).y,
+      groundY: project(0, 0).y,
       supportYs: Array.from({ length: this.config.levels }, (_, level) => (
-        project(0, Number.isFinite(this.visualPalletBottomZ?.[level])?this.visualPalletBottomZ[level]:this.config.firstLevelHeight + level * this.config.levelSpacing).y
+        project(0, this.config.firstLevelHeight + level * this.config.levelSpacing).y
       )),
-      uprightTopY: project(0, bounds.max.z).y,
+      uprightTopY: project(0, this.config.firstLevelHeight + (this.config.levels - 1) * this.config.levelSpacing + this.config.palletHeight + 220).y,
+      columnXs: Array.from({length:this.config.bays+1},(_,i)=>project(45+i*(this.config.palletWidth+240),0).x).sort((a,b)=>a-b),
+      bayPitch: this.config.palletWidth + 240,
+      loadTopY: project(0, this.config.firstLevelHeight + (this.config.levels-1)*this.config.levelSpacing + this.config.palletHeight).y,
       width,
       height,
     });
@@ -315,7 +327,7 @@ class DriveInFrontViewer {
     this.renderScene();
   }
 
-  renderScene() { if (!this.destroyed) this.renderer.render(this.scene, this.camera); }
+  renderScene() { if (!this.destroyed) {this.renderer.render(this.scene, this.camera);this.emitLayout();} }
   render() { this.renderScene(); }
 
   destroy() {
