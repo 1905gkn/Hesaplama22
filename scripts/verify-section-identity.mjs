@@ -17,6 +17,14 @@ vm.createContext(context);vm.runInContext('let rackTypeCache=[];'+collect+';glob
 assert.equal(context.result.length,3);
 for(const group of context.result){assert.equal(group.cards.length,1);assert.equal(group.system,group.cards[0].dataset.rafexSystem);assert.equal(group.system,group.entries.get(3).drawing.rafexSystem);}
 context.m2LayoutState.racks=[];vm.runInContext('globalThis.result=collectRackTypes()',context);assert.equal(context.result.length,0,'Empty layout must not resurrect stale catalog');
+context.window={rafexAreaDocument:()=>({areas:['b2b','mr','konsol','mekik2','drive'].map((system,index)=>({layout:{racks:[{rafexSystem:system,typeName:String.fromCharCode(65+index)}]}}))})};
+context.document.getElementById=id=>id==='m2SectionPlacementModal'?{hidden:false}:null;
+vm.runInContext('globalThis.result=collectRackTypes()',context);
+assert.deepEqual(Array.from(context.result,t=>t.system),['b2b','mr','konsol','mekik2','drive'],'Editor includes placed types from every area and system without catalog API');
+assert.ok(script.includes('button.dataset.rafexNativeSection="1"'));
+assert.ok(html.includes("!item.button.dataset.rafexNativeSection"),'Legacy decorator cannot remove native Mekik entries');
+assert.ok(!html.includes("btn.classList.toggle('rafex-non-b2b-section'"),'Legacy cleanup cannot hide non-B2B systems');
+assert.ok(!html.includes('.rafex-non-b2b-section{display:none!important}'));
 const render=script.slice(script.indexOf('  async function renderAllPerspective('),script.indexOf('  // Final PDF builders'));
 let finishCapture,calls=0,applied=0;
 const gate=new Promise(resolve=>finishCapture=resolve);
