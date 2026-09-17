@@ -183,6 +183,7 @@ class DriveInFrontViewer {
   rebuild() {
     this.root.clear();
     this.visualPalletBottomZ = [];
+    this.palletBounds = [];
     const c = this.config;
     const uprightWidth = 90;
     const bayClear = c.palletWidth + 150;
@@ -229,7 +230,11 @@ class DriveInFrontViewer {
         this.addPart(this.models.konsol, konsolScale, new THREE.Vector3(centerX, frontY - konsolSize.y * konsolUniform / 2, supportTopZ - konsolHeight / 2), technicalMaterials.konsol);
         const palletSeatZ = supportTopZ - palletThickness;
         const palletPart=this.addPart(this.models.palet, paletScale, new THREE.Vector3(centerX, frontY - c.palletDepth / 2 - 40, palletSeatZ + palletThickness / 2), technicalMaterials.palet, { rotateY: false, rotationZ: -Math.PI / 2 });
-        if(bay===0){palletPart.updateMatrixWorld(true);this.visualPalletBottomZ[level]=new THREE.Box3().setFromObject(palletPart).min.z;}
+        palletPart.updateMatrixWorld(true);
+        const palletBounds = new THREE.Box3().setFromObject(palletPart);
+        if (!this.palletBounds[level]) this.palletBounds[level] = palletBounds.clone();
+        else this.palletBounds[level].union(palletBounds);
+        this.visualPalletBottomZ[level] = this.palletBounds[level].min.z;
         this.addLoadBox(
           new THREE.Vector3(c.palletWidth * 0.94, c.palletDepth * 0.94, c.palletHeight),
           new THREE.Vector3(centerX, frontY - c.palletDepth / 2 - 40, palletSeatZ + palletThickness + c.palletHeight / 2),
@@ -289,6 +294,10 @@ class DriveInFrontViewer {
     const rackWidth = this.config.bays * (this.config.palletWidth + 150) + (this.config.bays + 1) * 90;
     const rackEdgeA = project(0, 0).x;
     const rackEdgeB = project(rackWidth, 0).x;
+    const palletPoints = this.palletBounds.map(box => {
+      const edges = [project(box.min.x, box.min.z), project(box.max.x, box.min.z)].sort((a,b)=>a.x-b.x);
+      return {left:edges[0],right:edges[1]};
+    });
     this.emit("drive-in-layout", {
       left: Math.min(rackEdgeA, rackEdgeB),
       right: Math.max(rackEdgeA, rackEdgeB),
@@ -296,8 +305,9 @@ class DriveInFrontViewer {
       bottom: Math.max(lowerLeft.y, upperRight.y),
       groundY: project(0, 0).y,
       supportYs: Array.from({ length: this.config.levels }, (_, level) => (
-        project(0, this.config.firstLevelHeight + level * this.config.levelSpacing).y
+        palletPoints[level].left.y
       )),
+      palletPoints,
       uprightTopY: project(0, this.config.firstLevelHeight + (this.config.levels - 1) * this.config.levelSpacing + this.config.palletHeight + 220).y,
       columnXs: Array.from({length:this.config.bays+1},(_,i)=>project(45+i*(this.config.palletWidth+240),0).x).sort((a,b)=>a-b),
       bayPitch: this.config.palletWidth + 240,
