@@ -27,6 +27,8 @@
   }
   function restore(layout,paint=true){
     const v=clone(layout);restoring=true;
+    const types=window.rafexProjectTypesV133||[];
+    for(const rack of v.racks||[]){const entry=types.find(e=>(e.__rafexSystem+':'+e.id)===rack.rafexCatalogKey);if(entry){rack.typeName=entry.name;rack.rafexGlobalTypeLetter=entry.name;}}
     try{
       m2LayoutState={...v,mode:'idle',drag:null,hover:null,selected:null,areaEditMode:false,drawFromIndex:null,branchSourceIndex:null};
       m2LayoutSymbols=v.symbols||[];m2UserNotes=v.userNotes||[];

@@ -10,23 +10,27 @@ export function mergeRackCatalog(current, incoming, excluded=[]) {
   const key=e=>system(e)+':'+e.id;
   const fingerprint=catalogRecordFingerprint;
   const letter=n=>{let s='';for(;n;n=Math.floor((n-1)/26))s=String.fromCharCode(65+(n-1)%26)+s;return s;};
+  const validName=value=>/^[A-Z]+$/.test(String(value||'').trim().toUpperCase());
+  const reserved=new Set([...(current||[]),...(incoming||[])].filter(e=>!excluded.includes(fingerprint(e))).map(e=>String(e.name||'').trim().toUpperCase()).filter(validName));
   const result=[],byOrigin=new Map(),byContent=new Map(),names=new Set();
   const aliases={};
   function add(raw,registry){
     const entry=clone(raw),origin=entry.registryKey||(registry?key(entry):null),fp=fingerprint(entry);
     const existing=(origin&&byOrigin.get(origin))||byContent.get(fp);
     if(existing){aliases[key(entry)]=key(existing);if(origin){existing.registryKey=existing.registryKey||origin;byOrigin.set(origin,existing);}return;}
-    let name=String(entry.name||'').trim();
-    if(!name||names.has(name.toUpperCase())){let n=1;while(names.has(letter(n)))n++;name=letter(n);}
+    let name=String(entry.name||'').trim().toUpperCase();
+    if(!validName(name)||names.has(name)){let n=1;while(names.has(letter(n))||reserved.has(letter(n)))n++;name=letter(n);}
     names.add(name.toUpperCase());entry.name=name;
     if(origin)entry.registryKey=origin;
     entry.__rafexUnified=true;entry.__rafexSystem=system(entry);
     entry.drawing=clone(entry.__rafexSnapshot||entry.drawing||{});
     entry.drawing.rafexGlobalTypeLetter=name;
+    entry.__rafexGlobalLetter=name;
     entry.__rafexSnapshot=clone(entry.drawing);
     result.push(entry);byContent.set(fp,entry);if(origin)byOrigin.set(origin,entry);
   }
   (current||[]).forEach(e=>add(e,false));
   (incoming||[]).filter(e=>!excluded.includes(fingerprint(e))).forEach(e=>add(e,true));
+  result.sort((a,b)=>a.name.length-b.name.length||a.name.localeCompare(b.name,'en'));
   return {entries:result,aliases};
 }

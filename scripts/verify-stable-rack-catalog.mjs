@@ -17,6 +17,12 @@ assert.equal(merged.entries.length,4,'Legacy metadata/order must not duplicate t
 assert.equal(new Set(merged.entries.map(e=>e.name)).size,4,'Different products must have unique names');
 assert.equal(mergeRackCatalog(merged.entries,registry).entries.length,4);
 assert.equal(mergeRackCatalog([row(1,'A')],[row(2,'A',2700,'mr')]).entries.length,2,'Different systems are not collapsed');
+const named=mergeRackCatalog([],['A','B','C','D','H','Tip 1','Tip 2','Tip 3','Tip 4'].map((name,i)=>row(i+1,name,1000+i))).entries;
+assert.deepEqual(named.map(e=>e.name),['A','B','C','D','E','F','G','H','I']);
+assert.equal(named.find(e=>e.id===5).name,'H','Existing block letters stay attached to their products');
+assert.deepEqual(mergeRackCatalog(named,[]).entries,named,'Reload does not renumber the catalog');
+const alphabet=mergeRackCatalog([],Array.from({length:28},(_,i)=>row(i+1,'Tip '+(i+1),1000+i))).entries;
+assert.deepEqual(alphabet.slice(24).map(e=>e.name),['Y','Z','AA','AB']);
 const file=process.argv[2];
 if(file){
   const s=fs.readFileSync(file,'utf8'),m=s.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1/);
