@@ -1,0 +1,28 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+import {transform,sectionSystem} from './patch-section-identity.mjs';
+const raw=fs.readFileSync(process.argv[2]||'dist/server/index.js','utf8'),m=raw.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/);
+const html=transform(m?Buffer.from(m[1],'base64').toString():raw);
+assert.equal(transform(html),html);
+assert.ok(!html.includes('groupMap.get(raw)||Array.from(groupMap.values())[index]'));
+assert.ok(html.includes('item.letter===raw&&item.system===card.dataset.rafexSystem'));
+for(const s of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi))new vm.Script(s[1]);
+const script=html.match(/<script data-rafex-b2b-section-positioner-fallback="v5">([\s\S]*?)<\/script>/)[1];
+const collect=script.slice(script.indexOf('function collectRackTypes()'),script.indexOf('  function defaultsFor('));
+const cards=['b2b','mr','konsol'].map(system=>({dataset:{rafexSystem:system,rafexTypeName:'A'}}));
+const racks=cards.map(card=>({rafexSystem:card.dataset.rafexSystem,typeName:'A',b2b:{},konsol:{}}));
+const context={sectionSystem,m2LayoutState:{racks},m2CorporateUsedTypes:()=>[{name:'wrong cache',drawing:{b2b:{}}}],document:{getElementById:id=>id==='m2CorporatePreview'?{querySelectorAll:()=>cards}:null},safeKey:v=>String(v).trim(),palletCountOf:()=>3};
+vm.createContext(context);vm.runInContext('let rackTypeCache=[];'+collect+';globalThis.result=collectRackTypes()',context);
+assert.equal(context.result.length,3);
+for(const group of context.result){assert.equal(group.cards.length,1);assert.equal(group.system,group.cards[0].dataset.rafexSystem);assert.equal(group.system,group.entries.get(3).drawing.rafexSystem);}
+context.m2LayoutState.racks=[];vm.runInContext('globalThis.result=collectRackTypes()',context);assert.equal(context.result.length,0,'Empty layout must not resurrect stale catalog');
+const render=script.slice(script.indexOf('  async function renderAllPerspective('),script.indexOf('  // Final PDF builders'));
+let finishCapture,calls=0,applied=0;
+const gate=new Promise(resolve=>finishCapture=resolve);
+const renderContext={setTimeout,collectRackTypes:()=>[{key:'b2b|A',label:'A',entries:new Map([[3,{}]]),cards:[{}]}],capturePerspective:async()=>{calls++;if(calls===1)await gate;return 'image';},applyPerspectiveToCard:async()=>{applied++;}};
+vm.createContext(renderContext);vm.runInContext('let renderQueued=false;const saved={};'+render,renderContext);
+const first=vm.runInContext('renderAllPerspective()',renderContext),second=vm.runInContext('renderAllPerspective()',renderContext);
+await new Promise(resolve=>setTimeout(resolve,10));assert.equal(applied,0);finishCapture();await Promise.all([first,second]);assert.equal(applied,2,'Explicit output must wait and render its own cards');
+renderContext.capturePerspective=async()=>null;await assert.rejects(vm.runInContext('renderAllPerspective()',renderContext),/hazırlanamadı/);
+console.log('PASS: same-name systems isolated; placed racks override stale cache; empty layouts; concurrent captures awaited; failed captures rejected; inline syntax');

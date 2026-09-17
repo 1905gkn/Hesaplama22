@@ -87,6 +87,8 @@ node scripts/patch-dimension-drag.mjs
 node scripts/patch-all-section-systems.mjs
 node scripts/verify-all-section-systems.mjs
 node scripts/patch-multi-area.mjs
+node scripts/patch-section-identity.mjs
+node scripts/verify-section-identity.mjs
 node scripts/verify-multi-area.mjs
 node scripts/verify-mr-custom-detail.mjs
 node scripts/verify-dimension-drag.mjs
