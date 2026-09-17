@@ -2,7 +2,8 @@ export function combineProductPages(target){
   const sources=[...target.querySelectorAll(':scope>.m2-corporate-page')].filter(page=>page.querySelector('.m2-corporate-bom-card'));
   if(!sources.length)return;
   const measure=document.createElement('div');
-  measure.style.cssText='position:fixed;left:-100000px;top:0;width:1120px;visibility:hidden;pointer-events:none';
+  const width=Math.max(320,Math.min(1120,target.getBoundingClientRect().width||target.parentElement?.getBoundingClientRect().width||1120));
+  measure.style.cssText='position:fixed;left:-100000px;top:0;width:'+width+'px;visibility:hidden;pointer-events:none';
   document.body.appendChild(measure);
   const pages=[];let body;
   function newPage(){
