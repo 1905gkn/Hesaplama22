@@ -101,6 +101,7 @@
       finally{output=false;page?.removeAttribute('inert');nav?.removeAttribute('inert');draw();}
     }
     target.replaceChildren(...fragments);
+    window.rafexCombineProductPages(target);
     const pages=[...target.querySelectorAll('.m2-corporate-page')];pages.forEach((page,index)=>{let footer=page.querySelector('.m2-corporate-page-footer');if(!footer){footer=document.createElement('footer');footer.className='m2-corporate-page-footer';page.appendChild(footer);}footer.textContent=(index+1)+' / '+pages.length;});
     preparedSignature=outputSignature();
   };
@@ -116,6 +117,11 @@
   document.addEventListener('input',event=>{const input=event.target;if(!input.matches?.('#rafexAreaList input'))return;const a=documentState?.areas.find(a=>a.id===input.dataset.areaId);if(a){a.name=input.value.trim().slice(0,100)||a.name;const list=input.closest('#rafexAreaList');list.dataset.signature=JSON.stringify(documentState.areas.map(a=>[a.id,a.name]))+documentState.activeAreaId;invalidate();}},true);
   document.addEventListener('click',event=>{if(event.target.closest?.('.rafex-system-option,#rafexNewProjectV133'))setTimeout(()=>{ensure();draw();},0);});
   const style=document.createElement('style');style.textContent=`
+    .rafex-product-flow-page .rafex-product-flow{position:absolute;inset:12.5% 1.5% 4%;overflow:hidden;display:block}
+    .rafex-product-flow-page .m2-corporate-bom-card{display:block!important;height:auto!important;min-height:0!important;overflow:visible!important;border:0!important;border-top:2px solid #214f3b!important;border-radius:0!important;margin:0 0 12px!important;padding-top:6px!important;break-inside:avoid}
+    .rafex-product-flow-page .m2-corporate-bom-row{min-height:22px!important;font-size:11px!important;line-height:1.25!important}
+    .rafex-product-flow-page .m2-corporate-bom-row span{white-space:normal!important;overflow-wrap:anywhere}
+    .rafex-product-flow-page .m2-corporate-bom-card h3{font-size:13px!important;padding:7px!important}
     #rafexAddArea{flex-basis:100%;margin-bottom:0}
     #rafexAreaList{display:grid;gap:5px;flex:0 0 100%;width:100%;min-width:0;align-self:flex-start;align-content:start;max-height:192px;overflow-y:auto}
     #rafexAreaList .rafex-area-row{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:6px;padding:4px;border:1px solid #d5dfd9;border-radius:7px;min-height:0}

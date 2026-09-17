@@ -53,6 +53,9 @@ const runtime=String.raw`
   }
   function isKonsol(rack,node){
     const saved=savedFor(rack),d=rack?.drawing||saved?.drawing||{};
+    // Older shared records can retain a generic Mekik system tag. The saved
+    // cantilever geometry is authoritative, not that inherited label.
+    if(rack?.konsol||rack?.drawing?.konsol||rack?.layoutView==='konsol-top'||rack?.drawing?.layoutView==='konsol-top')return true;
     const explicit=[rack?.rafexSystem,rack?.__rafexSystem,rack?.systemType,d?.rafexSystem,d?.systemType,saved?.__rafexSystem]
       .map(text).filter(Boolean);
     if(explicit.some((value)=>/^(mekik|mekik2|shuttle|drive|drive-in|drivein|b2b|mr|fifo|lifo)$/.test(value)))return false;
@@ -81,7 +84,8 @@ const runtime=String.raw`
     return null;
   }
   function drawPlan(group,rack){
-    if(!group||group.dataset.rafexKonsolPlan==='v38')return;
+    if(!group)return;
+    if(group.dataset.rafexKonsolPlan==='v38'&&group.querySelector('.rafex-konsol-plan-steel'))return;
     const box={x:Number(rack.x),y:Number(rack.y),width:Number(rack.w),height:Number(rack.h)};
     if(!Object.values(box).every(Number.isFinite))return;
     const wide=box.width>=box.height,w=box.width,h=box.height;

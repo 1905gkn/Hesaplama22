@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import {namespaceSvgCopy} from './namespace-svg-copy.mjs';
+import {combineProductPages} from './combine-product-pages.mjs';
 export function transform(html){
  if(html.includes('data-rafex-multi-area'))return html;
  const replace=(a,b)=>{if(!html.includes(a))throw Error('Multi-area anchor missing: '+a.slice(0,100));html=html.replace(a,b);};
@@ -12,7 +13,7 @@ export function transform(html){
  replace("if(!depth&&panel()){invalidate();return;}return original.apply(this,arguments);", "if(!depth&&panel()){if(!window.rafexAreaOutputIsCurrent?.())invalidate();return;}return original.apply(this,arguments);");
  for(const name of ['rebuildHost','syncPdfHost'])replace('function '+name+'(host){', 'function '+name+'(host){\n    if(host?.querySelector("[data-rafex-area]"))return;');
  replace('racks = x.layout?.racks || []', 'racks = x.areas?.length ? x.areas.flatMap(area=>area.layout.racks||[]) : x.layout?.racks || []');
- const script='<script data-rafex-multi-area>window.rafexNamespaceAreaSvg='+namespaceSvgCopy.toString()+';\n'+fs.readFileSync(new URL('./multi-area-runtime.js',import.meta.url),'utf8')+'</script>';
+ const script='<script data-rafex-multi-area>window.rafexCombineProductPages='+combineProductPages.toString()+';window.rafexNamespaceAreaSvg='+namespaceSvgCopy.toString()+';\n'+fs.readFileSync(new URL('./multi-area-runtime.js',import.meta.url),'utf8')+'</script>';
  const end=html.lastIndexOf('</body>');return html.slice(0,end)+script+html.slice(end);
 }
 if(process.argv[1]?.replaceAll('\\','/').endsWith('/patch-multi-area.mjs')){

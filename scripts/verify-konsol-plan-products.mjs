@@ -10,9 +10,10 @@ class Element {
   replaceChildren(fragment){this.children=fragment.children;}
   querySelector(){return this.hit;}
 }
-function render({load='profile',rotated=false,side='single',rows,count=1}={}){
+function render({load='profile',rotated=false,side='single',rows,count=1,legacy=false}={}){
   const group=new Element('g');group.dataset.rack='1';group.hit=new Element('rect');
   const rack={id:1,rafexSystem:'konsol',typeName:'D',x:10,y:20,w:rotated?122:613,h:rotated?613:122,widthMm:6130,konsol:{count:5,spacing:1500,side,loadType:load,productLength:3000,levelRows:rows}};
+  if(legacy)rack.systemType='mekik2';
   let scheduled,observer,decorations=0,schedules=0;
   const groups=Array.from({length:count},(_,i)=>{const g=i?new Element('g'):group;g.dataset.rack=String(i+1);g.hit=g.hit||new Element('rect');return g;});
   const window={m2LayoutState:{racks:Array.from({length:count},(_,i)=>({...rack,id:i+1}))},rafexCommonSingleLineLetterV58:{decorate(){decorations++;}}};
@@ -42,4 +43,5 @@ for(const side of ['single','double'])for(const rotated of [false,true])for(cons
 }
 assert.equal(render({rows:[{load:0}]}).nodes.filter(n=>n.attrs['class']==='rafex-konsol-plan-product').length,0);
 render({count:500});
+assert(render({legacy:true}).nodes.some(n=>n.attrs['class']==='rafex-konsol-plan-steel'),'Cantilever geometry must override inherited Mekik tag');
 console.log('PASS: Konsol centered label, transparent hit area, no back band; profile/pallet/empty, single/double, rotated, zero load.');
