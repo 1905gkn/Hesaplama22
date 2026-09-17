@@ -43,7 +43,7 @@ const runtime = String.raw`
     if(old&&old.getAttribute("data-signature")===signature)return;if(old)old.remove();
     var mark=document.createElementNS(NS,"g"),path=document.createElementNS(NS,"path");mark.setAttribute("class","rafex-single-line-letter-v58");mark.setAttribute("data-signature",signature);mark.setAttribute("data-letter",letter);mark.setAttribute("aria-label",letter);mark.setAttribute("opacity",String(opacity));mark.setAttribute("transform","translate("+(x-fontSize*.36)+" "+(y-fontSize*.46)+") scale("+sx+" "+sy+")");path.setAttribute("d",pathData);path.setAttribute("stroke",strokeColor);path.setAttribute("style","fill:none;stroke-width:1.5px;stroke-linecap:round;stroke-linejoin:round;vector-effect:none");mark.appendChild(path);parent.appendChild(mark);
   }
-  function decorate(){var node=svg();if(!node)return;node.querySelectorAll("[data-rack]").forEach(decorateGroup)}
+  function decorate(){var node=svg();if(!node)return;node.querySelectorAll("[data-rack]").forEach(decorateGroup);window.rafexFitNameplatesV136?.()}
   function schedule(){clearTimeout(pending);pending=setTimeout(function(){pending=0;decorate()},20)}
   if(baseRender)m2RenderLayout=function(){var result=baseRender.apply(this,arguments);decorate();return result};
   var layoutContent=document.getElementById("m2LayoutContent"),observer=new MutationObserver(schedule);if(layoutContent)observer.observe(layoutContent,{childList:true});

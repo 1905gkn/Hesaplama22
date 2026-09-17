@@ -574,6 +574,16 @@ class MekikFrontViewer {
       <rect x="${columnChipX}" y="${columnChipY}" width="${columnChipWidth}" height="${columnChipHeight}" rx="${columnChipHeight / 2}" class="dim-chip"/>
       <text x="${firstBayCenterX}" y="${columnChipY + 20}" text-anchor="middle" class="dim-column-text">KOLON ARALIĞI · ${fmt(config.bayPitch)} mm</text>
     `;
+    const columnText = dimensions.querySelector('.dim-column-text');
+    const columnPlate = columnText?.previousElementSibling;
+    if (columnText && columnPlate) {
+      const box = columnText.getBBox();
+      columnPlate.setAttribute('x', String(box.x - 10));
+      columnPlate.setAttribute('y', String(box.y - 5));
+      columnPlate.setAttribute('width', String(box.width + 20));
+      columnPlate.setAttribute('height', String(box.height + 10));
+      columnPlate.setAttribute('rx', String((box.height + 10) / 2));
+    }
   }
 
   render() {

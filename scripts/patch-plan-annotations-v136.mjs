@@ -10,6 +10,8 @@ replace("'#e07a18','#087f8c','#b43f8d','#65731f'", "'#4056a1','#087f8c','#b43f8d
 replace('typeColor = rack.typeColor || m2TypeColor(rack.typeName);', 'typeColor = m2TypeColor(rack.typeName);');
 replace('function decorateRack(group,screenScaleV133){', `function compactNameplateV136(group){
     const plate=group.querySelector('.m2-rack-nameplate');if(!plate)return;
+    const mark=group.querySelector('.rafex-single-line-letter-v58');
+    if(mark){const b=mark.getBBox(),matrix=mark.transform.baseVal.consolidate()?.matrix;if(matrix){const x=b.x*matrix.a+matrix.e,y=b.y*matrix.d+matrix.f,w=b.width*matrix.a,h=b.height*matrix.d,pad=Math.max(w,h)*.22;for(const [key,value] of Object.entries({x:x-pad,y:y-pad,width:w+pad*2,height:h+pad*2,rx:pad}))plate.setAttribute(key,String(value));return;}}
     const texts=Array.from(group.querySelectorAll('.m2-rack-name,.m2-rack-pallet-count')).filter(t=>getComputedStyle(t).display!=='none'&&t.textContent.trim());
     if(!texts.length)return;const boxes=texts.map(t=>t.getBBox()),font=parseFloat(getComputedStyle(texts[0]).fontSize)||5,pad=font*.22,x=Math.min(...boxes.map(b=>b.x)),y=Math.min(...boxes.map(b=>b.y)),right=Math.max(...boxes.map(b=>b.x+b.width)),bottom=Math.max(...boxes.map(b=>b.y+b.height));
     for(const [key,value] of Object.entries({x:x-pad,y:y-pad,width:right-x+2*pad,height:bottom-y+2*pad,rx:font*.2}))plate.setAttribute(key,String(value));
