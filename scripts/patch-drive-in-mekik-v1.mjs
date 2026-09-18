@@ -26,6 +26,15 @@ const runtime = String.raw`
 #page.drive-in-mode #m2Front .rafex-drive-dimensions .dim-title{font-size:22px}
 #page.drive-in-mode .m2-view[data-m2-view="front"] .m2-zoom{display:none!important}
 #page.drive-in-mode .m2-view[data-m2-view="front"] .m2-view-header-tools>span{font-weight:900;color:#214f3b}
+#page.drive-in-mode .m2-form>label:has(#m2RailHeight),#page.drive-in-mode .m2-form>label:has(#m2FootLoadStart),#page.drive-in-mode .m2-traverse-placeholder,#page.drive-in-mode .m2-note{display:none!important}
+#page.drive-in-mode .rafex-drive-metrics{margin:12px 0;border:1px solid #dbe4df;border-radius:10px;background:#f5f8f6}
+#page.drive-in-mode .rafex-drive-metrics>summary{cursor:pointer;padding:12px;font-weight:800;color:#184333;list-style:none;display:flex;justify-content:space-between}
+#page.drive-in-mode .rafex-drive-metrics>summary::after{content:'+'}
+#page.drive-in-mode .rafex-drive-metrics[open]>summary::after{content:'−'}
+#page.drive-in-mode .rafex-drive-metrics .m2-metrics{margin:0;padding:8px}
+#page.drive-in-mode #m2Rule{display:none!important}
+#page.drive-in-mode .rafex-drive-info{width:30px;height:30px;padding:0;margin:8px;border:1px solid #bfd0c6;border-radius:50%;background:white;color:#184333;font:bold 18px Georgia,serif;cursor:help}
+.rafex-drive-rule-popover{position:fixed;inset:auto;margin:0;box-sizing:border-box;width:360px;max-width:calc(100vw - 24px);max-height:45vh;overflow:auto;padding:14px;border:1px solid #cedbd3;border-radius:10px;background:#fffef3;color:#243e33;box-shadow:0 6px 24px #0003;font:13px/1.6 Arial,sans-serif}
 </style>
 <script data-rafex-drive-in-mekik="v1">
 (()=>{
@@ -64,6 +73,29 @@ const runtime = String.raw`
   }
 
   function setText(selector,value){const el=document.querySelector(selector);if(el)el.textContent=value}
+  function compactDrivePanel(){
+    const page=document.getElementById('page');if(!page)return;
+    const weight=document.getElementById('m2PalletWeight')?.closest('label'),depth=document.getElementById('m2PalD')?.closest('label');
+    if(weight&&depth&&weight.nextElementSibling!==depth)weight.insertAdjacentElement('afterend',depth);
+    const metrics=page.querySelector('.m2-metrics');
+    if(metrics&&!metrics.closest('.rafex-drive-metrics')){
+      const details=document.createElement('details');details.className='rafex-drive-metrics';
+      const summary=document.createElement('summary');summary.textContent='Hesap Özeti';details.append(summary);
+      metrics.before(details);details.append(metrics);
+    }
+    const rule=document.getElementById('m2Rule');if(!rule)return;
+    let info=page.querySelector('.rafex-drive-info'),popup=page.querySelector('.rafex-drive-rule-popover');
+    if(!info){
+      info=document.createElement('button');info.type='button';info.className='rafex-drive-info';info.textContent='i';info.setAttribute('aria-label','Hesap açıklaması');info.setAttribute('aria-describedby','rafexDriveRuleInfo');
+      popup=document.createElement('div');popup.id='rafexDriveRuleInfo';popup.className='rafex-drive-rule-popover';popup.setAttribute('popover','auto');popup.setAttribute('role','tooltip');
+      rule.after(info,popup);
+      const show=()=>{const rect=info.getBoundingClientRect();popup.style.left=Math.max(12,Math.min(innerWidth-372,rect.right+8))+'px';popup.style.top=Math.max(12,Math.min(innerHeight*.5,rect.top))+'px';if(!popup.matches(':popover-open'))popup.showPopover();};
+      const hide=()=>{if(popup.matches(':popover-open'))popup.hidePopover();};
+      info.addEventListener('mouseenter',show);info.addEventListener('mouseleave',hide);info.addEventListener('focus',show);info.addEventListener('blur',hide);
+      info.addEventListener('click',show);
+    }
+    if(popup.textContent!==rule.textContent)popup.textContent=rule.textContent;
+  }
   function relabelDrive(){
     if(!isDrive())return;
     document.getElementById('page')?.classList.add('drive-in-mode');
@@ -75,6 +107,7 @@ const runtime = String.raw`
     const reportMeta=document.getElementById('m2ReportMeta');if(reportMeta)reportMeta.textContent='RAFEX RAF SİSTEMLERİ · DRIVE IN TEKNİK YERLEŞİM';
     document.querySelectorAll('#page .m2-report-elevation>b').forEach((node)=>{if(/^MEKİK\b/i.test(node.textContent||''))node.textContent=(node.textContent||'').replace(/^MEKİK\b/i,'DRIVE IN')});
     const frontHeader=document.querySelector('.m2-view[data-m2-view="front"] .m2-view-header-tools>span');if(frontHeader)frontHeader.textContent='Drive In · GLB ön montaj görünümü';
+    compactDrivePanel();
   }
 
   function installFirstLevelField(){
