@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import vm from 'node:vm';
 import {fileURLToPath} from 'node:url';
 const file='dist/server/index.js';
 let source=fs.readFileSync(file,'utf8');
@@ -35,6 +36,7 @@ ${scope} .m2-layout-rack.selected{stroke-width:3!important;stroke-dasharray:6 3!
 #m2CustomizeModal:has(.rafex-mr-batch-fields) .rafex-mr-customize-summary,#m2CustomizeModal:has(.rafex-mr-batch-fields) .m2-customize-actions{display:none!important}
 </style>`;
 const code=['free-selection-core-v145.js','free-selection-runtime-v145.js'].map(name=>fs.readFileSync(fileURLToPath(new URL(name,import.meta.url)),'utf8')).join('\n');
+new vm.Script(code,{filename:'free-selection-v145.js'});
 const end=html.lastIndexOf('</body>');if(end<0)throw new Error('Free selection: body missing');
 html=html.slice(0,end)+style+'<script data-rafex-free-selection="v145">'+code+'</script>'+html.slice(end);
 source=source.slice(0,match.index)+match[0].replace(match[2],Buffer.from(html).toString('base64'))+source.slice(match.index+match[0].length);
