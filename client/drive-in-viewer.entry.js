@@ -134,7 +134,7 @@ class DriveInFrontViewer {
       palletGap,
       railLength,
       firstLevelHeight,
-      levelSpacing: palletHeight + 150 + 70 + 80,
+      levelSpacing: clamp(Number(next.levelSpacing) || palletHeight + 70 + 80, 380, 5000),
     };
   }
 
@@ -207,7 +207,7 @@ class DriveInFrontViewer {
     const bayClear = c.palletWidth + 150;
     const bayPitch = bayClear + uprightWidth;
     const rackWidth = c.bays * bayClear + (c.bays + 1) * uprightWidth;
-    const rackHeight = c.firstLevelHeight + Math.max(0, c.levels - 1) * c.levelSpacing + c.palletHeight + 150 + 220;
+    const rackHeight = c.firstLevelHeight + Math.max(0, c.levels - 1) * c.levelSpacing + c.palletHeight + 220;
     const depth = Math.max(c.palletDepth, c.railLength);
     const ayakSize = metricsOf(this.models.ayak).size;
     const raySize = metricsOf(this.models.ray).size;
@@ -221,7 +221,7 @@ class DriveInFrontViewer {
     const arabagScale = new THREE.Vector3(uprightWidth / arabagSize.x, 1, 1);
     // Yeni palet kaynağının planı 800 × 1200 mm'dir. Kaynağın X ekseni raf
     // derinliğine, Y ekseni ön görünüş genişliğine çevrilir. Fiziksel palet
-    // kalınlığı 150 mm'de tutulur; formdaki yükseklik üstteki yük kutusudur.
+    // kalınlığı 150 mm'de tutulur; formdaki yükseklik palet dahil toplamdır.
     const paletDepthScale = c.palletDepth / paletSize.x;
     const paletWidthScale = c.palletWidth / paletSize.y;
     const palletThickness = 150;
@@ -253,8 +253,8 @@ class DriveInFrontViewer {
         else this.palletBounds[level].union(palletBounds);
         this.visualPalletBottomZ[level] = this.palletBounds[level].min.z;
         this.addLoadBox(
-          new THREE.Vector3(c.palletWidth * 0.94, c.palletDepth * 0.94, c.palletHeight),
-          new THREE.Vector3(centerX, frontY - c.palletDepth / 2 - 40, palletSeatZ + palletThickness + c.palletHeight / 2),
+          new THREE.Vector3(c.palletWidth * 0.94, c.palletDepth * 0.94, c.palletHeight - palletThickness),
+          new THREE.Vector3(centerX, frontY - c.palletDepth / 2 - 40, palletSeatZ + palletThickness + (c.palletHeight - palletThickness) / 2),
         );
       }
       for (let i = 0; i <= c.bays; i += 1) {
@@ -330,10 +330,10 @@ class DriveInFrontViewer {
         palletPoints[level].left.y
       )),
       palletPoints,
-      uprightTopY: project(0, this.config.firstLevelHeight + (this.config.levels - 1) * this.config.levelSpacing + this.config.palletHeight + 150 + 220).y,
+      uprightTopY: project(0, this.config.firstLevelHeight + (this.config.levels - 1) * this.config.levelSpacing + this.config.palletHeight + 220).y,
       columnXs: Array.from({length:this.config.bays+1},(_,i)=>project(45+i*(this.config.palletWidth+240),0).x).sort((a,b)=>a-b),
       bayPitch: this.config.palletWidth + 240,
-      loadTopY: project(0, this.config.firstLevelHeight + (this.config.levels-1)*this.config.levelSpacing + 150 + this.config.palletHeight).y,
+      loadTopY: project(0, this.config.firstLevelHeight + (this.config.levels-1)*this.config.levelSpacing + this.config.palletHeight).y,
       width,
       height,
     });

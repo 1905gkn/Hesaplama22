@@ -53,7 +53,7 @@ const runtime = String.raw`
     firstPalletGap:Math.max(0,number('m2FirstPalletGap',200)),
     palletGap:Math.max(0,number('m2PalletGap',50)),
     firstLevelHeight:Math.max(0,number('m2FirstLevelHeight',2400)),
-    levelSpacing:Math.max(380,number('m2LevelSpacing',1580)),
+    levelSpacing:Math.max(380,number('m2LevelSpacing',number('m2LevelH',1200)+150)),
   });
 
   function syncFirstLevel(fromVisible=false){
@@ -66,8 +66,8 @@ const runtime = String.raw`
   function syncLevelSpacing(fromVisible=false){
     const visible=document.getElementById('driveLevelSpacing'),native=document.getElementById('m2LevelSpacing');
     if(!visible||!native)return;
-    if(fromVisible)native.value=String(Math.max(380,Math.min(5000,Number(visible.value)||1580)));
-    else if(document.activeElement!==visible)visible.value=String(Math.max(380,Number(native.value)||1580));
+    if(fromVisible){native.value=String(Math.max(380,Math.min(5000,Number(visible.value)||1350)));native.dataset.driveManualSpacing='true';}
+    else if(document.activeElement!==visible)visible.value=String(Math.max(380,Number(native.value)||1350));
   }
 
   function setText(selector,value){const el=document.querySelector(selector);if(el)el.textContent=value}
@@ -86,6 +86,12 @@ const runtime = String.raw`
 
   function installFirstLevelField(){
     const pallet=document.getElementById('m2LevelH');if(!pallet)return;
+    if(!pallet.dataset.driveSpacingBound){
+      pallet.dataset.driveSpacingBound='true';
+      pallet.addEventListener('input',()=>{const native=document.getElementById('m2LevelSpacing');if(native&&native.dataset.driveManualSpacing!=='true')native.value=String(Math.max(380,number('m2LevelH',1200)+70+80));},true);
+      const native=document.getElementById('m2LevelSpacing');
+      native?.addEventListener('input',()=>{native.dataset.driveManualSpacing='true';});
+    }
     const label=pallet.closest('label');if(!label)return;
     let field=document.querySelector('.rafex-drive-first-level');
     if(!field){
@@ -100,14 +106,14 @@ const runtime = String.raw`
     let spacing=document.querySelector('.rafex-drive-level-spacing');
     if(!spacing){
       spacing=document.createElement('label');spacing.className='input-field rafex-drive-level-spacing';
-      spacing.innerHTML='Kat arası mesafe (mm)<input id="driveLevelSpacing" type="number" min="380" max="5000" step="10" value="1580">';
+      spacing.innerHTML='Kat arası mesafe (mm)<input id="driveLevelSpacing" type="number" min="380" max="5000" step="10" value="1350">';
       field.insertAdjacentElement('afterend',spacing);
       const spacingInput=spacing.querySelector('input');
       spacingInput.addEventListener('input',()=>{syncLevelSpacing(true);try{drawMekik2()}catch{}});
       spacingInput.addEventListener('change',()=>{syncLevelSpacing(true);try{drawMekik2()}catch{}});
     }
     syncLevelSpacing(false);
-    const automaticSpacing=document.getElementById("driveLevelSpacing");if(automaticSpacing){automaticSpacing.readOnly=true;automaticSpacing.title="Palet ve yük yüksekliği + 70 mm konsol + 80 mm net boşluk";}
+    const automaticSpacing=document.getElementById("driveLevelSpacing");if(automaticSpacing){automaticSpacing.readOnly=false;automaticSpacing.title="Palet dahil toplam yükseklik + 70 mm konsol + 80 mm net boşluk; elle değiştirilebilir";}
   }
 
   function destroyFront(){
@@ -135,7 +141,7 @@ const runtime = String.raw`
     const svg=host.querySelector('.rafex-drive-dimensions');if(!svg||!layout)return;
     const rect=svg.parentElement?.getBoundingClientRect?.()||svg.getBoundingClientRect(),rawW=Math.max(1,layout.width),rawH=Math.max(1,layout.height),w=Math.max(1,rect.width),h=Math.max(1,rect.height),sx=w/rawW,sy=h/rawH;
     const left=layout.left*sx,right=layout.right*sx,top=layout.top*sy,bottom=layout.bottom*sy;
-    const rackH=c.firstLevelHeight+Math.max(0,c.levels-1)*c.levelSpacing+c.palletHeight+150+220;
+    const rackH=c.firstLevelHeight+Math.max(0,c.levels-1)*c.levelSpacing+c.palletHeight+220;
     const ground=Number.isFinite(layout.groundY)?layout.groundY*sy:bottom,supportYs=Array.isArray(layout.supportYs)?layout.supportYs.map((value)=>value*sy):[];
     const lx=Math.max(108,left-Math.min(34,w*.035)),labelX=lx-16,rx=Math.min(w-150,right+Math.max(52,w*.045)),rx2=Math.min(w-72,right+Math.max(125,w*.1));
     const arrow='<defs><marker id="rafexDriveArrow" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto-start-reverse"><path d="M0,0 L5,2.5 L0,5 Z" fill="#d7aa00"/></marker></defs>';
