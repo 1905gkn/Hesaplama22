@@ -97,6 +97,9 @@ node scripts/verify-dimension-drag.mjs
 node scripts/verify-stable-rack-catalog.mjs dist/server/index.js
 node scripts/verify-common-performance.mjs dist/server/index.js
 node scripts/build-shared-three.mjs
+node scripts/patch-free-selection-v145.mjs
+node scripts/verify-free-selection-v145.mjs
+node scripts/verify-inline-runtime-syntax-v21.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
