@@ -25,6 +25,17 @@
   for(const id of ['konsolUprightCount','konsolSpacing','konsolSpacingSelect']){const node=el(id);node?.addEventListener('input',syncProductLength);node?.addEventListener('change',syncProductLength);}
   syncProductLength();
  }
+ // Claim manual edits before older input handlers can recalculate the length.
+ document.addEventListener('input',event=>{if(event.target.id==='femProductLength'&&!writingLength)productLengthMode='manual';},true);
+ function compactPanel(){
+  const spacing=el('konsolSpacing')?.closest('label'),weight=el('femUnitLoad')?.closest('label'),length=el('femProductLength')?.closest('label'),row=el('konsolLoadLengthRow');
+  if(spacing&&weight&&length&&row&&!el('konsolSpacingWeightRow')){
+   const pair=document.createElement('div');pair.id='konsolSpacingWeightRow';spacing.before(pair);pair.append(spacing,weight);row.classList.add('konsol-length-only');
+  }
+  const sets=el('konsolSetSummary'),note=document.querySelector('#page .konsol-foot-note');
+  if(sets&&note&&!el('konsolProfileDetails')){const details=document.createElement('details');details.id='konsolProfileDetails';const title=document.createElement('summary');title.textContent='Çapraz set dağılımı ve ayak profili';details.append(title);sets.before(details);details.append(sets,note);}
+  document.querySelectorAll('#page .konsol-toolbar button').forEach(button=>{if(button.textContent.trim()==='Perspektif')button.hidden=true;});
+ }
  function open(){
   dialog?.remove();dialog=document.createElement('dialog');dialog.id='konsolLevelsDialog';dialog.setAttribute('aria-label','Konsol katlarını özelleştir');
   dialog.innerHTML='<h3>Katları özelleştir</h3><p>İlk mesafe zeminden ilk kolun üst yüzeyine kadardır. Diğer mesafeler, bir alt kolun üst yüzeyinden bu kolun üst yüzeyine ölçülür. Yük, ilgili katın toplam yüküdür; derinlik kol uzunluğudur.</p><div class="kl-scroll"><table><thead><tr><th>Kat</th><th>Mesafe (mm)</th><th>Kat yükü (kg)</th><th>Kol derinliği (mm)</th></tr></thead><tbody></tbody></table></div><p role="alert" class="kl-error"></p><footer><button type="button" data-action="auto">Otomatik düzene dön</button><button type="button" data-action="cancel">Vazgeç</button><button type="button" data-action="apply">Uygula</button></footer>';
@@ -40,5 +51,5 @@
  function enhance(){const gap=el('konsolLevelGap')?.closest('label');if(!gap||el('konsolFirstLevel'))return;const row=document.createElement('div');row.className='konsol-first-row';row.innerHTML='<label>İlk katın zeminden yüksekliği (mm)<input id="konsolFirstLevel" type="number" min="1" max="10000" value="'+first+'"></label><button type="button" id="konsolCustomizeLevels">Özelleştir</button><small id="konsolLevelModeNote">Diğer katlar genel mesafe, yük ve derinlik değerlerini kullanır.</small>';gap.after(row);el('konsolFirstLevel').addEventListener('input',refresh);el('konsolCustomizeLevels').addEventListener('click',open);el('konsolHeight')?.addEventListener('input',refresh);el('konsolHeight')?.addEventListener('change',refresh);el('konsolHeightMode')?.addEventListener('change',refresh);refresh();}
  function enrich(spec){const details=snapshot(),rows=details.levelRows,gap=num('konsolLevelGap',1000);return {...spec,...details,productLengthMode,levelGap:gap,arm:Math.max(...rows.map(r=>r.depth)),height:num('konsolHeight',rows.reduce((sum,r)=>sum+r.distance,0)+gap),heightMode:el('konsolHeightMode')?.value||'auto',uprightProfile:el('konsolUprightProfile')?.value,armProfile:el('konsolArmProfile')?.value,baseDepth:num('konsolBaseDepth',1000),levelLoad:num('femUnitLoad',1000)};}
  window.rafexKonsolLevels={snapshot,load,open,enrich};
- let frame;new MutationObserver(()=>{if(!el('konsolLevelGap')||(el('konsolFirstLevel')&&el('konsolProductLengthAuto'))||frame)return;frame=requestAnimationFrame(()=>{frame=0;enhance();enhanceProductLength();});}).observe(el('page')||document.body,{childList:true,subtree:true});enhance();enhanceProductLength();
+ let frame;new MutationObserver(()=>{if(!el('konsolLevelGap')||frame)return;frame=requestAnimationFrame(()=>{frame=0;enhance();enhanceProductLength();compactPanel();});}).observe(el('page')||document.body,{childList:true,subtree:true});enhance();enhanceProductLength();compactPanel();
 })();
