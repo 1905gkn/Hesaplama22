@@ -39,10 +39,10 @@
     const host=document.querySelector('.m2-floor-tools .rack-tools');
     if(host && !byId('rafexPickBlocksV145')){
       const button=document.createElement('button');button.id='rafexPickBlocksV145';button.type='button';button.onclick=()=>picking?stop():start();
-      button.setAttribute('aria-keyshortcuts','Control+t');host.appendChild(button);
+      button.setAttribute('aria-keyshortcuts','Control+q');host.appendChild(button);
     }
     const pick=byId('rafexPickBlocksV145');
-    if(pick){const text=picking?'Tek tek seç · '+ids.size+' seçili · Esc':'Tek tek seç (Ctrl+T)';if(pick.textContent!==text)pick.textContent=text;pick.classList.toggle('active',picking);pick.setAttribute('aria-pressed',String(picking));}
+    if(pick){const text=picking?'Tek tek seç · '+ids.size+' seçili · Esc':'Tek tek seç (Ctrl+Q)';if(pick.textContent!==text)pick.textContent=text;pick.classList.toggle('active',picking);pick.setAttribute('aria-pressed',String(picking));}
     const separate=byId('m2SeparateRackButton');if(separate)separate.disabled=!chosen().some(r=>core.linked(r,racks()));
     const report=byId('m2ReportType');if(report){report.value='corporate';report.closest('label')?.setAttribute('hidden','');}
     const hint=byId('rafexProjectGateHintV134');if(hint?.textContent.includes('aşağıdaki Kayıtlı Projeler'))hint.textContent='Başlamak için proje adını yazıp Yeni proje aç düğmesine bas. Kayıtlı projelerini Proje Geçmişi düğmesinden açabilirsin.';
@@ -120,7 +120,7 @@
   }
   document.addEventListener('keydown',event=>{
     if(!common())return;
-    if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='t'){
+    if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='q'){
       event.preventDefault();event.stopImmediatePropagation();if(!event.repeat)start();return;
     }
     if(event.key==='Escape'&&picking){event.preventDefault();event.stopImmediatePropagation();stop();}

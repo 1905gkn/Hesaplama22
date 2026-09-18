@@ -34,10 +34,10 @@ const runtime=vm.createContext({window:null,document:doc,MutationObserver:class{
 runtime.window=runtime;runtime.RafexSelectionCoreV145=c;
 runtime.addEventListener=(name,fn)=>listeners[name]=fn;
 vm.runInContext(fs.readFileSync(new URL('free-selection-runtime-v145.js',import.meta.url),'utf8'),runtime);
-const key=k=>listeners.keydown({ctrlKey:k==='t',key:k,preventDefault(){},stopImmediatePropagation(){}});
+const key=k=>listeners.keydown({ctrlKey:k==='q',key:k,preventDefault(){},stopImmediatePropagation(){}});
 const click=id=>listeners.pointerdown({button:0,target:{closest:s=>s==='#m2LayoutSvg'?{}:{dataset:{rack:String(id)}}},preventDefault(){},stopImmediatePropagation(){}});
-key('t');click(1);click(3);assert.deepEqual([...runtime.m2MultiSelect.rackIds],[1,3]);
+key('q');click(1);click(3);assert.deepEqual([...runtime.m2MultiSelect.rackIds],[1,3]);
 click(1);assert.deepEqual([...runtime.m2MultiSelect.rackIds],[3]);click(2);assert.deepEqual([...runtime.m2MultiSelect.rackIds],[3,2]);
 key('Escape');assert.equal(runtime.m2MultiSelect.rackIds.size,0);click(1);assert.equal(runtime.m2MultiSelect.rackIds.size,0);
 assert(renders>0);assert.equal(undo,0,'selection alone must not alter undo history');
-console.log('PASS: five-system selected-only updates, identity isolation, deep copies, separation, Ctrl+T click toggle and Escape.');
+console.log('PASS: five-system selected-only updates, identity isolation, deep copies, separation, Ctrl+Q click toggle and Escape.');
