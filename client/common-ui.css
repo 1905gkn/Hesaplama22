@@ -109,3 +109,13 @@
 #page#page[data-rafex-common-active="1"] [data-shared-camera] button{min-height:28px!important;padding:5px 6px!important;font-size:10px!important;white-space:nowrap!important}
 #page#page[data-rafex-common-active="1"] [data-shared-camera] .b2b-camera-head{margin-bottom:7px!important;font-size:11px!important}
 #page#page[data-rafex-common-active="1"] [data-shared-camera] :is(.b2b-camera-presets,.b2b-camera-zoom){gap:4px!important}
+/* Compact MR controls in the shared drawing panel. */
+#page#page[data-rafex-common-active="1"] .mr-form>label:has(#mrModuleCount),#page#page[data-rafex-common-active="1"] .mr-profile-field:has(#mrUprightType)>small{display:none!important}
+#page#page[data-rafex-common-active="1"] .mr-level-gap-field{grid-column:1!important;width:100%!important}
+#page#page[data-rafex-common-active="1"] #mrCommonLevelLoad{display:grid!important;grid-column:2!important;align-self:start}
+#page#page[data-rafex-common-active="1"] .mr-height-mode{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+#page#page[data-rafex-common-active="1"] .mr-height-mode>#mrHeight{grid-column:1;grid-row:1}
+#page#page[data-rafex-common-active="1"] .mr-height-mode>#mrTopTraverseMode{grid-column:2;grid-row:1}
+#page#page[data-rafex-common-active="1"] #mrTraySelection>.rack-tray-selection{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+#page#page[data-rafex-common-active="1"] #mrTraySelection>.rack-tray-selection>label{grid-column:auto!important;width:100%!important;min-width:0!important}
+#page#page[data-rafex-common-active="1"] #mrTraySelection>.rack-tray-selection>.rack-collection-product,#page#page[data-rafex-common-active="1"] #mrTraySelection>.rack-tray-selection>small{grid-column:1/-1!important}
