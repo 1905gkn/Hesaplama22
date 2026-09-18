@@ -63,13 +63,6 @@ const runtime = String.raw`
     else if(document.activeElement!==visible)visible.value=String(Math.max(0,Number(native.value)||0));
   }
 
-  function syncLevelSpacing(fromVisible=false){
-    const visible=document.getElementById('driveLevelSpacing'),native=document.getElementById('m2LevelSpacing');
-    if(!visible||!native)return;
-    if(fromVisible){native.value=String(Math.max(380,Math.min(5000,Number(visible.value)||1350)));native.dataset.driveManualSpacing='true';}
-    else if(document.activeElement!==visible)visible.value=String(Math.max(380,Number(native.value)||1350));
-  }
-
   function setText(selector,value){const el=document.querySelector(selector);if(el)el.textContent=value}
   function relabelDrive(){
     if(!isDrive())return;
@@ -103,17 +96,6 @@ const runtime = String.raw`
       input.addEventListener('change',()=>{syncFirstLevel(true);try{drawMekik2()}catch{}});
     }
     syncFirstLevel(false);
-    let spacing=document.querySelector('.rafex-drive-level-spacing');
-    if(!spacing){
-      spacing=document.createElement('label');spacing.className='input-field rafex-drive-level-spacing';
-      spacing.innerHTML='Kat arası mesafe (mm)<input id="driveLevelSpacing" type="number" min="380" max="5000" step="10" value="1350">';
-      field.insertAdjacentElement('afterend',spacing);
-      const spacingInput=spacing.querySelector('input');
-      spacingInput.addEventListener('input',()=>{syncLevelSpacing(true);try{drawMekik2()}catch{}});
-      spacingInput.addEventListener('change',()=>{syncLevelSpacing(true);try{drawMekik2()}catch{}});
-    }
-    syncLevelSpacing(false);
-    const automaticSpacing=document.getElementById("driveLevelSpacing");if(automaticSpacing){automaticSpacing.readOnly=false;automaticSpacing.title="Palet dahil toplam yükseklik + 70 mm konsol + 80 mm net boşluk; elle değiştirilebilir";}
   }
 
   function destroyFront(){
@@ -198,7 +180,7 @@ const runtime = String.raw`
     const result=baseDrawMekik2.apply(this,args);
     if(isDrive()){
       if(typeof m2LastDrawing!=='undefined'&&m2LastDrawing)m2LastDrawing.rafexSystem='drive';
-      syncFirstLevel(false);syncLevelSpacing(false);relabelDrive();scheduleFront();
+      syncFirstLevel(false);relabelDrive();scheduleFront();
     }
     return result;
   };
