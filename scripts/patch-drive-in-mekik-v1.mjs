@@ -52,7 +52,7 @@ const runtime = String.raw`
     systemType:document.getElementById('m2System')?.value||'fifo',
     firstPalletGap:Math.max(0,number('m2FirstPalletGap',200)),
     palletGap:Math.max(0,number('m2PalletGap',50)),
-    firstLevelHeight:Math.max(0,number('m2FirstLevelHeight',430)),
+    firstLevelHeight:Math.max(0,number('m2FirstLevelHeight',2400)),
     levelSpacing:Math.max(380,number('m2LevelSpacing',1580)),
   });
 
@@ -60,7 +60,7 @@ const runtime = String.raw`
     const visible=document.getElementById('driveFirstLevelHeight'),native=document.getElementById('m2FirstLevelHeight');
     if(!visible||!native)return;
     if(fromVisible){native.value=String(Math.max(0,Number(visible.value)||0));}
-    else if(document.activeElement!==visible)visible.value=String(Math.max(0,Number(native.value)||430));
+    else if(document.activeElement!==visible)visible.value=String(Math.max(0,Number(native.value)||0));
   }
 
   function syncLevelSpacing(fromVisible=false){
@@ -90,7 +90,7 @@ const runtime = String.raw`
     let field=document.querySelector('.rafex-drive-first-level');
     if(!field){
       field=document.createElement('label');field.className='input-field rafex-drive-first-level';
-      field.innerHTML='İlk kat yüksekliği (mm)<input id="driveFirstLevelHeight" type="number" min="0" max="5000" step="10" value="430">';
+      field.innerHTML='İlk kat yüksekliği (mm)<input id="driveFirstLevelHeight" type="number" min="0" max="5000" step="10" value="2400">';
       label.insertAdjacentElement('afterend',field);
       const input=field.querySelector('input');
       input.addEventListener('input',()=>{syncFirstLevel(true);try{drawMekik2()}catch{}});
@@ -107,6 +107,7 @@ const runtime = String.raw`
       spacingInput.addEventListener('change',()=>{syncLevelSpacing(true);try{drawMekik2()}catch{}});
     }
     syncLevelSpacing(false);
+    const automaticSpacing=document.getElementById("driveLevelSpacing");if(automaticSpacing){automaticSpacing.readOnly=true;automaticSpacing.title="Palet ve yük yüksekliği + 70 mm konsol + 80 mm net boşluk";}
   }
 
   function destroyFront(){
@@ -134,7 +135,7 @@ const runtime = String.raw`
     const svg=host.querySelector('.rafex-drive-dimensions');if(!svg||!layout)return;
     const rect=svg.parentElement?.getBoundingClientRect?.()||svg.getBoundingClientRect(),rawW=Math.max(1,layout.width),rawH=Math.max(1,layout.height),w=Math.max(1,rect.width),h=Math.max(1,rect.height),sx=w/rawW,sy=h/rawH;
     const left=layout.left*sx,right=layout.right*sx,top=layout.top*sy,bottom=layout.bottom*sy;
-    const rackH=c.firstLevelHeight+Math.max(0,c.levels-1)*c.levelSpacing+c.palletHeight+220;
+    const rackH=c.firstLevelHeight+Math.max(0,c.levels-1)*c.levelSpacing+c.palletHeight+150+220;
     const ground=Number.isFinite(layout.groundY)?layout.groundY*sy:bottom,supportYs=Array.isArray(layout.supportYs)?layout.supportYs.map((value)=>value*sy):[];
     const lx=Math.max(108,left-Math.min(34,w*.035)),labelX=lx-16,rx=Math.min(w-150,right+Math.max(52,w*.045)),rx2=Math.min(w-72,right+Math.max(125,w*.1));
     const arrow='<defs><marker id="rafexDriveArrow" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto-start-reverse"><path d="M0,0 L5,2.5 L0,5 Z" fill="#d7aa00"/></marker></defs>';

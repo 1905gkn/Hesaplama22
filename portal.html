@@ -2842,7 +2842,7 @@
             <div class="m2-spacing-dialog" role="dialog" aria-modal="true" aria-labelledby="m2LevelSpacingTitle" aria-describedby="m2LevelSpacingDescription">
               <div class="m2-spacing-dialog-head"><div><h3 id="m2LevelSpacingTitle">Kat Arası Mesafeleri Özelleştir</h3><p id="m2LevelSpacingDescription">Girilen ölçüler ön ve yan görünüşteki kat konumlarını, toplam yüksekliği ve A4 çizimini anında günceller.</p></div><button class="m2-spacing-close" type="button" aria-label="Pencereyi kapat" onclick="m2CloseLevelSpacingSettings()">×</button></div>
               <div class="m2-spacing-sections">
-                <section class="m2-spacing-section"><b>İlk kat yüksekliği</b><small>Zeminden K1 paletinin taşıyıcı kotuna kadar olan dikey mesafedir.</small><label>Yükseklik (mm)<input id="m2FirstLevelHeight" type="number" min="0" max="5000" step="10" value="430" inputmode="numeric"></label></section>
+                <section class="m2-spacing-section"><b>İlk kat yüksekliği</b><small>Zeminden K1 paletinin taşıyıcı kotuna kadar olan dikey mesafedir.</small><label>Yükseklik (mm)<input id="m2FirstLevelHeight" type="number" min="0" max="5000" step="10" value="${m2ActiveModule === "drive" ? 2400 : 430}" inputmode="numeric"></label></section>
                 <section class="m2-spacing-section"><b>İki palet arası mesafe</b><small>K1–K2 ve sonraki bütün katların taşıyıcı kotları arasındaki dikey mesafedir.</small><label>Mesafe (mm)<input id="m2LevelSpacing" type="number" min="380" max="5000" step="10" value="1580" inputmode="numeric"></label></section>
               </div>
               <div class="m2-spacing-dialog-foot"><span>1200 mm palet için varsayılan: ilk kat 430 mm, kat araları 1580 mm.</span><button type="button" onclick="m2CloseLevelSpacingSettings()">Uygula ve Kapat</button></div>
@@ -5646,7 +5646,7 @@
         const palletHeight = m2Number("m2LevelH", 300, 3000),
           traverseHeight = 80,
           requestedLevelH = m2Number("m2LevelSpacing", 380, 5000),
-          levelH = Math.max(palletHeight + traverseHeight, requestedLevelH),
+          levelH = m2ActiveModule === "drive" ? palletHeight + 150 + 70 + 80 : Math.max(palletHeight + traverseHeight, requestedLevelH),
           clearance = Math.max(0, levelH - palletHeight - traverseHeight),
           firstRailHeight = m2Number("m2FirstLevelHeight", 0, 5000),
           topHeadroom = clearance,
@@ -5704,6 +5704,7 @@
         if ($("m2RegularGapNote")) $("m2RegularGapNote").textContent = `${fmt(palletGap)} mm`;
         const normalizedTopVBraceBays = new Set([...(typeof m2TopVBraceBays !== "undefined" ? m2TopVBraceBays : [])].filter((bay) => bay >= 0 && bay < bays));
         if (typeof m2TopVBraceBays !== "undefined") m2TopVBraceBays = normalizedTopVBraceBays;
+        if(m2ActiveModule === "drive" && $("m2LevelSpacing")) $("m2LevelSpacing").value = String(levelH);
         m2LastDrawing = { bays, levels, depth, palW, palD, palletWeight, railThickness, railThicknessManual:m2RailThicknessManual, railHeight, traverseRecommendation:null, loadedLevels, footLoadStart, footCalculationHeight, totalPalletLoad, deepestFoot, deepestBrace, railLengthMeters, footLoad, footType, footProfile: selectedFoot?.profile || null, footProfileKey: selectedFoot?.key || null, footLy: selectedFoot?.ly || null, footCapacity: selectedFoot?.capacity || null, footTableHeight: footSelection.tableHeight, totalWidth, palletHeight, levelH, traverseHeight, clearance, firstRailHeight, topHeadroom, totalRackHeight, sideUprightHeight, railLength, hasExtra, straightProfileLength, straightProfileCount, systemType, firstPalletGap, palletGap, palletPositions: palletLayout.positions, palletGaps: palletLayout.gaps, topVBraceBays: [...normalizedTopVBraceBays].sort((a,b) => a-b), plan, ...(m2ActiveModule === "b2b" ? { b2b:b2bReadInputState() } : {}) };
         if ($("m2DxfButton")) $("m2DxfButton").disabled = !plan || !selectedFoot;
         if ($("m2SaveRackButton")) $("m2SaveRackButton").disabled = m2ActiveModule === "b2b" ? !m2LastDrawing?.b2b : (!plan || !selectedFoot);

@@ -95,7 +95,7 @@ class DriveInFrontViewer {
 
   normalize(next = {}) {
     const palletHeight = clamp(Number(next.palletHeight) || 1200, 300, 3000);
-    const firstLevelHeight = clamp(Number(next.firstLevelHeight) || 430, 0, 5000);
+    const firstLevelHeight = clamp(Number.isFinite(Number(next.firstLevelHeight)) ? Number(next.firstLevelHeight) : 2400, 0, 5000);
     const palletDepth = clamp(Number(next.palletDepth) || 800, 300, 3000);
     const depthPallets = clamp(Math.round(Number(next.depthPallets) || 5), 1, 60);
     const systemType = String(next.systemType || "fifo").toLowerCase() === "filo" ? "filo" : "fifo";
@@ -116,7 +116,7 @@ class DriveInFrontViewer {
       palletGap,
       railLength,
       firstLevelHeight,
-      levelSpacing: clamp(Number(next.levelSpacing) || Math.max(1580, palletHeight + 380), palletHeight + 80, 5000),
+      levelSpacing: palletHeight + 150 + 70 + 80,
     };
   }
 
@@ -189,7 +189,7 @@ class DriveInFrontViewer {
     const bayClear = c.palletWidth + 150;
     const bayPitch = bayClear + uprightWidth;
     const rackWidth = c.bays * bayClear + (c.bays + 1) * uprightWidth;
-    const rackHeight = c.firstLevelHeight + Math.max(0, c.levels - 1) * c.levelSpacing + c.palletHeight + 220;
+    const rackHeight = c.firstLevelHeight + Math.max(0, c.levels - 1) * c.levelSpacing + c.palletHeight + 150 + 220;
     const depth = Math.max(c.palletDepth, c.railLength);
     const ayakSize = metricsOf(this.models.ayak).size;
     const raySize = metricsOf(this.models.ray).size;
@@ -199,8 +199,8 @@ class DriveInFrontViewer {
     const ayakScale = new THREE.Vector3(uprightWidth / ayakSize.x, 1, rackHeight / ayakSize.z);
     const rayScale = new THREE.Vector3(1, depth / raySize.y, 150 / raySize.z);
     const konsolUniform = Math.min((bayClear + uprightWidth) / konsolSize.x, 1.05);
-    const konsolScale = new THREE.Vector3(konsolUniform, konsolUniform, konsolUniform);
-    const konsolHeight = konsolSize.z * konsolUniform;
+    const konsolScale = new THREE.Vector3(konsolUniform, konsolUniform, 70 / konsolSize.z);
+    const konsolHeight = 70;
     const arabagScale = new THREE.Vector3(uprightWidth / arabagSize.x, 1, 1);
     // Yeni palet kaynağının planı 800 × 1200 mm'dir. Kaynağın X ekseni raf
     // derinliğine, Y ekseni ön görünüş genişliğine çevrilir. Fiziksel palet
@@ -228,7 +228,7 @@ class DriveInFrontViewer {
         this.addPart(this.models.ray, rayScale, new THREE.Vector3(left + raySize.x / 2, 0, supportTopZ - 75), technicalMaterials.ray);
         this.addPart(this.models.ray, rayScale, new THREE.Vector3(right - raySize.x / 2, 0, supportTopZ - 75), technicalMaterials.ray);
         this.addPart(this.models.konsol, konsolScale, new THREE.Vector3(centerX, frontY - konsolSize.y * konsolUniform / 2, supportTopZ - konsolHeight / 2), technicalMaterials.konsol);
-        const palletSeatZ = supportTopZ - palletThickness;
+        const palletSeatZ = supportTopZ;
         const palletPart=this.addPart(this.models.palet, paletScale, new THREE.Vector3(centerX, frontY - c.palletDepth / 2 - 40, palletSeatZ + palletThickness / 2), technicalMaterials.palet, { rotateY: false, rotationZ: -Math.PI / 2 });
         palletPart.updateMatrixWorld(true);
         const palletBounds = new THREE.Box3().setFromObject(palletPart);
@@ -313,10 +313,10 @@ class DriveInFrontViewer {
         palletPoints[level].left.y
       )),
       palletPoints,
-      uprightTopY: project(0, this.config.firstLevelHeight + (this.config.levels - 1) * this.config.levelSpacing + this.config.palletHeight + 220).y,
+      uprightTopY: project(0, this.config.firstLevelHeight + (this.config.levels - 1) * this.config.levelSpacing + this.config.palletHeight + 150 + 220).y,
       columnXs: Array.from({length:this.config.bays+1},(_,i)=>project(45+i*(this.config.palletWidth+240),0).x).sort((a,b)=>a-b),
       bayPitch: this.config.palletWidth + 240,
-      loadTopY: project(0, this.config.firstLevelHeight + (this.config.levels-1)*this.config.levelSpacing + this.config.palletHeight).y,
+      loadTopY: project(0, this.config.firstLevelHeight + (this.config.levels-1)*this.config.levelSpacing + 150 + this.config.palletHeight).y,
       width,
       height,
     });
