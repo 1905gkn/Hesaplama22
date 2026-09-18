@@ -26,7 +26,13 @@
     picking=true;syncSelection();render();
     status('Tek tek seçim açık. Bloklara tıklayarak seç veya seçimden çıkar; Esc ile bitir.');
   }
-  function stop(){picking=false;ids.clear();batch=null;m2ClearAllSelections('Tek tek seçim kapatıldı.');syncUi();}
+  function stop(){
+    // Escape also cancels an open editor before clearing its target id.
+    const standard=byId('m2CustomizeModal');if(standard&&!standard.hidden)window.m2CloseCustomizeModal?.();
+    const lane=byId('rafexLaneCustomizeV115');if(lane&&!lane.hidden)lane.querySelector('[data-cancel]')?.click();
+    const konsol=byId('rafexKonsolCustomizeV114');if(konsol&&!konsol.hidden)konsol.querySelector('[data-rkc-cancel]')?.click();
+    picking=false;ids.clear();batch=null;m2ClearAllSelections('Tek tek seçim kapatıldı.');syncUi();
+  }
   function syncUi(){
     if(!common())return;
     syncSelection();
