@@ -15,7 +15,7 @@
    const loadMarkup='Bölüm başına kat yükü (kg)<input type="number" min="1" data-collection-field="load" value="'+selection.load+'">';
    if(common&&levels){
      let load=document.getElementById('mrCommonLevelLoad');
-     if(!load){load=document.createElement('label');load.id='mrCommonLevelLoad';load.innerHTML=loadMarkup;levels.after(load);load.onchange=host.onchange;}
+     if(!load){load=document.createElement('label');load.id='mrCommonLevelLoad';load.innerHTML=loadMarkup;levels.after(load);load.oninput=host.onchange;load.onchange=host.onchange;}
      const input=load.querySelector('input');if(document.activeElement!==input)input.value=String(selection.load);
    }
    host.innerHTML=(common&&levels?'':'<label style="display:grid;gap:5px;font-size:11px;font-weight:bold">'+loadMarkup+'</label>')+window.RafexRackTray.fields(selection,0,width,depth,false)+'<small>MR TAVA tablosu · Bir bölümün bir katındaki toplam yük. Tava eklenecek katlar aksesuar alanından seçilir.</small>';
