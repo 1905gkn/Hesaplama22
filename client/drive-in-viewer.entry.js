@@ -49,6 +49,24 @@ function cloneAtPhysicalScale(source, scale, material, orientation = {}) {
   return oriented;
 }
 
+// The source contains a mirrored pair. Its bearing ledge is 59 mm above
+// the bottom; the full 209 mm envelope also includes the upright connector.
+// Scale each bracket uniformly, then change the pair spacing independently.
+function consolePairAtSpan(source, span) {
+  const factor = 70 / 59;
+  const pair = new THREE.Group();
+  const parts = source.children.slice().sort((a, b) => metricsOf(a).center.x - metricsOf(b).center.x);
+  parts.forEach((part, index) => {
+    const origin = new THREE.Group();
+    origin.add(part.clone(true));
+    const width = metricsOf(origin).size.x * factor;
+    const bracket = cloneAtPhysicalScale(origin, new THREE.Vector3(factor, factor, factor), technicalMaterials.konsol, { rotateY: false });
+    bracket.position.x = index === 0 ? -span / 2 + width / 2 : span / 2 - width / 2;
+    pair.add(bracket);
+  });
+  return pair;
+}
+
 class DriveInFrontViewer {
   constructor(canvas, config = {}) {
     this.canvas = canvas;
@@ -193,14 +211,13 @@ class DriveInFrontViewer {
     const depth = Math.max(c.palletDepth, c.railLength);
     const ayakSize = metricsOf(this.models.ayak).size;
     const raySize = metricsOf(this.models.ray).size;
-    const konsolSize = metricsOf(this.models.konsol).size;
+    const konsolModel = consolePairAtSpan(this.models.konsol, bayPitch);
+    const konsolSize = metricsOf(konsolModel).size;
     const arabagSize = metricsOf(this.models.arabag).size;
     const paletSize = metricsOf(this.models.palet).size;
     const ayakScale = new THREE.Vector3(uprightWidth / ayakSize.x, 1, rackHeight / ayakSize.z);
     const rayScale = new THREE.Vector3(1, depth / raySize.y, 150 / raySize.z);
-    const konsolUniform = Math.min((bayClear + uprightWidth) / konsolSize.x, 1.05);
-    const konsolScale = new THREE.Vector3(konsolUniform, konsolUniform, 70 / konsolSize.z);
-    const konsolHeight = 70;
+    const konsolScale = new THREE.Vector3(1, 1, 1);
     const arabagScale = new THREE.Vector3(uprightWidth / arabagSize.x, 1, 1);
     // Yeni palet kaynağının planı 800 × 1200 mm'dir. Kaynağın X ekseni raf
     // derinliğine, Y ekseni ön görünüş genişliğine çevrilir. Fiziksel palet
@@ -227,7 +244,7 @@ class DriveInFrontViewer {
         const centerX = (left + right) / 2;
         this.addPart(this.models.ray, rayScale, new THREE.Vector3(left + raySize.x / 2, 0, supportTopZ - 75), technicalMaterials.ray);
         this.addPart(this.models.ray, rayScale, new THREE.Vector3(right - raySize.x / 2, 0, supportTopZ - 75), technicalMaterials.ray);
-        this.addPart(this.models.konsol, konsolScale, new THREE.Vector3(centerX, frontY - konsolSize.y * konsolUniform / 2, supportTopZ - konsolHeight / 2), technicalMaterials.konsol);
+        this.addPart(konsolModel, konsolScale, new THREE.Vector3(centerX, frontY - konsolSize.y / 2, supportTopZ - 70 + konsolSize.z / 2), technicalMaterials.konsol);
         const palletSeatZ = supportTopZ;
         const palletPart=this.addPart(this.models.palet, paletScale, new THREE.Vector3(centerX, frontY - c.palletDepth / 2 - 40, palletSeatZ + palletThickness / 2), technicalMaterials.palet, { rotateY: false, rotationZ: -Math.PI / 2 });
         palletPart.updateMatrixWorld(true);
