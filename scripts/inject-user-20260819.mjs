@@ -416,7 +416,7 @@ const runtime = `<script data-rafex-user-20260819="v3">(function(){
   var sectionObserver=new MutationObserver(function(){clearTimeout(window.__rafexSectionEnsureTimerV3);window.__rafexSectionEnsureTimerV3=setTimeout(keepSectionAlive,80);});
   sectionObserver.observe(document.body,{childList:true,subtree:true});
   keepSectionAlive();
-  setInterval(keepSectionAlive,1500);
+  // DOM replacement is already handled by sectionObserver; no idle polling is needed.
 
   // __rafexFreeSystemChooserV54
   // Serbest Cizim ortak girisidir. Devam secilen sistemin kendi sayfasini
