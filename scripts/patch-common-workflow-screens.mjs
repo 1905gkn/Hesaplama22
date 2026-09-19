@@ -29,6 +29,8 @@ const style=`<style data-rafex-workflow-screens="v1">
 #rafexLayoutScreenHeader h2{margin:0 0 8px}#rafexLayoutScreenHeader p{margin:0 0 16px}
 @media print{#rafexLayoutScreenLaunch,#rafexLayoutScreenHeader{display:none!important}}
 </style>`;
-html=html.replace('</body>',style+'<script data-rafex-workflow-screens="v1">'+runtime+'</script></body>');
+const bodyEnd=html.lastIndexOf('</body>');
+if(bodyEnd<0)throw Error('Missing final body closing tag');
+html=html.slice(0,bodyEnd)+style+'<script data-rafex-workflow-screens="v1">'+runtime+'</script>'+html.slice(bodyEnd);
 fs.writeFileSync(file,source.replace(match[1],Buffer.from(html).toString('base64')));
 console.log('Common workflow: separate rack-type and placement screens, shared live catalog.');
