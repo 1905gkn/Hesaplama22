@@ -57,6 +57,17 @@ for(const width of [1800,2700,3600])for(const depth of [900,1050,1100]){
  }
 }
 assert(sourceBefore.equals(new THREE.Box3().setFromObject(models.zs55Traverse)),'Source asset unchanged');
+for(const height of [50,80,100,140]){
+ const section=new THREE.Group();
+ for(const x of [45,2835])for(const y of [40,1060]){const foot=new THREE.Mesh(new THREE.BoxGeometry(90,80,5000));foot.name='HR90 AYAK';foot.position.set(x,y,-2500);section.add(foot);}
+ const layer=zs55Collection(THREE,{models,applyRackMaterials(){},trayPiecePlan(){return [300]}},section,{bottom:500,zsHeight:height,trayWidth:300,traverse:'Kutu'+height+'|2'},0);
+ let bodies=0;
+ layer.traverse(mesh=>{if(mesh.name!=='KUTU TRAVERS')return;bodies++;const b=mesh.geometry.boundingBox,size=b.getSize(new THREE.Vector3());assert.equal(size.y,50);assert.equal(size.z,height);assert.equal(b.min.z,-500-height);assert.equal(b.max.z,-500);assert(Math.abs(size.x-2692)<.01);});
+ assert.equal(bodies,2,'Box profile uses one front and one rear beam');
+ const tray=new THREE.Box3().setFromObject(layer.children[2]);
+ assert(Math.abs(tray.max.z+500+height)<.01,'Box tray rests on the beam top');
+ assert(Math.abs(tray.min.y-4.60002)<.01&&Math.abs(tray.max.y-1099)<.01,'Box tray retains ZS depth alignment');
+}
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'rafex-zs55-'));
 const built=path.join(dir,'b2b.mjs');
 const shell=path.join(dir,'build.sh');fs.copyFileSync('scripts/build.sh',shell);
@@ -69,7 +80,7 @@ execFileSync(process.execPath,['-',viewerSource,built],{input:script});
 execFileSync(process.execPath,['scripts/patch-zs55-collection-models.mjs',built]);
 execFileSync(process.execPath,['--check',built]);
 assert(fs.readFileSync('scripts/patch-b2b-collection-levels-v102.mjs','utf8').includes('function freshFloor(){return{trayWidth:300,trayThickness:.8,traverse:"ZS55|1.5"'));
-assert(fs.readFileSync('client/b2b-accessories.js','utf8').includes("freshCollectionFloor = () => ({ trayWidth:300, trayThickness:.8, traverse:'ZS55|1.5'"));
+assert.match(fs.readFileSync('client/b2b-accessories.js','utf8'),/freshCollectionFloor = \(\) => \(\{[^\n]*traverse:'ZS55\|1\.5'/);
 console.log('PASS: supplied GLBs; 1–5 levels, 3 widths, 3 depths; connector size/outer mounting/tray seat; sources unchanged; generated viewer compiles; new floor defaults ZS55.');
 if(process.argv.includes('--visual')){
  const require=createRequire(import.meta.url),{build}=require('esbuild'),{chromium}=require('playwright');

@@ -7,7 +7,7 @@ replace('const ASSET_VERSION =',fs.readFileSync('client/zs55-collection.js','utf
 replace('tray, mrTraverse, mrTray]','tray, mrTraverse, mrTray, zs55Traverse, zs55Tray]');
 replace('loader.loadAsync("/mr-tava.glb?v=b2b-collection-zs-103"),','loader.loadAsync("/mr-tava.glb?v=b2b-collection-zs-103"),\n          loader.loadAsync('+JSON.stringify(uri('b2b-zs55-hr-traverse.glb'))+'),\n          loader.loadAsync('+JSON.stringify(uri('b2b-zs55-tray.glb'))+'),');
 replace('mrTray: mrTray.scene.clone(true),','mrTray: mrTray.scene.clone(true),\n        zs55Traverse: zs55Traverse.scene, zs55Tray: zs55Tray.scene,');
-replace('floors.forEach((floor, floorIndex) => {','floors.forEach((floor, floorIndex) => {\n      if(/^ZS(?:35|55|65)\\|/.test(String(floor.traverse))){layer.add(zs55Collection(THREE,this,section,floor,floorIndex));return;}');
+replace('floors.forEach((floor, floorIndex) => {','floors.forEach((floor, floorIndex) => {\n      if(/^(?:ZS(?:35|55|65)|Kutu\\d+)\\|/i.test(String(floor.traverse))){layer.add(zs55Collection(THREE,this,section,floor,floorIndex));return;}');
 source=source.replaceAll('const supportTop = this.traverseBottom(level) + this.options.traverseHeight;', 'const supportTop = this.traverseTop(level);');
 source=source.replaceAll('this.traverseTop(level) <= this.options.tunnelHeight', 'this.traverseBottom(level) < this.options.tunnelHeight');
 fs.writeFileSync(file,source);

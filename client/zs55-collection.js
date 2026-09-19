@@ -26,6 +26,7 @@ export function zs55Collection(THREE, viewer, section, floor, index) {
   const front=Math.min(...frameBoxes.map(b=>b.min.y)),rear=Math.max(...frameBoxes.map(b=>b.max.y));
   const beamLeft=left+4,beamRight=right-4,beamLength=beamRight-beamLeft;
   const bottom=Number(floor.bottom)||0,height=Number(floor.zsHeight)||75;
+  const boxProfile=/^Kutu\d+\|/i.test(String(floor.traverse));
   const layer=new THREE.Group();layer.name=String(floor.traverse||'ZS55').split('|')[0]+' HR Toplama '+(index+1);
   for(const back of [false,true]){
     const beam=viewer.models.zs55Traverse.clone(true);
@@ -34,6 +35,14 @@ export function zs55Collection(THREE, viewer, section, floor, index) {
       mesh.geometry=mesh.geometry.clone();
       const p=mesh.geometry.attributes.position;
       const body=/Z_TRAVERS|Z TRAVERS/i.test(mesh.name);
+      if(body&&boxProfile){
+        mesh.geometry.dispose();
+        mesh.geometry=new THREE.BoxGeometry(beamLength,50,height);
+        mesh.geometry.translate((beamLeft+beamRight)/2,back?rear-25:front+25,-bottom-height/2);
+        mesh.name='KUTU TRAVERS';
+        finish(mesh.geometry);
+        return;
+      }
       const longConnector=/SOL/i.test(mesh.name);
       // The supplied SOL mesh contains a second, disconnected connector at
       // CAD Y=1446..1488. Keep only the upright-mounted piece at 1304..1346.
@@ -73,7 +82,7 @@ export function zs55Collection(THREE, viewer, section, floor, index) {
         // Seat the tray between the corrected front/rear ZS bodies, matching
         // the supplied assembly: 4.6 mm inside the front face to 1 mm inside
         // the rear face.
-        p.setXYZ(i,cursor+y*(width-1.6)/298.4,front+4.6000213623046875+x*(rear-front-5.6000213623046875)/1044.4,-z-20.200947-(bottom+height-18));
+        p.setXYZ(i,cursor+y*(width-1.6)/298.4,front+4.6000213623046875+x*(rear-front-5.6000213623046875)/1044.4,-z-20.200947-(bottom+height-(boxProfile?0:18)));
       }
       finish(mesh.geometry);
     });
