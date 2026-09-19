@@ -7,6 +7,7 @@ cd "$project_root"
 # Guard the small performance fixes before producing a deployment artifact.
 node scripts/verify-customize-frame-coalescing.mjs
 node scripts/verify-section-button-idle.mjs
+node scripts/verify-section-preview-lifecycle.mjs
 node scripts/verify-project-request-dedup.mjs
 node scripts/verify-viewer-visibility-v147.mjs
 

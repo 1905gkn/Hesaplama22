@@ -48,6 +48,7 @@
   const previewCache = new Map();
   const previewPending = new Map();
   let previewTimer = 0;
+  let previewRequestVersion = 0;
   let reportRenderTimer = 0;
   let renderQueued = false;
   const viewerLoads = {};
@@ -353,12 +354,16 @@
   }
 
   async function fillArtwork(force = false) {
+    const modal = document.getElementById("m2SectionPlacementModal");
+    if (!modal || modal.hidden) return false;
+    const requestVersion = ++previewRequestVersion;
     const stage = document.querySelector('[data-rafex-placement-stage="perspective"]');
     if (!stage || !activeKey) return false;
     const requestKey = activeKey;
     const empty = stage.querySelector(".rafex-placement-empty");
     if (empty) { empty.textContent = "Perspektif hazırlanıyor…"; empty.hidden = false; }
     const src = await capturePerspective(requestKey, draft, force);
+    if (modal.hidden || !modal.isConnected || requestVersion !== previewRequestVersion) return false;
     if (!src || requestKey !== activeKey) {
       if (!src && empty) empty.textContent = "Perspektif görünüş hazırlanamadı.";
       return false;
@@ -379,10 +384,14 @@
 
   function schedulePreview(force = true, delay = 150) {
     clearTimeout(previewTimer);
-    previewTimer = setTimeout(() => fillArtwork(force), delay);
+    previewTimer = 0;
+    if (document.getElementById("m2SectionPlacementModal")?.hidden !== false) return;
+    previewTimer = setTimeout(() => { previewTimer = 0; fillArtwork(force); }, delay);
   }
 
   function selectSection(key) {
+    clearTimeout(previewTimer);
+    previewTimer = 0;
     activeKey = safeKey(key);
     ensureSetting(activeKey);
     const title = document.querySelector("[data-rafex-active-section]");
@@ -528,6 +537,9 @@
   }
 
   function closeEditor(saveChanges) {
+    clearTimeout(previewTimer);
+    previewTimer = 0;
+    previewRequestVersion += 1;
     const modal = document.getElementById("m2SectionPlacementModal");
     if (!modal) return;
     if (saveChanges) {
