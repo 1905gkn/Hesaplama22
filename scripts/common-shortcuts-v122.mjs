@@ -6,7 +6,7 @@ export const shortcutRuntime=String.raw`<script data-rafex-shortcuts="v122">
   if(event.altKey||event.shiftKey||!(key==='o'?!modified:modified&&mappings[key]))return;
   if(event.target?.closest?.('input,textarea,select,[contenteditable="true"],[role="textbox"]'))return;
   const drawing=document.getElementById('m2LayoutSvg'),picker=document.getElementById('rafexUnifiedSystemPicker');
-  if(!drawing?.getClientRects().length||!picker?.getClientRects().length)return;
+  if(!drawing?.getClientRects().length||(!picker?.getClientRects().length&&document.getElementById('page')?.dataset.rafexWorkflowScreen!=='layout'))return;
   if([...document.querySelectorAll('dialog[open],[id$="Modal"]')].some(el=>el.getClientRects().length))return;
   const button=document.querySelector(mappings[key]);if(!button||!button.getClientRects().length)return;
   event.preventDefault();event.stopImmediatePropagation();

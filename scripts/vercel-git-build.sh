@@ -8,6 +8,8 @@ cd "$project_root"
 node scripts/verify-customize-frame-coalescing.mjs
 node scripts/verify-section-button-idle.mjs
 node scripts/verify-section-preview-lifecycle.mjs
+node scripts/verify-workflow-screens.mjs
+node scripts/verify-common-shortcuts-v122.mjs
 node scripts/verify-project-request-dedup.mjs
 node scripts/verify-viewer-visibility-v147.mjs
 
