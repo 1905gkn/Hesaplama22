@@ -28,6 +28,7 @@ assert(html.includes('function b2bMeasure(d)'),'Saved B2B detail must derive mea
 let customizeOpened=0;
 const context={window:{m2OpenCustomizeModal:()=>{customizeOpened+=1},rafexLoadViewerOnDemandV3:()=>new Promise(()=>{})},document:{},console,JSON,Math,Number,String,Array,Object,Promise};
 context.window.window=context.window;
+context.window.addEventListener=()=>{};
 context.m2LayoutState={racks:[{id:77,rafexSystem:'b2b',b2b:{levels:4},b2bLayout:{sectionWidth:2730,rowCount:1}}]};
 vm.createContext(context);
 const collectionRuntime=html.match(/<script data-rafex-customize-collection="v119">([\s\S]*?)<\/script>/)?.[1];

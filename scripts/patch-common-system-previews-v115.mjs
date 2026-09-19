@@ -65,6 +65,17 @@ const runtime=String.raw`
  function openLane(rack){var sys=systemOf(rack),modal=ensureLane();laneRackId=rack.id;modal.querySelector('.rsv115-head b').textContent=label(sys)+' · ÖZELLEŞTİR';document.getElementById('rsv115Block').value=String(rack.blockName||'');document.getElementById('rsv115Name').value=String(rack.typeName||label(sys));document.getElementById('rsv115Levels').value=String(Math.max(1,Number(rack.levels)||1));document.getElementById('rsv115Pallet').value=String(Math.max(300,Number(rack.palletHeight)||1200));modal.hidden=false;renderLane()}
  function saveLane(){var rack=racks().find(function(item){return Number(item.id)===Number(laneRackId)});if(!rack)return;var draft=laneDraft(rack),sys=systemOf(rack);try{m2PushUndo?.(label(sys)+' özelleştirme')}catch(_){}rack.blockName=String(document.getElementById('rsv115Block')?.value||'').trim();rack.typeName=String(document.getElementById('rsv115Name')?.value||'').trim()||rack.typeName;rack.levels=draft.levels;rack.palletHeight=draft.palletHeight;rack.individualSpec=true;closeLane();try{m2RenderLayout?.();window.rafexUnifiedCatalogSync?.()}catch(_){}var status=document.getElementById('m2FloorStatus');if(status)status.textContent=label(sys)+' ön ve yan görünüş değerleri güncellendi.'}
  var previousInfo=window.rafexFreeShowInfoV3;window.rafexFreeShowInfoV3=function(index){var entry=entries()[Number(index)];if(entry?.drawing)return show(entry,entry.name);return previousInfo?.apply(this,arguments)};
+ // Route the unified catalog before legacy module-specific document handlers.
+ window.addEventListener('click',function savedInfoClick(event){
+  var button=event.target?.closest?.('#m2SavedTypeList .rafex-free-info');
+  if(!button)return;
+  var raw=button.getAttribute('data-saved-index');
+  if(raw===null||!/^[0-9]+$/.test(raw))return;
+  var index=Number(raw),entry=entries()[index];
+  if(!entry?.drawing)return;
+  event.preventDefault();event.stopImmediatePropagation();
+  window.rafexFreeShowInfoV3(index);
+ },true);
  window.rafexSystemOfV115=systemOf;
  var previousOpen=window.m2OpenCustomizeModal;window.m2OpenCustomizeModal=function(rackId){var rack=racks().find(function(item){return Number(item.id)===Number(rackId)}),sys=systemOf(rack);if(sys==='drive'||sys==='mekik2'){openLane(rack);return}if(sys==='mr'||sys==='b2b'){window.rafexResetCustomizePlanV121?.();previousOpen?.call(window,rackId);if(sys==='b2b'){window.rafexLoadCustomizeCollectionV119?.(rack);var ready=window.RafexB2BViewer?.createDetached?Promise.resolve():typeof window.rafexLoadViewerOnDemandV3==='function'?Promise.resolve(window.rafexLoadViewerOnDemandV3('b2b')):Promise.reject(new Error('B2B viewer loader missing'));ready.then(function(){requestAnimationFrame(function(){mountB2BCustomizeViewer(rack)})}).catch(function(){})}else if(!window.RafexMRViewer&&typeof window.rafexLoadViewerOnDemandV3==='function'){Promise.resolve(window.rafexLoadViewerOnDemandV3('mr')).catch(function(){})}return}return previousOpen?.apply(this,arguments)};try{m2OpenCustomizeModal=window.m2OpenCustomizeModal}catch(_){}
  window.rafexCommonPreviewSystemOfV115=systemOf;
