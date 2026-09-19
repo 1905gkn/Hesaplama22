@@ -8,7 +8,7 @@ const source = fs.readFileSync(process.argv[2] || 'dist/server/index.js', 'utf8'
 const html = Buffer.from(source.match(/const\s+HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/)[1], 'base64').toString();
 const nodes = {};
 let active;
-const context = vm.createContext({console, window:{}, document:{getElementById:id=>nodes[id]||null, querySelector:()=>null}, m2LayoutState:{racks:[]}});
+const context = vm.createContext({console, window:{addEventListener(){}}, document:{getElementById:id=>nodes[id]||null, querySelector:()=>null}, m2LayoutState:{racks:[]}});
 context.window.b2bReadInputState=()=>clone(active.b2b);
 context.window.b2b3DOptions=()=>({levels:active.levels,palletHeight:active.palletHeight,traverseHeight:60,footHeight:7950,palletCount:3,palletWidth:800,palletDepth:1200,rowType:'single',rowGap:0});
 vm.runInContext(helpers, context);
