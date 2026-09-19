@@ -2035,7 +2035,28 @@
         });
         document.querySelectorAll("#mobileTabs button[data-mobile-page]").forEach((button) => { button.hidden = !canViewModule(button.dataset.mobilePage); });
       }
+      let pendingProjectList = null;
       async function req(url, opt = {}) {
+        // Share only concurrent, default list reads; keep each consumer's data independent.
+        if (url === "/api/projects" && Object.keys(opt).length === 0) {
+          const pending = pendingProjectList || (pendingProjectList = requestJson(url, opt));
+          try {
+            return structuredClone(await pending);
+          } finally {
+            if (pendingProjectList === pending) pendingProjectList = null;
+          }
+        }
+        const method = String(opt.method || "GET").toUpperCase();
+        const invalidatesProjects = method !== "GET" && method !== "HEAD" &&
+          (/^\/api\/projects(?:\/|$)/.test(url) || /^\/api\/(?:login|logout|setup)(?:\/|$)/.test(url));
+        if (invalidatesProjects) pendingProjectList = null;
+        try {
+          return await requestJson(url, opt);
+        } finally {
+          if (invalidatesProjects) pendingProjectList = null;
+        }
+      }
+      async function requestJson(url, opt = {}) {
         const r = await fetch(url, {
             headers: { "content-type": "application/json" },
             ...opt,
