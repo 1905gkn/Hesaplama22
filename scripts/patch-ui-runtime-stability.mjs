@@ -36,7 +36,7 @@ if (!html.includes('data-rafex-customize-stability="v1"')) {
   const previewIds=new Set(['m2CustomizePalletCount','m2CustomizeLevels','m2CustomizeManualLevels','m2CustomizePalletHeight','m2CustomizeRowType','m2CustomizeRowGap','m2CustomizeTunnel','m2CustomizeTunnelHeight']);
   const modal=()=>document.getElementById('m2CustomizeModal');
   const currentRack=()=>{try{return m2LayoutState?.racks?.find((item)=>item.id===m2CustomizeRackId)||null;}catch{return null;}};
-  const palletLabel=()=>{const button=document.getElementById('m2CustomizePalletVisibilityButton');if(!button)return;const visible=button.getAttribute('aria-pressed')!=='false';button.textContent=visible?'PALETLER · GÖSTERİLİYOR':'PALETLER · GİZLİ';};
+  const palletLabel=()=>{const button=document.getElementById('m2CustomizePalletVisibilityButton');if(!button)return;const visible=button.getAttribute('aria-pressed')!=='false';const label=visible?'PALETLER · GÖSTERİLİYOR':'PALETLER · GİZLİ';if(button.textContent!==label)button.textContent=label;};
   const ensureViewer=()=>{
     const canvas=document.getElementById('m2CustomizeCanvas'),rack=currentRack(),service=window.RafexB2BViewer;
     if(!canvas||!rack||!service?.mount)return false;
@@ -50,13 +50,19 @@ if (!html.includes('data-rafex-customize-stability="v1"')) {
       service.mount(canvas,options);return true;
     }catch(error){console.warn('Özelleştir 3D yeniden bağlanamadı',error);return false;}
   };
-  const stablePreview=()=>{ensureViewer();try{if(typeof m2PreviewRackCustomization==='function')m2PreviewRackCustomization();}catch(error){console.warn('Özelleştir önizleme yenilenemedi',error);}palletLabel();};
-  const refreshModal=()=>{if(modal()?.hidden!==false)return;try{window.m2RenderCustomizeRackAccessories?.();}catch{};palletLabel();requestAnimationFrame(stablePreview);};
+  const stablePreview=()=>{if(modal()?.hidden!==false)return;ensureViewer();try{if(typeof m2PreviewRackCustomization==='function')m2PreviewRackCustomization();}catch(error){console.warn('Özelleştir önizleme yenilenemedi',error);}palletLabel();};
+  // Coalesce only asynchronous recovery work; synchronous state changes stay intact.
+  let stablePreviewFrame=null;
+  const scheduleStablePreview=()=>{
+    if(modal()?.hidden!==false||stablePreviewFrame!==null)return;
+    stablePreviewFrame=requestAnimationFrame(()=>{stablePreviewFrame=null;stablePreview();});
+  };
+  const refreshModal=()=>{if(modal()?.hidden!==false)return;try{window.m2RenderCustomizeRackAccessories?.();}catch{};palletLabel();scheduleStablePreview();};
 
   const originalSet=window.m2SetCustomizePalletsVisible;
   if(typeof originalSet==='function'&&!originalSet.__rafexStable){const wrapped=function(){const result=originalSet.apply(this,arguments);palletLabel();return result;};wrapped.__rafexStable=true;window.m2SetCustomizePalletsVisible=wrapped;}
   const originalToggle=window.m2ToggleCustomizePallets;
-  if(typeof originalToggle==='function'&&!originalToggle.__rafexStable){const wrapped=function(){ensureViewer();const result=originalToggle.apply(this,arguments);palletLabel();requestAnimationFrame(stablePreview);return result;};wrapped.__rafexStable=true;window.m2ToggleCustomizePallets=wrapped;}
+  if(typeof originalToggle==='function'&&!originalToggle.__rafexStable){const wrapped=function(){ensureViewer();const result=originalToggle.apply(this,arguments);palletLabel();scheduleStablePreview();return result;};wrapped.__rafexStable=true;window.m2ToggleCustomizePallets=wrapped;}
 
   const root=modal();
   if(root){
@@ -79,9 +85,9 @@ if (!html.includes('data-rafex-customize-stability="v1"')) {
           else if((match=raw.match(/m2SetCustomizeRackTrayWidth\('([^']+)',\s*(\d+)\)/))){handled=true;window.m2SetCustomizeRackTrayWidth?.(match[1],Number(match[2]));}
         }
       }catch(error){console.warn('Özelleştir kontrolü çalıştırılamadı',error);}
-      if(handled){event.preventDefault();event.stopImmediatePropagation();requestAnimationFrame(stablePreview);}
+      if(handled){event.preventDefault();event.stopImmediatePropagation();scheduleStablePreview();}
     },true);
-    const onFieldChange=(event)=>{if(previewIds.has(event.target?.id))requestAnimationFrame(stablePreview);};
+    const onFieldChange=(event)=>{if(previewIds.has(event.target?.id))scheduleStablePreview();};
     root.addEventListener('input',onFieldChange);
     root.addEventListener('change',onFieldChange);
   }

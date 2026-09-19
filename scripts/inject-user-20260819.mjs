@@ -343,6 +343,11 @@ const runtime = `<script data-rafex-user-20260819="v3">(function(){
     }catch(error){console.warn("Özelleştir 3D yenilenemedi",error);}
   };
   window.__rafexForceCustomizePreviewV3=forceCustomizePreview;
+  let forcePreviewFrame=null;
+  const scheduleForcePreview=function(){
+    if(customizeModal()?.hidden!==false||forcePreviewFrame!==null)return;
+    forcePreviewFrame=requestAnimationFrame(function(){forcePreviewFrame=null;forceCustomizePreview();});
+  };
 
   try{
     var originalCustomizeOpen=window.m2OpenCustomizeModal;
@@ -388,14 +393,14 @@ const runtime = `<script data-rafex-user-20260819="v3">(function(){
     ["m2EnableCustomizeRackAccessory","m2RemoveCustomizeRackAccessory","m2ToggleCustomizeRackAccessoryLevel","m2AllCustomizeRackAccessoryLevels","m2SetCustomizeRackTrayWidth","m2ToggleCustomizePallets"].forEach(function(name){
       var original=window[name];
       if(typeof original!=="function")return;
-      window[name]=function(){var result=original.apply(this,arguments);requestAnimationFrame(forceCustomizePreview);return result;};
+      window[name]=function(){var result=original.apply(this,arguments);scheduleForcePreview();return result;};
     });
   }catch(error){console.warn("Özelleştir davranışları kurulamadı",error);}
 
   var customizeRoot=customizeModal();
   if(customizeRoot){
     var previewFields=new Set(["m2CustomizePalletCount","m2CustomizeLevels","m2CustomizeManualLevels","m2CustomizePalletHeight","m2CustomizeRowType","m2CustomizeRowGap","m2CustomizeTunnel","m2CustomizeTunnelHeight"]);
-    var refreshOnField=function(event){if(previewFields.has(event.target&&event.target.id))requestAnimationFrame(forceCustomizePreview);};
+    var refreshOnField=function(event){if(previewFields.has(event.target&&event.target.id))scheduleForcePreview();};
     customizeRoot.addEventListener("input",refreshOnField,true);
     customizeRoot.addEventListener("change",refreshOnField,true);
     new MutationObserver(function(){if(customizeRoot.hidden===false)setTimeout(function(){try{if(typeof m2SetCustomizePalletsVisible==="function")m2SetCustomizePalletsVisible(true,false);}catch(error){}forceCustomizePreview();},0);}).observe(customizeRoot,{attributes:true,attributeFilter:["hidden"]});

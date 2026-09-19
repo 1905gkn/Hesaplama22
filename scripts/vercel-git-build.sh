@@ -4,6 +4,12 @@ set -euo pipefail
 project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$project_root"
 
+# Guard the small performance fixes before producing a deployment artifact.
+node scripts/verify-customize-frame-coalescing.mjs
+node scripts/verify-section-button-idle.mjs
+node scripts/verify-project-request-dedup.mjs
+node scripts/verify-viewer-visibility-v147.mjs
+
 # Windows gelistirme kopyalarinda checkout CRLF olabilir; asagidaki tarihsel
 # yamalar birebir LF dizileri aradigi icin once hedef dosyalari normalize et.
 sed -i 's/\r$//' portal.html worker/index.js client/*.js scripts/build.sh
