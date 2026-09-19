@@ -9,9 +9,10 @@
    m2SaveRackType=window.m2SaveRackType=function(){
      const system=document.querySelector('#rafexUnifiedSystemPicker input:checked')?.value||(typeof m2ActiveModule!=='undefined'?m2ActiveModule:'');
      if(system==='b2b'){
-       const options=b2b3DOptions(),state=b2bReadInputState();
-       if(!allowed(state.accessories,options.sectionWidth,window.RafexRackTray.depth(),'HR'))return reject();
-       if(state.collectionLevels?.enabled&&(state.collectionLevels.floors||[]).some(f=>!window.RafexRackTray.canSave(f,options.sectionWidth,window.RafexRackTray.depth(),'MR')))return reject();
+       const geometry=b2bPalletGeometry(),state=b2bReadInputState();
+       const width=Number(geometry.sectionWidth||geometry.calculatedWidth);
+       if(!allowed(state.accessories,width,window.RafexRackTray.depth(),'HR'))return reject();
+       if(state.collectionLevels?.enabled&&(state.collectionLevels.floors||[]).some(f=>!window.RafexRackTray.canSave(f,width,window.RafexRackTray.depth(),'MR')))return reject();
      }
      return save.apply(this,arguments);
    };

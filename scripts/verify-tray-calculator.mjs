@@ -50,11 +50,13 @@ assert.equal(context.window.RafexRackTray.canSave({trayWidth:200,load:500},2700,
 assert.equal(context.window.RafexRackTray.canSave({trayWidth:200,load:100000,trayThickness:2,traySelectionMode:'manual'},2700,1050,'HR'),false);
 assert.equal(context.window.RafexRackTray.canSave({trayWidth:200,load:500},2700,1300,'HR'),false);
 let saves=0,alerts=0;
-const guardContext={window:{RafexRackTray:context.window.RafexRackTray},m2ActiveModule:'b2b',document:{querySelector:()=>null,getElementById:()=>null},b2b3DOptions:()=>({sectionWidth:2700}),b2bReadInputState:()=>({accessories:[{type:'tray',width:200,load:100000,thickness:2,traySelectionMode:'manual'}]}),m2SaveRackType:()=>{saves++},alert:()=>{alerts++}};
+const guardContext={window:{RafexRackTray:context.window.RafexRackTray},m2ActiveModule:'b2b',document:{querySelector:()=>null,getElementById:()=>null},b2b3DOptions:()=>({palletWidth:800,palletCount:3}),b2bPalletGeometry:()=>({sectionWidth:2700}),b2bReadInputState:()=>({accessories:[{type:'tray',width:200,load:100000,thickness:2,traySelectionMode:'manual'}]}),m2SaveRackType:()=>{saves++},alert:()=>{alerts++}};
 guardContext.window.RafexRackTray.depth=()=>1050;
 vm.runInNewContext(fs.readFileSync('client/tray-save-guard.js','utf8'),guardContext);
 guardContext.m2SaveRackType();assert.equal(saves,0);assert.equal(alerts,1);
 guardContext.b2bReadInputState=()=>({accessories:[{type:'tray',width:200,load:500}]});guardContext.m2SaveRackType();assert.equal(saves,1);
+guardContext.b2bReadInputState=()=>({accessories:[],collectionLevels:{enabled:true,floors:[{trayWidth:200,load:500}]}});guardContext.m2SaveRackType();assert.equal(saves,2);
+guardContext.b2bReadInputState=()=>({accessories:[],collectionLevels:{enabled:true,floors:[{trayWidth:200,load:100000}]}});guardContext.m2SaveRackType();assert.equal(saves,2);assert.equal(alerts,2);
 console.log('PASS: missing recommendation blocks save even with manual thickness; valid recommendation permits save.');
 
 for(const kind of ['MR','HR'])for(const custom of [false,true]){
