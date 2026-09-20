@@ -16,6 +16,7 @@ const runtime = String.raw`
 #page #m2LayoutSvg [data-rack] .m2-rack-name{display:none!important}
 #page .rafex-single-line-letter-v58{pointer-events:none}
 #page .rafex-single-line-letter-v58 path{fill:none;stroke-width:1.5px;stroke-linecap:round;stroke-linejoin:round;vector-effect:none;shape-rendering:geometricPrecision}
+#page .rafex-single-line-system-v58{font-family:Arial,sans-serif;font-weight:800;text-anchor:middle;paint-order:stroke fill;stroke:#fff;stroke-linejoin:round;pointer-events:none}
 </style>
 <script data-rafex-common-single-line-letter="v58">
 (function(){
@@ -28,10 +29,11 @@ const runtime = String.raw`
     0:"M5 0Q0 0 0 5Q0 10 5 10Q10 10 10 5Q10 0 5 0M2 8L8 2",1:"M3 2L5 0V10M2 10H8",2:"M0 2Q1.5 0 5 0Q10 0 10 3Q10 5 0 10H10",3:"M0 1Q2 0 5 0Q10 0 10 2.6Q10 5 5 5Q10 5 10 7.5Q10 10 5 10Q2 10 0 9",4:"M8 10V0L0 7H10",5:"M10 0H0V5H5Q10 5 10 7.5Q10 10 5 10Q2 10 0 9",6:"M9 1Q7.5 0 5 0Q0 0 0 5V7Q0 10 5 10Q10 10 10 7Q10 4 5 4H0",7:"M0 0H10L3 10",8:"M5 0Q0 0 0 2.5Q0 5 5 5Q10 5 10 2.5Q10 0 5 0M5 5Q0 5 0 7.5Q0 10 5 10Q10 10 10 7.5Q10 5 5 5",9:"M10 6H5Q0 6 0 3Q0 0 5 0Q10 0 10 3V5Q10 10 5 10Q2.5 10 1 9"
   };
   function svg(){return document.getElementById("m2LayoutSvg")}
-  function letterScale(){try{return typeof window.rafexCommonTypeLetterScaleV65==="function"?Math.max(.5,Math.min(2,Number(window.rafexCommonTypeLetterScaleV65())||1)):1}catch(_){return 1}}
+  function letterScale(){try{return typeof window.rafexCommonTypeLetterScaleV65==="function"?Math.max(.1,Math.min(2,Number(window.rafexCommonTypeLetterScaleV65())||1)):1}catch(_){return 1}}
   function letterContrast(){try{return typeof window.rafexCommonTypeLetterContrastV65==="function"?Math.max(.5,Math.min(1.5,Number(window.rafexCommonTypeLetterContrastV65())||1)):1}catch(_){return 1}}
   function contrastColor(color,contrast){if(contrast<=1||!/^#[0-9a-f]{6}$/i.test(color))return color;var mix=Math.min(.25,(contrast-1)*.5),r=parseInt(color.slice(1,3),16),g=parseInt(color.slice(3,5),16),b=parseInt(color.slice(5,7),16);return "rgb("+Math.round(r*(1-mix))+","+Math.round(g*(1-mix))+","+Math.round(b*(1-mix))+")"}
   function existing(parent){return Array.from(parent.children||[]).find(function(node){return node.classList&&node.classList.contains("rafex-single-line-letter-v58")})||null}
+  function rackSystemName(group){var id=Number(group.getAttribute("data-rack")),rack=Array.isArray(window.m2LayoutState?.racks)?window.m2LayoutState.racks.find(function(item){return Number(item.id)===id}):null,system=String(rack?.rafexSystem||rack?.__rafexSystem||"").toLowerCase();if(system==="drive"||system==="drive-in"||system==="drivein")return "Drive-In";if(system==="mekik2"||system==="mekik"||(!system&&!rack?.b2bLayout&&!rack?.b2b&&!rack?.konsol&&!rack?.plan?.mr&&(rack?.systemType==="fifo"||rack?.systemType==="filo")))return "Mekik";return ""}
   function decorateGroup(group){
     var labels=Array.from(group.querySelectorAll(".m2-b2b-plan-label,.m2-rack-name"));if(!labels.length)return;
     labels.forEach(function(label){label.style.display="none";label.setAttribute("aria-hidden","true")});
@@ -39,9 +41,9 @@ const runtime = String.raw`
     if(!pathData||!parent){if(old)old.remove();return}
     // The glyph uses one local size for both single and double rows. Its stroke
     // scales with the SVG, including detached report/PDF copies.
-    var color=group.getAttribute("data-type-color")||"#2878d0",x=Number(label.getAttribute("x"))||0,y=Number(label.getAttribute("y"))||0,baseSize=11,fontSize=baseSize*letterScale(),contrast=letterContrast(),opacity=Math.min(1,contrast),strokeColor=contrastColor(color,contrast),sx=fontSize*.72/10,sy=fontSize*.92/10,signature=[letter,color,x,y,fontSize,contrast].join("|");
+    var color=group.getAttribute("data-type-color")||"#2878d0",x=Number(label.getAttribute("x"))||0,y=Number(label.getAttribute("y"))||0,baseSize=11,scale=letterScale(),fontSize=baseSize*scale,systemName=rackSystemName(group),systemFont=4.2*scale,contrast=letterContrast(),opacity=Math.min(1,contrast),strokeColor=contrastColor(color,contrast),sx=fontSize*.72/10,sy=fontSize*.92/10,signature=[letter,systemName,color,x,y,fontSize,contrast].join("|");
     if(old&&old.getAttribute("data-signature")===signature)return;if(old)old.remove();
-    var mark=document.createElementNS(NS,"g"),path=document.createElementNS(NS,"path");mark.setAttribute("class","rafex-single-line-letter-v58");mark.setAttribute("data-signature",signature);mark.setAttribute("data-letter",letter);mark.setAttribute("aria-label",letter);mark.setAttribute("opacity",String(opacity));mark.setAttribute("transform","translate("+(x-fontSize*.36)+" "+(y-fontSize*.46)+") scale("+sx+" "+sy+")");path.setAttribute("d",pathData);path.setAttribute("stroke",strokeColor);path.setAttribute("style","fill:none;stroke-width:1.5px;stroke-linecap:round;stroke-linejoin:round;vector-effect:none");mark.appendChild(path);parent.appendChild(mark);
+    var mark=document.createElementNS(NS,"g"),glyph=document.createElementNS(NS,"g"),path=document.createElementNS(NS,"path");mark.setAttribute("class","rafex-single-line-letter-v58");mark.setAttribute("data-signature",signature);mark.setAttribute("data-letter",letter);mark.setAttribute("data-system-name",systemName);mark.setAttribute("aria-label",systemName?letter+" "+systemName:letter);mark.setAttribute("opacity",String(opacity));glyph.setAttribute("transform","translate("+(x-fontSize*.36)+" "+(y-fontSize*.46)+") scale("+sx+" "+sy+")");path.setAttribute("d",pathData);path.setAttribute("stroke",strokeColor);path.setAttribute("style","fill:none;stroke-width:1.5px;stroke-linecap:round;stroke-linejoin:round;vector-effect:none");glyph.appendChild(path);mark.appendChild(glyph);if(systemName){var systemText=document.createElementNS(NS,"text");systemText.setAttribute("class","rafex-single-line-system-v58");systemText.setAttribute("x",String(x));systemText.setAttribute("y",String(y+fontSize*.78));systemText.setAttribute("font-size",String(systemFont));systemText.setAttribute("stroke-width",String(Math.max(.12,.65*scale)));systemText.setAttribute("fill",strokeColor);systemText.textContent=systemName;mark.appendChild(systemText)}parent.appendChild(mark);
   }
   function decorate(){var node=svg();if(!node)return;node.querySelectorAll("[data-rack]").forEach(decorateGroup);window.rafexFitNameplatesV136?.()}
   function schedule(){clearTimeout(pending);pending=setTimeout(function(){pending=0;decorate()},20)}
@@ -66,6 +68,10 @@ for (const required of [
   "rafexCommonTypeLetterScaleV65",
   "rafexCommonTypeLetterContrastV65",
   "contrastColor",
+  "rackSystemName",
+  "Drive-In",
+  'return "Mekik"',
+  "rafex-single-line-system-v58",
   'mark.setAttribute("opacity",String(opacity))',
   'path.setAttribute("d",pathData)',
   'path.setAttribute("stroke",strokeColor)',

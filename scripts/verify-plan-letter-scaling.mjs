@@ -8,7 +8,27 @@ const script=runtime.match(/<script[^>]*>([\s\S]*?)<\/script>/)[1];
 new vm.Script(script);
 assert(!runtime.includes('non-scaling-stroke'));
 assert(runtime.includes('baseSize=11'));
+assert(runtime.includes('Math.max(.1,Math.min(2'),'rendered type-letter scale must honor the 10% control value');
+assert(!runtime.includes('Math.max(.5,Math.min(2'),'hidden 50% rendering floor must be removed');
+assert(runtime.includes('function rackSystemName(group)'),'Drive-In and Mekik system labels must be derived from each rack');
+assert(runtime.includes('return "Drive-In"')&&runtime.includes('return "Mekik"'),'both requested system names must be rendered');
+assert(runtime.includes('systemFont=4.2*scale'),'system names must use the same scale ratio as the section letter');
+assert(runtime.includes('class","rafex-single-line-system-v58"'),'system names must be emitted into the SVG output');
 assert(runtime.includes('path.setAttribute("style","fill:none;stroke-width:1.5px;'));
+const helperContext=vm.createContext({window:{m2LayoutState:{racks:[
+  {id:1,rafexSystem:'drive'},
+  {id:2,rafexSystem:'mekik2'},
+  {id:3,rafexSystem:'b2b',b2bLayout:{}},
+]}}});
+const scaleHelper=script.slice(script.indexOf('function letterScale'),script.indexOf('function letterContrast'));
+const systemHelper=script.slice(script.indexOf('function rackSystemName'),script.indexOf('function decorateGroup'));
+vm.runInContext(scaleHelper+'\n'+systemHelper,helperContext);
+const group=(id)=>({getAttribute:(name)=>name==='data-rack'?String(id):''});
+helperContext.window.rafexCommonTypeLetterScaleV65=()=>.1;
+assert.equal(helperContext.letterScale(),.1,'10% scale must reach the SVG decorator unchanged');
+assert.equal(helperContext.rackSystemName(group(1)),'Drive-In');
+assert.equal(helperContext.rackSystemName(group(2)),'Mekik');
+assert.equal(helperContext.rackSystemName(group(3)),'','B2B must not receive a Drive-In/Mekik subtitle');
 const scaleSource=fs.readFileSync('scripts/patch-common-drawing-type-letter-scale-v65.mjs','utf8');
 assert(scaleSource.includes('min="10" max="200" step="5"'),'type-letter input must allow 10%');
 assert(scaleSource.includes('Math.max(10,Math.min(200'),'stored and entered type-letter scale must clamp to 10–200%');

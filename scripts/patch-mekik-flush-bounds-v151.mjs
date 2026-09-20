@@ -16,12 +16,12 @@ const oldBlock = `      function m2RackVisualSideOverhang(rack) {
 
 const newBlock = `      function m2RackVisualSideOverhang(rack) {
         // B2B üst görünüşünün dış çerçevesi zaten rack.w sınırına tam oturur.
-        // Mekik plan görünüşü de rack.w sınırına tam oturur. Eski ayak taşması
-        // iki Mekik bloğunun arasında görünmeyen bir tampon oluşturuyordu.
+        // Mekik ve Drive-In plan görünüşleri de rack.w sınırına tam oturur.
+        // Eski ayak taşması bu blokların arasında görünmeyen tampon oluşturuyordu.
         const explicitSystem = String(rack?.rafexSystem || rack?.__rafexSystem || "").toLowerCase();
         const systemType = String(rack?.systemType || "").toLowerCase();
         const legacyMekik = !explicitSystem && !rack?.b2bLayout && !rack?.b2b && !rack?.konsol && !rack?.plan?.mr && (systemType === "fifo" || systemType === "filo");
-        if (rack?.layoutView === "b2b-top" || explicitSystem === "mekik2" || explicitSystem === "mekik" || legacyMekik) return 0;
+        if (rack?.layoutView === "b2b-top" || explicitSystem === "mekik2" || explicitSystem === "mekik" || explicitSystem === "drive" || explicitSystem === "drive-in" || legacyMekik) return 0;
         const feet = rack?.plan?.feet || [];
         if (!feet.length || !rack.depthMm || !rack.h) return 0;
         return Math.max(...feet.map((length) => Math.max(4, Math.min(14, rack.h * length / rack.depthMm * 146 / 1062)))) / 2;
