@@ -9,6 +9,10 @@ new vm.Script(script);
 assert(!runtime.includes('non-scaling-stroke'));
 assert(runtime.includes('baseSize=11'));
 assert(runtime.includes('path.setAttribute("style","fill:none;stroke-width:1.5px;'));
+const scaleSource=fs.readFileSync('scripts/patch-common-drawing-type-letter-scale-v65.mjs','utf8');
+assert(scaleSource.includes('min="10" max="200" step="5"'),'type-letter input must allow 10%');
+assert(scaleSource.includes('Math.max(10,Math.min(200'),'stored and entered type-letter scale must clamp to 10–200%');
+assert(!scaleSource.includes('min="50" max="200" step="5"'),'old 50% lower bound must not remain');
 
 // Exercise the real decorator and both report serialization mechanisms. Source
 // label sizes intentionally differ to represent single and double depth rows.

@@ -20,6 +20,28 @@ for(const system of ['b2b','mr','drive','mekik2','konsol']){
 }
 assert.equal(c.sameType(rack(1,0),rack(2,0,'drive')),false,'system identity must never be mixed');
 const other=rack(2,0);other.rafexCatalogKey='b2b:B';assert.equal(c.sameType(rack(1,0),other),false,'different saved types must not mix');
+// Selected-only width changes must reflow their joined row. Otherwise shared
+// feet and tunnel boundaries are drawn at the stale pre-customization points.
+const tunnelRow=[rack(1,0),rack(2,90),rack(3,180)];
+tunnelRow.forEach((item,index)=>{item.angle=0;item.w=100;item.b2b.palletCount=3;item.b2bLayout={palletCount:3};item.sharedFootWith=index?tunnelRow[index-1].id:null;});
+tunnelRow[1].b2b.tunnelHeight=3600;
+const tunnelBefore=c.clone(tunnelRow),unselectedSpec=c.clone(tunnelRow[1]);
+tunnelRow[0].w=130;tunnelRow[0].b2b.palletCount=4;tunnelRow[0].b2bLayout.palletCount=4;
+c.commit(tunnelRow,tunnelBefore,[1,3],1);
+assert.equal(JSON.stringify(c.reflow(tunnelRow,tunnelBefore,[1,3],1,10)),JSON.stringify(['group']));
+assert.equal(tunnelRow[0].x+tunnelRow[0].w-tunnelRow[1].x,10,'left selected block must keep one shared-foot overlap');
+assert.equal(tunnelRow[1].x+tunnelRow[1].w-tunnelRow[2].x,10,'tunnel boundary must keep one shared-foot overlap');
+assert.equal(tunnelRow[1].b2b.tunnelHeight,3600,'unselected tunnel detail must remain unchanged');
+for(const key of Object.keys(unselectedSpec))if(!['x','y'].includes(key))assert.deepEqual(tunnelRow[1][key],unselectedSpec[key],`unselected tunnel field ${key} must stay unchanged`);
+// Extending a joined row must repair a stale perpendicular coordinate instead
+// of leaving one module above the row with a module-sized hole below it.
+const extensionBefore=[rack(11,0),rack(12,90),rack(13,180)];
+extensionBefore.forEach((item,index)=>{item.angle=0;item.w=100;item.y=40;item.sharedFootWith=index?extensionBefore[index-1].id:null;});
+const extended=c.clone(extensionBefore);extended[1].y=-10;
+extended.push({...c.clone(extended[2]),id:14,x:270,y:40,sharedFootWith:13});
+assert.equal(JSON.stringify(c.alignExtension(extended,extensionBefore,12,1,1,10)),JSON.stringify(['group']));
+assert(extended.every(item=>item.y===40),'all extended modules must return to the original row axis');
+for(let index=1;index<extended.length;index++)assert.equal(extended[index-1].x+extended[index-1].w-extended[index].x,10,'extended row must retain one shared-foot overlap');
 const joined=[rack(1,0),rack(2,100),rack(3,200)];joined[2].sharedFootWith=2;
 const result=c.separate(joined,[2]);assert.equal(result.count,1);assert.equal(joined[1].joinGroup,null);assert.equal(joined[2].sharedFootWith,null);
 assert.equal(joined[1].freePlacement,true);assert.equal(joined[1].locked,false);assert.equal(joined[0].joinGroup,'group');

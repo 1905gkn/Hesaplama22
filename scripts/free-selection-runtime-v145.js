@@ -82,18 +82,36 @@
     const context=batch;batch=null;
     if(context.ids.length<2)return;
     core.commit(racks(),context.before,context.ids,context.sourceId);
+    const groups=core.reflow(racks(),context.before,context.ids,m2LayoutState.scale,rack=>m2B2BFootWidth(rack));
+    groups.forEach(group=>m2NormalizeJoinComponents(group));
     for(const id of context.ids){
       const rack=racks().find(r=>r.id===id);if(!rack)continue;
       const bad=!m2RackInsideArea(rack)||m2RackOverlaps(rack);
       rack.freePlacement=bad;rack.staged=bad;rack.locked=!bad;
     }
     if(picking)ids=new Set(context.ids);
-    render();status(context.ids.length+' seçili blok güncellendi. Seçilmeyen bloklar korunuyor.');
+    render();status(context.ids.length+' seçili blok güncellendi. Seçilmeyen blok ölçüleri ve ortak ayak/tünel hizası korunuyor.');
   }
   const baseApply=window.m2ApplyRackCustomization;
   function apply(){const result=baseApply.apply(this,arguments);finish(byId('m2CustomizeModal'));return result;}
-  window.m2OpenCustomizeModal=open;window.m2ApplyRackCustomization=apply;window.m2SeparateSelectedRack=separate;
-  try{m2OpenCustomizeModal=open;m2ApplyRackCustomization=apply;m2SeparateSelectedRack=separate;}catch(_){}
+  const baseExtend=window.m2CommitAutoFillGuide;
+  function extend(){
+    let draft=null,before=null;try{draft=m2AutoFillDraft?{sourceId:m2AutoFillDraft.rackId,direction:m2AutoFillDraft.direction||1}:null;before=draft?core.clone(racks()):null;}catch(_){}
+    const result=baseExtend.apply(this,arguments);
+    const finishExtension=()=>{
+      if(!draft||!before)return;
+      const groups=core.alignExtension(racks(),before,draft.sourceId,draft.direction,m2LayoutState.scale,rack=>m2B2BFootWidth(rack));
+      groups.forEach(group=>{
+        m2NormalizeJoinComponents(group);
+        const members=racks().filter(r=>r.joinGroup===group),memberIds=members.map(r=>r.id),bad=members.some(r=>!m2RackInsideArea(r)||m2RackOverlapsExcept(r,r.x,r.y,r.angle,memberIds));
+        members.forEach(r=>{r.freePlacement=bad;r.staged=bad;r.locked=!bad;});
+      });
+      if(groups.length)render();
+    };
+    if(result&&typeof result.then==='function')return result.finally(finishExtension);finishExtension();return result;
+  }
+  window.m2OpenCustomizeModal=open;window.m2ApplyRackCustomization=apply;window.m2SeparateSelectedRack=separate;window.m2CommitAutoFillGuide=extend;
+  try{m2OpenCustomizeModal=open;m2ApplyRackCustomization=apply;m2SeparateSelectedRack=separate;m2CommitAutoFillGuide=extend;}catch(_){}
 
   function setupMrBatch(rack){
     const modal=byId('m2CustomizeModal'),aside=modal?.querySelector('aside');if(!aside)return;
