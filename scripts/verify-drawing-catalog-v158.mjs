@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {transform} from './patch-drawing-catalog-v158.mjs';
 const {chromium}=createRequire(import.meta.url)(process.env.RAFEX_PLAYWRIGHT_PATH||'playwright');
-const html=transform(fs.readFileSync(process.argv[2]||'outputs/production-v157-final.html','utf8'));
+const html=transform(fs.readFileSync(process.argv[2]||'outputs/production-v157-final.html','utf8').replace('if(registry&&(current||[]).length)name=appendedName();','if(registry)name=appendedName();'));
 assert.equal(transform(html),html);
 for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))if(m[1].trim())new vm.Script(m[1]);
 fs.writeFileSync('outputs/drawing-catalog-v158.html',html);
@@ -39,7 +39,7 @@ try{
  await page.waitForFunction(()=>document.querySelector('#rafexProjectNumberV134 span')?.textContent==='1'&&!window.rafexProjectSavingV133);
  assert.equal(records.length,1);assert.equal(historyWrites,0);
  const drawing=await page.evaluate(()=>m2B2BRecordV108(b2bLayoutDrawing({...m2LastDrawing,b2b:b2bReadInputState()})));
- await page.evaluate(d=>{window.rafexProjectTypesV133=[{id:11,name:'A',__rafexSystem:'b2b',drawing:d},{id:12,name:'B',__rafexSystem:'b2b',drawing:{...d,totalWidth:9999}}];window.rafexUnifiedCatalogSync();m2RenderSavedRackTypes();},drawing);
+ await page.evaluate(d=>{window.rafexProjectTypesV133=[{id:11,name:'E',__rafexSystem:'b2b',drawing:d},{id:12,name:'B',__rafexSystem:'b2b',drawing:{...d,totalWidth:9999}}];window.rafexUnifiedCatalogSync();m2RenderSavedRackTypes();},drawing);
  const enter=page.locator('#rafexOpenLayoutScreen'),back=page.locator('#rafexBackToRackTypes');
  await enter.click();await back.waitFor({state:'visible'});
  assert.equal(records.length,1);assert.equal(records[0].rackTypes.length,2);assert.equal(updates,1);assert.equal(historyWrites,0);
@@ -53,10 +53,11 @@ try{
  await page.locator('#rafexProjectImportV155 summary').click();await page.locator('#rafexProjectImportV155 option[value="1"]').waitFor({state:'attached'});
  assert.doesNotMatch(await page.locator('#rafexProjectImportV155 select').textContent(),/HISTORY ONLY/);
  await page.locator('#rafexProjectImportV155 select').selectOption('1');await page.locator('#rafexProjectImportV155 input[value="0"]').check();await page.locator('#rafexProjectImportV155 [data-copy]').click();
- assert.equal(await page.evaluate(()=>window.rafexProjectTypesV133.length),1);assert.equal(await page.evaluate(()=>m2LayoutState.racks.length),0);
+ assert.equal(await page.evaluate(()=>window.rafexProjectTypesV133.length),1);assert.equal(await page.evaluate(()=>window.rafexProjectTypesV133[0].name),'A');assert.equal(await page.evaluate(()=>m2LayoutState.racks.length),0);
  const copied=await page.evaluate(()=>structuredClone(window.rafexProjectTypesV133[0].drawing));delete copied.rafexGlobalTypeLetter;delete drawing.rafexGlobalTypeLetter;assert.deepEqual(copied,drawing);
  assert.equal(await page.locator('#rafexTypeProjectSaveV156').count(),0);assert.equal(await page.locator('#rafexSavedProjectsV156').count(),0);
  assert.deepEqual(records[0].rackTypes,snapshot);assert.equal(historyWrites,0);assert.deepEqual(errors,[]);
  console.log('PASS: independent sequential numbering; every layout transition saves same record; failure keeps types and screen; selected-only full-detail copying; zero history writes; no extra save or open UI.');
 }finally{await browser.close();}
+
 

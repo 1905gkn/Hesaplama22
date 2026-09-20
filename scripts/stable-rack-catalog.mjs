@@ -22,7 +22,7 @@ export function mergeRackCatalog(current, incoming, excluded=[]) {
     const existing=(origin&&byOrigin.get(origin))||byContent.get(fp);
     if(existing){aliases[key(entry)]=key(existing);if(origin){existing.registryKey=existing.registryKey||origin;byOrigin.set(origin,existing);}return;}
     let name=String(entry.name||'').trim().toUpperCase();
-    if(registry&&(current||[]).length)name=appendedName();
+    if(registry)name=appendedName();
     else if(!validName(name)||names.has(name)){let n=1;while(names.has(letter(n))||reserved.has(letter(n)))n++;name=letter(n);}
     names.add(name.toUpperCase());entry.name=name;
     if(origin)entry.registryKey=origin;
