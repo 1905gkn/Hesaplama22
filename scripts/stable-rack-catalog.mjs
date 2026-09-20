@@ -14,12 +14,16 @@ export function mergeRackCatalog(current, incoming, excluded=[]) {
   const reserved=new Set([...(current||[]),...(incoming||[])].filter(e=>!excluded.includes(fingerprint(e))).map(e=>String(e.name||'').trim().toUpperCase()).filter(validName));
   const result=[],byOrigin=new Map(),byContent=new Map(),names=new Set();
   const aliases={};
+  const letterNo=value=>{let n=0;for(const char of String(value||'').trim().toUpperCase())n=n*26+char.charCodeAt(0)-64;return n;};
+  let appendNo=(current||[]).map(e=>String(e.name||'').trim().toUpperCase()).filter(validName).reduce((max,name)=>Math.max(max,letterNo(name)),0);
+  const appendedName=()=>{let name;do{name=letter(++appendNo);}while(names.has(name));return name;};
   function add(raw,registry){
     const entry=clone(raw),origin=entry.registryKey||(registry?key(entry):null),fp=fingerprint(entry);
     const existing=(origin&&byOrigin.get(origin))||byContent.get(fp);
     if(existing){aliases[key(entry)]=key(existing);if(origin){existing.registryKey=existing.registryKey||origin;byOrigin.set(origin,existing);}return;}
     let name=String(entry.name||'').trim().toUpperCase();
-    if(!validName(name)||names.has(name)){let n=1;while(names.has(letter(n))||reserved.has(letter(n)))n++;name=letter(n);}
+    if(registry&&(current||[]).length)name=appendedName();
+    else if(!validName(name)||names.has(name)){let n=1;while(names.has(letter(n))||reserved.has(letter(n)))n++;name=letter(n);}
     names.add(name.toUpperCase());entry.name=name;
     if(origin)entry.registryKey=origin;
     entry.__rafexUnified=true;entry.__rafexSystem=system(entry);

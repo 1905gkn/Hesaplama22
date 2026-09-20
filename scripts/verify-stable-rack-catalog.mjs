@@ -21,6 +21,11 @@ const named=mergeRackCatalog([],['A','B','C','D','H','Tip 1','Tip 2','Tip 3','Ti
 assert.deepEqual(named.map(e=>e.name),['A','B','C','D','E','F','G','H','I']);
 assert.equal(named.find(e=>e.id===5).name,'H','Existing block letters stay attached to their products');
 assert.deepEqual(mergeRackCatalog(named,[]).entries,named,'Reload does not renumber the catalog');
+const appendBase=[row(101,'A',2100),row(102,'C',2200),row(103,'M',2300)];
+const appended=mergeRackCatalog(appendBase,[row(104,'B',2400,'mekik2'),row(105,'D',2500,'drive')]).entries;
+assert.deepEqual(appended.map(e=>e.name),['A','C','M','N','O'],'New sections append after the highest existing letter and never fill gaps');
+assert.equal(appended.find(e=>e.id===104).name,'N','A new section after M must be N regardless of its module-local name');
+assert.deepEqual(mergeRackCatalog(appended,[row(104,'B',2400,'mekik2'),row(105,'D',2500,'drive')]).entries,appended,'Reload keeps appended letters stable');
 const alphabet=mergeRackCatalog([],Array.from({length:28},(_,i)=>row(i+1,'Tip '+(i+1),1000+i))).entries;
 assert.deepEqual(alphabet.slice(24).map(e=>e.name),['Y','Z','AA','AB']);
 const file=process.argv[2];
