@@ -8,7 +8,7 @@ const end = portal.indexOf("\n      function m2RackLocalPoint", start);
 assert.notEqual(start, -1, "Mekik dış sınırı fonksiyonu bulunmalı");
 assert.notEqual(end, -1, "Mekik dış sınırı test dilimi bulunmalı");
 
-const context = vm.createContext({ Math, String });
+const context = vm.createContext({ Math, String, window: {}, m2LayoutState: { racks: [] } });
 vm.runInContext(portal.slice(start, end), context);
 
 const base = { x: 10, y: 20, w: 100, h: 50, angle: 0, depthMm: 2500, plan: { feet: [1200] } };
