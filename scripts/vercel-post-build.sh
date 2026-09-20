@@ -105,6 +105,7 @@ node scripts/verify-layout-budget-v152.mjs
 node scripts/patch-drag-isolation-v153.mjs
 node scripts/verify-drag-isolation-v153.mjs
 node scripts/patch-distance-labels-v154.mjs
+node scripts/patch-project-catalog-v155.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
