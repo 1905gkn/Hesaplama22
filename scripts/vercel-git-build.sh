@@ -43,6 +43,7 @@ node scripts/patch-free-layout-drag-start-performance.mjs
 node scripts/patch-free-layout-staged-report-performance.mjs
 node scripts/patch-free-layout-staged-fast-v2.mjs
 node scripts/patch-free-layout-geometry-cache-v27.mjs
+node scripts/patch-mekik-flush-bounds-v151.mjs
 node scripts/patch-free-layout-dom-table-v28.mjs
 node scripts/patch-free-layout-runtime-tables-v29.mjs
 node scripts/patch-free-layout-count-distance-performance-v93.mjs
@@ -169,6 +170,7 @@ node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8')
 node -e "const fs=require('fs'),s=fs.readFileSync('dist/server/index.js','utf8'),m=s.match(/const\\s+HTML_BASE64\\s*=\\s*([\"\x27])([A-Za-z0-9+/=]+)\\1/);if(!m)process.exit(1);const h=Buffer.from(m[2],'base64').toString('utf8');if(/data-rafex-free-layout-stop3d|data-rafex-b2b-3d-module-pause|data-rafex-b2b-3d-add-hook|rafexPauseB2B3DIfUserAdd/.test(h))process.exit(1)"
 
 node scripts/verify-inline-runtime-syntax-v21.mjs
+node scripts/verify-mekik-flush-bounds-v151.mjs
 node scripts/verify-konsol-plan-v111.mjs
 node scripts/verify-b2b-collection-products-v110.mjs
 
