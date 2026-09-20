@@ -9,7 +9,7 @@
   try{
    await m2SaveProject();
    if(window.rafexProjectIdentityV133?.uuid!==identity.uuid)return;
-   status.textContent=/^\d+$/.test(String(identity.displayNumber))?'Proje #'+identity.displayNumber+' kaydedildi. Raf tiplerini oluşturup alttaki Projeyi Kaydet düğmesiyle saklayabilirsin.':(document.getElementById('m2ProjectSaveMsg')?.textContent||'Proje kaydedilemedi. Yeniden dene.');
+   status.textContent=/^\d+$/.test(String(identity.displayNumber))?'Proje kaydedildi. Raf tiplerini oluşturup alttaki Projeyi Kaydet düğmesiyle saklayabilirsin.':(document.getElementById('m2ProjectSaveMsg')?.textContent||'Proje kaydedilemedi. Yeniden dene.');
   }catch(error){status.textContent='Proje kaydedilemedi: '+error.message;}
   finally{if(button)button.disabled=false;}
  };
