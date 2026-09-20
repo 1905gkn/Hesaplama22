@@ -56,15 +56,16 @@ try{
   await page.locator('#rafexOpenLayoutScreen').click();await page.locator('#rafexBackToRackTypes').waitFor({state:'visible'});await page.waitForTimeout(100);
   const read=()=>page.evaluate(()=>{
    const group=document.querySelector('#m2LayoutSvg [data-rack]'),mark=group.querySelector('.rafex-rack-label-v160');
-   return {html:mark?.innerHTML,text:[...mark?.querySelectorAll('text')||[]].map(n=>n.textContent),fonts:[...mark?.querySelectorAll('text')||[]].map(n=>parseFloat(n.getAttribute('font-size'))*Math.hypot(n.getScreenCTM().a,n.getScreenCTM().b)),legacy:[...group.querySelectorAll('.m2-rack-nameplate,.m2-rack-pallet-count,.rafex-single-line-letter-v58')].filter(n=>getComputedStyle(n).display!=='none').length};
+   return {colors:[...mark.querySelectorAll("text")].map(n=>n.getAttribute("fill")),expectedColor:m2TypeColor(m2LayoutState.racks[0].typeName),html:mark?.innerHTML,text:[...mark?.querySelectorAll('text')||[]].map(n=>n.textContent),fonts:[...mark?.querySelectorAll('text')||[]].map(n=>parseFloat(n.getAttribute('font-size'))*Math.hypot(n.getScreenCTM().a,n.getScreenCTM().b)),legacy:[...group.querySelectorAll('.m2-rack-nameplate,.m2-rack-pallet-count,.rafex-single-line-letter-v58')].filter(n=>getComputedStyle(n).display!=='none').length};
   });
-  const before=await read();assert.deepEqual(before.text,['A',system==='drive'?'Drive-In':'Mekik']);assert.equal(before.legacy,0);assert(before.fonts.every(f=>f<=12.1));
+  const before=await read();assert.deepEqual(before.text,['A',system==='drive'?'Drive-In':'Mekik']);assert.equal(before.legacy,0);assert.deepEqual(before.colors,[before.expectedColor,before.expectedColor]);assert(before.fonts.every(f=>f<=12.1));
   await page.locator('body').press('Escape');await page.waitForTimeout(100);assert.deepEqual(await read(),before,'Esc must not change the label');
   await page.evaluate(()=>{m2LayoutState.selected=m2LayoutState.racks[0].id;m2PerfRefreshStaticSelectionUi(m2LayoutState.selected);});await page.waitForTimeout(100);assert.deepEqual(await read(),before,'Selecting must not change the label');
   await page.locator('#m2LayoutSvg [data-rack]').first().screenshot({path:'outputs/label-'+system+'.png'});await page.locator('#rafexBackToRackTypes').click();console.log('PASS '+system+': only A + system, 12/10 px, identical selected and Esc labels');
  }
  assert.deepEqual(errors,[]);
 }finally{await browser.close();}
+
 
 
 
