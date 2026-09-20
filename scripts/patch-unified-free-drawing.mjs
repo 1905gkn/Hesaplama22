@@ -119,7 +119,7 @@ const runtime = `<style ${marker}>
     }
     if(button)button.innerHTML='<i>01</i>Ortak Çizim';
     nav.querySelectorAll('button[data-page="serbest"]').forEach((duplicate)=>duplicate.remove());
-    const numbers={b2b:'02',ayak:'03',travers:'04',mr:'05',drive:'06',mekik2:'07',konsol:'08',admin:'09'};
+    const numbers={b2b:'02',ayak:'03',travers:'04',tava:'05',mr:'06',drive:'07',mekik2:'08',konsol:'09',admin:'10'};
     Object.entries(numbers).forEach(([page,no])=>{const i=nav.querySelector('button[data-page="'+page+'"] i');if(i)i.textContent=no;});
   }
   function setNavActive(){document.querySelectorAll('#nav button[data-page]').forEach((button)=>button.classList.toggle('active',button.dataset.page==='free'));}
@@ -332,4 +332,5 @@ if (finalHtml.includes("setTimeout(()=>document.querySelector('.m2-layout')?.scr
   throw new Error("Unified free drawing: sistem gecisindeki otomatik kaydirma kaldirilamadi.");
 }
 console.log("FINAL: Ortak B2B/Mekik/Drive-In/MR sistem gecisi ekran kaydirilmadan yapilir (v1).");
+
 

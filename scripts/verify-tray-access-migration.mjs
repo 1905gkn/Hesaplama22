@@ -1,0 +1,4 @@
+import {DatabaseSync} from 'node:sqlite';import fs from 'node:fs';import assert from 'node:assert/strict';
+const db=new DatabaseSync(':memory:');db.exec(`CREATE TABLE users(id INTEGER PRIMARY KEY,allowed_modules TEXT DEFAULT '["travers"]');INSERT INTO users VALUES(1,'["travers"]'),(2,'["mr"]'),(3,'["travers","tava"]');`);db.exec(fs.readFileSync('drizzle/0011_tray_module_access.sql','utf8'));
+const read=id=>JSON.parse(db.prepare('SELECT allowed_modules FROM users WHERE id=?').get(id).allowed_modules);
+assert.deepEqual(read(1),['travers','tava']);assert.deepEqual(read(2),['mr']);assert.deepEqual(read(3),['travers','tava']);db.exec(`UPDATE users SET allowed_modules='["travers"]' WHERE id=1;INSERT INTO users(id) VALUES(4);`);assert.deepEqual(read(1),['travers']);assert.deepEqual(read(4),['travers','tava']);console.log('PASS access migration preserves existing visibility, separate revocation and new user defaults');

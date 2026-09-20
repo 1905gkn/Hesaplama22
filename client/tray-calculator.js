@@ -20,14 +20,15 @@
     form.onsubmit=e=>{e.preventDefault();update();};form.oninput=update;
     page.querySelectorAll('[data-tray-kind]').forEach(button=>{button.onclick=()=>{kind=button.dataset.trayKind;update();};});update();
   }
-  // Use the existing calculation permission, including its server persistence.
-  const canView=canViewModule;
-  canViewModule=function(name){return name==='tava'?canView('travers'):canView(name);};
-  const module=RAFEX_MODULES.find(x=>x.key==='travers');if(module)module.label='Travers ve Tava Hesabı';
+  // Tray calculation has its own persisted module visibility choice.
+  if(!RAFEX_MODULES.some(x=>x.key==='tava'))RAFEX_MODULES.splice(RAFEX_MODULES.findIndex(x=>x.key==='travers')+1,0,{key:'tava',label:'Tava Hesabı'});
   const nav=document.getElementById('nav'),anchor=nav?.querySelector('[data-page="travers"]');
   if(nav&&!nav.querySelector('[data-page="tava"]')){
-    const button=document.createElement('button');button.type='button';button.dataset.page='tava';button.textContent='Tava Hesabı';
+    const button=document.createElement('button');button.type='button';button.dataset.page='tava';button.innerHTML='<i>05</i>Tava Hesabı';
     if(anchor)anchor.after(button);else nav.appendChild(button);applyModuleVisibility();
+  }
+  for(const [key,number] of Object.entries({tava:'05',mr:'06',drive:'07',mekik2:'08',konsol:'09',admin:'10'})){
+    const badge=nav?.querySelector('[data-page="'+key+'"] i');if(badge)badge.textContent=number;
   }
   const previous=showPage;
   showPage=function(name){

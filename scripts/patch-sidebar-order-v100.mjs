@@ -12,7 +12,7 @@ html = html.replace(/<style\s+data-rafex-module-visibility>[\s\S]*?<\/style>/g, 
 
 const runtime = `<script data-rafex-sidebar-order="v100">
 (function(){
-  const order=['home','free','b2b','ayak','travers','mr','drive','mekik2','konsol','admin'];
+  const order=['home','free','b2b','ayak','travers','tava','mr','drive','mekik2','konsol','admin'];
   function apply(){
     const nav=document.getElementById('nav');
     if(!nav)return;
@@ -51,7 +51,7 @@ html body #mobileTabs button[data-mobile-page][hidden]{display:none!important}
 </style>`;
 html = html.slice(0, closing) + visibility + runtime + "\n" + html.slice(closing);
 
-for (const required of ['data-rafex-sidebar-order="v100"', "const order=['home','free','b2b','ayak','travers','mr','drive','mekik2','konsol','admin']", "nav.insertBefore(free,b2b)"]) {
+for (const required of ['data-rafex-sidebar-order="v100"', "const order=['home','free','b2b','ayak','travers','tava','mr','drive','mekik2','konsol','admin']", "nav.insertBefore(free,b2b)"]) {
   if (!html.includes(required)) throw new Error(`v100 doğrulaması eksik: ${required}`);
 }
 
@@ -59,3 +59,4 @@ const encoded = Buffer.from(html, "utf8").toString("base64");
 worker = worker.slice(0, match.index) + match[0].replace(match[2], encoded) + worker.slice(match.index + match[0].length);
 fs.writeFileSync(workerPath, worker);
 console.log("v100: Sol menü Ana Sayfa, Ortak Çizim ve ardından 02-09 sırasına sabitlendi.");
+
