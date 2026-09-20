@@ -171,7 +171,8 @@ const runtime = `<style ${marker}>
         if(entry?.__rafexUnified)return addRackForSystem(entry.__rafexSystem,entry.__rafexSnapshot||entry.drawing,entry.name);
       }
       const explicit=String(drawing?.rafexSystem||'').toLowerCase();
-      const system=['konsol','konsol-kollu','cantilever'].includes(explicit)?'konsol':explicit==='drive'?'drive':drawing?.systemType==='mr'||drawing?.b2b?.mr===true||drawing?.plan?.mr===true?'mr':drawing?.b2b||drawing?.b2bLayout?'b2b':m2ActiveModule;
+      const savedSystem={mekik:'mekik2',mekik2:'mekik2',shuttle:'mekik2',fifo:'mekik2',filo:'mekik2',drive:'drive','drive-in':'drive',drivein:'drive',b2b:'b2b',mr:'mr',konsol:'konsol','konsol-kollu':'konsol',cantilever:'konsol'}[explicit];
+      const system=savedSystem||(drawing?.systemType==='mr'||drawing?.b2b?.mr===true||drawing?.plan?.mr===true?'mr':drawing?.b2b||drawing?.b2bLayout?'b2b':['fifo','filo'].includes(drawing?.systemType)?'mekik2':m2ActiveModule);
       return addRackForSystem(system,drawing,typeName);
     };
     try{m2AddRack=wrappedAddRack;}catch{}
@@ -234,3 +235,4 @@ for (const required of [marker,"rafexUnifiedCatalogSync","rafexUnifiedDeleteSave
   if (!finalHtml.includes(required)) throw new Error(`Unified free catalog dogrulama hatasi: ${required}`);
 }
 console.log("FINAL: Serbest Cizim ortak kayitli raf katalogu eklendi; B2B + Mekik ayni yerlesim ve PDF projesinde birlikte kullanilir (v1).");
+
