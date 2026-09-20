@@ -18,6 +18,7 @@ export function transform(html){
       finally{switching=false;if(button)button.disabled=false;}
       if(!saved)return;
     }`);
+ html=html.replaceAll('Kayıtlı projelerini Proje Geçmişi düğmesinden açabilirsin.','Önceki raf tiplerini proje no ve adına göre Eski projeden raf tipi kopyala bölümünden seçebilirsin.');
  html=html.replaceAll('Raf tipini kaydeder. Yerleşimdeki raflar ve çizim, “Projeyi Kaydet” ile kaydedilir.','Raf tipini kaydeder. Serbest Yerleşim Alanı’na geçerken tipler proje numarana otomatik kaydedilir.');
  const end=html.lastIndexOf('</body>');
  return html.slice(0,end)+'<script data-drawing-catalog="v158">'+fs.readFileSync(new URL('./drawing-catalog-v158.js',import.meta.url),'utf8')+'</script>'+html.slice(end);
