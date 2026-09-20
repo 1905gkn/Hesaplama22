@@ -15,11 +15,13 @@ assert(runtime.includes('return "Drive-In"')&&runtime.includes('return "Mekik"')
 assert(runtime.includes('systemFont=4.2*scale'),'system names must use the same scale ratio as the section letter');
 assert(runtime.includes('class","rafex-single-line-system-v58"'),'system names must be emitted into the SVG output');
 assert(runtime.includes('path.setAttribute("style","fill:none;stroke-width:1.5px;'));
-const helperContext=vm.createContext({window:{m2LayoutState:{racks:[
+const helperContext=vm.createContext({window:{},fixtureRacks:[
   {id:1,rafexSystem:'drive'},
   {id:2,rafexSystem:'mekik2'},
   {id:3,rafexSystem:'b2b',b2bLayout:{}},
-]}}});
+]});
+vm.runInContext('let m2LayoutState={racks:fixtureRacks};',helperContext);
+assert.equal(helperContext.window.m2LayoutState,undefined,'Real layout state is a lexical binding, not a window property');
 const scaleHelper=script.slice(script.indexOf('function letterScale'),script.indexOf('function letterContrast'));
 const systemHelper=script.slice(script.indexOf('function rackSystemName'),script.indexOf('function decorateGroup'));
 vm.runInContext(scaleHelper+'\n'+systemHelper,helperContext);
