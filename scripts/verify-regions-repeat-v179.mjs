@@ -61,6 +61,16 @@ try{
  await page.locator('#rafexRegionDialogV179 [data-color]').fill('#3366cc');
  await page.locator('#rafexRegionDialogV179 [data-paint]').click();
  assert.equal(await page.locator('[data-regions-v179] text').textContent(),'Depo <A>');
+ assert.deepEqual(await page.locator('[data-region-ground-v180] rect').evaluate(n=>['x','y','width','height'].map(k=>Number(n.getAttribute(k)))),[700,0,500,400]);
+ assert.deepEqual(await page.locator('[data-regions-v179] text').evaluate(n=>['x','y'].map(k=>Number(n.getAttribute(k)))),[950,200]);
+ assert(await page.evaluate(()=>{const floor=document.querySelector('[data-region-ground-v180]'),rack=document.querySelector('#m2LayoutContent [data-rack]');return !!(floor.compareDocumentPosition(rack)&Node.DOCUMENT_POSITION_FOLLOWING);}));
+ await page.evaluate(()=>m2SetLayoutTool('dimension'));
+ await page.locator('#m2LayoutSvg').screenshot({path:'outputs/regions-v180-ground-label.png'});
+ await page.locator('[data-regions-v179] text').scrollIntoViewIfNeeded();
+ const labelBox=await page.locator('[data-regions-v179] text').boundingBox();
+ await page.mouse.move(labelBox.x+labelBox.width/2,labelBox.y+labelBox.height/2);await page.mouse.down();await page.mouse.move(labelBox.x+labelBox.width/2+35,labelBox.y+labelBox.height/2+25,{steps:5});await page.mouse.up();
+ assert(await page.evaluate(()=>{const g=rafexRegionGroupsV179().find(g=>g.name==='Depo <A>');return Math.abs(m2DimensionOffsets['region:'+g.id]?.x)>1&&Math.abs(m2DimensionOffsets['region:'+g.id]?.y)>1;}));
+ await page.evaluate(()=>m2SetLayoutTool('dimension'));
  const summed=await page.evaluate(()=>{
   const map=new Map();for(const g of rafexRegionGroupsV179())for(const r of rafexRegionInventoryV179(g.racks,g.symbols)){const k=r.name+'|'+r.spec+'|'+r.unit;map.set(k,(map.get(k)||0)+r.qty);}return Object.fromEntries(map);
  });
@@ -72,6 +82,8 @@ try{
  await page.evaluate(()=>m2SaveProject());
  assert(savedDocument,'Expected a mock project save: '+await page.locator('#m2ProjectSaveMsg').textContent());
  assert(savedDocument.payload.layout.racks.some(r=>r.rafexRegionV179?.name==='Sevkiyat'));
+ assert.deepEqual(savedDocument.payload.layout.racks.find(r=>r.rafexRegionV179?.name==='Depo <A>').rafexRegionV179.box,{left:700,right:1200,top:0,bottom:400});
+ assert(Object.keys(savedDocument.payload.layout.dimensionOffsets).some(k=>k.startsWith('region:')));
  assert.equal(await page.locator('[data-regions-v179] text').textContent(),'Depo <A>');
  // Pointer selection follows SVG coordinates after zoom/scroll, without moving racks.
  await page.locator('#rafexRegionV179').click();
@@ -95,5 +107,5 @@ try{
  assert(await page.evaluate(()=>rafexRegionsV179.repeat()));
  assert(await page.evaluate(()=>m2LayoutState.racks.length===3&&Math.abs(m2LayoutState.racks[0].x-m2LayoutState.racks[2].x)<.01&&m2LayoutSymbols.length===3&&m2LayoutState.racks[0].b2b!==m2LayoutState.racks[1].b2b));
  assert.deepEqual(errors,[]);
- console.log('PASS: exactly 20 additional blocks; atomic capacity rejection; cancel unchanged; list-only and painted regions; additive inventory totals; serialized region persistence.');
+ console.log('PASS: repeat/cancel/inventory regression; exact selected ground rectangle below racks; centered label; dimension-tool drag; saved region bounds and label offsets.');
 }finally{await browser.close();}
