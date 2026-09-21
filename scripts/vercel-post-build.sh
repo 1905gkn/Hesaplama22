@@ -117,6 +117,7 @@ node scripts/patch-customize-performance-v166.mjs
 node scripts/patch-layout-pan-v168.mjs
 node scripts/patch-barrier-center-v169.mjs
 node scripts/patch-project-isolation-v170.mjs
+node scripts/patch-seismic-style-v172.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs

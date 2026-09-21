@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {transform} from './patch-seismic-style-v172.mjs';
+const before=fs.readFileSync(process.argv[2]||'outputs/live-after-v170.html','utf8'),after=transform(before);
+assert.equal(transform(after),after);
+const start=before.indexOf('      function m2SeismicBraceSvg(brace){'),end=before.indexOf('      function m2NormalizeSeismicBraces()',start);
+const original=before.slice(start,end),updated=after.slice(start,after.indexOf('      function m2NormalizeSeismicBraces()',start));
+new vm.Script(updated);
+assert.equal(updated.replace('data-seismic-style="v172" ','').replace(';stroke-width:0.9;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:.85',''),original);
+console.log('PASS: only stroke appearance changed; coordinates, quantities, colors and labels unchanged; valid JS; idempotent.');
