@@ -84,6 +84,12 @@ try{
  const separated=await page.evaluate(()=>m2CorporateBomPages([],m2ReportDictionary('tr'),true));
  assert.equal(separated.length,3);
  assert(separated[0].includes('Sevkiyat')&&separated[1].includes('Depo &lt;A&gt;')&&separated[2].includes('Ayrılmamış bölge'));
+ const unassignedBefore=await page.evaluate(()=>{const r=m2LayoutState.racks.find(r=>!r.rafexRegionV179);const before={id:r.id,name:r.typeName,key:r.rafexCatalogKey};r.typeName='Z';r.rafexCatalogKey='b2b:Z';m2RenderLayoutProductList();return before;});
+ const typedPages=await page.evaluate(()=>m2CorporateBomPages([],m2ReportDictionary('tr'),true));
+ assert.equal(typedPages.length,4);
+ assert(typedPages.some(p=>p.includes('Ayrılmamış bölge · Z')));
+ assert((await page.locator('#m2LayoutProductList').textContent()).includes('Ayrılmamış bölge · Z'));
+ await page.evaluate(before=>{const r=m2LayoutState.racks.find(r=>r.id===before.id);r.typeName=before.name;r.rafexCatalogKey=before.key;m2RenderLayoutProductList();},unassignedBefore);
  assert(await page.evaluate(()=>document.getElementById('m2ReportProductTotal').closest('label').nextElementSibling.contains(document.getElementById('rafexReportRegionsV181'))));
  await page.locator('.rafex-report-list-options-v181').screenshot({path:'outputs/regions-v181-options.png'});
  await page.locator('#rafexReportRegionsV181').uncheck();

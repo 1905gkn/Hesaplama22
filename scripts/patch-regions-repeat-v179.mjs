@@ -1,5 +1,27 @@
 import fs from 'node:fs';
 
+export function splitUnassignedTypesV182(parts,racks,symbols){
+ const byRack=new Map(racks.map(r=>[r.id,r])),bySymbol=new Map(symbols.map(s=>[s.id,s]));
+ return parts.flatMap(g=>{
+  if(g.id)return [g];
+  const types=new Map(),owners=new Map();
+  for(const id of g.racks){
+   const r=byRack.get(id);if(!r)continue;
+   const system=r.rafexSystem||(r.b2b?.mr?'mr':r.b2bLayout?'b2b':'mekik2');
+   const name=String(r.typeName||r.rafexGlobalTypeLetter||'Adsız tip');
+   const key=system+'|'+(r.rafexCatalogKey||name);
+   if(!types.has(key))types.set(key,{...g,name:'Ayrılmamış bölge · '+name,racks:[],symbols:[]});
+   types.get(key).racks.push(id);owners.set(id,key);
+  }
+  for(const id of g.symbols){
+   const key=owners.get(bySymbol.get(id)?.rackId)||'free-accessories';
+   if(!types.has(key))types.set(key,{...g,name:'Ayrılmamış bölge · Serbest aksesuarlar',racks:[],symbols:[]});
+   types.get(key).symbols.push(id);
+  }
+  return [...types.values()];
+ });
+}
+
 export function regionsRuntimeV179(){
  'use strict';
  const $=id=>document.getElementById(id),clone=v=>JSON.parse(JSON.stringify(v));
@@ -18,7 +40,7 @@ export function regionsRuntimeV179(){
   return [...map.values()];
  }
  function listSections(){
-  const parts=groups();if(!parts.some(g=>g.id))return null;
+  const parts=splitUnassignedTypesV182(groups(),racks(),symbols());if(!parts.some(g=>g.id))return null;
   return parts.map(g=>{
    const rows=window.rafexRegionInventoryV179(g.racks,g.symbols);
    return '<section class="rafex-product-system-section rafex-region-products"><b class="rafex-product-system-title">'+escape(g.name)+'<small>'+g.racks.length+' blok</small></b>'+rows.map(r=>'<span class="m2-layout-product"><span class="rafex-product-copy"><span class="rafex-product-name">'+escape(r.name)+'</span><small>'+escape(r.spec)+'</small></span><strong class="rafex-product-qty">'+r.qty+' '+escape(r.unit)+'</strong></span>').join('')+'</section>';
@@ -28,7 +50,7 @@ export function regionsRuntimeV179(){
  window.rafexRegionGroupsV179=groups;
  const originalBomPages=m2CorporateBomPages;
  m2CorporateBomPages=window.m2CorporateBomPages=function(types,labels){
-  const parts=groups();
+  const parts=splitUnassignedTypesV182(groups(),racks(),symbols());
   if(!$('rafexReportRegionsV181')?.checked||!parts.some(g=>g.id))return originalBomPages.apply(this,arguments);
   const pages=[];
   for(const g of parts){
@@ -167,7 +189,7 @@ export function transform(html){
   function symbols(){const all=allSymbolsV179();return regionScopeV179?all.filter(r=>regionScopeV179.symbols.has(r.id)):all;}
   window.rafexRegionInventoryV179=function(rackIds,symbolIds){const previous=regionScopeV179;try{regionScopeV179={racks:new Set(rackIds),symbols:new Set(symbolIds)};return rows();}finally{regionScopeV179=previous;}};
   function accessories(){`);
- replace('var signature=inventorySignature();',"var signature=inventorySignature()+'#'+JSON.stringify([...racks(),...symbols()].map(r=>r.rafexRegionV179||null));");
+ replace('var signature=inventorySignature();',"var signature=inventorySignature()+'#'+JSON.stringify([...racks(),...symbols()].map(r=>[r.rafexRegionV179||null,r.typeName,r.rafexCatalogKey]));");
  replace("    host.classList.remove('rafex-system-product-lists');","    sections=window.rafexRegionSectionsV179?.()||sections;\n    host.classList.remove('rafex-system-product-lists');");
  html=html.slice(0,start)+s+html.slice(end);
  const at=html.lastIndexOf('</body>');if(at<0)throw Error('Missing body');
@@ -180,7 +202,7 @@ export function transform(html){
  #rafexRegionV179{display:block;flex-basis:100%;grid-column:1/-1}#m2LayoutSvg.rafex-region-selecting,#m2LayoutSvg.rafex-region-selecting *{cursor:crosshair!important}
  #rafexRegionDialogV179{width:min(620px,90vw);max-height:85vh;overflow:auto;border:1px solid #abc4b5;border-radius:14px;padding:22px;color:#173c2d}#rafexRegionDialogV179::backdrop{background:#102e25aa}
  #rafexRegionDialogV179 .region-counts{max-height:35vh;overflow:auto;margin:12px 0}#rafexRegionDialogV179 .region-counts>div{display:flex;justify-content:space-between;gap:16px;padding:8px;border-bottom:1px solid #e2eae5}#rafexRegionDialogV179 small{display:block;color:#66796d}#rafexRegionDialogV179 label{display:inline-grid;gap:6px;margin:12px 12px 0 0}#rafexRegionDialogV179 .region-actions{display:flex;gap:8px;justify-content:flex-end}#rafexRegionDialogV179 [data-paint],#rafexRegionDialogV179 [data-list]{background:#174a35;color:white}.rafex-region-products .rafex-product-system-title{flex-direction:column!important;align-items:flex-start!important;gap:6px}.rafex-region-products .rafex-product-system-title small{display:block}
- </style><script>${regionsRuntimeV179.toString()}\nregionsRuntimeV179();</script>`+html.slice(at);
+ </style><script>${splitUnassignedTypesV182.toString()}\n${regionsRuntimeV179.toString()}\nregionsRuntimeV179();</script>`+html.slice(at);
 }
 if(process.argv[1]?.replaceAll('\\','/').endsWith('/patch-regions-repeat-v179.mjs')){
  const file='dist/server/index.js',s=fs.readFileSync(file,'utf8'),m=s.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/);if(!m)throw Error('Missing HTML');
