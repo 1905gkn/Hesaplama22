@@ -11,10 +11,22 @@ function node(){return {attrs:{},children:[],setAttribute(k,v){this.attrs[k]=v},
 for(const [system,subtitle] of [['b2b',''],['mr',''],['konsol',''],['mekik2','Mekik'],['mekik','Mekik'],['fifo','Mekik'],['filo','Mekik'],['drive','Drive-In'],['drive-in','Drive-In'],['drivein','Drive-In']]){
  const rack={id:1,rafexSystem:system,typeName:'A',x:0,y:0,w:100,h:100},group=node();group.attrs['data-rack']='1';
  group.querySelectorAll=()=>[];group.querySelector=()=>group.children[0];group.getScreenCTM=()=>({a:1,b:0});
- const ctx={m2LayoutState:{racks:[rack]},document:{createElementNS:node},NS:'svg',m2TypeColor:()=> '#123456',group};
+ let ratio=1;
+ const ctx={window:{rafexCommonTypeLetterScaleV65:()=>ratio},m2LayoutState:{racks:[rack]},document:{createElementNS:node},NS:'svg',m2TypeColor:()=> '#123456',group};
  vm.runInNewContext(html.slice(start,end)+'decorateGroup(group);',ctx);
  assert.deepEqual(group.children[0].children.map(n=>n.textContent),subtitle?['A',subtitle]:['A'],system);
  assert.equal(group.children[0].attrs['aria-label'],subtitle?'A '+subtitle:'A');
  assert(group.children[0].children.every(n=>n.attrs.fill==='#123456'));
+ const draw=()=>vm.runInNewContext(html.slice(start,end)+'decorateGroup(group);',ctx);
+ for(const value of [.1,.5,1,2]){
+  ratio=value;draw();const texts=group.children[0].children;
+  assert.equal(Number(texts[0].attrs['font-size']),12*value);
+  assert.equal(Number(texts[0].attrs.x),50);assert.equal(Number(texts[0].attrs.y),50);
+  assert.equal(texts[0].attrs['dominant-baseline'],'central');
+  if(subtitle)assert.equal(Number(texts[1].attrs['font-size']),10*value);
+ }
+ rack.b2b={tunnelHeight:3600};draw();assert(Number(group.children[0].children[0].attrs.y)<50);
+ rack.b2b.tunnelHeight=0;draw();assert.equal(Number(group.children[0].children[0].attrs.y),50);
+ const unchanged=group.children[0].children[0];draw();assert.equal(group.children[0].children[0],unchanged);
 }
-console.log('PASS: only Drive-In/Mekik subtitles; all section letters and colors preserved.');
+console.log('PASS: 10/50/100/200 percent scales; centered names; upward shift only with tunnel; restore center; unchanged no DOM writes; only Drive-In/Mekik subtitles; colors preserved.');
