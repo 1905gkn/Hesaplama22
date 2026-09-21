@@ -4,9 +4,12 @@ import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {transform} from './patch-drawing-catalog-v158.mjs';
 import {transform as cleanup} from './patch-common-ui-v161.mjs';
+import {transform as mekikSummary} from './patch-mekik-summary-v162.mjs';
 const {chromium}=createRequire(import.meta.url)(process.env.RAFEX_PLAYWRIGHT_PATH||'playwright');
 let html=transform(fs.readFileSync(process.argv[2]||'outputs/production-v157-final.html','utf8').replace('if(registry&&(current||[]).length)name=appendedName();','if(registry)name=appendedName();'));
 if(process.argv.includes('--ui-cleanup'))html=cleanup(html);
+if(process.argv.includes('--mekik-summary'))html=mekikSummary(html);
+assert.equal(mekikSummary(mekikSummary(html)),mekikSummary(html));
 const clean=html.includes('data-common-ui="v161"');
 assert.equal(transform(html),html);
 for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))if(m[1].trim())new vm.Script(m[1]);
@@ -74,6 +77,28 @@ try{
   }
   await page.setViewportSize({width:1664,height:1114});await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:'outputs/common-ui-v161.png'});
   console.log('PASS v161: requested controls hidden, errors retained, picker widths equal at desktop/mobile.');
+ }
+ if(html.includes('data-mekik-summary="v162"')){
+  await page.locator('#rafexProjectImportV155 summary').click();
+  await page.locator('.rafex-system-option').filter({has:page.locator('input[value="mekik2"]')}).click();
+  const details=page.locator('.mekik-summary-details');await details.waitFor();
+  assert.equal(await details.count(),1);
+  assert.equal(await details.getAttribute('open'),null);
+  assert.equal(await details.locator('#m2Width').isVisible(),false);
+  await details.locator('summary').click();
+  for(const selector of ['.m2-metrics','.m2-plan','.m2-note','#m2ManualPlanButton'])assert(await details.locator(selector).isVisible(),selector);
+  const before=await page.locator('#m2Width').textContent();assert.match(before,/mm/);
+  assert.equal(await details.locator('.m2-metric').first().evaluate(n=>getComputedStyle(n).padding),'6px');
+  await page.locator('#m2ManualPlanButton').click();assert(await page.locator('#m2ManualPlanModal').isVisible());
+  await page.locator('#m2ManualPlanModal .m2-spacing-close').click();
+  await details.locator('summary').click();await details.locator('summary').click();
+  assert.equal(await page.locator('#m2Width').textContent(),before);
+  await details.scrollIntoViewIfNeeded();await page.screenshot({path:'outputs/mekik-summary-v162.png'});
+  await page.locator('.rafex-system-option').filter({has:page.locator('input[value="b2b"]')}).click();
+  assert.equal(await details.count(),0);assert.equal(await page.locator('.b2b-summary-details').count(),1);
+  await page.locator('.rafex-system-option').filter({has:page.locator('input[value="mekik2"]')}).click();await details.waitFor();assert.equal(await details.count(),1);
+  assert.deepEqual(errors,[]);
+  console.log('PASS v162: single collapsed summary, all sections, compact metrics, manual editor, unchanged values and tab roundtrip.');
  }
  console.log('PASS: independent sequential numbering; every layout transition saves same record; failure keeps types and screen; selected-only full-detail copying; zero history writes; no extra save or open UI.');
 }finally{await browser.close();}
