@@ -5,17 +5,19 @@ import {createRequire} from 'node:module';
 import {transform} from './patch-drawing-catalog-v158.mjs';
 import {transform as cleanup} from './patch-common-ui-v161.mjs';
 import {transform as mekikSummary} from './patch-mekik-summary-v162.mjs';
+import {transform as isolation} from './patch-project-isolation-v170.mjs';
 const {chromium}=createRequire(import.meta.url)(process.env.RAFEX_PLAYWRIGHT_PATH||'playwright');
 let html=transform(fs.readFileSync(process.argv[2]||'outputs/production-v157-final.html','utf8').replace('if(registry&&(current||[]).length)name=appendedName();','if(registry)name=appendedName();'));
 if(process.argv.includes('--ui-cleanup'))html=cleanup(html);
 if(process.argv.includes('--mekik-summary'))html=mekikSummary(html);
+if(process.argv.includes('--isolation'))html=isolation(html);
 assert.equal(mekikSummary(mekikSummary(html)),mekikSummary(html));
 const clean=html.includes('data-common-ui="v161"');
 assert.equal(transform(html),html);
 for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))if(m[1].trim())new vm.Script(m[1]);
 fs.writeFileSync('outputs/drawing-catalog-v158.html',html);
 const browser=await chromium.launch({channel:'msedge',headless:true});
-let records=[],historyWrites=0,updates=0,fail=false;
+let records=[],historyWrites=0,updates=0,fail=false,registryReads=0;
 try{
  const page=await browser.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',r=>{
@@ -33,6 +35,7 @@ try{
    return r.fulfill({json:{revision:p.revision}});
   }
   if(path==='/api/drawing-projects')return r.fulfill({json:{projects:records}});
+  if(path==='/api/rack-types'){registryReads++;return r.fulfill({json:{types:[{id:901,name:'STALE A',system:'b2b',drawing:{plan:{},b2b:{}}}]}});}
   if(path==='/api/projects'){if(method!=='GET')historyWrites++;return r.fulfill({json:{projects:[{id:999,serial_no:999,project_name:'HISTORY ONLY',payload:{rackTypes:[]}}]}});}
   if(path==='/api/bootstrap')return r.fulfill({json:{needsSetup:false}});
   if(path==='/api/me')return r.fulfill({json:{user:{id:1,fullName:'Test',username:'test',role:'super',defaultLanguage:'tr',allowed_modules:['free','b2b','mr','drive','mekik2','konsol']}}});
@@ -41,6 +44,17 @@ try{
  });
  await page.goto('https://rafex-configurator.vercel.app');await page.locator('#nav button[data-page="free"]').click();
  await page.locator('#rafexNewProjectV133').waitFor();await page.addStyleTag({content:'html body #app #page #b2b3DLoading{display:none!important;pointer-events:none!important}'});
+ if(html.includes('/* project-isolation-v170 */')){
+  assert.equal(isolation(html),html);
+  await page.evaluate(async()=>{
+   window.rafexProjectTypesV133=null;
+   m2SavedRackTypes=[{id:901,name:'STALE A'},{id:902,name:'STALE B'},{id:903,name:'STALE C'}];
+   m2RenderSavedRackTypes();await m2RefreshSavedRackTypes();
+  });
+  assert.equal(await page.evaluate(()=>m2SavedRackTypes.length),0,'Unstarted common project must not show global or stale types');
+  assert.doesNotMatch(await page.locator('#m2SavedTypesPanel').textContent(),/STALE/);
+  assert.equal(registryReads,0,'Common project must never auto-fetch the global registry');
+ }
  await page.locator('#rafexAuthorityProjectName').fill('Depo A');await page.locator('#rafexNewProjectV133').click();
  await page.waitForFunction(()=>document.querySelector('#rafexProjectNumberV134 span')?.textContent==='1'&&!window.rafexProjectSavingV133);
  assert.equal(records.length,1);assert.equal(historyWrites,0);
