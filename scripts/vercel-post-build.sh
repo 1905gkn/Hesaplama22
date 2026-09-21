@@ -114,6 +114,7 @@ node scripts/patch-common-ui-v161.mjs
 node scripts/patch-mekik-summary-v162.mjs
 node scripts/patch-layout-accessories-v165.mjs
 node scripts/patch-customize-performance-v166.mjs
+node scripts/patch-layout-pan-v168.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
