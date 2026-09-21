@@ -173,7 +173,7 @@ class B2BViewer {
       palletCount: count,
       palletWidth: width,
       palletDepth: depth,
-      palletHeight: clamp(Number(next.palletHeight) || 800, 300, 1800),
+      palletHeight: clamp(Number(next.palletHeight) || 800, 300, 3000),
       levels: clamp(Math.round(Number(next.levels) || 4), 1, 15),
       rowType: next.rowType === "double" ? "double" : "single",
       rowGap: clamp(Number(next.rowGap) || 200, 0, 3000),
