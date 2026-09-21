@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 export function transform(html){
- if(html.includes('/* rack-label-v167 */'))return html;
+ if(html.includes('/* rack-label-v171 */'))return html;
  const start=html.indexOf('  function decorateGroup(group){'),end=html.indexOf('  function decorate(){var node=svg();',start);
  if(start<0||end<0)throw Error('Rack label decorator missing');
  html=html.slice(0,start)+`  function decorateGroup(group){
@@ -12,10 +12,14 @@ export function transform(html){
     const systemName=names[system]||(rack.b2b?.mr?'MR':rack.b2b?'B2B':rack.konsol?'Konsol Kollu':'Mekik');
     const label=['Drive-In','Mekik'].includes(systemName)?systemName:'';
     const matrix=group.getScreenCTM(),scale=Math.hypot(matrix?.a||1,matrix?.b||0)||1;
-    /* rack-label-v167 */
+    /* rack-label-v171 */
     const ratio=Math.max(.1,Math.min(2,Number(window.rafexCommonTypeLetterScaleV65?.())||1));
     const tunnel=Number(rack.b2b?.tunnelHeight)>0;
-    const x=rack.x+rack.w/2,y=rack.y+rack.h/2-(tunnel?8*ratio/scale:0);
+    // Use the rendered local frame: drag optimization translates the whole group.
+    // Model coordinates may already include that translation and would apply it twice.
+    const frame=group.querySelector(':scope > .m2-layout-rack');
+    const coord=(key,fallback)=>{const value=frame?.getAttribute(key);return value!=null&&Number.isFinite(Number(value))?Number(value):Number(fallback)};
+    const x=coord('x',rack.x)+coord('width',rack.w)/2,y=coord('y',rack.y)+coord('height',rack.h)/2-(tunnel?8*ratio/scale:0);
     const size=12*ratio/scale,small=10*ratio/scale,gap=12*ratio/scale;
     const color=m2TypeColor(name);
     const signature=[name,label,color,x,y,scale,ratio,tunnel].join('|');
