@@ -1,5 +1,9 @@
 import fs from 'node:fs';
 export function transform(html){
+ if(!html.includes('data-history-layer="v175"')){
+  const at=html.lastIndexOf('</body>');if(at<0)throw Error('Missing body');
+  html=html.slice(0,at)+'<style data-history-layer="v175">#historyModal{z-index:10000!important}</style>'+html.slice(at);
+ }
  if(html.includes('data-common-ui="v161"'))return html;
  const anchor="  node.textContent=text;\n }\n async function persist(saveTypes){";
  if(!html.includes(anchor))throw Error('v161 drawing catalog status anchor missing');
