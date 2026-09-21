@@ -21,6 +21,17 @@ export const panRuntime=String.raw`
     panCursorV168();
   }
   function stopPanEventV168(event){event.preventDefault();event.stopImmediatePropagation()}
+  // pan-wheel-v177: wheel zoom belongs exclusively to active pan navigation.
+  window.addEventListener('wheel',function(event){
+    var node=svg();if(!node||!node.contains(event.target))return;
+    event.stopImmediatePropagation();
+    if(!panEnabledV168&&!panDragV168)return;
+    event.preventDefault();
+    var delta=Number(event.deltaY)||0;if(!delta)return;
+    if(event.deltaMode===1)delta*=16;else if(event.deltaMode===2)delta*=node.getBoundingClientRect().height;
+    zoomAt(Math.exp(Math.max(-140,Math.min(140,delta))*.00165),point(event));
+    if(panDragV168){var matrix=node.getScreenCTM();if(matrix){panDragV168.view=Object.assign({},view);panDragV168.matrix=matrix.inverse();panDragV168.x=event.clientX;panDragV168.y=event.clientY}}
+  },{capture:true,passive:false});
   window.addEventListener('pointerdown',function(event){
     panClickV168=false;
     var node=svg();if(!node||!node.contains(event.target)||panDragV168)return;

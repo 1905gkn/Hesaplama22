@@ -1,0 +1,14 @@
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+import {panRuntime} from './patch-layout-pan-v168.mjs';
+const handlers={},zooms=[];
+const ctx={window:{addEventListener:(type,fn)=>handlers[type]=fn},svg:()=>({contains:t=>t==='canvas',getBoundingClientRect:()=>({height:650})}),point:()=>({x:100,y:200}),zoomAt:(factor,anchor)=>zooms.push({factor,anchor})};
+vm.createContext(ctx);vm.runInContext(panRuntime,ctx);
+let prevented=0,stopped=0;
+const wheel=(deltaY,target='canvas',deltaMode=0)=>handlers.wheel({target,deltaY,deltaMode,preventDefault:()=>prevented++,stopImmediatePropagation:()=>stopped++});
+wheel(-100);assert.equal(zooms.length,0);assert.equal(prevented,0);assert.equal(stopped,1);
+vm.runInContext('panEnabledV168=true',ctx);wheel(-100);wheel(100);
+assert(zooms[0].factor<1);assert(zooms[1].factor>1);assert.equal(zooms[0].anchor.x,100);assert.equal(prevented,2);
+wheel(-100,'outside');assert.equal(zooms.length,2);
+vm.runInContext('panEnabledV168=false',ctx);wheel(-100);assert.equal(zooms.length,2);
+console.log('PASS: wheel zoom only in PAN, cursor anchor, both directions, outside canvas ignored, page scroll retained when PAN off.');
