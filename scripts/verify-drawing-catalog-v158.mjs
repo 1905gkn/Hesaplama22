@@ -3,8 +3,11 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {transform} from './patch-drawing-catalog-v158.mjs';
+import {transform as cleanup} from './patch-common-ui-v161.mjs';
 const {chromium}=createRequire(import.meta.url)(process.env.RAFEX_PLAYWRIGHT_PATH||'playwright');
-const html=transform(fs.readFileSync(process.argv[2]||'outputs/production-v157-final.html','utf8').replace('if(registry&&(current||[]).length)name=appendedName();','if(registry)name=appendedName();'));
+let html=transform(fs.readFileSync(process.argv[2]||'outputs/production-v157-final.html','utf8').replace('if(registry&&(current||[]).length)name=appendedName();','if(registry)name=appendedName();'));
+if(process.argv.includes('--ui-cleanup'))html=cleanup(html);
+const clean=html.includes('data-common-ui="v161"');
 assert.equal(transform(html),html);
 for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))if(m[1].trim())new vm.Script(m[1]);
 fs.writeFileSync('outputs/drawing-catalog-v158.html',html);
@@ -34,19 +37,25 @@ try{
   return r.fulfill({contentType:'application/javascript',body:''});
  });
  await page.goto('https://rafex-configurator.vercel.app');await page.locator('#nav button[data-page="free"]').click();
- await page.locator('#rafexNewProjectV133').waitFor();await page.addStyleTag({content:'#b2b3DLoading{display:none!important;pointer-events:none!important}'});
+ await page.locator('#rafexNewProjectV133').waitFor();await page.addStyleTag({content:'html body #app #page #b2b3DLoading{display:none!important;pointer-events:none!important}'});
  await page.locator('#rafexAuthorityProjectName').fill('Depo A');await page.locator('#rafexNewProjectV133').click();
  await page.waitForFunction(()=>document.querySelector('#rafexProjectNumberV134 span')?.textContent==='1'&&!window.rafexProjectSavingV133);
  assert.equal(records.length,1);assert.equal(historyWrites,0);
+ if(clean){
+  for(const selector of ['#m2AutoFillControls','#rafexIndependentProjectInfoV133','#rafexProjectStartStatusV157','#m2SavedTypesPanel button[onclick="m2RefreshSavedRackTypes()"]','#m2SavedTypesPanel button[onclick="m2AddSelectedSavedRack()"]'])assert.equal(await page.locator(selector).isVisible(),false,selector);
+  assert(await page.locator('#m2SavedTypesPanel button[onclick="m2DeleteAllSavedRackTypes()"]').isVisible(),'Delete remains available');
+ }
  const drawing=await page.evaluate(()=>m2B2BRecordV108(b2bLayoutDrawing({...m2LastDrawing,b2b:b2bReadInputState()})));
  await page.evaluate(d=>{window.rafexProjectTypesV133=[{id:11,name:'E',__rafexSystem:'b2b',drawing:d},{id:12,name:'B',__rafexSystem:'b2b',drawing:{...d,totalWidth:9999}}];window.rafexUnifiedCatalogSync();m2RenderSavedRackTypes();},drawing);
  const enter=page.locator('#rafexOpenLayoutScreen'),back=page.locator('#rafexBackToRackTypes');
  await enter.click();await back.waitFor({state:'visible'});
+ if(clean)assert(await page.locator('#m2AutoFillControls').isVisible(),'Extension remains available on layout screen');
  assert.equal(records.length,1);assert.equal(records[0].rackTypes.length,2);assert.equal(updates,1);assert.equal(historyWrites,0);
  const snapshot=structuredClone(records[0].rackTypes);
  await back.click();await enter.click();await back.waitFor({state:'visible'});assert.equal(records.length,1);assert.equal(updates,2);
  await back.click();fail=true;await enter.click();await page.waitForFunction(()=>document.querySelector('#rafexProjectStartStatusV157').textContent.includes('Test kayıt hatası'));
  assert(await enter.isVisible());assert.equal(await page.locator('#rafexProjectNumberV134 span').textContent(),'1');assert.deepEqual(records[0].rackTypes,snapshot);
+ if(clean)assert(await page.locator('#rafexProjectStartStatusV157').isVisible(),'Save errors must remain visible');
  fail=false;await enter.click();await back.waitFor({state:'visible'});await back.click();
  await page.locator('#rafexAuthorityProjectName').fill('Depo B');await page.locator('#rafexNewProjectV133').click();
  await page.waitForFunction(()=>document.querySelector('#rafexProjectNumberV134 span')?.textContent==='2'&&!window.rafexProjectSavingV133);
@@ -57,6 +66,15 @@ try{
  const copied=await page.evaluate(()=>structuredClone(window.rafexProjectTypesV133[0].drawing));delete copied.rafexGlobalTypeLetter;delete drawing.rafexGlobalTypeLetter;assert.deepEqual(copied,drawing);
  assert.equal(await page.locator('#rafexTypeProjectSaveV156').count(),0);assert.equal(await page.locator('#rafexSavedProjectsV156').count(),0);
  assert.deepEqual(records[0].rackTypes,snapshot);assert.equal(historyWrites,0);assert.deepEqual(errors,[]);
+ if(clean){
+  for(const width of [1664,600]){
+   await page.setViewportSize({width,height:1114});
+   const summary=await page.locator('#rafexProjectImportV155 summary').boundingBox(),panel=await page.locator('#rafexProjectImportV155 .project-import-panel').boundingBox();
+   assert(Math.abs(summary.width-panel.width)<1,'Open panel matches summary width');assert(Math.abs(summary.x-panel.x)<1,'Open panel aligns with summary');
+  }
+  await page.setViewportSize({width:1664,height:1114});await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:'outputs/common-ui-v161.png'});
+  console.log('PASS v161: requested controls hidden, errors retained, picker widths equal at desktop/mobile.');
+ }
  console.log('PASS: independent sequential numbering; every layout transition saves same record; failure keeps types and screen; selected-only full-detail copying; zero history writes; no extra save or open UI.');
 }finally{await browser.close();}
 

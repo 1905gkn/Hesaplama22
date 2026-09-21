@@ -110,6 +110,7 @@ node scripts/patch-project-records-v156.mjs
 node scripts/patch-project-start-v157.mjs
 node scripts/patch-drawing-catalog-v158.mjs
 node scripts/patch-rack-label-v160.mjs
+node scripts/patch-common-ui-v161.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
