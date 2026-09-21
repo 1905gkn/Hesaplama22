@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {seismicPairAtPoint} from './patch-seismic-center-v174.mjs';
+const racks=[0,1,2,3,4].map(id=>({id,x:id*100,y:0,w:100,h:40,angle:0,layoutView:'b2b-top',b2bLayout:{}}));
+const ids=(rs,p)=>seismicPairAtPoint(rs,p).map(r=>r.id).sort();
+for(const x of [197,200,203])assert.deepEqual(ids(racks,{x,y:1}),[1,2]);
+assert.deepEqual(ids([...racks].reverse(),{x:200,y:39}),[1,2]);
+assert.deepEqual(ids(racks,{x:300,y:20}),[2,3]);
+assert.deepEqual(ids(racks,{x:250,y:20}),[]);
+assert.deepEqual(ids(racks.filter(r=>r.id!==2),{x:200,y:20}),[]);
+const rotated=racks.map(r=>({...r,x:0,y:r.id*100,w:100,h:40,angle:90}));
+assert.deepEqual(ids(rotated,{x:50,y:170}),[1,2]);
+console.log('PASS: clicked joint selects both adjacent sections, independent of list order; no distant fallback; rotation supported.');
