@@ -75,6 +75,19 @@ try{
   const map=new Map();for(const g of rafexRegionGroupsV179())for(const r of rafexRegionInventoryV179(g.racks,g.symbols)){const k=r.name+'|'+r.spec+'|'+r.unit;map.set(k,(map.get(k)||0)+r.qty);}return Object.fromEntries(map);
  });
  assert.deepEqual(summed,Object.fromEntries(totals.map(r=>[r.name+'|'+r.spec+'|'+r.unit,r.qty])));
+ // The offline fixture stubs external dictionary assets; use its embedded dictionary for report tests.
+ const dictionaryStart=html.indexOf('function m2ReportDictionary(language)');
+ await page.evaluate(source=>{m2ReportDictionary=window.m2ReportDictionary=new Function('return ('+source+')')();},html.slice(dictionaryStart,html.indexOf('function m2CorporateUsedTypes()',dictionaryStart)).trim());
+ const ordinary=await page.evaluate(()=>m2CorporateBomPages([],m2ReportDictionary('tr'),true).join(''));
+ assert(!ordinary.includes('data-region-bom-v181'));
+ await page.locator('#rafexReportRegionsV181').check();
+ const separated=await page.evaluate(()=>m2CorporateBomPages([],m2ReportDictionary('tr'),true));
+ assert.equal(separated.length,3);
+ assert(separated[0].includes('Sevkiyat')&&separated[1].includes('Depo &lt;A&gt;')&&separated[2].includes('Ayrılmamış bölge'));
+ assert(await page.evaluate(()=>document.getElementById('m2ReportProductTotal').closest('label').nextElementSibling.contains(document.getElementById('rafexReportRegionsV181'))));
+ await page.locator('.rafex-report-list-options-v181').screenshot({path:'outputs/regions-v181-options.png'});
+ await page.locator('#rafexReportRegionsV181').uncheck();
+ assert.equal(await page.evaluate(()=>m2CorporateBomPages([],m2ReportDictionary('tr'),true).join('')),ordinary);
  // Persistence through the same plain layout serialization used by saves/area switches.
  const regions=await page.evaluate(()=>JSON.stringify(m2LayoutState.racks.map(r=>r.rafexRegionV179)));
  await page.evaluate(()=>{m2LayoutState=JSON.parse(JSON.stringify(m2LayoutState));m2RenderLayout();});
