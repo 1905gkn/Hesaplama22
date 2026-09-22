@@ -39,8 +39,8 @@
   }
   function preview(){
     const box=dialog.querySelector('[data-preview]');box.replaceChildren();box.hidden=false;
-    const table=document.createElement('table'),head=table.createTHead().insertRow();['Açıklık × derinlik × yükseklik','Sıra','Kat','Palet/kat/sıra','Blok'].forEach(s=>{const c=document.createElement('th');c.textContent=s;head.append(c);});
-    for(const t of plan.importTypes){const row=table.insertRow();[t.sectionWidth+' × '+t.frameDepth+' × '+t.footHeight+' mm',t.rowType==='double'?'Çift · ara '+t.rowGap+' mm':'Tek',t.levels,t.palletCount,plan.blocks.filter(p=>p.key===t.key).length].forEach(s=>row.insertCell().textContent=s);}
+    const table=document.createElement('table'),head=table.createTHead().insertRow();['Açıklık × derinlik × yükseklik','Sıra','Kat','Palet yüksekliği','Kat açıklığı','Palet/kat/sıra','Blok'].forEach(s=>{const c=document.createElement('th');c.textContent=s;head.append(c);});
+    for(const t of plan.importTypes){const row=table.insertRow();[t.sectionWidth+' × '+t.frameDepth+' × '+t.footHeight+' mm',t.rowType==='double'?'Çift · ara '+t.rowGap+' mm':'Tek',t.levels,t.palletHeight+' mm','İlk travers üstü '+t.firstBeamTop+' mm; net '+t.clearOpenings.join(' / ')+' mm',t.palletCount,plan.blocks.filter(p=>p.key===t.key).length].forEach(s=>row.insertCell().textContent=s);}
     const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg'),maxX=Math.max(...plan.placements.map(p=>p.x+p.width)),maxY=Math.max(...plan.placements.map(p=>p.y+p.depth)),excluded=new Set(plan.conflicts.flat());svg.setAttribute('viewBox',[-1000,-1000,maxX+2000,maxY+2000].join(' '));svg.setAttribute('role','img');svg.setAttribute('aria-label','PDF’den algılanan raf yerleşimi; çakışan gözler kırmızı');
     for(const p of plan.placements){const rect=document.createElementNS(ns,'rect');for(const [k,v] of Object.entries({x:p.x-p.width/2,y:p.y-p.depth/2,width:p.width,height:p.depth,fill:excluded.has(p.id)?'#ca3939':['#3581b8','#77a8ce','#277b60','#79b797','#b47730','#d2ab77'][plan.types.findIndex(t=>t.key===p.key)],stroke:'white','stroke-width':30}))rect.setAttribute(k,v);svg.append(rect);}
     box.append(table,svg);

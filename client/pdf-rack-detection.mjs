@@ -51,7 +51,9 @@ export function detectRacks(vector){
   const heightLabels=nums.filter(t=>t.vertical&&t.y>sectionY&&numeric(t)>palletHeight*2);
   const heights=heightLabels.map(t=>{
     const dims=nums.filter(n=>n.vertical&&n.x>t.x&&n.x<t.x+t.height*3&&n.y>sectionY&&numeric(n)<numeric(t)/2);
-    const steps=dims.map(numeric);return {height:numeric(t),levels:steps.length+1,first:Math.max(...steps),step:Math.min(...steps)};
+    // Read bottom to top. The first dimension is ground -> first beam TOP;
+    // subsequent dimensions are clear openings (lower beam TOP -> upper BOTTOM).
+    const steps=dims.sort((a,b)=>b.y-a.y).map(numeric);return {height:numeric(t),levels:steps.length+1,first:steps[0],clearances:steps.slice(1),step:Math.min(...steps)};
   });
   if(!heights.length||heights.some(h=>h.levels<2||!Number.isFinite(h.step)))fail('Kesit yüksekliği ve kat aralıkları okunamadı.');
   const railLines=lines.filter(l=>vertical(l)&&saturated(l.color)&&Math.max(l.y0,l.y1)<sectionY-depthPt*2&&widths.some(w=>Math.abs(length(l)*scale/w-1)<.012));
@@ -82,7 +84,7 @@ export function detectRacks(vector){
     if(!type){
       const palletCount=[1,2,3,4].find(n=>n*palletWidth+(n+1)*75===width);
       if(!palletCount)fail(width+' mm özel açıklık otomatik tip hesabıyla eşleşmedi.');
-      type={key:'pdf-'+types.length,name:'PDF '+width+' / H '+r.height.height,system:'b2b',sectionWidth:width,frameDepth,footHeight:r.height.height,levels:r.height.levels,palletCount,palletWidth,palletDepth,palletHeight,palletWeight,rowType:'single',rowGap:0,firstPalletPosition:'ground',firstFloorGap:0,palletTraverseGap:0,firstBeamTop:r.height.first,levelStep:r.height.step};types.push(type);
+      type={key:'pdf-'+types.length,name:'PDF '+width+' / H '+r.height.height,system:'b2b',sectionWidth:width,frameDepth,footHeight:r.height.height,levels:r.height.levels,palletCount,palletWidth,palletDepth,palletHeight,palletWeight,rowType:'single',rowGap:0,firstPalletPosition:'ground',firstFloorGap:0,palletTraverseGap:0,firstBeamTop:r.height.first,clearOpenings:r.height.clearances.slice(),levelStep:r.height.step};types.push(type);
     }
     placements.push({id:'R'+(row+1)+'-'+(bay+1),row:row+1,key:type.key,x:(r.x+r.right)/2*scale,y:(s.top+s.bottom)/2*scale,angle:90,width:frameDepth,depth:width});
   }

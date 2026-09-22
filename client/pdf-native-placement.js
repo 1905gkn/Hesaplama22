@@ -7,9 +7,13 @@
       const choice=window.RafexRackTravers?.choices('normal',s.sectionWidth,s.palletWeight*s.palletCount)?.[0];
       if(!choice)throw Error(s.name+': yük tablosunda uygun travers yok.');
       const beam=window.RafexRackTravers.height(choice.value);
-      if(s.levelStep<s.palletHeight+beam)throw Error(s.name+': seçilen travers ile PDF kat aralığı yetersiz.');
-      const state={palletType:s.palletWidth===800&&s.palletDepth===1200?'euro':'special',palletWidth:s.palletWidth,palletDepth:s.palletDepth,palletHeight:s.palletHeight,palletWeight:s.palletWeight,palletCount:s.palletCount,levels:s.levels,rowType:'single',rowGap:0,firstPalletPosition:'ground',firstFloorGap:s.firstBeamTop-beam,palletTraverseGap:s.levelStep-s.palletHeight-beam,palletOverhang:(s.palletDepth-s.frameDepth)/2,footHeightMode:'manual',footHeight:s.footHeight,footManual:false,traverseManual:false,traverseType:choice.value,collectionLevels:{enabled:false},accessories:[],manualLevelSpecs:Array.from({length:s.levels},(_,index)=>({distance:index?s.levelStep:s.firstBeamTop-beam,palletHeight:s.palletHeight,weight:s.palletWeight*s.palletCount,traverseType:choice.value,selectionMode:'auto'}))};
+      const openings=s.clearOpenings;
+      if(!Array.isArray(openings)||openings.length!==s.levels-2)throw Error(s.name+': PDF net kat açıklıkları eksik.');
+      if(s.firstBeamTop-beam<s.palletHeight||openings.some(g=>!Number.isFinite(g)||g<s.palletHeight))throw Error(s.name+': PDF net kat açıklığı palet yüksekliğinden kısa.');
+      const state={palletType:s.palletWidth===800&&s.palletDepth===1200?'euro':'special',palletWidth:s.palletWidth,palletDepth:s.palletDepth,palletHeight:s.palletHeight,palletWeight:s.palletWeight,palletCount:s.palletCount,levels:s.levels,rowType:'single',rowGap:0,firstPalletPosition:'ground',firstFloorGap:s.firstBeamTop-beam,palletTraverseGap:0,palletOverhang:(s.palletDepth-s.frameDepth)/2,footHeightMode:'manual',footHeight:s.footHeight,footManual:false,traverseManual:false,traverseType:choice.value,collectionLevels:{enabled:false},accessories:[]};
       state.rowType=s.rowType||'single';state.rowGap=s.rowGap||0;
+      state.palletTraverseGap=(openings[0]??s.firstBeamTop-beam)-s.palletHeight;
+      state.manualLevelSpecs=Array.from({length:s.levels},(_,index)=>({distance:index===0?s.firstBeamTop-beam:index<s.levels-1?openings[index-1]+beam:0,palletHeight:s.palletHeight,weight:s.palletWeight*s.palletCount,traverseType:index<s.levels-1?choice.value:'',selectionMode:'auto'}));
       state.traverseHeightOverride=beam;
       b2bApplySavedInputState(state);
       // m2LastDrawing retains the generic Mekik beam height (80 mm). B2B's
@@ -18,7 +22,16 @@
       if(!d?.plan||!d.footProfile||!Number.isFinite(d.footCapacity)||d.footCapacity<d.footLoad)throw Error(s.name+': yük tablosunda uygun ayak bulunamadı.');
       if(Math.abs(physical.b2bLayout.sectionWidth-s.sectionWidth)>1||Math.abs(physical.b2bLayout.frameDepth-s.frameDepth)>1||Number(d.b2b?.levels)!==s.levels||Number(d.b2b?.footHeight)!==s.footHeight)throw Error(s.name+': hesaplanan ölçüler PDF ile uyuşmuyor.');
       if(Number(d.traverseHeight)!==beam)throw Error(s.name+': travers yüksekliği seçilen profille uyuşmuyor.');
-      Object.assign(d,physical);d.rafexSystem='b2b';d.pdfSourceSpec=copy(s);
+      Object.assign(d,physical);
+      // The generic drawing also carries Mekik's derived height. Preserve the
+      // measured upright in every native drawing/report field and its snapshot.
+      d.palletHeight=s.palletHeight;d.sideUprightHeight=s.footHeight;d.totalRackHeight=s.footHeight;d.deepestFoot=s.footHeight;d.straightProfileLength=s.footHeight;d.plan.feet=[s.footHeight];
+      if(window.rafexB2BDetailOptionsV117&&window.rafexPhysicalLevelsV121){
+        const detail=window.rafexB2BDetailOptionsV117(d),floors=window.rafexPhysicalLevelsV121(detail);
+        if(floors.length!==s.levels-1||detail.palletHeights?.some(h=>h!==s.palletHeight)||Math.abs(floors[0].bottom+floors[0].beam-s.firstBeamTop)>1||floors.some((f,i)=>i&&Math.abs(f.bottom-floors[i-1].bottom-floors[i-1].beam-openings[i-1])>1)||floors.at(-1).bottom+floors.at(-1).beam>s.footHeight)throw Error(s.name+': çizim kat kotları PDF ile uyuşmuyor.');
+        d.b2bViewerOptions=copy(detail);
+      }
+      d.rafexSystem='b2b';d.pdfSourceSpec=copy(s);
       entries.push({id:-(Date.now()+i),name:s.name,source:'project',__rafexSystem:'b2b',__rafexSystemLabel:'B2B',__rafexUnified:true,drawing:d,__rafexSnapshot:copy(d)});
     }}finally{b2bApplySavedInputState(previous);m2LastDrawing=last;}
     // Compatible heights/bracing use one adequately rated upright profile so
