@@ -2,26 +2,28 @@
   const copy=x=>JSON.parse(JSON.stringify(x));
   window.rafexPrepareImportedTypesV188=function(specs){
     if(m2ActiveModule!=='b2b'||!document.getElementById('b2bModuleCount'))throw Error('PDF aktarımı için Ortak Çizim içinde B2B seçilmelidir.');
-    const previous=b2bReadInputState(),last=m2LastDrawing,entries=[];
+    const previous=b2bReadInputState(),last=m2LastDrawing,entries=[],originalGeometry=typeof b2bPalletGeometry==='function'?b2bPalletGeometry:null;
     try{for(const [i,s] of specs.entries()){
       const choices=window.RafexRackTravers?.choices('normal',s.sectionWidth,s.palletWeight*s.palletCount)||[];
       const choice=s.beamHeight?choices.find(c=>window.RafexRackTravers.height(c.value)===s.beamHeight):choices[0];
       if(s.beamHeight&&!choice)throw Error(s.name+': '+s.beamHeight+' mm travers için bu yükte uygun profil bulunamadı.');
       if(!choice)throw Error(s.name+': yük tablosunda uygun travers yok.');
       const beam=window.RafexRackTravers.height(choice.value);
-      const openings=s.clearOpenings;
+      const openings=s.levelPitches?s.levelPitches.map(p=>p-beam):s.clearOpenings,heights=s.palletHeights||Array(s.levels).fill(s.palletHeight);
+      if(heights.length!==s.levels||heights.some(h=>!Number.isFinite(h)||h<=0))throw Error(s.name+': kat palet yükseklikleri geçersiz.');
       if(!Array.isArray(openings)||openings.length!==s.levels-2)throw Error(s.name+': PDF net kat açıklıkları eksik.');
-      if(s.firstBeamTop-beam<s.palletHeight||openings.some(g=>!Number.isFinite(g)||g<s.palletHeight))throw Error(s.name+': PDF net kat açıklığı palet yüksekliğinden kısa.');
+      if(s.firstBeamTop-beam<heights[0]||openings.some((g,i)=>!Number.isFinite(g)||g<heights[i+1]))throw Error(s.name+': PDF net kat açıklığı palet yüksekliğinden kısa.');
       const state={palletType:s.palletWidth===800&&s.palletDepth===1200?'euro':'special',palletWidth:s.palletWidth,palletDepth:s.palletDepth,palletHeight:s.palletHeight,palletWeight:s.palletWeight,palletCount:s.palletCount,levels:s.levels,rowType:'single',rowGap:0,firstPalletPosition:'ground',firstFloorGap:s.firstBeamTop-beam,palletTraverseGap:0,palletOverhang:(s.palletDepth-s.frameDepth)/2,footHeightMode:'manual',footHeight:s.footHeight,footManual:false,traverseManual:false,traverseType:choice.value,collectionLevels:{enabled:false},accessories:[]};
       state.traverseManual=!!s.beamHeight;
       state.rowType=s.rowType||'single';state.rowGap=s.rowGap||0;
       state.palletTraverseGap=(openings[0]??s.firstBeamTop-beam)-s.palletHeight;
-      state.manualLevelSpecs=Array.from({length:s.levels},(_,index)=>({distance:index===0?s.firstBeamTop-beam:index<s.levels-1?openings[index-1]+beam:0,palletHeight:s.palletHeight,weight:s.palletWeight*s.palletCount,traverseType:index<s.levels-1?choice.value:'',selectionMode:s.beamHeight?'manual':'auto'}));
+      state.manualLevelSpecs=Array.from({length:s.levels},(_,index)=>({distance:index===0?s.firstBeamTop-beam:index<s.levels-1?openings[index-1]+beam:0,palletHeight:heights[index],weight:s.palletWeight*s.palletCount,traverseType:index<s.levels-1?choice.value:'',selectionMode:s.beamHeight?'manual':'auto'}));
       state.traverseHeightOverride=beam;
+      if(originalGeometry)b2bPalletGeometry=function(){return {...originalGeometry(),sectionWidth:s.sectionWidth};};
       b2bApplySavedInputState(state);
       // m2LastDrawing retains the generic Mekik beam height (80 mm). B2B's
       // selected-profile calculation is authoritative for imported B2B types.
-      const d=copy({...m2LastDrawing,traverseHeight:b2bTraverseHeight()}),physical=b2bLayoutDrawing(d);
+      const d=copy({...m2LastDrawing,traverseHeight:b2bTraverseHeight()});d.b2b.importedSectionWidth=s.sectionWidth;const physical=b2bLayoutDrawing(d);
       if(!d?.plan||!d.footProfile||!Number.isFinite(d.footCapacity)||d.footCapacity<d.footLoad)throw Error(s.name+': yük tablosunda uygun ayak bulunamadı.');
       if(Math.abs(physical.b2bLayout.sectionWidth-s.sectionWidth)>1||Math.abs(physical.b2bLayout.frameDepth-s.frameDepth)>1||Number(d.b2b?.levels)!==s.levels||Number(d.b2b?.footHeight)!==s.footHeight)throw Error(s.name+': hesaplanan ölçüler PDF ile uyuşmuyor.');
       if(Number(d.traverseHeight)!==beam)throw Error(s.name+': travers yüksekliği seçilen profille uyuşmuyor.');
@@ -31,12 +33,12 @@
       d.palletHeight=s.palletHeight;d.sideUprightHeight=s.footHeight;d.totalRackHeight=s.footHeight;d.deepestFoot=s.footHeight;d.straightProfileLength=s.footHeight;d.plan.feet=[s.footHeight];
       if(window.rafexB2BDetailOptionsV117&&window.rafexPhysicalLevelsV121){
         const detail=window.rafexB2BDetailOptionsV117(d),floors=window.rafexPhysicalLevelsV121(detail);
-        if(floors.length!==s.levels-1||detail.palletHeights?.some(h=>h!==s.palletHeight)||Math.abs(floors[0].bottom+floors[0].beam-s.firstBeamTop)>1||floors.some((f,i)=>i&&Math.abs(f.bottom-floors[i-1].bottom-floors[i-1].beam-openings[i-1])>1)||floors.at(-1).bottom+floors.at(-1).beam>s.footHeight)throw Error(s.name+': çizim kat kotları PDF ile uyuşmuyor.');
+        if(floors.length!==s.levels-1||detail.palletHeights?.some((h,i)=>h!==heights[i])||Math.abs(floors[0].bottom+floors[0].beam-s.firstBeamTop)>1||floors.some((f,i)=>i&&Math.abs(f.bottom-floors[i-1].bottom-floors[i-1].beam-openings[i-1])>1)||floors.at(-1).bottom+floors.at(-1).beam>s.footHeight)throw Error(s.name+': çizim kat kotları PDF ile uyuşmuyor.');
         d.b2bViewerOptions=copy(detail);
       }
-      d.rafexSystem='b2b';d.pdfSourceSpec=copy(s);
+      d.rafexSystem='b2b';d.pdfSourceSpec=copy({...s,clearOpenings:openings});
       entries.push({id:-(Date.now()+i),name:s.name,source:'project',__rafexSystem:'b2b',__rafexSystemLabel:'B2B',__rafexUnified:true,drawing:d,__rafexSnapshot:copy(d)});
-    }}finally{b2bApplySavedInputState(previous);m2LastDrawing=last;}
+    }}finally{if(originalGeometry)b2bPalletGeometry=originalGeometry;b2bApplySavedInputState(previous);m2LastDrawing=last;}
     // Compatible heights/bracing use one adequately rated upright profile so
     // adjoining narrow and wide bays can share their end frame.
     for(const entry of entries){

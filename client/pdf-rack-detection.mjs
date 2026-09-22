@@ -1,3 +1,4 @@
+import {detectDimensionedPlan} from './pdf-dimensioned-reader.mjs';
 const median=a=>a.slice().sort((x,y)=>x-y)[Math.floor(a.length/2)];
 const numeric=t=>/^\d+(?:[.,]\d+)?$/.test(t.text)?Number(t.text.replace(',','.')):NaN;
 const saturated=c=>/^#[\da-f]{6}$/i.test(c)&&Math.max(...[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)))-Math.min(...[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)))>100;
@@ -13,7 +14,7 @@ export function groupRackPlan(plan){
     if(excluded.has(p.id)||used.has(p.id))continue;
     const spec=types.get(p.key);
     const matches=plan.placements.filter(q=>q.id!==p.id&&!used.has(q.id)&&!excluded.has(q.id)&&q.key===p.key&&!!q.braced===!!p.braced&&(q.tunnelHeight||0)===(p.tunnelHeight||0)&&Math.abs(q.y-p.y)<=10&&Math.abs(q.x-p.x)>=spec.palletDepth&&Math.abs(q.x-p.x)<=spec.frameDepth+500).sort((a,b)=>Math.abs(a.x-p.x)-Math.abs(b.x-p.x));
-    const partner=matches[0],gap=partner?(plan.raster?plan.doubleRowGap:Math.round((Math.abs(partner.x-p.x)-spec.frameDepth)/5)*5):0;
+    const partner=matches[0],gap=partner?(Number.isFinite(plan.doubleRowGap)?plan.doubleRowGap:Math.round((Math.abs(partner.x-p.x)-spec.frameDepth)/5)*5):0;
     const key=partner?spec.key+'-double-'+gap:spec.key;
     importTypes.set(key,{...spec,key,rowType:partner?'double':'single',rowGap:gap,name:spec.name+(partner?' · Çift sıra '+gap:' · Tek sıra')});
     const sources=partner?[p,partner]:[p];sources.forEach(q=>used.add(q.id));
@@ -22,6 +23,7 @@ export function groupRackPlan(plan){
   return {...plan,importTypes:[...importTypes.values()],blocks};
 }
 export function detectRacks(vector){
+  const dimensioned=detectDimensionedPlan(vector);if(dimensioned)return dimensioned;
   const {text,lines}=vector,nums=text.filter(t=>Number.isFinite(numeric(t)));
   function tableValue(label){
     const heading=text.find(t=>label.test(t.text));if(!heading)return null;
@@ -29,7 +31,7 @@ export function detectRacks(vector){
     return values.length?numeric(values[0]):null;
   }
   const palletWidth=tableValue(/^(WIDTH|GENİŞLİK)\s*\(mm\)/i),palletDepth=tableValue(/^(LENGTH|DEPTH|DERİNLİK|UZUNLUK)\s*\(mm\)/i),palletHeight=tableValue(/^(HEIGHT|YÜKSEKLİK)\s*\(mm\)/i),palletWeight=tableValue(/^(WEIGHT|AĞIRLIK)\s*\(kg\)/i);
-  if(![palletWidth,palletDepth,palletHeight,palletWeight].every(n=>n>0))fail('Palet ölçüleri ve yük tablosu okunamadı. Ölçülü, metin ve vektör içeren B2B plan PDF’si gerekli; taranmış resimler henüz desteklenmiyor.');
+  if(![palletWidth,palletDepth,palletHeight,palletWeight].every(n=>n>0))fail('Palet ölçüleri ve yük tablosu okunamadı. Tablo düzeni otomatik eşleşmedi; yük ölçülerinin doğrulanması gerekli.');
   const depthGroups=new Map();
   for(const t of nums.filter(t=>!t.vertical&&numeric(t)>=500&&numeric(t)<=palletDepth)){
     const key=t.text+':'+Math.round(t.y/5);if(!depthGroups.has(key))depthGroups.set(key,[]);depthGroups.get(key).push(t);

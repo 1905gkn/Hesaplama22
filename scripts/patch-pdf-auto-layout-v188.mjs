@@ -6,6 +6,7 @@ export function transform(html){
   if(!html.includes(save)&&!html.includes('pdfImport: m2LayoutState.pdfImport || null'))throw Error('PDF import persistence anchor missing');
   html=html.replace(save,'const layout = { pdfImport: m2LayoutState.pdfImport || null, points: m2LayoutState.points,');
   html=html.replace('const restoredLayout = JSON.parse(JSON.stringify(payload.layout));','const restoredLayout = JSON.parse(JSON.stringify(payload.layout)); restoredLayout.pdfImport = payload.layout.pdfImport || null;');
+  html=html.replace('const sectionWidth = settings.palletType === \"euro\" && count === 4 ? 3600 : calculatedWidth;', 'const sectionWidth = Number(settings.importedSectionWidth) >= calculatedWidth ? Number(settings.importedSectionWidth) : settings.palletType === \"euro\" && count === 4 ? 3600 : calculatedWidth;');
   const runtime=['pdf-native-placement.js','pdf-auto-layout.js'].map(f=>fs.readFileSync(new URL('../client/'+f,import.meta.url),'utf8')).join('\n');
   const end=html.lastIndexOf('</body>');if(end<0)throw Error('Body missing');
   return html.slice(0,end)+'<script data-pdf-auto-layout="v188">'+runtime+'</script>'+html.slice(end);
@@ -16,7 +17,7 @@ if(process.argv[1]?.replaceAll('\\','/').endsWith('/patch-pdf-auto-layout-v188.m
   fs.mkdirSync('dist/pdfjs',{recursive:true});
   for(const file of ['pdf.mjs','pdf.worker.mjs'])fs.copyFileSync('node_modules/pdfjs-dist/build/'+file,'dist/pdfjs/'+file);
   fs.copyFileSync('node_modules/pdfjs-dist/LICENSE','dist/pdfjs/LICENSE');
-  for(const file of ['pdf-vector-reader.mjs','pdf-rack-detection.mjs','pdf-raster-reader.mjs','pdf-batch-plan.mjs'])fs.copyFileSync('client/'+file,'dist/pdfjs/'+file);
+  for(const file of ['pdf-vector-reader.mjs','pdf-rack-detection.mjs','pdf-raster-reader.mjs','pdf-batch-plan.mjs','pdf-dimensioned-reader.mjs'])fs.copyFileSync('client/'+file,'dist/pdfjs/'+file);
   fs.mkdirSync('dist/ocr/core',{recursive:true});fs.mkdirSync('dist/ocr/lang',{recursive:true});
   for(const file of ['tesseract.esm.min.js','worker.min.js','worker.min.js.LICENSE.txt'])fs.copyFileSync('node_modules/tesseract.js/dist/'+file,'dist/ocr/'+file);
   for(const file of fs.readdirSync('node_modules/tesseract.js-core').filter(f=>/lstm.*\.(?:js|wasm)$/.test(f)))fs.copyFileSync('node_modules/tesseract.js-core/'+file,'dist/ocr/core/'+file);
