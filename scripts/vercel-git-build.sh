@@ -5,6 +5,8 @@ project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$project_root"
 
 # Guard the small performance fixes before producing a deployment artifact.
+node scripts/verify-catalog-integrity-v185.mjs
+node scripts/verify-stable-rack-catalog.mjs
 node scripts/verify-customize-frame-coalescing.mjs
 node scripts/verify-section-button-idle.mjs
 node scripts/verify-section-preview-lifecycle.mjs

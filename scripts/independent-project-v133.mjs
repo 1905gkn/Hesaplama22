@@ -20,6 +20,7 @@ export function independentProject(record, uuid, timestamp) {
     return ({ mekik: 'mekik2', shuttle: 'mekik2', 'drive-in': 'drive', drivein: 'drive', 'konsol-kollu': 'konsol' })[system] || system;
   };
   const typeKeys = types.map(type => systemOf(type) + ':' + type.id);
+  if(new Set(typeKeys).size!==typeKeys.length)throw new Error('Raf tipi kimlikleri çakışıyor; kaynak değiştirilmedi ve kopyalama durduruldu.');
   const newTypeIds = types.map(() => nextId());
   const typeIds = new Map(typeKeys.map((key, index) => [key, newTypeIds[index]]));
   const typeIdFor = (rack, id) => {

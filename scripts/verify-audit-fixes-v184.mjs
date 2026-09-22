@@ -5,7 +5,16 @@ import {createRequire} from 'node:module';
 import {transform} from './patch-audit-fixes-v184.mjs';
 import {transform as customize} from './patch-customize-ui-v178.mjs';
 import {transform as regions} from './patch-regions-repeat-v179.mjs';
-const html=transform(regions(customize(fs.readFileSync(process.argv[2]||'outputs/live-after-v170.html','utf8'))));
+import {mergeRackCatalog,catalogRecordFingerprint} from './stable-rack-catalog.mjs';
+import {independentProject} from './independent-project-v133.mjs';
+let fixture=fs.readFileSync(process.argv[2]||'outputs/live-after-v170.html','utf8');
+fixture=fixture.replace(/<script data-drawing-catalog="v158">[\s\S]*?<\/script>/,'<script data-drawing-catalog="v158">'+fs.readFileSync(new URL('./drawing-catalog-v158.js',import.meta.url),'utf8')+'</script>');
+fixture=fixture.replace(/function catalogRecordFingerprint\(e\) \{[\s\S]*?;window.rafexCatalogFingerprint/,catalogRecordFingerprint.toString()+';window.rafexCatalogFingerprint');
+fixture=fixture.replace(/window.rafexMergeRackCatalog=function mergeRackCatalog[\s\S]*?;\(\(\)=>\{const cache/,'window.rafexMergeRackCatalog='+mergeRackCatalog.toString()+';(()=>{const cache');
+fixture=fixture.replace(/window.rafexIndependentProjectV133=function independentProject[\s\S]*?\n};/, 'window.rafexIndependentProjectV133='+independentProject.toString()+';');
+assert(fixture.includes('let pending=null,owner=null,wantsTypes=false;'));
+assert(fixture.includes('An import\'s old key can already belong'));
+const html=transform(regions(customize(fixture)));
 assert.equal(transform(html),html);
 for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))if(m[1].trim())new vm.Script(m[1]);
 const {chromium}=createRequire(import.meta.url)(process.env.RAFEX_PLAYWRIGHT_PATH||'playwright');
@@ -13,13 +22,13 @@ const browser=await chromium.launch({channel:'msedge',headless:true});
 try{
  const page=await browser.newPage({viewport:{width:1698,height:1114}});page.setDefaultTimeout(12000);
  const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>{console.log('DIALOG',d.message());return d.accept()});
- let saved=null,catalogSaved=null;
+ let saved=null,catalogSaved=null,revision=0;
  await page.route('**/*',r=>{
   const p=new URL(r.request().url()).pathname,method=r.request().method();
   if(p==='/')return r.fulfill({contentType:'text/html',body:html});
   if(p==='/api/bootstrap')return r.fulfill({json:{needsSetup:false}});
   if(p==='/api/me')return r.fulfill({json:{user:{id:1,fullName:'Test',username:'test',role:'super',allowed_modules:['free','b2b']}}});
-  if(p.startsWith('/api/drawing-projects')&&['POST','PUT','PATCH'].includes(method)){if(method==='PUT')catalogSaved=r.request().postDataJSON();return r.fulfill({json:{project:{...r.request().postDataJSON(),id:48,revision:1,rackTypes:[]},revision:1}});}
+  if(p.startsWith('/api/drawing-projects')&&['POST','PUT','PATCH'].includes(method)){if(method==='PUT'){catalogSaved=r.request().postDataJSON();assert.equal(catalogSaved.revision,revision);revision++;}return r.fulfill({json:{project:{...r.request().postDataJSON(),id:48,revision,rackTypes:[]},revision}});}
   if(p==='/api/projects'&&method==='POST'){saved={...r.request().postDataJSON(),id:44,serial_no:44,project_name:'Audit test'};return r.fulfill({json:{serialNo:44,project:saved}});}
   if(p==='/api/projects')return r.fulfill({json:{projects:saved?[saved]:[]}});
   if(p.startsWith('/api/'))return r.fulfill({json:{rows:[],types:[],projects:[],settings:{}}});

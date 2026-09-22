@@ -1,10 +1,11 @@
 (()=>{
  'use strict';
  window.rafexCommitCustomTypeV184=(rack,entry,previous)=>{
+  entry=structuredClone(entry);
   const system=entry.__rafexSystem||entry.system||entry.drawing.rafexSystem;
   const catalog=window.rafexProjectTypesV133||[],old=catalog.find(t=>(t.__rafexSystem||t.system)+':'+t.id===previous?.rafexCatalogKey);
   const stable=v=>Array.isArray(v)?v.map(stable):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,stable(v[k])])):v;
-  const unchanged=JSON.stringify(stable(previous?.rackDetail?.views))===JSON.stringify(stable(rack.rackDetail?.views));
+  const unchanged=previous?.rackDetail?.views&&rack.rackDetail?.views&&JSON.stringify(stable(previous.rackDetail.views))===JSON.stringify(stable(rack.rackDetail.views));
   let reused=false;
   if(old&&entry.name===previous.typeName&&unchanged){entry=old;reused=true;}
   else if(catalog.some(t=>t.name===entry.name)){
@@ -12,6 +13,9 @@
    let n=0,name;const letter=value=>{let out='';for(;value;value=Math.floor((value-1)/26))out=String.fromCharCode(65+(value-1)%26)+out;return out;};
    do{name=letter(++n)}while(catalog.some(t=>t.name===name));
    entry={...entry,id:-Math.max(Date.now(),...catalog.map(t=>Math.abs(Number(t.id)||0)+1)),name};
+  }
+  if(!reused&&catalog.some(t=>(t.__rafexSystem||t.system)===system&&String(t.id)===String(entry.id))){
+   let id=-1;while(catalog.some(t=>String(t.id)===String(id)))id--;entry.id=id;
   }
   const key=system+':'+entry.id,name=entry.name;
   if(reused){Object.assign(rack,{typeName:name,rafexGlobalTypeLetter:name,rafexOriginalTypeName:name,rafexSectionLetter:name,rafexCatalogKey:key});window.rafexSelectedCatalogKey=key;return;}
