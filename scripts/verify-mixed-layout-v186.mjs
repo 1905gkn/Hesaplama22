@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import path from 'node:path';
 import {transform} from './patch-mixed-layout-v186.mjs';
+import {transform as clearanceTransform} from './patch-b2b-default-clearance-v187.mjs';
 // All requests are intercepted. This verifier cannot save to a real account.
 // Usage: RAFEX_PLAYWRIGHT_PATH=... node scripts/verify-mixed-layout-v186.mjs
 //        --html=dist/index.html [--baseline] [--reopen] [--profile]
@@ -16,6 +17,7 @@ fs.mkdirSync('outputs',{recursive:true});
 if(optimized){
  html=html.replace(/<script([^>]*?) src="(\/runtime-assets\/[^" ]+)"[^>]*><\/script>/g,(_,attrs,url)=>'<script'+attrs+'>'+fs.readFileSync(assetPath(url),'utf8')+'</script>');
  html=transform(html);assert.equal(transform(html),html);
+ html=clearanceTransform(html);assert.equal(clearanceTransform(html),html);
 }
 for(const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)){if(m[2].trim()&&!m[1].includes('application/')){try{new vm.Script(m[2])}catch(e){console.log('SYNTAX',m[1],e.stack);throw e}}}
 const browser=await chromium.launch({channel:'msedge',headless:true});
@@ -46,6 +48,16 @@ try{
  for(const system of ['b2b','mekik2','drive','mr','konsol']){
   await page.locator('#rafexUnifiedSystemPicker input[value="'+system+'"]').check({force:true});
   await page.waitForTimeout(250);
+  if(optimized&&system==='b2b'){
+   assert.equal(await page.evaluate(()=>b2bReadInputState().palletTraverseGap),100,'New B2B default clearance is not 100 mm');
+   // The offline harness deliberately omits the Three.js viewer assets.
+   // Exercise the real dialog controller without its loading overlay.
+   await page.evaluate(()=>b2bOpenMeasureDialog('b2bMeasureSettingsDialog'));
+   assert.equal(await page.locator('#b2bMeasureClearance').inputValue(), '100');
+   await page.locator('#b2bMeasureSettingsDialog').getByRole('button',{name:'Vazgeç',exact:true}).click();
+   const restored=await page.evaluate(()=>{const initial=b2bReadInputState(),values=[];for(const gap of [0,100,200,350]){b2bApplySavedInputState({...initial,palletTraverseGap:gap});values.push(b2bReadInputState().palletTraverseGap)}b2bApplySavedInputState(initial);return values});
+   assert.deepEqual(restored,[0,100,200,350],'Saved B2B clearances were overwritten');
+  }
   await page.getByRole('button',{name:'Raf Tipini Kaydet',exact:true}).click();
   await page.waitForTimeout(250);
   console.log('SAVE_TYPE',system,await page.evaluate(()=>({types:window.rafexProjectTypesV133?.map(t=>({name:t.name,system:t.__rafexSystem,width:t.drawing?.totalWidth,depth:t.drawing?.railLength})),status:document.getElementById('m2FloorStatus')?.textContent})),dialogs);

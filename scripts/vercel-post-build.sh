@@ -125,6 +125,7 @@ node scripts/patch-customize-ui-v178.mjs
 node scripts/patch-regions-repeat-v179.mjs
 node scripts/patch-audit-fixes-v184.mjs
 node scripts/patch-mixed-layout-v186.mjs
+node scripts/patch-b2b-default-clearance-v187.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
