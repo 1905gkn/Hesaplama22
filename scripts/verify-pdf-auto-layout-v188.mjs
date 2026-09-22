@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import {detectRacks} from '../client/pdf-rack-detection.mjs';
+import {detectRacks,groupRackPlan} from '../client/pdf-rack-detection.mjs';
 import {readVectors} from '../client/pdf-vector-reader.mjs';
 import {transform} from './patch-pdf-auto-layout-v188.mjs';
 for(const file of ['pdf-auto-layout.js','pdf-native-placement.js'])new vm.Script(fs.readFileSync('client/'+file,'utf8'));
@@ -10,6 +10,12 @@ assert.equal(exported.length,2);
 for(const name of exported)assert(!/(pdf|report|print|a4|output)/i.test(name),'Import must not be intercepted by the existing output-only gate: '+name);
 const fixture='<html><body>rafexProjectImportV155<script>const layout = { points: m2LayoutState.points, };</script></body></html>',patched=transform(fixture);assert.equal(transform(patched),patched);
 assert.throws(()=>detectRacks({text:[],lines:[]}),/okunamadı/);
+const sourceType={key:'same',name:'Same',frameDepth:1100,palletDepth:1200};
+const sourceBay=(id,row,x,y,key='same')=>({id,row,x,y,key,width:1100,depth:2700});
+const grouped=groupRackPlan({types:[sourceType,{...sourceType,key:'other'}],conflicts:[['held']],placements:[sourceBay('a',1,550,1350),sourceBay('b',2,1800,1350),sourceBay('c',3,6000,1350),sourceBay('different',4,7250,1350,'other'),sourceBay('held',1,550,4160),sourceBay('tail',2,1800,4160)]});
+assert.equal(grouped.blocks.length,4);assert.equal(grouped.blocks[0].rowCount,2);assert.equal(grouped.importTypes[0].rowGap,150);
+assert.deepEqual(grouped.blocks[0].sourceIds,['a','b']);assert.equal(new Set(grouped.blocks.flatMap(b=>b.sourceIds)).size,5);
+assert(!grouped.blocks.some(b=>b.sourceIds.includes('held')),'Held bays cannot be paired');
 // A failed native placement must leave the user's old drawing, catalog and annotations intact.
 const context={window:{rafexProjectTypesV133:[],rafexMergeRackCatalog:(_,e)=>({entries:e,aliases:{}}),rafexUnifiedCatalogSync(){}},m2LayoutState:{racks:[{id:7}],points:[]},m2LayoutSymbols:[{id:8}],m2UndoHistory:[],m2UserNotes:[{text:'keep'}],m2DimensionOffsets:{a:1},m2DimensionFontSizes:{},m2HiddenSummaryDimensions:new Set(),m2VisibleRackDimensions:{length:new Set(),depth:new Set()},m2PinnedDimensionsByRack:{},m2FreeMeasure:{points:[]},b2bLayoutDrawing:()=>({totalWidth:2000,railLength:1200}),m2RenderLayout(){},m2UpdateUndoButton(){},m2RackInsideArea:()=>false,m2RackOverlaps:()=>false};
 context.m2PushUndo=()=>context.m2UndoHistory.push('undo');context.m2AddRack=()=>context.m2LayoutState.racks.push({w:10,h:6});
@@ -23,6 +29,13 @@ profileContext.b2bApplySavedInputState=s=>{form=s;profileContext.m2LastDrawing={
 vm.createContext(profileContext);vm.runInContext(fs.readFileSync('client/pdf-native-placement.js','utf8'),profileContext);
 const generated=profileContext.window.rafexPrepareImportedTypesV188([{name:'Test',key:'one',sectionWidth:2700,frameDepth:1100,footHeight:8000,levels:5,palletCount:3,palletWidth:800,palletDepth:1200,palletHeight:1500,palletWeight:900,firstBeamTop:1730,levelStep:1630}]);
 assert.equal(generated[0].drawing.traverseHeight,125,'Generic Mekik height must not leak into B2B');assert.equal(generated[0].drawing.b2b.manualLevelSpecs[0].distance+125,1730);assert.equal(profileContext.m2LastDrawing,originalDrawing);assert.equal(form,originalForm);
+const joinedEntry={id:-2,name:'joined',drawing:{pdfSourceSpec:{key:'same'},footProfile:'HR100',b2b:{rowType:'single'}}};
+const joinContext={...context,window:{...context.window},document:{getElementById:()=>({click(){}})},m2RackInsideArea:()=>true,m2RackOverlaps:()=>false,m2B2BFootWidth:()=>100,b2bLayoutDrawing:()=>({totalWidth:2900,railLength:1200}),m2RenderSavedRackTypes(){},m2RenderLayoutProductList(){},m2RefreshActiveReport(){}};
+joinContext.m2PushUndo=()=>{};joinContext.m2AddRack=()=>joinContext.m2LayoutState.racks.push({w:2900*joinContext.m2LayoutState.scale,h:1200*joinContext.m2LayoutState.scale});
+vm.createContext(joinContext);vm.runInContext(fs.readFileSync('client/pdf-native-placement.js','utf8'),joinContext);
+const chain=[sourceBay('one',1,550,1350),sourceBay('two',1,550,4160),sourceBay('aisle',1,550,12000)];
+const joined=joinContext.window.rafexApplyImportedLayoutV188({conflicts:[],placements:chain,warnings:[]},[joinedEntry],'chain.pdf');
+assert.equal(joined.joined,1);assert.equal(joinContext.m2LayoutState.racks[1].sharedFootWith,joinContext.m2LayoutState.racks[0].id);assert(!joinContext.m2LayoutState.racks[2].joinGroup,'An aisle must split the joined chain');
 if(process.env.RAFEX_PDF_FIXTURE){
   const pdfjs=await import('pdfjs-dist/legacy/build/pdf.mjs');
   const task=pdfjs.getDocument({data:new Uint8Array(fs.readFileSync(process.env.RAFEX_PDF_FIXTURE)),isEvalSupported:false}),document=await task.promise;
@@ -32,6 +45,7 @@ if(process.env.RAFEX_PDF_FIXTURE){
     const counts=Object.fromEntries(result.types.map(t=>[t.sectionWidth+'/'+t.footHeight,result.placements.filter(p=>p.key===t.key).length]));
     assert.deepEqual(counts,{'1825/8000':3,'2700/8000':46,'2700/6000':127,'1825/6000':4,'2700/4250':79,'1825/4250':3});
     assert(result.types.every(t=>t.palletWeight===900&&t.frameDepth===1100));
+    const native=groupRackPlan(result);assert.equal(native.blocks.length,198);assert.equal(native.blocks.filter(b=>b.rowCount===2).length,60);assert.equal(native.blocks.reduce((n,b)=>n+b.rowCount,0),258);assert.equal(native.importTypes.length,8);
     const moved={...vector,text:vector.text.map(t=>({...t,x:t.x+73,y:t.y+95})),lines:vector.lines.map(l=>({...l,x0:l.x0+73,x1:l.x1+73,y0:l.y0+95,y1:l.y1+95}))};
     assert.deepEqual(detectRacks(moved).placements,result.placements,'Detection must not depend on hardcoded page coordinates');
     const missing={...vector,text:vector.text.filter(t=>t.text!=='WEIGHT (kg)')};assert.throws(()=>detectRacks(missing),/Palet ölçüleri/);

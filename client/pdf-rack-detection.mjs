@@ -6,6 +6,21 @@ const horizontal=l=>Math.abs(l.y0-l.y1)<.15;
 const length=l=>Math.hypot(l.x1-l.x0,l.y1-l.y0);
 const close=(a,b,t)=>Math.abs(a-b)<t;
 const fail=message=>{throw Error(message);};
+// Keep source bays intact for conflict reporting. Native blocks may represent two bays.
+export function groupRackPlan(plan){
+  const excluded=new Set(plan.conflicts.flat()),used=new Set(),types=new Map(plan.types.map(t=>[t.key,t])),importTypes=new Map(),blocks=[];
+  for(const p of plan.placements){
+    if(excluded.has(p.id)||used.has(p.id))continue;
+    const spec=types.get(p.key);
+    const matches=plan.placements.filter(q=>q.id!==p.id&&!used.has(q.id)&&!excluded.has(q.id)&&q.key===p.key&&Math.abs(q.y-p.y)<=10&&Math.abs(q.x-p.x)>=spec.palletDepth&&Math.abs(q.x-p.x)<=spec.frameDepth+500).sort((a,b)=>Math.abs(a.x-p.x)-Math.abs(b.x-p.x));
+    const partner=matches[0],gap=partner?Math.round((Math.abs(partner.x-p.x)-spec.frameDepth)/5)*5:0;
+    const key=partner?spec.key+'-double-'+gap:spec.key;
+    importTypes.set(key,{...spec,key,rowType:partner?'double':'single',rowGap:gap,name:spec.name+(partner?' · Çift sıra '+gap:' · Tek sıra')});
+    const sources=partner?[p,partner]:[p];sources.forEach(q=>used.add(q.id));
+    blocks.push({...p,key,x:partner?(p.x+partner.x)/2:p.x,width:partner?spec.frameDepth*2+gap:p.width,sourceIds:sources.map(q=>q.id),sourceRows:sources.map(q=>q.row).sort((a,b)=>a-b),rowCount:sources.length});
+  }
+  return {...plan,importTypes:[...importTypes.values()],blocks};
+}
 export function detectRacks(vector){
   const {text,lines}=vector,nums=text.filter(t=>Number.isFinite(numeric(t)));
   function tableValue(label){
