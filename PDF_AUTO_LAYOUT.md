@@ -28,3 +28,7 @@ Resim PDF çift sıralarında çerçeveler arası mesafe ölçü kontrolünde al
 Resim ölçü kontrolünde travers yüksekliği de alınır. Yük tablosundaki uygun seçeneklerden bu yüksekliğe uyan profil seçilir; uygun profil yoksa sessizce farklı yükseklik uygulanmaz. Referans kesit testi: ilk net açıklık 2030, travers 100, devam eden net açıklık 2050; travers üstleri 2130/4280/6430/8580, paletli toplam yükseklik 10480 mm. H işaretli zemin boşlukları plan konumu eşleştirilmedikçe uygulanmaz; toplam referans kapasitesinin doğrulandığı iddia edilmez.
 
 Ek testler: `node scripts/verify-pdf-batch-v191.mjs` ve `node scripts/verify-pdf-reference-v191.mjs`. İkinci test `RAFEX_PLAN_IMAGE` verilirse özel referans planındaki 508 göz / 26 ikili / 32 tünelli göz ayrımını da doğrular. Özel görseller depoya eklenmez.
+
+PNG: dosya seçici PDF ve PNG’yi aynı listede kabul eder. PNG başlığı ve açılmış görüntü boyutu doğrulanır (32 milyon piksel / kenar başına 16000 piksel); görüntü tarayıcıda çözülür, şeffaf alanlar beyaz zemine alınır ve en uzun kenar 3200 piksele sınırlandırılır. PDF raster okuyucusuyla aynı geometri/OCR ve ölçü kontrolü kullanılır. Bitmap, canvas ve OCR işçisi başarı/hata/iptalde serbest bırakılır. PNG plan desteğidir; tek başına kesit görseli bir yerleşim planı oluşturmaz ve ayrı kesit görselini plan dosyasına otomatik bağlamaz.
+
+`node scripts/verify-png-import-v192.mjs` PNG biçim ve boyut kontrollerini doğrular. Gerçek tarayıcı testinde referans PNG (508 göz) ve vektör PDF beraber okunup yerleştirilmiş ve dosya adlarıyla kaydedilmiştir.

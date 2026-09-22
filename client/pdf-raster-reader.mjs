@@ -78,7 +78,7 @@ export function rasterPlan(geometry,values){
   if(!placements.length||placements.length>1000)throw Error('Aktarılacak raf gözü sayısı geçersiz (1–1000).');
   const conflicts=[];
   for(let i=0;i<placements.length;i++)for(let j=i+1;j<placements.length;j++){const a=placements[i],b=placements[j];if(Math.abs(a.x-b.x)<(a.width+b.width)/2-5&&Math.abs(a.y-b.y)<(a.depth+b.depth)/2-5)conflicts.push([a.id,b.id]);}
-  return {types,placements,rows:geometry.rows.length,conflicts,orientation:'horizontal',doubleRowGap:values.doubleRowGap,warehouseBoundary:null,raster:true,warnings:['Resim PDF: ölçüler kullanıcı kontrolünden geçti; konumlar piksellerden yaklaşık çıkarıldı.','Yeşil çapraz ve gri tünel işaretleri önizleme onayıyla uygulanır. Diğer özel tipleri kontrol edin.','Depo dış sınırı, kapı ve kolonlar aktarılmaz.',...(excluded.length?[excluded.length+' belirsiz açıklık aktarılmadı: '+excluded.join(', ')]:[])]};
+  return {types,placements,rows:geometry.rows.length,conflicts,orientation:'horizontal',doubleRowGap:values.doubleRowGap,warehouseBoundary:null,raster:true,warnings:['Görsel: ölçüler kullanıcı kontrolünden geçti; konumlar piksellerden yaklaşık çıkarıldı.','Yeşil çapraz ve gri tünel işaretleri önizleme onayıyla uygulanır. Diğer özel tipleri kontrol edin.','Depo dış sınırı, kapı ve kolonlar aktarılmaz.',...(excluded.length?[excluded.length+' belirsiz açıklık aktarılmadı: '+excluded.join(', ')]:[])]};
 }
 
 export function ocrSuggestions(text){
@@ -90,19 +90,41 @@ export function ocrSuggestions(text){
   return result;
 }
 
+export function pngDimensions(bytes){
+  const magic=[137,80,78,71,13,10,26,10];
+  if(bytes.length<24||magic.some((v,i)=>bytes[i]!==v)||String.fromCharCode(...bytes.slice(12,16))!=='IHDR')throw Error('Geçerli bir PNG dosyası seç.');
+  const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),width=view.getUint32(16),height=view.getUint32(20);
+  if(!width||!height||width>16000||height>16000||width*height>32000000)throw Error('PNG en fazla 32 milyon piksel ve kenar başına 16000 piksel olabilir.');
+  return {width,height};
+}
+export async function scanRasterImage(file,progress,isCurrent,onWorker){
+  pngDimensions(new Uint8Array(await file.slice(0,24).arrayBuffer()));
+  if(!isCurrent())throw Error('İşlem iptal edildi.');
+  let bitmap;const canvas=document.createElement('canvas');
+  try{
+    try{bitmap=await createImageBitmap(file);}catch{throw Error('PNG çözülemedi; dosya bozuk veya desteklenmiyor.');}
+    if(!isCurrent())throw Error('İşlem iptal edildi.');
+    const scale=Math.min(1,3200/Math.max(bitmap.width,bitmap.height));canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+    return await scanCanvas(canvas,progress,isCurrent,onWorker);
+  }finally{bitmap?.close();canvas.width=canvas.height=1;}
+}
 export async function scanRasterPage(page,progress,isCurrent,onWorker){
   const viewport=page.getViewport({scale:Math.min(4,3200/page.getViewport({scale:1}).width)}),canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
-  const ctx=canvas.getContext('2d',{willReadFrequently:true});await page.render({canvasContext:ctx,viewport}).promise;
+  try{const ctx=canvas.getContext('2d',{willReadFrequently:true});await page.render({canvasContext:ctx,viewport}).promise;return await scanCanvas(canvas,progress,isCurrent,onWorker);}
+  finally{canvas.width=canvas.height=1;}
+}
+async function scanCanvas(canvas,progress,isCurrent,onWorker){
   if(!isCurrent())throw Error('İşlem iptal edildi.');
-  const geometry=detectRasterGeometry(ctx.getImageData(0,0,canvas.width,canvas.height));
+  const geometry=detectRasterGeometry(canvas.getContext('2d',{willReadFrequently:true}).getImageData(0,0,canvas.width,canvas.height));
   progress('Raf çizgileri algılandı. Resimdeki yazı ve yük değerleri okunuyor…');
   const {default:Tesseract}=await import('/ocr/tesseract.esm.min.js');let worker;
   try{
-    worker=await Tesseract.createWorker('eng',1,{workerPath:'/ocr/worker.min.js',corePath:'/ocr/core',langPath:'/ocr/lang',logger:m=>{if(isCurrent()&&m.status==='recognizing text')progress('Resim PDF okunuyor: %'+Math.round(m.progress*100));}});
+    worker=await Tesseract.createWorker('eng',1,{workerPath:'/ocr/worker.min.js',corePath:'/ocr/core',langPath:'/ocr/lang',logger:m=>{if(isCurrent()&&m.status==='recognizing text')progress('Görsel okunuyor: %'+Math.round(m.progress*100));}});
     onWorker?.(worker);
     if(!isCurrent())throw Error('İşlem iptal edildi.');
     await worker.setParameters({tessedit_pageseg_mode:'11'});
     const {data}=await worker.recognize(canvas);
     return {geometry,text:data.text,suggestions:ocrSuggestions(data.text),image:canvas.toDataURL('image/png')};
-  }finally{await worker?.terminate().catch(()=>{});canvas.width=canvas.height=1;}
+  }finally{await worker?.terminate().catch(()=>{});}
 }
