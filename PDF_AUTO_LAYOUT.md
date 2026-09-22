@@ -22,3 +22,9 @@ node scripts/verify-pdf-raster-v190.mjs
 `RAFEX_PDF_FIXTURE` ortam değişkeni özel test PDF’sinin yoluna ayarlanırsa gerçek vektör okuma, altı tip/262 göz/12 sıra, çakışma tespiti, sayfa koordinatı değişimi ve eksik yük tablosu testleri de çalışır. Müşteri PDF’si ve çıkarılan proje verisi depoya eklenmez.
 
 Resim PDF çift sıralarında çerçeveler arası mesafe ölçü kontrolünde alınır. Pikselden tahmin edilen küçük mesafe farkları yeni raf tipi üretmez; aynı kesit ve onaylı mesafeye sahip çift sıralar tek tipte toplanır.
+
+Çoklu PDF: aynı seçimde veya art arda en fazla 10 dosya eklenir (dosya başına 20 MB, toplam 100 MB). Her dosya ayrı okunur ve resim ölçüleri ayrı onaylanır. Hatalı dosya açıkça kaldırılmadan veya başarıyla yeniden okunmadan toplu uygulama açılmaz. Aynı yapısal özellikteki tipler birleştirilir; farklı dosyaların kaynak kimlikleri ve ortak ayak zincirleri ayrılır. Planlar kendi yönlerini koruyarak yan yana yerleşir; dosyalar arası 3000 mm gösterim aralığı bir depo koridor ölçüsü değildir. Dosya listesi proje kaydında saklanır. Her PDF hâlâ tek sayfalık plan/kesit olmalıdır; ayrı dosyalardaki kesit ve planı otomatik eşleştirme yapılmaz.
+
+Resim ölçü kontrolünde travers yüksekliği de alınır. Yük tablosundaki uygun seçeneklerden bu yüksekliğe uyan profil seçilir; uygun profil yoksa sessizce farklı yükseklik uygulanmaz. Referans kesit testi: ilk net açıklık 2030, travers 100, devam eden net açıklık 2050; travers üstleri 2130/4280/6430/8580, paletli toplam yükseklik 10480 mm. H işaretli zemin boşlukları plan konumu eşleştirilmedikçe uygulanmaz; toplam referans kapasitesinin doğrulandığı iddia edilmez.
+
+Ek testler: `node scripts/verify-pdf-batch-v191.mjs` ve `node scripts/verify-pdf-reference-v191.mjs`. İkinci test `RAFEX_PLAN_IMAGE` verilirse özel referans planındaki 508 göz / 26 ikili / 32 tünelli göz ayrımını da doğrular. Özel görseller depoya eklenmez.

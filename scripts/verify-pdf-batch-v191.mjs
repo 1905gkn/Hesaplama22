@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {combinePlans} from '../client/pdf-batch-plan.mjs';
+const type={key:'one',name:'Raf',sectionWidth:2700,palletCount:3};
+const bay={id:'R1',key:'one',row:1,x:550,y:1350,width:1100,depth:2700};
+const base={types:[type],importTypes:[type],placements:[bay],blocks:[{...bay,sourceIds:['R1'],sourceRows:[1]}],conflicts:[],rows:1,warnings:[]};
+const merged=combinePlans([{name:'ilk.pdf',result:base},{name:'ikinci.pdf',result:{...base,orientation:'horizontal',raster:true}}]);
+assert.equal(merged.importTypes.length,1,'Identical types share one native calculation');
+assert.equal(merged.blocks.length,2);assert.equal(new Set(merged.blocks.map(b=>b.id)).size,2);
+assert.notEqual(merged.blocks[0].sourceRows[0],merged.blocks[1].sourceRows[0],'Files must never share frames');
+assert.equal(merged.blocks[0].horizontal,false);assert.equal(merged.blocks[1].horizontal,true);
+assert(merged.blocks[1].previewX-merged.blocks[1].previewWidth/2>merged.blocks[0].previewX+merged.blocks[0].previewWidth/2);
+assert.deepEqual(merged.files,['ilk.pdf','ikinci.pdf']);assert.equal(merged.raster,true);
+const conflicts=combinePlans([{name:'one',result:{...base,conflicts:[['R1']]}},{name:'two',result:base}]);assert.deepEqual(conflicts.conflicts,[['F1:R1']]);
+const different={...base,importTypes:[{...type,palletCount:2}]};assert.equal(combinePlans([{name:'one',result:base},{name:'two',result:different}]).importTypes.length,2);
+assert.throws(()=>combinePlans([{name:'broken'}]),/tamamlanmalı/);assert.equal(combinePlans([{name:'only',result:base}]).batch,undefined);
+console.log('PASS batch source isolation, type deduplication, distinct pallet counts, orientations, placement bounds and incomplete-file rejection.');

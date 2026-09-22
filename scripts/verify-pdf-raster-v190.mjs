@@ -14,7 +14,7 @@ const geometry=detectRasterGeometry({data,width,height});assert.equal(geometry.r
 assert.throws(()=>detectRasterGeometry({data:new Uint8ClampedArray(width*height*4).fill(255),width,height}),/seçilemedi/);
 assert.equal(ocrSuggestions('Max load: 800Kg').palletWeight,800);assert.equal(ocrSuggestions('TOTAL: 8609 pp').palletWeight,null);
 assert.equal(ocrSuggestions('PALLET HEIGHT (mm): 1900').palletHeight,1900);
-const dims={sectionWidth:2700,frameDepth:1100,footHeight:9500,levels:5,palletCount:3,palletWidth:800,palletDepth:1200,palletHeight:1900,palletWeight:800,firstBeamTop:2200,clearOpening:2050,doubleRowGap:300,tunnelHeight:4200};
+const dims={sectionWidth:2700,frameDepth:1100,footHeight:9500,levels:5,palletCount:3,palletWidth:800,palletDepth:1200,palletHeight:1900,palletWeight:800,firstBeamTop:2200,clearOpening:2050,beamHeight:100,doubleRowGap:300,tunnelHeight:4200};
 assert.throws(()=>rasterPlan(geometry,{...dims,palletWeight:0}),/geçersiz/);
 assert.throws(()=>rasterPlan(geometry,{...dims,clearOpening:1800}),/uyumsuz/);
 assert.throws(()=>rasterPlan(geometry,{...dims,sectionWidth:3000}),/uyuşmuyor/);

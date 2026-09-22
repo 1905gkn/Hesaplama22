@@ -4,16 +4,19 @@
     if(m2ActiveModule!=='b2b'||!document.getElementById('b2bModuleCount'))throw Error('PDF aktarımı için Ortak Çizim içinde B2B seçilmelidir.');
     const previous=b2bReadInputState(),last=m2LastDrawing,entries=[];
     try{for(const [i,s] of specs.entries()){
-      const choice=window.RafexRackTravers?.choices('normal',s.sectionWidth,s.palletWeight*s.palletCount)?.[0];
+      const choices=window.RafexRackTravers?.choices('normal',s.sectionWidth,s.palletWeight*s.palletCount)||[];
+      const choice=s.beamHeight?choices.find(c=>window.RafexRackTravers.height(c.value)===s.beamHeight):choices[0];
+      if(s.beamHeight&&!choice)throw Error(s.name+': '+s.beamHeight+' mm travers için bu yükte uygun profil bulunamadı.');
       if(!choice)throw Error(s.name+': yük tablosunda uygun travers yok.');
       const beam=window.RafexRackTravers.height(choice.value);
       const openings=s.clearOpenings;
       if(!Array.isArray(openings)||openings.length!==s.levels-2)throw Error(s.name+': PDF net kat açıklıkları eksik.');
       if(s.firstBeamTop-beam<s.palletHeight||openings.some(g=>!Number.isFinite(g)||g<s.palletHeight))throw Error(s.name+': PDF net kat açıklığı palet yüksekliğinden kısa.');
       const state={palletType:s.palletWidth===800&&s.palletDepth===1200?'euro':'special',palletWidth:s.palletWidth,palletDepth:s.palletDepth,palletHeight:s.palletHeight,palletWeight:s.palletWeight,palletCount:s.palletCount,levels:s.levels,rowType:'single',rowGap:0,firstPalletPosition:'ground',firstFloorGap:s.firstBeamTop-beam,palletTraverseGap:0,palletOverhang:(s.palletDepth-s.frameDepth)/2,footHeightMode:'manual',footHeight:s.footHeight,footManual:false,traverseManual:false,traverseType:choice.value,collectionLevels:{enabled:false},accessories:[]};
+      state.traverseManual=!!s.beamHeight;
       state.rowType=s.rowType||'single';state.rowGap=s.rowGap||0;
       state.palletTraverseGap=(openings[0]??s.firstBeamTop-beam)-s.palletHeight;
-      state.manualLevelSpecs=Array.from({length:s.levels},(_,index)=>({distance:index===0?s.firstBeamTop-beam:index<s.levels-1?openings[index-1]+beam:0,palletHeight:s.palletHeight,weight:s.palletWeight*s.palletCount,traverseType:index<s.levels-1?choice.value:'',selectionMode:'auto'}));
+      state.manualLevelSpecs=Array.from({length:s.levels},(_,index)=>({distance:index===0?s.firstBeamTop-beam:index<s.levels-1?openings[index-1]+beam:0,palletHeight:s.palletHeight,weight:s.palletWeight*s.palletCount,traverseType:index<s.levels-1?choice.value:'',selectionMode:s.beamHeight?'manual':'auto'}));
       state.traverseHeightOverride=beam;
       b2bApplySavedInputState(state);
       // m2LastDrawing retains the generic Mekik beam height (80 mm). B2B's
@@ -82,11 +85,23 @@
         }
       }
       adjusted=positions.filter(p=>Math.abs(p.y-p.sourceY)>1).length;
-      const horizontal=plan.orientation==='horizontal',maxX=Math.max(...positions.map(p=>p.x+p.nativeDepth/2)),maxY=Math.max(...positions.map(p=>p.y+p.nativeWidth/2)),scale=Math.min(840/((horizontal?maxY:maxX)+2000),490/((horizontal?maxX:maxY)+2000));
+      const horizontal=plan.orientation==='horizontal';let extentX,extentY;
+      if(plan.batch){
+        let offset=0;extentY=0;
+        for(const index of [...new Set(positions.map(p=>p.fileIndex))]){
+          const group=positions.filter(p=>p.fileIndex===index);
+          for(const p of group){p.screenX=p.horizontal?p.y:p.x;p.screenY=p.horizontal?p.x:p.y;p.screenW=p.horizontal?p.nativeWidth:p.nativeDepth;p.screenH=p.horizontal?p.nativeDepth:p.nativeWidth;}
+          const minX=Math.min(...group.map(p=>p.screenX-p.screenW/2)),maxX=Math.max(...group.map(p=>p.screenX+p.screenW/2)),minY=Math.min(...group.map(p=>p.screenY-p.screenH/2)),maxY=Math.max(...group.map(p=>p.screenY+p.screenH/2));
+          for(const p of group){p.screenX+=offset-minX;p.screenY-=minY;}
+          extentY=Math.max(extentY,maxY-minY);offset+=maxX-minX+3000;
+        }
+        extentX=offset-3000;
+      }else{const maxX=Math.max(...positions.map(p=>p.x+p.nativeDepth/2)),maxY=Math.max(...positions.map(p=>p.y+p.nativeWidth/2));extentX=horizontal?maxY:maxX;extentY=horizontal?maxX:maxY;}
+      const scale=Math.min(840/(extentX+2000),490/(extentY+2000));
       m2LayoutState.pdfImport??=null;push('PDF otomatik yerleşim');m2PushUndo=()=>{};
       m2UserNotes=[];m2DimensionOffsets={};m2DimensionFontSizes={};m2HiddenSummaryDimensions=new Set();m2VisibleRackDimensions={length:new Set(),depth:new Set()};m2PinnedDimensionsByRack={};m2FreeMeasure={points:[],hover:null};
       window.rafexProjectTypesV133=merged.entries;window.rafexUnifiedCatalogSync();
-      m2LayoutState={...m2LayoutState,points:[],pathBreaks:[],cadElements:[],closed:false,openFinished:true,scale,racks:[],selected:null,pinnedRackId:null,drag:null,hover:null,mode:'idle',edgeDimensions:[],pdfImport:{fileName,raster:!!plan.raster,detected:plan.placements.length,excluded:plan.placements.filter(p=>excluded.has(p.id)),warnings:plan.warnings,adjusted,joined,doubleBlocks:positions.filter(p=>p.rowCount===2).length,warehouseBoundary:null}};
+      m2LayoutState={...m2LayoutState,points:[],pathBreaks:[],cadElements:[],closed:false,openFinished:true,scale,racks:[],selected:null,pinnedRackId:null,drag:null,hover:null,mode:'idle',edgeDimensions:[],pdfImport:{fileName,files:plan.files||[fileName],raster:!!plan.raster,detected:plan.placements.length,excluded:plan.placements.filter(p=>excluded.has(p.id)),warnings:plan.warnings,adjusted,joined,doubleBlocks:positions.filter(p=>p.rowCount===2).length,warehouseBoundary:null}};
       m2LayoutSymbols=[];
       const templates=new Map();
       for(const [key,entry] of bySpec){
@@ -96,7 +111,7 @@
       const baseId=Date.now();
       for(const [i,p] of positions.entries()){
         const entry=bySpec.get(p.key),rack=copy(templates.get(p.key));
-        Object.assign(rack,{id:baseId+i,x:80+(horizontal?p.y:p.x)*scale-rack.w/2,y:70+(horizontal?p.x:p.y)*scale-rack.h/2,angle:horizontal?0:90,staged:false,freePlacement:false,locked:true,rafexCatalogKey:'b2b:'+entry.id,rafexSystem:'b2b',pdfSourceId:p.id,pdfSourceIds:p.sourceIds||[p.id]});
+        Object.assign(rack,{id:baseId+i,x:80+(plan.batch?p.screenX:horizontal?p.y:p.x)*scale-rack.w/2,y:70+(plan.batch?p.screenY:horizontal?p.x:p.y)*scale-rack.h/2,angle:(plan.batch?p.horizontal:horizontal)?0:90,staged:false,freePlacement:false,locked:true,rafexCatalogKey:'b2b:'+entry.id,rafexSystem:'b2b',pdfSourceId:p.id,pdfSourceIds:p.sourceIds||[p.id]});
         if(p.tunnelHeight){
           rack.b2b={...rack.b2b,tunnelHeight:p.tunnelHeight};
           rack.b2bViewerOptions={...rack.b2bViewerOptions,tunnelHeight:p.tunnelHeight};

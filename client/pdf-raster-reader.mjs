@@ -23,12 +23,18 @@ export function detectRasterGeometry({data,width,height}){
       if(!total||count/total<.6)continue;
       const last=frames.at(-1);if(last&&x-last.end<=2){last.end=x;last.x=(last.start+x)/2;}else frames.push({start:x,end:x,x});
     }
+    // Bright yellow end uprights can lack a dark stroke at scan resolution.
+    // Recover only isolated continuous strips; do not widen existing frames.
+    const yellow=[];
+    for(let x=0;x<width;x++){let hits=0,total=0;for(let y=a.y+2;y<b.y-1;y++){const i=(y*width+x)*4;total++;if(data[i]>230&&data[i+1]>230&&data[i+2]<110)hits++;}if(total&&hits/total>.65){const last=yellow.at(-1);if(last&&x-last.end<=2){last.end=x;last.x=(last.start+x)/2;}else yellow.push({start:x,end:x,x});}}
+    for(const f of yellow)if(!frames.some(g=>Math.abs(g.x-f.x)<span*.45))frames.push(f);
+    frames.sort((a,b)=>a.x-b.x);
     const bays=[];
     for(let j=0;j<frames.length-1;j++){
       const left=frames[j].x,right=frames[j+1].x,w=right-left;
       if(w<span*1.15||w>span*4)continue;
       let hits=0,total=0;
-      for(let x=Math.ceil(left+2);x<right-2;x++)for(const y of [a.y,b.y]){const i=(y*width+x)*4;total++;if(red(data[i],data[i+1],data[i+2])||(data[i+1]>data[i]*1.2&&data[i+1]>data[i+2]*1.15))hits++;}
+      for(let x=Math.ceil(left+2);x<right-2;x++)for(const y of [a.y,b.y]){total++;for(let dy=-2;dy<=2;dy++){const yy=y+dy;if(yy<0||yy>=height)continue;const i=(yy*width+x)*4;if(red(data[i],data[i+1],data[i+2])||(data[i+1]>80&&data[i+1]>data[i]*1.2)){hits++;break;}}}
       if(total&&hits/total>.62)bays.push({left,right,width:w});
     }
     if(bays.length>=6)rows.push({top:a.y,bottom:b.y,depth:span,bays,footPixels:median(frames.map(f=>Math.max(1,f.end-f.start)))});
@@ -41,7 +47,7 @@ export function detectRasterGeometry({data,width,height}){
     for(const bay of row.bays){let colored=0,total=0;for(let y=row.top+2;y<row.bottom-1;y++)for(let x=Math.ceil(bay.left+3);x<bay.right-3;x++){const i=(y*width+x)*4;total++;if(data[i+1]>80&&data[i+1]>data[i]*1.2)colored++;}bay.braced=total>0&&colored/total>.16;}
     const runs=[];
     for(let x=0;x<width;x++){let hits=0,total=0;for(let y=row.top+2;y<row.bottom-1;y++){const i=(y*width+x)*4,r=data[i],g=data[i+1],b=data[i+2];total++;if(r>70&&r<210&&Math.max(r,g,b)-Math.min(r,g,b)<25)hits++;}if(hits/total>.55){const last=runs.at(-1);if(last&&x-last.end<=2)last.end=x;else runs.push({start:x,end:x});}}
-    for(const run of runs){if(run.end-run.start<typicalWidth*.55||run.end-run.start>typicalWidth*1.3)continue;const before=rows.flatMap(r=>r.bays).filter(b=>Math.abs(b.right-run.start)<typicalWidth*.24).sort((a,b)=>b.right-a.right)[0],after=rows.flatMap(r=>r.bays).filter(b=>Math.abs(b.left-run.end)<typicalWidth*.24).sort((a,b)=>a.left-b.left)[0];if(!before||!after||after.left<=before.right)continue;row.bays.push({left:before.right,right:after.left,width:after.left-before.right,tunnel:true,braced:false});}
+    for(const run of runs){if(run.end-run.start<typicalWidth*.55||run.end-run.start>typicalWidth*1.3)continue;const before=rows.flatMap(r=>r.bays).filter(b=>b.right<=run.start&&run.start-b.right<typicalWidth*.24).sort((a,b)=>b.right-a.right)[0],after=rows.flatMap(r=>r.bays).filter(b=>b.left>=run.end&&b.left-run.end<typicalWidth*.24).sort((a,b)=>a.left-b.left)[0];if(!before||!after||after.left<=before.right)continue;row.bays.push({left:before.right,right:after.left,width:after.left-before.right,tunnel:true,braced:false});}
     row.bays.sort((a,b)=>a.left-b.left);
   }
   // Geometry is always reviewable; dimensions are not inferred from pixel size.
@@ -49,7 +55,7 @@ export function detectRasterGeometry({data,width,height}){
 }
 
 export function rasterPlan(geometry,values){
-  const fields=['sectionWidth','frameDepth','footHeight','levels','palletCount','palletWidth','palletDepth','palletHeight','palletWeight','firstBeamTop','clearOpening','doubleRowGap'];
+  const fields=['sectionWidth','frameDepth','footHeight','levels','palletCount','palletWidth','palletDepth','palletHeight','palletWeight','firstBeamTop','clearOpening','doubleRowGap','beamHeight'];
   for(const key of fields)if(!Number.isFinite(values[key])||values[key]<=0)throw Error('Eksik veya geçersiz ölçü: '+key);
   if(values.levels<2||values.levels>15||!Number.isInteger(values.levels)||values.palletCount<1||values.palletCount>4||!Number.isInteger(values.palletCount))throw Error('Kat ve palet adedi geçersiz.');
   if(values.palletDepth<values.frameDepth||values.clearOpening<values.palletHeight)throw Error('Palet derinliği veya net kat açıklığı raf ölçüleriyle uyumsuz.');
