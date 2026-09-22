@@ -17,7 +17,7 @@
       if(!d?.plan||!d.footProfile||!Number.isFinite(d.footCapacity)||d.footCapacity<d.footLoad)throw Error(s.name+': yük tablosunda uygun ayak bulunamadı.');
       if(Math.abs(physical.b2bLayout.sectionWidth-s.sectionWidth)>1||Math.abs(physical.b2bLayout.frameDepth-s.frameDepth)>1||Number(d.b2b?.levels)!==s.levels||Number(d.b2b?.footHeight)!==s.footHeight)throw Error(s.name+': hesaplanan ölçüler PDF ile uyuşmuyor.');
       if(Number(d.traverseHeight)!==beam)throw Error(s.name+': travers yüksekliği seçilen profille uyuşmuyor.');
-      d.rafexSystem='b2b';d.pdfSourceSpec=copy(s);
+      Object.assign(d,physical);d.rafexSystem='b2b';d.pdfSourceSpec=copy(s);
       entries.push({id:-(Date.now()+i),name:s.name,source:'project',__rafexSystem:'b2b',__rafexSystemLabel:'B2B',__rafexUnified:true,drawing:d,__rafexSnapshot:copy(d)});
     }}finally{b2bApplySavedInputState(previous);m2LastDrawing=last;}
     return entries;
