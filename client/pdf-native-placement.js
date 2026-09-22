@@ -56,7 +56,7 @@
     const oldState=copy(m2LayoutState),oldSymbols=copy(m2LayoutSymbols),oldTypes=copy(window.rafexProjectTypesV133||[]),oldHistory=m2UndoHistory.slice(),push=m2PushUndo;
     const oldDecorations={notes:m2UserNotes,offsets:m2DimensionOffsets,fonts:m2DimensionFontSizes,hidden:m2HiddenSummaryDimensions,visible:m2VisibleRackDimensions,pinned:m2PinnedDimensionsByRack,measure:m2FreeMeasure};
     try{
-      const merged=window.rafexMergeRackCatalog(oldTypes,entries),bySpec=new Map();
+      const merged=entries.some(e=>e.importName!==undefined)?window.rafexImportedNamesV194.apply(oldTypes,entries):window.rafexMergeRackCatalog(oldTypes,entries),bySpec=new Map();
       for(const entry of entries){const id=merged.aliases['b2b:'+entry.id]||'b2b:'+entry.id;bySpec.set(entry.drawing.pdfSourceSpec.key,merged.entries.find(e=>'b2b:'+e.id===id));}
       const excluded=new Set(plan.conflicts.flat()),positions=(plan.blocks||plan.placements.filter(p=>!excluded.has(p.id))).map(copy);let adjusted=0;
       for(const p of positions){

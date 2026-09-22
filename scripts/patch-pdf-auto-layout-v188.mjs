@@ -7,7 +7,7 @@ export function transform(html){
   html=html.replace(save,'const layout = { pdfImport: m2LayoutState.pdfImport || null, points: m2LayoutState.points,');
   html=html.replace('const restoredLayout = JSON.parse(JSON.stringify(payload.layout));','const restoredLayout = JSON.parse(JSON.stringify(payload.layout)); restoredLayout.pdfImport = payload.layout.pdfImport || null;');
   html=html.replace('const sectionWidth = settings.palletType === \"euro\" && count === 4 ? 3600 : calculatedWidth;', 'const sectionWidth = Number(settings.importedSectionWidth) >= calculatedWidth ? Number(settings.importedSectionWidth) : settings.palletType === \"euro\" && count === 4 ? 3600 : calculatedWidth;');
-  const runtime=['pdf-native-placement.js','pdf-auto-layout.js'].map(f=>fs.readFileSync(new URL('../client/'+f,import.meta.url),'utf8')).join('\n');
+  const runtime=['imported-type-names.js','pdf-native-placement.js','pdf-auto-layout.js'].map(f=>fs.readFileSync(new URL('../client/'+f,import.meta.url),'utf8')).join('\n');
   const end=html.lastIndexOf('</body>');if(end<0)throw Error('Body missing');
   return html.slice(0,end)+'<script data-pdf-auto-layout="v188">'+runtime+'</script>'+html.slice(end);
 }
