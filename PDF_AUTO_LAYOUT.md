@@ -2,7 +2,9 @@
 
 Ortak Çizim ekranında “Eski projeden raf tipi kopyala” yanında “Otomatik yerleşim” bulunur. Dosya seçildiğinde tarayıcı PDF.js ile metinleri ve vektörleri okur. Harici AI servisi veya API anahtarı gerekmez; PDF dosyası sunucuya gönderilmez.
 
-İlk sürümün kapsamı: tek sayfada plan, hizalı yan kesitler, ölçülü ön kesitler ve palet ölçü/yük tablosu bulunan vektörel B2B çizimleri. Taranmış PDF, farklı kesit düzenleri, özel açıklıklar veya belirsiz eşleştirmeler hata mesajıyla durdurulur. Dosya adına veya müşteriye özel koordinat/veri kullanılmaz. Ölçek, açıklık ölçüleri ve karşılık gelen çizgilerden hesaplanır. Sayfa konumu değişse de algılama çalışır.
+Vektörel okuma kapsamı: tek sayfada plan, hizalı yan kesitler, ölçülü ön kesitler ve palet ölçü/yük tablosu bulunan B2B çizimleri. Farklı kesit düzenleri, özel açıklıklar veya belirsiz eşleştirmeler hata mesajıyla durdurulur. Dosya adına veya müşteriye özel koordinat/veri kullanılmaz. Ölçek, açıklık ölçüleri ve karşılık gelen çizgilerden hesaplanır. Sayfa konumu değişse de algılama çalışır.
+
+Resim PDF desteği: çizgi verisi olmayan tek sayfalar tarayıcıda rasterleştirilir. Tekrarlayan kırmızı/turuncu yatay traversler ve koyu/yeşil dikmelerden olası raf gözleri çıkarılır. Tesseract 7 OCR ve İngilizce sayı/metin modeli uygulamanın kendi statik dosyalarından yüklenir; PDF harici servise gönderilmez. Bu renkli yatay plan desteğidir; her fotoğraf, siyah-beyaz tarama veya eğik plan için genel çözüm değildir. OCR'nin güvenle eşleştirebildiği etiketli ölçüler/yükler önerilir; okunamayan kritik ölçüler zorunlu alanlarda kullanıcıya sorulur. Önizlemede gözlere tıklayarak özel/tünelli gözler çıkarılabilir. Kullanıcı aynı kesitin dahil edilen normal raflara uygulanacağını doğrulamadan hazırlama, ardından mevcut çizimi değiştirmeyi onaylamadan uygulama yapılamaz. Piksel konumları yaklaşık olduğundan özel tipler, tüneller ve çaprazlar otomatik atanmaz. Kalibrasyon standart travers açıklığından yapılır; belirsiz açıklıklar listelenip dışarıda tutulur. Kontrol edilen sonuç, aynı native raf hesabı, çift sıra ve birleşim akışını kullanır.
 
 Önizleme algılanan tipleri, göz sayılarını ve kaynak çakışmalarını gösterir. Kullanıcı uyguladığında mevcut B2B hesap motoru ayak/travers seçer ve gerçek kayıtlı tipler ile gerçek yerleşim blokları oluşturulur. Kat kotları uygulamanın `manualLevelSpecs` veri modeliyle saklanır; bu, kullanıcıdan elle veri girişi istemez. Her tipin ölçüsü ve ayak kapasitesi doğrulanır. İşlem hatasında katalog ve çizim eski haline döner.
 
@@ -14,6 +16,9 @@ Doğrulama:
 
 ```
 node scripts/verify-pdf-auto-layout-v188.mjs
+node scripts/verify-pdf-raster-v190.mjs
 ```
 
 `RAFEX_PDF_FIXTURE` ortam değişkeni özel test PDF’sinin yoluna ayarlanırsa gerçek vektör okuma, altı tip/262 göz/12 sıra, çakışma tespiti, sayfa koordinatı değişimi ve eksik yük tablosu testleri de çalışır. Müşteri PDF’si ve çıkarılan proje verisi depoya eklenmez.
+
+Resim PDF çift sıralarında çerçeveler arası mesafe ölçü kontrolünde alınır. Pikselden tahmin edilen küçük mesafe farkları yeni raf tipi üretmez; aynı kesit ve onaylı mesafeye sahip çift sıralar tek tipte toplanır.

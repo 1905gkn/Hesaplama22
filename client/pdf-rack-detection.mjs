@@ -13,7 +13,7 @@ export function groupRackPlan(plan){
     if(excluded.has(p.id)||used.has(p.id))continue;
     const spec=types.get(p.key);
     const matches=plan.placements.filter(q=>q.id!==p.id&&!used.has(q.id)&&!excluded.has(q.id)&&q.key===p.key&&Math.abs(q.y-p.y)<=10&&Math.abs(q.x-p.x)>=spec.palletDepth&&Math.abs(q.x-p.x)<=spec.frameDepth+500).sort((a,b)=>Math.abs(a.x-p.x)-Math.abs(b.x-p.x));
-    const partner=matches[0],gap=partner?Math.round((Math.abs(partner.x-p.x)-spec.frameDepth)/5)*5:0;
+    const partner=matches[0],gap=partner?(plan.raster?plan.doubleRowGap:Math.round((Math.abs(partner.x-p.x)-spec.frameDepth)/5)*5):0;
     const key=partner?spec.key+'-double-'+gap:spec.key;
     importTypes.set(key,{...spec,key,rowType:partner?'double':'single',rowGap:gap,name:spec.name+(partner?' · Çift sıra '+gap:' · Tek sıra')});
     const sources=partner?[p,partner]:[p];sources.forEach(q=>used.add(q.id));

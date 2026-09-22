@@ -8,7 +8,9 @@
     "verify:mekik2": "node scripts/verify-mekik2.mjs"
   },
   "dependencies": {
+    "@tesseract.js-data/eng": "1.0.0",
     "pdfjs-dist": "6.3.289",
+    "tesseract.js": "7.0.0",
     "three": "^0.180.0"
   },
   "devDependencies": {

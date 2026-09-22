@@ -1,16 +1,17 @@
 (function(){
-  let dialog,task,serial=0,plan,entries,identity,fileName;
+  let dialog,task,serial=0,plan,entries,identity,fileName,raster,rasterModule,groupPlan,ocrWorker;
   const owner=()=>window.rafexProjectIdentityV133?.uuid;
   function status(text){dialog.querySelector('[role=status]').textContent=text;}
-  function clear(){serial++;task?.destroy();task=null;plan=null;entries=null;}
+  function clear(){serial++;task?.destroy();task=null;plan=null;entries=null;raster=null;ocrWorker?.terminate().catch(()=>{});ocrWorker=null;dialog?.querySelector("[data-raster]")?.replaceChildren();}
   function open(){
     if(!dialog){
       const style=document.createElement('style');style.textContent='#rafexAutoLayoutButton{background:#246447;color:white;border:0;border-radius:7px;padding:10px 14px;font-weight:700;cursor:pointer}#rafexPdfAutoDialog{width:min(840px,94vw);max-height:88vh;overflow:auto;border:1px solid #b9cec3;border-radius:12px;padding:24px;color:#173c2d}#rafexPdfAutoDialog::backdrop{background:#10211999}#rafexPdfAutoDialog header,#rafexPdfAutoDialog footer{display:flex;gap:12px;justify-content:space-between;align-items:center}#rafexPdfAutoDialog h2{margin:0}#rafexPdfAutoDialog p{line-height:1.6}#rafexPdfAutoDialog button{padding:10px 16px;cursor:pointer}#rafexPdfAutoDialog label{display:block;margin:18px 0}#rafexPdfAutoDialog [role=status]{white-space:pre-wrap;padding:12px;background:#f0f6f2}#rafexPdfAutoDialog table{width:100%;border-collapse:collapse;font-size:13px}#rafexPdfAutoDialog td,#rafexPdfAutoDialog th{padding:8px;border-bottom:1px solid #ddd;text-align:left}#rafexPdfAutoDialog svg{width:100%;height:280px;background:#f4f7f5}#rafexPdfAutoDialog [hidden]{display:none!important}';document.head.append(style);
-      dialog=document.createElement('dialog');dialog.id='rafexPdfAutoDialog';dialog.innerHTML='<header><h2>PDF’den otomatik yerleşim</h2><button data-close aria-label="Kapat">×</button></header><p>Ölçülü B2B plan PDF’sini seç. Raf tipleri ve konumlar otomatik okunur; ayak ve traversler uygulamanın yük tablolarından hesaplanır.</p><label>PDF dosyası (en fazla 20 MB)<input data-file type="file" accept="application/pdf,.pdf"></label><p><small>Dosya bu tarayıcıda işlenir. Taranmış resim PDF’leri ve farklı çizim düzenleri henüz desteklenmiyor.</small></p><div role="status" aria-live="polite">PDF seçerek başlayabilirsin.</div><div data-preview hidden></div><label data-confirm hidden><input type="checkbox"> Uyarıları gördüm. Çakışan gözleri bekleterek mevcut çizimin yerine uygula.</label><footer><button data-close>Vazgeç</button><button data-apply disabled>Raf tiplerini oluştur ve yerleştir</button></footer>';document.body.append(dialog);
+      dialog=document.createElement('dialog');dialog.id='rafexPdfAutoDialog';dialog.innerHTML='<header><h2>PDF’den otomatik yerleşim</h2><button data-close aria-label="Kapat">×</button></header><p>Ölçülü B2B plan PDF’sini seç. Raf tipleri ve konumlar otomatik okunur; ayak ve traversler uygulamanın yük tablolarından hesaplanır.</p><label>PDF dosyası (en fazla 20 MB)<input data-file type="file" accept="application/pdf,.pdf"></label><p><small>Dosya bu tarayıcıda işlenir. Vektörel PDF doğrudan okunur. Resim PDF’de renkli yatay raf planı ve OCR kullanılır; belirsiz ölçüler sorulur.</small></p><div role="status" aria-live="polite">PDF seçerek başlayabilirsin.</div><div data-raster></div><div data-preview hidden></div><label data-confirm hidden><input type="checkbox"> Uyarıları gördüm. Çakışan gözleri bekleterek mevcut çizimin yerine uygula.</label><footer><button data-close>Vazgeç</button><button data-apply disabled>Raf tiplerini oluştur ve yerleştir</button></footer>';document.body.append(dialog);
       dialog.addEventListener('close',clear);
-      dialog.addEventListener('change',e=>{if(e.target.matches('[data-file]'))analyze(e);});
+      dialog.addEventListener('change',e=>{if(e.target.matches('[data-file]'))analyze(e);else if(e.target.closest('[data-raster]')){entries=null;plan=null;dialog.querySelector('[data-apply]').disabled=true;dialog.querySelector('[data-confirm]').hidden=true;dialog.querySelector('[data-preview]').hidden=true;}});
       dialog.addEventListener('click',event=>{
         if(event.target.closest('[data-close]'))dialog.close();
+        if(event.target.closest('[data-raster-prepare]')){prepareRaster();return;}
         if(!event.target.closest('[data-apply]'))return;
         try{if(!entries||!plan)throw Error('Analiz sonucu geçersiz; PDF’yi yeniden seç.');if(!dialog.querySelector('[data-confirm] input').checked)throw Error('Önce önizlemenin altındaki uyarı onayını işaretle.');if(owner()!==identity)throw Error('Proje değişti; PDF’yi yeniden seç.');window.rafexApplyImportedLayoutV188(plan,entries,fileName);dialog.close();}catch(e){status('Uygulanmadı: '+e.message);}
       });
@@ -28,21 +29,51 @@
       const bytes=new Uint8Array(await file.arrayBuffer());if(token!==serial)return;
       task=loadingTask=pdfjs.getDocument({data:bytes,isEvalSupported:false});documentPdf=await loadingTask.promise;
       if(documentPdf.numPages!==1)throw Error('Şimdilik plan ve kesitlerin birlikte bulunduğu tek sayfalık PDF seç.');
-      const result=detector.groupRackPlan(detector.detectRacks(await reader.readVectors(await documentPdf.getPage(1),pdfjs.OPS)));
+      const page=await documentPdf.getPage(1),vectors=await reader.readVectors(page,pdfjs.OPS);fileName=file.name;groupPlan=detector.groupRackPlan;
+      if(vectors.lines.length<10){
+        rasterModule=await import('/pdfjs/pdf-raster-reader.mjs');
+        const scanned=await rasterModule.scanRasterPage(page,status,()=>token===serial&&dialog.open,w=>{if(token===serial)ocrWorker=w;else w.terminate().catch(()=>{});});
+        if(token!==serial||!dialog.open)return;raster=scanned;ocrWorker=null;showRaster();return;
+      }
+      const result=detector.groupRackPlan(detector.detectRacks(vectors));
       if(token!==serial||!dialog.open)return;if(owner()!==identity)throw Error('Proje değişti. Pencereyi yeniden aç.');
-      if(m2ActiveModule!=='b2b'){const radio=document.querySelector('input[name="rafexUnifiedSystem"][value="b2b"]');if(!radio)throw Error('Ortak Çizim B2B motoru bulunamadı.');radio.checked=true;radio.dispatchEvent(new Event('change',{bubbles:true}));}
-      entries=window.rafexPrepareImportedTypesV188(result.importTypes);plan=result;fileName=file.name;if(!Array.isArray(entries)||entries.length!==result.importTypes.length)throw Error('Raf tipi hesabı tamamlanamadı.');
-      preview();dialog.querySelector('[data-confirm]').hidden=false;dialog.querySelector('[data-apply]').disabled=false;
-      const excluded=new Set(plan.conflicts.flat()).size;status(plan.importTypes.length+' raf tipi · '+plan.rows+' sıra · '+plan.placements.length+' göz algılandı.\n'+(plan.placements.length-excluded)+' göz, '+plan.blocks.length+' blok olarak hazır; '+plan.blocks.filter(p=>p.rowCount===2).length+' çift sıra blok.\n'+plan.warnings.join('\n')+'\nAynı tip sırt sırta gözler çift sıradır. Kesintisiz devam eden uyumlu gözler ortak ayakla birleştirilir; geçiş boşlukları korunur.');
+      prepare(result);
     }catch(e){if(token===serial)status(e.message||'PDF okunamadı.');}
     finally{await loadingTask?.destroy();if(token===serial)task=null;}
+  }
+  function prepare(result){
+    if(owner()!==identity)throw Error('Proje değişti. PDF’yi yeniden seç.');
+      if(m2ActiveModule!=='b2b'){const radio=document.querySelector('input[name="rafexUnifiedSystem"][value="b2b"]');if(!radio)throw Error('Ortak Çizim B2B motoru bulunamadı.');radio.checked=true;radio.dispatchEvent(new Event('change',{bubbles:true}));}
+      entries=window.rafexPrepareImportedTypesV188(result.importTypes);plan=result;if(!Array.isArray(entries)||entries.length!==result.importTypes.length)throw Error('Raf tipi hesabı tamamlanamadı.');
+      preview();dialog.querySelector('[data-confirm]').hidden=false;dialog.querySelector('[data-apply]').disabled=false;
+      const excluded=new Set(plan.conflicts.flat()).size;status(plan.importTypes.length+' raf tipi · '+plan.rows+' sıra · '+plan.placements.length+' göz algılandı.\n'+(plan.placements.length-excluded)+' göz, '+plan.blocks.length+' blok olarak hazır; '+plan.blocks.filter(p=>p.rowCount===2).length+' çift sıra blok.\n'+plan.warnings.join('\n')+'\nAynı tip sırt sırta gözler çift sıradır. Kesintisiz devam eden uyumlu gözler ortak ayakla birleştirilir; geçiş boşlukları korunur.');
+  }
+  const rasterFields=[['sectionWidth','Standart travers açıklığı (mm)'],['frameDepth','Raf çerçeve derinliği (mm)'],['footHeight','Ayak yüksekliği (mm)'],['levels','Zemin dahil kat adedi'],['palletCount','Standart gözde bir sıranın palet adedi'],['palletWidth','Palet eni (mm)'],['palletDepth','Palet derinliği (mm)'],['palletHeight','Yüklü palet yüksekliği (mm)'],['palletWeight','Bir paletin yükü (kg)'],['firstBeamTop','İlk travers üst kotu (mm)'],['clearOpening','Üst katlar arası net açıklık (mm)'],['doubleRowGap','Çift sıralarda çerçeveler arası mesafe (mm)']];
+  function showRaster(){
+    const box=dialog.querySelector('[data-raster]');box.replaceChildren();
+    const text=document.createElement('p');text.textContent='Resim PDF okundu: '+raster.geometry.rows.length+' sıra ve '+raster.geometry.count+' olası raf gözü. Yeşil kutular algılanan gözlerdir; aktarılmayacak özel/tünelli gözlere tıklayarak çıkar. Küçük yazılardan okunamayan ölçüleri aşağıda tamamla. Rafları uygulama otomatik yerleştirir.';box.append(text);
+    const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 '+raster.geometry.width+' '+raster.geometry.height);svg.style.height='auto';svg.style.maxHeight='560px';
+    const img=document.createElementNS(ns,'image');img.setAttribute('href',raster.image);img.setAttribute('width',raster.geometry.width);img.setAttribute('height',raster.geometry.height);svg.append(img);
+    for(const [row,r] of raster.geometry.rows.entries())for(const [bay,b] of r.bays.entries()){
+      const rect=document.createElementNS(ns,'rect');for(const [k,v] of Object.entries({x:b.left,y:r.top,width:b.width,height:r.depth,fill:'#00884455',stroke:'#008844','stroke-width':1,tabindex:0,role:'button','aria-label':'R'+(row+1)+'-'+(bay+1)+' gözünü çıkar veya dahil et'}))rect.setAttribute(k,v);
+      const toggle=()=>{b.omit=!b.omit;rect.setAttribute('fill',b.omit?'#ff333377':'#00884455');entries=null;plan=null;dialog.querySelector('[data-apply]').disabled=true;dialog.querySelector('[data-confirm]').hidden=true;};rect.addEventListener('click',toggle);rect.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle();}});svg.append(rect);
+    }box.append(svg);
+    const details=document.createElement('details'),summary=document.createElement('summary'),raw=document.createElement('pre');summary.textContent='OCR ile okunan yazılar';raw.textContent=raster.text||'Okunabilir yazı bulunamadı.';raw.style.whiteSpace='pre-wrap';details.append(summary,raw);box.append(details);
+    const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px';
+    for(const [key,title] of rasterFields){const label=document.createElement('label'),input=document.createElement('input');label.textContent=title;label.style.margin='4px 0';input.type='number';input.min='1';input.required=true;input.dataset.rasterField=key;input.style.cssText='display:block;width:95%;padding:8px';input.placeholder='PDF’den okunamadı';if(raster.suggestions[key])input.value=raster.suggestions[key];label.append(input);grid.append(label);}box.append(grid);
+    const check=document.createElement('label'),accept=document.createElement('input');accept.type='checkbox';accept.dataset.rasterReviewed='';check.append(accept,document.createTextNode(' Ölçüleri ve yeşil gözleri kontrol ettim. Aynı kesit ölçüleri dahil edilen normal raflara uygulanacak; özel/tünelli gözleri çıkardım.'));box.append(check);
+    const button=document.createElement('button');button.type='button';button.dataset.rasterPrepare='';button.textContent='Ölçüleri doğrula ve yerleşimi hazırla';box.append(button);status('Resim algılandı. OCR ile okunamayan ölçüleri tamamla ve gözleri kontrol et.');
+  }
+  function prepareRaster(){
+    try{if(!raster||owner()!==identity)throw Error('PDF’yi yeniden seç.');const fields=[...dialog.querySelectorAll('[data-raster-field]')],missing=fields.find(input=>!input.checkValidity());if(missing){missing.reportValidity();throw Error('Okunamayan zorunlu ölçüleri tamamla.');}if(!dialog.querySelector('[data-raster-reviewed]').checked)throw Error('Ölçü ve göz kontrolü onayını işaretle.');const values=Object.fromEntries(fields.map(input=>[input.dataset.rasterField,Number(input.value)]));prepare(groupPlan(rasterModule.rasterPlan(raster.geometry,values)));}catch(e){status(e.message);}
   }
   function preview(){
     const box=dialog.querySelector('[data-preview]');box.replaceChildren();box.hidden=false;
     const table=document.createElement('table'),head=table.createTHead().insertRow();['Açıklık × derinlik × yükseklik','Sıra','Kat','Palet yüksekliği','Kat açıklığı','Palet/kat/sıra','Blok'].forEach(s=>{const c=document.createElement('th');c.textContent=s;head.append(c);});
     for(const t of plan.importTypes){const row=table.insertRow();[t.sectionWidth+' × '+t.frameDepth+' × '+t.footHeight+' mm',t.rowType==='double'?'Çift · ara '+t.rowGap+' mm':'Tek',t.levels,t.palletHeight+' mm','İlk travers üstü '+t.firstBeamTop+' mm; net '+t.clearOpenings.join(' / ')+' mm',t.palletCount,plan.blocks.filter(p=>p.key===t.key).length].forEach(s=>row.insertCell().textContent=s);}
-    const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg'),maxX=Math.max(...plan.placements.map(p=>p.x+p.width)),maxY=Math.max(...plan.placements.map(p=>p.y+p.depth)),excluded=new Set(plan.conflicts.flat());svg.setAttribute('viewBox',[-1000,-1000,maxX+2000,maxY+2000].join(' '));svg.setAttribute('role','img');svg.setAttribute('aria-label','PDF’den algılanan raf yerleşimi; çakışan gözler kırmızı');
-    for(const p of plan.placements){const rect=document.createElementNS(ns,'rect');for(const [k,v] of Object.entries({x:p.x-p.width/2,y:p.y-p.depth/2,width:p.width,height:p.depth,fill:excluded.has(p.id)?'#ca3939':['#3581b8','#77a8ce','#277b60','#79b797','#b47730','#d2ab77'][plan.types.findIndex(t=>t.key===p.key)],stroke:'white','stroke-width':30}))rect.setAttribute(k,v);svg.append(rect);}
+    const shown=plan.orientation==='horizontal'?plan.placements.map(p=>({...p,x:p.y,y:p.x,width:p.depth,depth:p.width})):plan.placements;
+    const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg'),maxX=Math.max(...shown.map(p=>p.x+p.width)),maxY=Math.max(...shown.map(p=>p.y+p.depth)),excluded=new Set(plan.conflicts.flat());svg.setAttribute('viewBox',[-1000,-1000,maxX+2000,maxY+2000].join(' '));svg.setAttribute('role','img');svg.setAttribute('aria-label','PDF’den algılanan raf yerleşimi; çakışan gözler kırmızı');
+    for(const p of shown){const rect=document.createElementNS(ns,'rect');for(const [k,v] of Object.entries({x:p.x-p.width/2,y:p.y-p.depth/2,width:p.width,height:p.depth,fill:excluded.has(p.id)?'#ca3939':['#3581b8','#77a8ce','#277b60','#79b797','#b47730','#d2ab77'][plan.types.findIndex(t=>t.key===p.key)],stroke:'white','stroke-width':30}))rect.setAttribute(k,v);svg.append(rect);}
     box.append(table,svg);
   }
   let pending=false;function install(){
@@ -52,7 +83,7 @@
     let note=document.getElementById('rafexImportNoteV188');
     if(!info||!anchor){note?.remove();return;}
     if(floor&&!note){note=document.createElement('p');note.id='rafexImportNoteV188';note.style.cssText='padding:12px;background:#fff4dc;color:#674718;white-space:pre-wrap;font-size:12px';floor.after(note);}
-    const message='PDF aktarımı: '+info.fileName+'\nDepo sınırı, kapılar, kolonlar ve bina yüksekliği bu aktarıma dahil değildir.'+(info.excluded?.length?'\nBekletilen çakışan gözler: '+info.excluded.map(p=>p.id).join(', '):'')+(info.doubleBlocks?'\n'+info.doubleBlocks+' çift sıra blok.':'')+(info.joined?' '+info.joined+' ortak ayaklı birleşim.':'')+(info.adjusted?'\n'+info.adjusted+' blok konumu ortak ayak ölçüsüne göre düzenlendi.':'');
+    const message='PDF aktarımı: '+info.fileName+'\nDepo sınırı, kapılar, kolonlar ve bina yüksekliği bu aktarıma dahil değildir.'+(info.excluded?.length?'\nBekletilen çakışan gözler: '+info.excluded.map(p=>p.id).join(', '):'')+(info.doubleBlocks?'\n'+info.doubleBlocks+' çift sıra blok.':'')+(info.joined?' '+info.joined+' ortak ayaklı birleşim.':'')+(info.raster?'\nResim PDF: konumlar yaklaşık; özel/tünelli raflar ve okunamayan ölçüler kullanıcı kontrolü gerektirir.':'')+(info.adjusted?'\n'+info.adjusted+' blok konumu ortak ayak ölçüsüne göre düzenlendi.':'');
     if(note&&note.textContent!==message)note.textContent=message;
   }
   const observer=new MutationObserver(()=>{if(!pending){pending=true;requestAnimationFrame(install);}});observer.observe(document.getElementById('page')||document.body,{childList:true,subtree:true});install();

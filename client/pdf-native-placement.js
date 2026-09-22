@@ -82,11 +82,11 @@
         }
       }
       adjusted=positions.filter(p=>Math.abs(p.y-p.sourceY)>1).length;
-      const maxX=Math.max(...positions.map(p=>p.x+p.nativeDepth/2)),maxY=Math.max(...positions.map(p=>p.y+p.nativeWidth/2)),scale=Math.min(840/(maxX+2000),490/(maxY+2000));
+      const horizontal=plan.orientation==='horizontal',maxX=Math.max(...positions.map(p=>p.x+p.nativeDepth/2)),maxY=Math.max(...positions.map(p=>p.y+p.nativeWidth/2)),scale=Math.min(840/((horizontal?maxY:maxX)+2000),490/((horizontal?maxX:maxY)+2000));
       m2LayoutState.pdfImport??=null;push('PDF otomatik yerleşim');m2PushUndo=()=>{};
       m2UserNotes=[];m2DimensionOffsets={};m2DimensionFontSizes={};m2HiddenSummaryDimensions=new Set();m2VisibleRackDimensions={length:new Set(),depth:new Set()};m2PinnedDimensionsByRack={};m2FreeMeasure={points:[],hover:null};
       window.rafexProjectTypesV133=merged.entries;window.rafexUnifiedCatalogSync();
-      m2LayoutState={...m2LayoutState,points:[],pathBreaks:[],cadElements:[],closed:false,openFinished:true,scale,racks:[],selected:null,pinnedRackId:null,drag:null,hover:null,mode:'idle',edgeDimensions:[],pdfImport:{fileName,detected:plan.placements.length,excluded:plan.placements.filter(p=>excluded.has(p.id)),warnings:plan.warnings,adjusted,joined,doubleBlocks:positions.filter(p=>p.rowCount===2).length,warehouseBoundary:null}};
+      m2LayoutState={...m2LayoutState,points:[],pathBreaks:[],cadElements:[],closed:false,openFinished:true,scale,racks:[],selected:null,pinnedRackId:null,drag:null,hover:null,mode:'idle',edgeDimensions:[],pdfImport:{fileName,raster:!!plan.raster,detected:plan.placements.length,excluded:plan.placements.filter(p=>excluded.has(p.id)),warnings:plan.warnings,adjusted,joined,doubleBlocks:positions.filter(p=>p.rowCount===2).length,warehouseBoundary:null}};
       m2LayoutSymbols=[];
       const templates=new Map();
       for(const [key,entry] of bySpec){
@@ -96,7 +96,7 @@
       const baseId=Date.now();
       for(const [i,p] of positions.entries()){
         const entry=bySpec.get(p.key),rack=copy(templates.get(p.key));
-        Object.assign(rack,{id:baseId+i,x:80+p.x*scale-rack.w/2,y:70+p.y*scale-rack.h/2,angle:90,staged:false,freePlacement:false,locked:true,rafexCatalogKey:'b2b:'+entry.id,rafexSystem:'b2b',pdfSourceId:p.id,pdfSourceIds:p.sourceIds||[p.id]});
+        Object.assign(rack,{id:baseId+i,x:80+(horizontal?p.y:p.x)*scale-rack.w/2,y:70+(horizontal?p.x:p.y)*scale-rack.h/2,angle:horizontal?0:90,staged:false,freePlacement:false,locked:true,rafexCatalogKey:'b2b:'+entry.id,rafexSystem:'b2b',pdfSourceId:p.id,pdfSourceIds:p.sourceIds||[p.id]});
         if(p.joinGroup)rack.joinGroup=p.joinGroup+'-'+baseId;
         if(p.parentIndex!==undefined){rack.sharedFootWith=baseId+p.parentIndex;rack.sharedFootSide=p.sharedSide;}
         if(!m2RackInsideArea(rack)||m2RackOverlaps(rack))throw Error(p.id+': hesaplanan raf dış ölçüsü başka bir blokla çakışıyor.');
