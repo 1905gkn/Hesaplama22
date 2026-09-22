@@ -9,10 +9,14 @@
       const beam=window.RafexRackTravers.height(choice.value);
       if(s.levelStep<s.palletHeight+beam)throw Error(s.name+': seçilen travers ile PDF kat aralığı yetersiz.');
       const state={palletType:s.palletWidth===800&&s.palletDepth===1200?'euro':'special',palletWidth:s.palletWidth,palletDepth:s.palletDepth,palletHeight:s.palletHeight,palletWeight:s.palletWeight,palletCount:s.palletCount,levels:s.levels,rowType:'single',rowGap:0,firstPalletPosition:'ground',firstFloorGap:s.firstBeamTop-beam,palletTraverseGap:s.levelStep-s.palletHeight-beam,palletOverhang:(s.palletDepth-s.frameDepth)/2,footHeightMode:'manual',footHeight:s.footHeight,footManual:false,traverseManual:false,traverseType:choice.value,collectionLevels:{enabled:false},accessories:[],manualLevelSpecs:Array.from({length:s.levels},(_,index)=>({distance:index?s.levelStep:s.firstBeamTop-beam,palletHeight:s.palletHeight,weight:s.palletWeight*s.palletCount,traverseType:choice.value,selectionMode:'auto'}))};
+      state.traverseHeightOverride=beam;
       b2bApplySavedInputState(state);
-      const d=copy(m2LastDrawing),physical=b2bLayoutDrawing(d);
+      // m2LastDrawing retains the generic Mekik beam height (80 mm). B2B's
+      // selected-profile calculation is authoritative for imported B2B types.
+      const d=copy({...m2LastDrawing,traverseHeight:b2bTraverseHeight()}),physical=b2bLayoutDrawing(d);
       if(!d?.plan||!d.footProfile||!Number.isFinite(d.footCapacity)||d.footCapacity<d.footLoad)throw Error(s.name+': yük tablosunda uygun ayak bulunamadı.');
       if(Math.abs(physical.b2bLayout.sectionWidth-s.sectionWidth)>1||Math.abs(physical.b2bLayout.frameDepth-s.frameDepth)>1||Number(d.b2b?.levels)!==s.levels||Number(d.b2b?.footHeight)!==s.footHeight)throw Error(s.name+': hesaplanan ölçüler PDF ile uyuşmuyor.');
+      if(Number(d.traverseHeight)!==beam)throw Error(s.name+': travers yüksekliği seçilen profille uyuşmuyor.');
       d.rafexSystem='b2b';d.pdfSourceSpec=copy(s);
       entries.push({id:-(Date.now()+i),name:s.name,source:'project',__rafexSystem:'b2b',__rafexSystemLabel:'B2B',__rafexUnified:true,drawing:d,__rafexSnapshot:copy(d)});
     }}finally{b2bApplySavedInputState(previous);m2LastDrawing=last;}

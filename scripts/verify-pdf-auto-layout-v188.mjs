@@ -17,6 +17,12 @@ vm.createContext(context);vm.runInContext(fs.readFileSync('client/pdf-native-pla
 const spec={key:'test'},entry={id:-1,name:'A',drawing:{pdfSourceSpec:spec}};
 assert.throws(()=>context.window.rafexApplyImportedLayoutV188({conflicts:[],placements:[{id:'r',key:'test',row:1,x:1000,y:1000}],warnings:[]},[entry],'test.pdf'),/çakışıyor/);
 assert.equal(context.m2LayoutState.racks[0].id,7);assert.equal(context.m2LayoutSymbols[0].id,8);assert.equal(context.m2UserNotes[0].text,'keep');assert.equal(context.window.rafexProjectTypesV133.length,0);assert.equal(context.m2UndoHistory.length,0);
+const originalDrawing={tag:'original'},originalForm={tag:'original'};let form=originalForm;
+const profileContext={window:{RafexRackTravers:{choices:()=>[{value:'CC125'}],height:()=>125}},document:{getElementById:()=>({})},m2ActiveModule:'b2b',m2LastDrawing:originalDrawing,b2bReadInputState:()=>form,b2bTraverseHeight:()=>form.traverseHeightOverride,b2bLayoutDrawing:d=>({b2bLayout:{sectionWidth:2700,frameDepth:1100}})};
+profileContext.b2bApplySavedInputState=s=>{form=s;profileContext.m2LastDrawing={plan:{feet:[]},footProfile:'HR',footCapacity:20000,footLoad:10800,traverseHeight:80,b2b:s};};
+vm.createContext(profileContext);vm.runInContext(fs.readFileSync('client/pdf-native-placement.js','utf8'),profileContext);
+const generated=profileContext.window.rafexPrepareImportedTypesV188([{name:'Test',key:'one',sectionWidth:2700,frameDepth:1100,footHeight:8000,levels:5,palletCount:3,palletWidth:800,palletDepth:1200,palletHeight:1500,palletWeight:900,firstBeamTop:1730,levelStep:1630}]);
+assert.equal(generated[0].drawing.traverseHeight,125,'Generic Mekik height must not leak into B2B');assert.equal(generated[0].drawing.b2b.manualLevelSpecs[0].distance+125,1730);assert.equal(profileContext.m2LastDrawing,originalDrawing);assert.equal(form,originalForm);
 if(process.env.RAFEX_PDF_FIXTURE){
   const pdfjs=await import('pdfjs-dist/legacy/build/pdf.mjs');
   const task=pdfjs.getDocument({data:new Uint8Array(fs.readFileSync(process.env.RAFEX_PDF_FIXTURE)),isEvalSupported:false}),document=await task.promise;
