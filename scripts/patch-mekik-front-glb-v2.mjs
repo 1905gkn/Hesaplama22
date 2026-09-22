@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
+import { buildSync } from 'esbuild';
 
 const root = process.cwd();
 const workerPath = path.join(root, "dist/server/index.js");
@@ -8,14 +8,7 @@ const viewerSource = path.join(root, "client/mekik-front-viewer.entry.js");
 const viewerBundle = path.join(root, "dist/mekik-front-viewer.js");
 const assetRoot = path.join(root, "assets/mekik-front-src");
 
-execFileSync(path.join(root, "node_modules/.bin/esbuild"), [
-  viewerSource,
-  "--bundle",
-  "--format=iife",
-  "--minify",
-  "--target=es2022",
-  `--outfile=${viewerBundle}`,
-], { stdio: "inherit" });
+buildSync({entryPoints:[viewerSource],bundle:true,format:'iife',minify:true,target:'es2022',outfile:viewerBundle});
 
 const readBase64 = (name) => fs.readFileSync(path.join(assetRoot, name)).toString("base64");
 const ayakGzip = readBase64("mekik-front-ayak.glb.gz");

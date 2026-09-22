@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
+import {pathToFileURL} from 'node:url';
 
 const workerPath = path.join(process.cwd(), "dist/server/index.js");
 
@@ -65,7 +66,7 @@ await import(`./patch-konsol-common-3d-customize-v114.mjs?build=${Date.now()}`);
 await import(`./patch-common-wording-palette-v94.mjs?build=${Date.now()}`);
 await import(`./patch-common-layout-zoom-crisp-v126.mjs?build=${Date.now()}`);
 
-const workerModule = await import(`${workerPath}?syntax-check=${Date.now()}`);
+const workerModule = await import(`${pathToFileURL(workerPath).href}?syntax-check=${Date.now()}`);
 const response = await workerModule.default.fetch(
   new Request("https://runtime-verifier.invalid/"),
   {},

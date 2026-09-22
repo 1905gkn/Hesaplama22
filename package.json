@@ -8,6 +8,7 @@
     "verify:mekik2": "node scripts/verify-mekik2.mjs"
   },
   "dependencies": {
+    "pdfjs-dist": "6.3.289",
     "three": "^0.180.0"
   },
   "devDependencies": {
