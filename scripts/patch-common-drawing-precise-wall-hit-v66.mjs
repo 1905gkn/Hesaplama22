@@ -13,6 +13,13 @@ const runtime = String.raw`
 /* Duvar mesafelerinde yalnız görünen mm yazısı tıklanır; geniş şeffaf hit kutusu pasiftir. */
 #page #m2LayoutSvg .m2-measure-hit[data-dimension-key^="wall:"]{pointer-events:none!important;cursor:default!important}
 #page #m2LayoutSvg .m2-wall-distance-label[data-dimension-key^="wall:"]{pointer-events:visiblePainted!important;cursor:pointer}
+/* Raf arası ölçülerde de yalnız yazı etkileşimlidir; çizgi/noktalar ve
+   eski geniş kutu, arkadaki bloğun çift tıklamasını engellemez. */
+#page #m2LayoutSvg [data-rack-gap],
+#page #m2LayoutSvg [data-rack-gap] > line,
+#page #m2LayoutSvg [data-rack-gap] > circle,
+#page svg#m2LayoutSvg [data-rack-gap] .m2-measure-hit{pointer-events:none!important;cursor:default!important}
+#page #m2LayoutSvg [data-rack-gap] .m2-rack-distance-label{pointer-events:visiblePainted!important;cursor:pointer}
 </style>`;
 
 const close = html.lastIndexOf("</body>");
