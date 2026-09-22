@@ -62,3 +62,15 @@ if(process.env.RAFEX_PDF_FIXTURE){
   }finally{await task.destroy();}
 }
 console.log('PASS: syntax, idempotent injection, unsupported PDF rejection.');
+
+// Imported project details must survive the native block conversion.
+joinContext.window.rafexB2BDetailOptionsV117=r=>r.b2bViewerOptions;
+joinContext.window.rafexPhysicalLevelsV121=()=>[{level:1,bottom:2000},{level:2,bottom:4250},{level:3,bottom:6400}];
+joinContext.window.rafexApplyImportedLayoutV188({conflicts:[],placements:[{...chain[0],tunnelHeight:4200},{...chain[1],braced:true}],warnings:[]},[joinedEntry],'special.pdf');
+const specialRacks=joinContext.m2LayoutState.racks;
+assert.equal(specialRacks[0].b2b.tunnelHeight,4200);
+assert.equal(specialRacks[0].b2bViewerOptions.tunnelHeight,4200);
+assert.equal(specialRacks[0].b2b.accessories[0].levels[0],2);
+assert.equal(specialRacks[1].seismicBraces[0].rackIds[0],specialRacks[1].id);
+assert.equal(specialRacks[1].seismicBraces[0].type,'light');
+console.log('PASS native tunnel height, first visible tray and brace ownership.');

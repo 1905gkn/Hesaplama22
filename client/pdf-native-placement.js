@@ -97,6 +97,15 @@
       for(const [i,p] of positions.entries()){
         const entry=bySpec.get(p.key),rack=copy(templates.get(p.key));
         Object.assign(rack,{id:baseId+i,x:80+(horizontal?p.y:p.x)*scale-rack.w/2,y:70+(horizontal?p.x:p.y)*scale-rack.h/2,angle:horizontal?0:90,staged:false,freePlacement:false,locked:true,rafexCatalogKey:'b2b:'+entry.id,rafexSystem:'b2b',pdfSourceId:p.id,pdfSourceIds:p.sourceIds||[p.id]});
+        if(p.tunnelHeight){
+          rack.b2b={...rack.b2b,tunnelHeight:p.tunnelHeight};
+          rack.b2bViewerOptions={...rack.b2bViewerOptions,tunnelHeight:p.tunnelHeight};
+          const detail=window.rafexB2BDetailOptionsV117(rack),visible=window.rafexPhysicalLevelsV121(detail).filter(f=>f.bottom>=p.tunnelHeight);
+          if(!visible.length)throw Error(p.id+': tünel üstünde kullanılabilir kat kalmıyor.');
+          rack.b2b.accessories=[...(rack.b2b.accessories||[]),{type:'tray',width:300,levels:[visible[0].level]}];
+          rack.b2bViewerOptions.accessories=copy(rack.b2b.accessories);
+        }
+        if(p.braced)rack.seismicBraces=[{id:baseId+positions.length+i,type:'light',rackIds:[rack.id]}];
         if(p.joinGroup)rack.joinGroup=p.joinGroup+'-'+baseId;
         if(p.parentIndex!==undefined){rack.sharedFootWith=baseId+p.parentIndex;rack.sharedFootSide=p.sharedSide;}
         if(!m2RackInsideArea(rack)||m2RackOverlaps(rack))throw Error(p.id+': hesaplanan raf dış ölçüsü başka bir blokla çakışıyor.');

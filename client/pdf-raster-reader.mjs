@@ -15,10 +15,11 @@ export function detectRasterGeometry({data,width,height}){
   for(let n=0;n<bands.length-1;n++){
     const a=bands[n],b=bands[n+1],span=b.y-a.y;
     if(span<depth*.72||span>depth*1.35)continue;
+    // Green cross-braces are not uprights; use the dark frame strokes.
     const frames=[];
     for(let x=0;x<width;x++){
       let count=0,total=0;
-      for(let y=a.y+2;y<b.y-1;y++){const i=(y*width+x)*4,r=data[i],g=data[i+1],blue=data[i+2];total++;if((r<170&&g<170&&blue<170)||(g>r*1.2&&g>blue*1.15))count++;}
+      for(let y=a.y+2;y<b.y-1;y++){const i=(y*width+x)*4,r=data[i],g=data[i+1],blue=data[i+2];total++;if((r<170&&g<170&&blue<170))count++;}
       if(!total||count/total<.6)continue;
       const last=frames.at(-1);if(last&&x-last.end<=2){last.end=x;last.x=(last.start+x)/2;}else frames.push({start:x,end:x,x});
     }
@@ -27,15 +28,24 @@ export function detectRasterGeometry({data,width,height}){
       const left=frames[j].x,right=frames[j+1].x,w=right-left;
       if(w<span*1.15||w>span*4)continue;
       let hits=0,total=0;
-      for(let x=Math.ceil(left+2);x<right-2;x++)for(const y of [a.y,b.y]){const i=(y*width+x)*4;total++;if(red(data[i],data[i+1],data[i+2]))hits++;}
+      for(let x=Math.ceil(left+2);x<right-2;x++)for(const y of [a.y,b.y]){const i=(y*width+x)*4;total++;if(red(data[i],data[i+1],data[i+2])||(data[i+1]>data[i]*1.2&&data[i+1]>data[i+2]*1.15))hits++;}
       if(total&&hits/total>.62)bays.push({left,right,width:w});
     }
     if(bays.length>=6)rows.push({top:a.y,bottom:b.y,depth:span,bays,footPixels:median(frames.map(f=>Math.max(1,f.end-f.start)))});
   }
   if(rows.length<2)throw Error('Resimde raf gözleri güvenle ayrılamadı. Daha yüksek çözünürlüklü PDF gerekli.');
   const widths=rows.flatMap(r=>r.bays.map(b=>b.width)),typicalWidth=median(widths);
+  // Braced bays use colored interior diagonals. Hatched tunnel bays interrupt
+  // the red rails, so recover only gray spans bounded by neighboring rack bays.
+  for(const row of rows){
+    for(const bay of row.bays){let colored=0,total=0;for(let y=row.top+2;y<row.bottom-1;y++)for(let x=Math.ceil(bay.left+3);x<bay.right-3;x++){const i=(y*width+x)*4;total++;if(data[i+1]>80&&data[i+1]>data[i]*1.2)colored++;}bay.braced=total>0&&colored/total>.16;}
+    const runs=[];
+    for(let x=0;x<width;x++){let hits=0,total=0;for(let y=row.top+2;y<row.bottom-1;y++){const i=(y*width+x)*4,r=data[i],g=data[i+1],b=data[i+2];total++;if(r>70&&r<210&&Math.max(r,g,b)-Math.min(r,g,b)<25)hits++;}if(hits/total>.55){const last=runs.at(-1);if(last&&x-last.end<=2)last.end=x;else runs.push({start:x,end:x});}}
+    for(const run of runs){if(run.end-run.start<typicalWidth*.55||run.end-run.start>typicalWidth*1.3)continue;const before=rows.flatMap(r=>r.bays).filter(b=>Math.abs(b.right-run.start)<typicalWidth*.24).sort((a,b)=>b.right-a.right)[0],after=rows.flatMap(r=>r.bays).filter(b=>Math.abs(b.left-run.end)<typicalWidth*.24).sort((a,b)=>a.left-b.left)[0];if(!before||!after||after.left<=before.right)continue;row.bays.push({left:before.right,right:after.left,width:after.left-before.right,tunnel:true,braced:false});}
+    row.bays.sort((a,b)=>a.left-b.left);
+  }
   // Geometry is always reviewable; dimensions are not inferred from pixel size.
-  return {rows,typicalWidth,footPixels:median(rows.map(r=>r.footPixels)),width,height,count:widths.length};
+  return {rows,typicalWidth,footPixels:median(rows.map(r=>r.footPixels)),width,height,count:rows.reduce((n,r)=>n+r.bays.length,0)};
 }
 
 export function rasterPlan(geometry,values){
@@ -46,6 +56,7 @@ export function rasterPlan(geometry,values){
   const sectionFor=count=>values.palletWidth===800&&count===4?3600:values.palletWidth*count+75*(count+1);
   const predicted=sectionFor(values.palletCount);
   if(predicted!==values.sectionWidth)throw Error('Açıklık, palet eni ve adedi sistemin 75 mm boşluklu B2B tipiyle uyuşmuyor.');
+  if(geometry.rows.some(r=>r.bays.some(b=>b.tunnel&&!b.omit))&&(!Number.isFinite(values.tunnelHeight)||values.tunnelHeight<500||values.tunnelHeight>=values.footHeight))throw Error('Tünel geçiş yüksekliğini kontrol et.');
   const types=[],placements=[],excluded=[],scale=values.sectionWidth/(geometry.typicalWidth-geometry.footPixels);
   const minAlong=Math.min(...geometry.rows.flatMap(r=>r.bays.map(b=>b.left))),minAcross=geometry.rows[0].top;
   for(const [row,r] of geometry.rows.entries())for(const [bay,b] of r.bays.entries()){
@@ -56,12 +67,12 @@ export function rasterPlan(geometry,values){
     if(Math.abs(width/sectionWidth-1)>.08){excluded.push(id);continue;}
     let t=types.find(t=>t.sectionWidth===sectionWidth);
     if(!t){t={...values,sectionWidth,palletCount:count,key:'raster-'+types.length,name:'PDF resim '+sectionWidth+' / H '+values.footHeight,system:'b2b',rowType:'single',rowGap:0,firstPalletPosition:'ground',clearOpenings:Array(values.levels-2).fill(values.clearOpening),levelStep:values.clearOpening};types.push(t);}
-    placements.push({id,row:row+1,key:t.key,x:(r.top+r.bottom-2*minAcross)/2*scale,y:(b.left+b.right-2*minAlong)/2*scale,width:values.frameDepth,depth:sectionWidth,angle:90});
+    placements.push({id,row:row+1,key:t.key,braced:!!b.braced,tunnelHeight:b.tunnel?values.tunnelHeight:0,x:(r.top+r.bottom-2*minAcross)/2*scale,y:(b.left+b.right-2*minAlong)/2*scale,width:values.frameDepth,depth:sectionWidth,angle:90});
   }
   if(!placements.length||placements.length>1000)throw Error('Aktarılacak raf gözü sayısı geçersiz (1–1000).');
   const conflicts=[];
   for(let i=0;i<placements.length;i++)for(let j=i+1;j<placements.length;j++){const a=placements[i],b=placements[j];if(Math.abs(a.x-b.x)<(a.width+b.width)/2-5&&Math.abs(a.y-b.y)<(a.depth+b.depth)/2-5)conflicts.push([a.id,b.id]);}
-  return {types,placements,rows:geometry.rows.length,conflicts,orientation:'horizontal',doubleRowGap:values.doubleRowGap,warehouseBoundary:null,raster:true,warnings:['Resim PDF: ölçüler kullanıcı kontrolünden geçti; konumlar piksellerden yaklaşık çıkarıldı.','Kesit ölçüleri algılanan normal raflara uygulanır. Tünel, çapraz ve özel tip farklılıkları otomatik ayırt edilmez; önizlemeyi kontrol edin.','Depo dış sınırı, kapı ve kolonlar aktarılmaz.',...(excluded.length?[excluded.length+' belirsiz açıklık aktarılmadı: '+excluded.join(', ')]:[])]};
+  return {types,placements,rows:geometry.rows.length,conflicts,orientation:'horizontal',doubleRowGap:values.doubleRowGap,warehouseBoundary:null,raster:true,warnings:['Resim PDF: ölçüler kullanıcı kontrolünden geçti; konumlar piksellerden yaklaşık çıkarıldı.','Yeşil çapraz ve gri tünel işaretleri önizleme onayıyla uygulanır. Diğer özel tipleri kontrol edin.','Depo dış sınırı, kapı ve kolonlar aktarılmaz.',...(excluded.length?[excluded.length+' belirsiz açıklık aktarılmadı: '+excluded.join(', ')]:[])]};
 }
 
 export function ocrSuggestions(text){
