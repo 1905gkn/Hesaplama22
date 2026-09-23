@@ -20,6 +20,7 @@ try{
   const origin=`http://127.0.0.1:${server.address().port}`;
   const source=fs.readFileSync(new URL('../api/index.js',import.meta.url),'utf8')
     .replace('import worker from "../dist/server/index.js";','const worker = {};')
+    .replace("'../scripts/layout-agent-api-v188.mjs'",JSON.stringify(new URL('./layout-agent-api-v188.mjs',import.meta.url).href))
     .replace("import {validateCatalogWrite} from '../scripts/catalog-validation-v185.mjs';",validateCatalogWrite.toString())
     .replace('https://rafex-configurator.rafex-3908.chatgpt.site',origin);
   const proxy=(await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'))).default;
