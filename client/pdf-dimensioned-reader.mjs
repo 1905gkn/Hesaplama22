@@ -52,14 +52,33 @@ export function detectDimensionedPlan(vector){
  const side=nums.filter(t=>!t.vertical&&number(t)===depth&&t.x>section[0].x-section[0].height*3&&t.y>Math.max(...section.map(t=>t.y)));
  let rowGap;for(const a of side)for(const b of side){if(b.x<=a.x||Math.abs(a.y-b.y)>a.height)continue;const between=nums.find(t=>!t.vertical&&t.x>a.x&&t.x<b.x&&Math.abs(t.y-a.y)<a.height&&number(t)<depth);if(between)rowGap=number(between);}
  if(!(rowGap>=0))throw Error('Çift sıra ara mesafesi yan kesitten okunamadı.');
+ // Use annotated frame-to-frame aisles rather than rounded drawing pixels.
+ const rowCenters=[depth/2],aisles=[];
+ for(let i=1;i<rowYs.length;i++){
+  const previous=bays.filter(b=>Math.abs(b.cy-rowYs[i-1])<1),next=bays.filter(b=>Math.abs(b.cy-rowYs[i])<1);
+  const before=previous[0].depth,after=next[0].depth,estimated=(rowYs[i]-rowYs[i-1])*scale-(before+after)/2;
+  let gap=estimated;
+  if(estimated>=0&&estimated<500)gap=rowGap;
+  else{
+   const middle=(rowYs[i]+rowYs[i-1])/2+(before-after)/scale/4;
+   const left=Math.max(Math.min(...previous.map(b=>b.cx-b.width/scale/2)),Math.min(...next.map(b=>b.cx-b.width/scale/2)));
+   const candidates=nums.filter(t=>t.vertical&&t.x<=left+t.height&&t.x>=left-t.height*12&&Math.abs(t.y-t.width/2-middle)<t.height&&Math.abs(number(t)-estimated)<Math.max(50,estimated*.04));
+   const values=[...new Set(candidates.map(number))];
+   if(values.length>1)throw Error('Raflar arası koridor ölçüleri çelişiyor; aktarım durduruldu.');
+   if(values.length===1)gap=values[0];
+   aisles.push({fromRow:i,toRow:i+1,frameGap:gap,measured:values.length===1});
+  }
+  rowCenters.push(rowCenters[i-1]+(before+after)/2+gap);
+ }
  const heights=section.map(t=>loads.find(l=>l.id===t.text).height),types=[],placements=[],minX=Math.min(...bays.map(b=>b.cx-b.width/scale/2)),minY=Math.min(...bays.map(b=>b.cy-b.depth/scale/2));
  for(const [i,b] of bays.entries()){
   let type=types.find(t=>t.sectionWidth===b.width&&t.frameDepth===b.depth);
   if(!type){const count=[4,3,2,1].find(n=>n*loads[0].width+(n+1)*75<=b.width+1);if(!count)throw Error('Palet tabanı raf açıklığına sığmıyor.');type={key:'dim-'+types.length,name:b.width+' / H '+footHeight,system:'b2b',sectionWidth:b.width,frameDepth:b.depth,footHeight,levels:heights.length,palletCount:count,palletWidth:loads[0].width,palletDepth:loads[0].depth,palletHeight:heights[0],palletHeights:heights,palletWeight:weights[0],firstPalletPosition:'ground',firstBeamTop:number(steps[0]),levelPitches:steps.slice(1).map(number),rowType:'single',rowGap:0};types.push(type);}
-  placements.push({id:'D'+(i+1),key:type.key,row:rowYs.findIndex(y=>Math.abs(y-b.cy)<1)+1,x:(b.cy-minY)*scale,y:(b.cx-minX)*scale,width:b.depth,depth:b.width,angle:90});
+  const rowIndex=rowYs.findIndex(y=>Math.abs(y-b.cy)<1);
+  placements.push({id:'D'+(i+1),key:type.key,row:rowIndex+1,x:rowCenters[rowIndex],y:(b.cx-minX)*scale,width:b.depth,depth:b.width,angle:90});
  }
  const capacity=placements.reduce((n,p)=>n+types.find(t=>t.key===p.key).palletCount*heights.length,0);
  const declared=loads.map(l=>text.map(t=>({t,m:norm(t.text).match(/=\s*(\d+)\b/)})).find(({t,m})=>m&&t.text.includes(l.id)&&t.y>l.tableY)?.m).filter(Boolean).map(m=>+m[1]);
  if(declared.length===loads.length&&declared.reduce((n,c)=>n+c,0)!==capacity)throw Error('Algılanan raf kapasitesi belgedeki yük tipi adetleriyle uyuşmuyor; eksik aktarım durduruldu.');
- return {types,placements,rows:rowYs.length,orientation:'horizontal',doubleRowGap:rowGap,conflicts:[],warehouseBoundary:null,capacity,warnings:['Ölçü çiftleri ve sayısal tablo yapısından okundu. Kat bazında farklı yük yükseklikleri korunur.','Hesaplanan palet kapasitesi: '+capacity+'.','Depo duvarları ve kapı/kolonlar bu aktarımda oluşturulmaz.']};
+ return {types,placements,rows:rowYs.length,orientation:'horizontal',doubleRowGap:rowGap,aisles,conflicts:[],warehouseBoundary:null,capacity,warnings:['Ölçü çiftleri ve sayısal tablo yapısından okundu. Kat bazında farklı yük yükseklikleri korunur.','Çerçeveler arası koridorlar: '+aisles.map(a=>Math.round(a.frameGap*100)/100+' mm'+(a.measured?'':' (çizim ölçeğinden yaklaşık)')).join(' / ')+'. Palet taşmaları net geçişi azaltır.','Hesaplanan palet kapasitesi: '+capacity+'.','Depo duvarları ve kapı/kolonlar bu aktarımda oluşturulmaz.']};
 }

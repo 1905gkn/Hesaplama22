@@ -8,6 +8,9 @@ if(process.env.RAFEX_DIMENSIONED_FIXTURE){
   assert.equal(plan.capacity,5488);assert.equal(plan.rows,12);assert.equal(plan.placements.length,266);assert.equal(plan.doubleRowGap,200);assert.deepEqual(plan.types.map(t=>t.sectionWidth).sort((a,b)=>a-b),[1850,2400,3300]);
   for(const t of plan.types){assert.equal(t.footHeight,10006);assert.deepEqual(t.palletHeights,[1300,1300,1300,1300,1300,1300,1700]);assert.deepEqual(t.levelPitches,[1550,1550,1550,1550,1550]);}
   assert.equal(groupRackPlan(plan).blocks.length,156);
+  assert.deepEqual(plan.aisles.map(a=>a.frameGap),[3378,3378,3378,3378.33,3378,3378]);
+  assert(plan.aisles.every(a=>a.measured));
+  for(const a of plan.aisles){const before=plan.placements.find(p=>p.row===a.fromRow),after=plan.placements.find(p=>p.row===a.toRow);assert(Math.abs(after.x-before.x-(before.width+after.width)/2-a.frameGap)<.001);}
   for(const unit of ['mm','мм','毫米','مم','ミリ','밀리','मिमी']){
    const translated={...v,text:v.text.map(t=>({...t,text:t.text.includes('(mm)')?'寸法 ('+unit+')':/^(DETAIL|VUE|DIMENSIONS)/.test(t.text)?'अन्य शीर्षक عنوان':t.text}))};
    assert.deepEqual(detectDimensionedPlan(translated).placements,plan.placements,'Captions must not drive geometry: '+unit);

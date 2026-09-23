@@ -7,9 +7,10 @@ export function splitUnassignedTypesV182(parts,racks,symbols){
   const types=new Map(),owners=new Map();
   for(const id of g.racks){
    const r=byRack.get(id);if(!r)continue;
-   const system=r.rafexSystem||(r.b2b?.mr?'mr':r.b2bLayout?'b2b':'mekik2');
-   const name=String(r.typeName||r.rafexGlobalTypeLetter||'Adsız tip');
-   const key=system+'|'+(r.rafexCatalogKey||name);
+   const raw=String(r.rafexSystem||r.__rafexSystem||(r.b2b?.mr||r.plan?.mr?'mr':r.konsol?'konsol':r.b2bLayout?'b2b':r.systemType||'mekik2')).toLowerCase();
+   const system=({'drive-in':'drive',drivein:'drive',mekik:'mekik2',fifo:'mekik2',filo:'mekik2'})[raw]||raw;
+   const name=({b2b:'B2B',drive:'Drive-In',mekik2:'Mekik',konsol:'Konsol',mr:'MR'})[system]||'Diğer';
+   const key=system;
    if(!types.has(key))types.set(key,{...g,name:'Ayrılmamış bölge · '+name,racks:[],symbols:[]});
    types.get(key).racks.push(id);owners.set(id,key);
   }
