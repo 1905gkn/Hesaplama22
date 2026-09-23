@@ -38,14 +38,28 @@ export async function layoutAgent(request,{proxyApi,env=process.env,fetchImpl=fe
   if(!reserved.ok)return reserved;
   let ticket;try{ticket=await reserved.json();}catch{return reply({error:'Bütçe onayı okunamadı.'},503);}
   if(ticket.ok!==true||ticket.requestId!==input.requestId||ticket.reservedUsd!==.10)return reply({error:'Bütçe onayı geçersiz.'},503);
+  const started=now();let stage='provider_fetch';
+  const failure=(code,message,status=502,providerStatus)=>{
+    console.error(JSON.stringify({event:'layout_agent_failed',requestId:input.requestId,code,stage,elapsedMs:Math.max(0,now()-started),...(Number.isInteger(providerStatus)?{providerStatus}:{})}));
+    return reply({error:message+' Çizim değiştirilmedi. Otomatik tekrar yok. Referans: '+input.requestId,code,requestId:input.requestId,reservedUsd:.10},status);
+  };
   try{
     const response=await fetchImpl('https://api.openai.com/v1/responses',{method:'POST',headers:{'authorization':'Bearer '+env.OPENAI_API_KEY,'content-type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(20000)});
-    if(!response.ok)return reply({error:'Model isteği tamamlanamadı (HTTP '+response.status+'). Otomatik yeniden deneme yapılmadı.',reservedUsd:.10},502);
+    if(!response.ok)return failure('PROVIDER_HTTP','Model servisi HTTP '+response.status+' hatası verdi.',502,response.status);
+    stage='provider_json';
     const data=await response.json();
-    if(data.status!=='completed')return reply({error:'Model güvenli yanıt sınırında tamamlanamadı; çizim değiştirilmedi.',reservedUsd:.10},502);
+    if(data.status!=='completed')return failure(data.incomplete_details?.reason==='max_output_tokens'?'OUTPUT_LIMIT':'RESPONSE_INCOMPLETE',data.incomplete_details?.reason==='max_output_tokens'?'Model yanıtı çıktı sınırına ulaştı.':'Model yanıtı tamamlanmadı.');
+    stage='output_extract';
     const text=(data.output||[]).filter(x=>x.type==='message').flatMap(x=>x.content||[]).filter(x=>x.type==='output_text').map(x=>x.text).join('');
+    if(!text)return failure('EMPTY_OUTPUT','Model okunabilir yanıt üretmedi.');
+    stage='plan_json';
     const plan=JSON.parse(text);
+    stage='plan_validation';
     if(input.mode==='document'?!validReading(plan):input.mode==='automatic'?!validAutomaticPlan(plan,input):(!['repeat','clarify'].includes(plan.action)||!Number.isInteger(plan.count)||plan.count<0||plan.count>1000||![1,-1].includes(plan.direction)||typeof plan.reason!=='string'||plan.reason.length>1500||(plan.action==='repeat'&&plan.count<1)))throw Error('Invalid plan');
     return reply({plan,model:MODEL,reservedUsd:.10});
-  }catch{return reply({error:'Yanıt alınamadı veya doğrulanamadı; çizim değiştirilmedi. Otomatik tekrar yok.',reservedUsd:.10},502);}
+  }catch(e){
+    if(e?.name==='TimeoutError'||e?.name==='AbortError')return failure('MODEL_TIMEOUT','Model servisi 20 saniyelik yanıt süresini aştı.',504);
+    const errors={provider_fetch:['PROVIDER_CONNECTION','Model servisine bağlantı kurulamadı.'],provider_json:['PROVIDER_JSON','Model servisinin yanıtı çözümlenemedi.'],output_extract:['RESPONSE_FORMAT','Model yanıtının yapısı beklenen biçimde değil.'],plan_json:['OUTPUT_JSON','Model çıktısı geçerli JSON biçiminde değil.'],plan_validation:['OUTPUT_VALIDATION','Model çıktısındaki alanlar doğrulama kurallarına uymuyor.']};
+    const [code,message]=errors[stage]||['INTERNAL_ERROR','Yanıt işlenirken beklenmeyen hata oluştu.'];return failure(code,message);
+  }
 }
