@@ -17,6 +17,14 @@ const grouped=groupRackPlan({types:[sourceType,{...sourceType,key:'other'}],conf
 assert.equal(grouped.blocks.length,4);assert.equal(grouped.blocks[0].rowCount,2);assert.equal(grouped.importTypes[0].rowGap,150);
 assert.deepEqual(grouped.blocks[0].sourceIds,['a','b']);assert.equal(new Set(grouped.blocks.flatMap(b=>b.sourceIds)).size,5);
 assert(!grouped.blocks.some(b=>b.sourceIds.includes('held')),'Held bays cannot be paired');
+const uneven=groupRackPlan({types:[sourceType,{...sourceType,key:'narrow'}],conflicts:[],placements:[
+ sourceBay('left-start',1,550,1350),sourceBay('right-start',2,1850,1350),
+ sourceBay('left-middle',1,550,4160),{...sourceBay('right-middle',2,1850,3485,'narrow'),depth:1350},
+ sourceBay('left-end',1,550,6970),sourceBay('right-end',2,1850,6970),sourceBay('tail',2,1850,9780)
+]});
+assert.equal(uneven.blocks.filter(b=>b.rowCount===2).length,2,'Both matching portions stay double despite a different middle and tail');
+assert.equal(uneven.blocks.filter(b=>b.rowCount===1).length,3);
+assert.equal(new Set(uneven.blocks.flatMap(b=>b.sourceIds)).size,7);
 // A failed native placement must leave the user's old drawing, catalog and annotations intact.
 const context={window:{rafexProjectTypesV133:[],rafexMergeRackCatalog:(_,e)=>({entries:e,aliases:{}}),rafexUnifiedCatalogSync(){}},m2LayoutState:{racks:[{id:7}],points:[]},m2LayoutSymbols:[{id:8}],m2UndoHistory:[],m2UserNotes:[{text:'keep'}],m2DimensionOffsets:{a:1},m2DimensionFontSizes:{},m2HiddenSummaryDimensions:new Set(),m2VisibleRackDimensions:{length:new Set(),depth:new Set()},m2PinnedDimensionsByRack:{},m2FreeMeasure:{points:[]},b2bLayoutDrawing:()=>({totalWidth:2000,railLength:1200}),m2RenderLayout(){},m2UpdateUndoButton(){},m2RackInsideArea:()=>false,m2RackOverlaps:()=>false};
 context.m2PushUndo=()=>context.m2UndoHistory.push('undo');context.m2AddRack=()=>context.m2LayoutState.racks.push({w:10,h:6});
@@ -84,3 +92,31 @@ assert.equal(specialRacks[0].b2b.accessories[0].levels[0],2);
 assert.equal(specialRacks[1].seismicBraces[0].rackIds[0],specialRacks[1].id);
 assert.equal(specialRacks[1].seismicBraces[0].type,'light');
 console.log('PASS native tunnel height, first visible tray and brace ownership.');
+
+// Double -> unequal single branches -> double must not leave the second double
+// at its PDF coordinate or silently join it to only one of its two end frames.
+const mixedTypes=[{key:'wide',width:2900,rows:2},{key:'single',width:2900,rows:1},{key:'narrow',width:1550,rows:1}];
+const mixedEntries=mixedTypes.map((s,i)=>({id:-10-i,name:s.key,drawing:{pdfSourceSpec:s,footProfile:'HR100',b2b:{rowType:s.rows===2?'double':'single'}}}));
+joinContext.b2bLayoutDrawing=d=>({totalWidth:d.pdfSourceSpec.width,railLength:d.pdfSourceSpec.rows===2?2500:1200});
+joinContext.m2AddRack=d=>joinContext.m2LayoutState.racks.push({w:d.pdfSourceSpec.width*joinContext.m2LayoutState.scale,h:(d.pdfSourceSpec.rows===2?2500:1200)*joinContext.m2LayoutState.scale});
+const mixedBlocks=[
+ {...sourceBay('double-start',1,1200,1350,'wide'),sourceRows:[1,2],rowCount:2},
+ {...sourceBay('single-middle',1,550,4150,'single'),sourceRows:[1],rowCount:1},
+ {...sourceBay('narrow-1',2,1850,3475,'narrow'),depth:1350,sourceRows:[2],rowCount:1},
+ {...sourceBay('narrow-2',2,1850,4925,'narrow'),depth:1350,sourceRows:[2],rowCount:1},
+ {...sourceBay('double-end',1,1200,7050,'wide'),sourceRows:[1,2],rowCount:2},
+ {...sourceBay('double-next',1,1200,9850,'wide'),sourceRows:[1,2],rowCount:2}
+];
+const mixed=joinContext.window.rafexApplyImportedLayoutV188({conflicts:[],placements:mixedBlocks,blocks:mixedBlocks,warnings:[],reconcileMixedRows:true},mixedEntries,'mixed.pdf');
+assert.equal(mixed.blocks,6);assert.equal(mixed.placed,9);
+const nativeMixed=joinContext.m2LayoutState.racks,scale=joinContext.m2LayoutState.scale;
+const cy=r=>(r.y+r.h/2-70)/scale;
+assert(cy(nativeMixed[4])-cy(nativeMixed[3])>=(2900+1550)/2-.01,'Unjoined transition retains both end frames');
+assert.equal(nativeMixed[4].sharedFootWith,undefined,'A double cannot subtract both frames through a single');
+assert.equal(nativeMixed[5].sharedFootWith,nativeMixed[4].id,'Compatible double continuation still shares its frame');
+assert(Math.abs(cy(nativeMixed[5])-cy(nativeMixed[4])-2800)<.01);
+for(const rack of nativeMixed.filter(r=>r.sharedFootWith)){
+ const parent=nativeMixed.find(r=>r.id===rack.sharedFootWith);
+ assert(Math.abs(Math.abs(cy(rack)-cy(parent))-((rack.w+parent.w)/scale/2-100))<.01,'Every retained shared frame is physically coincident');
+}
+console.log('PASS unequal mixed-row pairing, native branch constraints, frame ownership and double continuation.');

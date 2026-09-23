@@ -2,7 +2,7 @@
 export function combinePlans(items){
   if(!items.length||items.some(i=>!i.result))throw Error('Her dosyanın analizi tamamlanmalı.');
   if(items.length===1)return {...items[0].result,files:[items[0].name]};
-  const result={types:[],importTypes:[],placements:[],blocks:[],conflicts:[],warnings:[],rows:0,files:items.map(i=>i.name),batch:true,raster:items.some(i=>i.result.raster),warehouseBoundary:null};
+  const result={types:[],importTypes:[],placements:[],blocks:[],conflicts:[],warnings:[],rows:0,files:items.map(i=>i.name),batch:true,reconcileMixedRows:items.some(i=>i.result.reconcileMixedRows),raster:items.some(i=>i.result.raster),warehouseBoundary:null};
   const catalog=new Map();let offset=0;
   const signature=t=>JSON.stringify(Object.fromEntries(Object.entries(t).filter(([k])=>!['key','name'].includes(k)).sort(([a],[b])=>a.localeCompare(b))));
   for(const [index,item] of items.entries()){

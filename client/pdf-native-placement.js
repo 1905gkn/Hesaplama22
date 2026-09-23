@@ -80,10 +80,42 @@
           for(const j of a.links){if(visited.has(j))continue;const b=positions[j];
             // A single frame cannot own the two frames of a double-row joint.
             if((b.rowCount||1)>(a.rowCount||1))continue;
+            if(!(b.sourceRows||[b.row]).every(row=>(a.sourceRows||[a.row]).includes(row)))continue;
             visited.add(j);queue.push(j);const sign=Math.sign(b.sourceY-a.sourceY);
             b.y=a.y+sign*((a.nativeWidth+b.nativeWidth)/2-a.foot);
             b.parentIndex=i;b.sharedSide=sign>0?'left':'right';a.joinGroup=group;b.joinGroup=group;joined++;
           }
+        }
+      }
+      // Mixed single/double runs can have unequal native lengths (for example,
+      // two narrow bays include an extra upright compared with one wide bay).
+      // Solve all source-row constraints together, instead of leaving the next
+      // double run at its uncorrected PDF coordinate. Only actual parent joints
+      // may overlap by one upright; unjoined transitions keep both end frames.
+      if(plan.reconcileMixedRows){
+        const order=positions.map((p,i)=>i).sort((a,b)=>positions[a].sourceY-positions[b].sourceY);
+        for(const i of order){
+          const p=positions[i],before=p.links.filter(j=>positions[j].sourceY<p.sourceY);
+          p.y=before.length?-Infinity:p.sourceY;
+          for(const j of before){
+            const a=positions[j],shared=p.parentIndex===j||a.parentIndex===i;
+            p.y=Math.max(p.y,a.y+(a.nativeWidth+p.nativeWidth)/2-(shared?p.foot:0));
+          }
+        }
+        // A longer parallel branch can separate a previously proposed joint.
+        // Drop its ownership as well: it must not deduct a frame from the BOM
+        // or exempt an unrelated block from collision detection.
+        for(const p of positions){
+          delete p.joinGroup;
+          if(p.parentIndex===undefined)continue;
+          const parent=positions[p.parentIndex],expected=(p.nativeWidth+parent.nativeWidth)/2-p.foot;
+          if(Math.abs(Math.abs(p.y-parent.y)-expected)>.01){delete p.parentIndex;delete p.sharedSide;}
+        }
+        joined=0;
+        for(const [i,p] of positions.entries()){
+          if(p.parentIndex===undefined)continue;
+          let root=i;while(positions[root].parentIndex!==undefined)root=positions[root].parentIndex;
+          p.joinGroup=positions[root].joinGroup='pdf-join-'+root;joined++;
         }
       }
       adjusted=positions.filter(p=>Math.abs(p.y-p.sourceY)>1).length;

@@ -25,6 +25,8 @@ try{
  }
  assert.throws(()=>selectivePlan(audit,{levels:0,groundHeightFactor:2}),/onaylanmalı/);
  const grouped=groupRackPlan(plan);
+ assert.equal(grouped.blocks.filter(b=>b.rowCount===2).length,1260,'A differing bay must not unpair the whole column');
+ assert.equal(grouped.blocks.length,1428);
  assert.equal(grouped.blocks.flatMap(b=>b.sourceIds).length,2688);
  assert.equal(new Set(grouped.blocks.flatMap(b=>b.sourceIds)).size,2688);
  assert(grouped.importTypes.every(t=>t.levels===8&&t.palletHeights[0]===2200));
