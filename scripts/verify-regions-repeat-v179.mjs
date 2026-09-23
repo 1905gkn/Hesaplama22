@@ -86,7 +86,8 @@ try{
  assert(separated[0].includes('Sevkiyat')&&separated[1].includes('Depo &lt;A&gt;')&&separated[2].includes('Ayrılmamış bölge'));
  const unassignedBefore=await page.evaluate(()=>{const r=m2LayoutState.racks.find(r=>!r.rafexRegionV179);const before={id:r.id,name:r.typeName,key:r.rafexCatalogKey};r.typeName='Z';r.rafexCatalogKey='b2b:Z';m2RenderLayoutProductList();return before;});
  const typedPages=await page.evaluate(()=>m2CorporateBomPages([],m2ReportDictionary('tr'),true));
- assert.equal(typedPages.length,4);
+ // Unassigned racks now group by system, not by catalog/type letter.
+ assert.equal(typedPages.length,3);
  assert(typedPages.some(p=>p.includes('Ayrılmamış bölge · B2B')));
  assert((await page.locator('#m2LayoutProductList').textContent()).includes('Ayrılmamış bölge · B2B'));
  await page.evaluate(before=>{const r=m2LayoutState.racks.find(r=>r.id===before.id);r.typeName=before.name;r.rafexCatalogKey=before.key;m2RenderLayoutProductList();},unassignedBefore);
