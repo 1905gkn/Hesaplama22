@@ -147,12 +147,12 @@ export function regionsRuntimeV179(){
   racks().filter(r=>rr.has(r.id)).forEach(r=>r.rafexRegionV179={...region});symbols().filter(s=>ss.has(s.id)).forEach(s=>s.rafexRegionV179={...region});
   cancel();m2RenderLayout();m2RenderLayoutProductList();status(region.name+(paint?' renklendirildi ve ayrı hesaplandı.':' yalnızca ürün listesinde ayrı hesaplandı.'));
  }
- function repeat(){
-  const count=Number($('rafexRepeatCountV179')?.value);
+ function repeat(options={}){
+  const count=Number(options.count??$('rafexRepeatCountV179')?.value);
   if(!Number.isInteger(count)||count<1||count>1000){status('Eklenecek blok adedini 1–1000 arasında tam sayı olarak yaz.');return false;}
-  const source=racks().find(r=>r.id===(m2AutoFillDraft?.rackId??m2LayoutState.selected));
+  const source=racks().find(r=>r.id===(options.sourceId??m2AutoFillDraft?.rackId??m2LayoutState.selected));
   if(!source){status('Önce çoğaltılacak bir blok seç.');return false;}
-  const dir=Number($('rafexRepeatDirectionV179')?.value)||1,a=(source.angle||0)*Math.PI/180,ux=Math.cos(a),uy=Math.sin(a),scale=m2LayoutState.scale;
+  const dir=Number(options.direction??$('rafexRepeatDirectionV179')?.value)||1,a=(source.angle||0)*Math.PI/180,ux=Math.cos(a),uy=Math.sin(a),scale=m2LayoutState.scale;
   if(source.freePlacement||source.staged||!m2RackInsideArea(source)){status('Önce kaynak bloğu alan içinde geçerli bir konuma yerleştir.');return false;}
   const shared=!!source.b2bLayout&&!source.b2b?.mr&&source.rafexSystem!=='mr',foot=shared?m2B2BFootWidth(source)*scale:0;
   const aligned=racks().filter(r=>r.id===source.id||(source.joinGroup&&r.joinGroup===source.joinGroup&&Math.abs((r.angle||0)-(source.angle||0))<.01&&Math.abs((r.x+r.w/2-source.x-source.w/2)*uy-(r.y+r.h/2-source.y-source.h/2)*ux)<.1));
@@ -173,6 +173,7 @@ export function regionsRuntimeV179(){
    for(const item of attached){const c=clone(item);c.id=id++;c.rackId=copy.id;c.x+=copy.x-source.x;c.y+=copy.y-source.y;delete c.rafexRegionV179;accessories.push(c);}
    planned.push(copy);anchor=copy;
   }
+  if(options.dryRun)return {racks:planned,sourceId:source.id,count,direction:dir};
   m2PushUndo('Adet ile blok ekleme');if(shared)first.joinGroup=group;racks().push(...planned);symbols().push(...accessories);
   m2AutoFillDraft=null;m2SetAutoFillControlsActive(false);m2LayoutState.selected=planned.at(-1).id;m2RenderLayout();status(count+' yeni blok yan yana eklendi.');return true;
  }

@@ -1,5 +1,6 @@
 import worker from "../dist/server/index.js";
 import {validateCatalogWrite} from '../scripts/catalog-validation-v185.mjs';
+import {layoutAgent} from '../scripts/layout-agent-api-v188.mjs';
 
 const LEGACY_API_ORIGIN = "https://rafex-configurator.rafex-3908.chatgpt.site";
 
@@ -113,6 +114,7 @@ async function rackCatalog(request) {
 export default {
   async fetch(request) {
     const path = new URL(request.url).pathname;
+    if(path==='/api/layout-agent') return layoutAgent(request,{proxyApi});
     if((request.method==='PUT'&&/^\/api\/drawing-projects\/\d+\/types$/.test(path))||(request.method==='POST'&&path==='/api/projects')){
       let body;try{body=await request.clone().json()}catch{return Response.json({error:'Kayıt verisi okunamadı; kayıt değiştirilmedi.'},{status:400});}
       const error=validateCatalogWrite(path,request.method,body);
