@@ -166,7 +166,9 @@ class B2BViewer {
     const width = clamp(Number(next.palletWidth) || 800, 300, 3000);
     const depth = clamp(Number(next.palletDepth) || 1200, 300, 3000);
     const calculated = count * width + (count + 1) * 75;
-    const sectionWidth = count === 4 && width === 800 ? 3600 : calculated;
+    const requestedWidth = Number(next.sectionWidth);
+    const sectionWidth = Number.isFinite(requestedWidth) && requestedWidth >= calculated
+      ? requestedWidth : count === 4 && width === 800 ? 3600 : calculated;
     return {
       moduleCount: clamp(Math.round(Number(next.moduleCount) || 4), 1, 50),
       moduleOptions: Array.isArray(next.moduleOptions) ? next.moduleOptions.map((item) => ({ ...item })) : null,
@@ -191,7 +193,7 @@ class B2BViewer {
       frontPalletGap: clamp(Number.isFinite(Number(next.frontPalletGap)) ? Number(next.frontPalletGap) : 50, 0, 1000),
       rearPalletGap: clamp(Number.isFinite(Number(next.rearPalletGap)) ? Number(next.rearPalletGap) : 50, 0, 1000),
       traverseHeight: clamp(Number(next.traverseHeight) || 140, 50, 500),
-      footHeight: Number(next.footHeight) > 0 ? clamp(Math.ceil(Number(next.footHeight) / 50) * 50, 500, 30000) : null,
+      footHeight: Number(next.footHeight) > 0 ? clamp(Number(next.footHeight), 500, 30000) : null,
       footWidth: clamp(Number(next.footWidth) || 120, 60, 300),
       showPallets: next.showPallets !== false,
       dimensionLabelScale: clamp(Number(next.dimensionLabelScale) || 1, .7, 1.5),

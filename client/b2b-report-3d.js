@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = "front-side-capture-v49";
+  const VERSION = "front-side-capture-v197";
   const reportDrawings = new Map();
   const reportViewCache = new Map();
   const reportViewPending = new Map();
@@ -58,6 +58,9 @@
       ? b2bStraightTiePlan(drawing)
       : { count: 0, positions: [] };
     const payload = {
+      sectionWidth: number(layout.sectionWidth ?? state.importedSectionWidth ?? drawing?.b2bViewerOptions?.sectionWidth),
+      manualLevelSpecs: state.manualLevelSpecs || [],
+      savedViewerOptions: drawing?.b2bViewerOptions || null,
       palletCount: number(layout.palletCount ?? state.palletCount ?? drawing?.bays, 3),
       palletWidth: number(layout.palletWidth ?? state.palletWidth ?? drawing?.palW, 800),
       palletDepth: number(layout.palletDepth ?? state.palletDepth ?? drawing?.palD, 1200),
@@ -176,6 +179,9 @@
   }
 
   function viewerOptions(drawing) {
+    if(drawing?.b2b&&!drawing.b2b.mr&&typeof window.rafexB2BDetailOptionsV117==='function'){
+      return {...window.rafexB2BDetailOptionsV117(drawing),moduleCount:1,moduleOptions:null};
+    }
     let options = null;
     try {
       if (typeof m2Rack3DOptions === "function") options = m2Rack3DOptions(drawing);
@@ -184,6 +190,7 @@
     }
     const fallback = fallbackViewerOptions(drawing);
     const merged = { ...fallback, ...(options || {}) };
+    merged.sectionWidth = Number(drawing?.b2bLayout?.sectionWidth ?? drawing?.b2b?.importedSectionWidth ?? merged.sectionWidth) || undefined;
     merged.moduleCount = 1;
     merged.showPallets = fallback.showPallets;
     merged.palletCount = fallback.palletCount;
