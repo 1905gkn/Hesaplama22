@@ -11,16 +11,30 @@ export function splitUnassignedTypesV182(parts,racks,symbols){
    const system=({'drive-in':'drive',drivein:'drive',mekik:'mekik2',fifo:'mekik2',filo:'mekik2'})[raw]||raw;
    const name=({b2b:'B2B',drive:'Drive-In',mekik2:'Mekik',konsol:'Konsol',mr:'MR'})[system]||'Diğer';
    const key=system;
-   if(!types.has(key))types.set(key,{...g,name:'Ayrılmamış bölge · '+name,racks:[],symbols:[]});
+   if(!types.has(key))types.set(key,{...g,systemKey:key,name:'Ayrılmamış bölge · '+name,racks:[],symbols:[]});
+   if(r.rafexUnassignedGroupNameV196)types.get(key).name=r.rafexUnassignedGroupNameV196;
    types.get(key).racks.push(id);owners.set(id,key);
   }
   for(const id of g.symbols){
    const key=owners.get(bySymbol.get(id)?.rackId)||'free-accessories';
-   if(!types.has(key))types.set(key,{...g,name:'Ayrılmamış bölge · Serbest aksesuarlar',racks:[],symbols:[]});
+   if(!types.has(key))types.set(key,{...g,systemKey:key,name:'Ayrılmamış bölge · Serbest aksesuarlar',racks:[],symbols:[]});
+   if(bySymbol.get(id)?.rafexUnassignedGroupNameV196)types.get(key).name=bySymbol.get(id).rafexUnassignedGroupNameV196;
    types.get(key).symbols.push(id);
   }
   return [...types.values()];
  });
+}
+
+export function renameRegionGroupV196(group,racks,symbols,value){
+ const name=String(value??'').trim();
+ if(!name||name.length>80)throw Error('Bölüm adı 1–80 karakter olmalıdır.');
+ const rr=new Set(group.racks),ss=new Set(group.symbols);
+ for(const [items,ids] of [[racks,rr],[symbols,ss]])for(const item of items){
+  if(!ids.has(item.id))continue;
+  if(group.id)item.rafexRegionV179={...item.rafexRegionV179,name};
+  else item.rafexUnassignedGroupNameV196=name;
+ }
+ return name;
 }
 
 export function regionsRuntimeV179(){
@@ -44,11 +58,25 @@ export function regionsRuntimeV179(){
   const parts=splitUnassignedTypesV182(groups(),racks(),symbols());if(!parts.some(g=>g.id))return null;
   return parts.map(g=>{
    const rows=window.rafexRegionInventoryV179(g.racks,g.symbols);
-   return '<section class="rafex-product-system-section rafex-region-products"><b class="rafex-product-system-title">'+escape(g.name)+'<small>'+g.racks.length+' blok</small></b>'+rows.map(r=>'<span class="m2-layout-product"><span class="rafex-product-copy"><span class="rafex-product-name">'+escape(r.name)+'</span><small>'+escape(r.spec)+'</small></span><strong class="rafex-product-qty">'+r.qty+' '+escape(r.unit)+'</strong></span>').join('')+'</section>';
+   return '<section class="rafex-product-system-section rafex-region-products"><b class="rafex-product-system-title"><button type="button" data-rename-region="'+escape(g.id?'region:'+g.id:'system:'+g.systemKey)+'" aria-label="'+escape(g.name)+' bölüm adını değiştir" style="background:transparent;color:inherit;border:0;padding:0;text-align:left;cursor:pointer;font:inherit;text-decoration:underline">'+escape(g.name)+' ✎</button><small>'+g.racks.length+' blok</small></b>'+rows.map(r=>'<span class="m2-layout-product"><span class="rafex-product-copy"><span class="rafex-product-name">'+escape(r.name)+'</span><small>'+escape(r.spec)+'</small></span><strong class="rafex-product-qty">'+r.qty+' '+escape(r.unit)+'</strong></span>').join('')+'</section>';
   });
  }
  window.rafexRegionSectionsV179=listSections;
  window.rafexRegionGroupsV179=groups;
+ document.addEventListener('click',event=>{
+  const button=event.target.closest('[data-rename-region]');if(!button)return;
+  const key=button.dataset.renameRegion;
+  const find=()=>splitUnassignedTypesV182(groups(),racks(),symbols()).find(g=>(g.id?'region:'+g.id:'system:'+g.systemKey)===key);
+  const group=find();if(!group)return;
+  let dialog=$('rafexRegionNameV196');if(!dialog){dialog=document.createElement('dialog');dialog.id='rafexRegionNameV196';dialog.style.cssText='border:1px solid #abc4b5;border-radius:12px;padding:24px;max-width:90vw;color:#173c2d';document.body.append(dialog);}
+  dialog.innerHTML='<form><h3>Bölüm adını değiştir</h3><label>Bölüm adı <input name="name" required maxlength="80" style="display:block;width:300px;max-width:70vw;margin:12px 0"></label><p role="alert"></p><button type="submit">Kaydet</button> <button type="button" data-cancel>Vazgeç</button></form>';
+  const input=dialog.querySelector('input');input.value=group.name;
+  dialog.querySelector('[data-cancel]').onclick=()=>dialog.close();
+  dialog.querySelector('form').onsubmit=e=>{e.preventDefault();const name=input.value.trim(),current=find();if(!name||name.length>80||!current){dialog.querySelector('[role=alert]').textContent=!current?'Bölüm artık bulunamıyor.':'Bölüm adı 1–80 karakter olmalıdır.';return;}
+   m2PushUndo('Bölüm adını değiştirme');renameRegionGroupV196(current,racks(),symbols(),name);dialog.close();m2RenderLayout();m2RenderLayoutProductList();m2RefreshActiveReport();status('Bölüm adı “'+name+'” olarak değiştirildi. Projeyi Kaydet ile saklayabilirsin.');
+  };
+  dialog.showModal();input.focus();input.select();
+ });
  const originalBomPages=m2CorporateBomPages;
  m2CorporateBomPages=window.m2CorporateBomPages=function(types,labels){
   const parts=splitUnassignedTypesV182(groups(),racks(),symbols());
@@ -190,7 +218,7 @@ export function transform(html){
   function symbols(){const all=allSymbolsV179();return regionScopeV179?all.filter(r=>regionScopeV179.symbols.has(r.id)):all;}
   window.rafexRegionInventoryV179=function(rackIds,symbolIds){const previous=regionScopeV179;try{regionScopeV179={racks:new Set(rackIds),symbols:new Set(symbolIds)};return rows();}finally{regionScopeV179=previous;}};
   function accessories(){`);
- replace('var signature=inventorySignature();',"var signature=inventorySignature()+'#'+JSON.stringify([...racks(),...symbols()].map(r=>[r.rafexRegionV179||null,r.typeName,r.rafexCatalogKey]));");
+ replace('var signature=inventorySignature();',"var signature=inventorySignature()+'#'+JSON.stringify([...racks(),...symbols()].map(r=>[r.rafexRegionV179||null,r.rafexUnassignedGroupNameV196||null,r.typeName,r.rafexCatalogKey]));");
  replace("    host.classList.remove('rafex-system-product-lists');","    sections=window.rafexRegionSectionsV179?.()||sections;\n    host.classList.remove('rafex-system-product-lists');");
  html=html.slice(0,start)+s+html.slice(end);
  const at=html.lastIndexOf('</body>');if(at<0)throw Error('Missing body');
@@ -203,7 +231,7 @@ export function transform(html){
  #rafexRegionV179{display:block;flex-basis:100%;grid-column:1/-1}#m2LayoutSvg.rafex-region-selecting,#m2LayoutSvg.rafex-region-selecting *{cursor:crosshair!important}
  #rafexRegionDialogV179{width:min(620px,90vw);max-height:85vh;overflow:auto;border:1px solid #abc4b5;border-radius:14px;padding:22px;color:#173c2d}#rafexRegionDialogV179::backdrop{background:#102e25aa}
  #rafexRegionDialogV179 .region-counts{max-height:35vh;overflow:auto;margin:12px 0}#rafexRegionDialogV179 .region-counts>div{display:flex;justify-content:space-between;gap:16px;padding:8px;border-bottom:1px solid #e2eae5}#rafexRegionDialogV179 small{display:block;color:#66796d}#rafexRegionDialogV179 label{display:inline-grid;gap:6px;margin:12px 12px 0 0}#rafexRegionDialogV179 .region-actions{display:flex;gap:8px;justify-content:flex-end}#rafexRegionDialogV179 [data-paint],#rafexRegionDialogV179 [data-list]{background:#174a35;color:white}.rafex-region-products .rafex-product-system-title{flex-direction:column!important;align-items:flex-start!important;gap:6px}.rafex-region-products .rafex-product-system-title small{display:block}
- </style><script>${splitUnassignedTypesV182.toString()}\n${regionsRuntimeV179.toString()}\nregionsRuntimeV179();</script>`+html.slice(at);
+ </style><script>${splitUnassignedTypesV182.toString()}\n${renameRegionGroupV196.toString()}\n${regionsRuntimeV179.toString()}\nregionsRuntimeV179();</script>`+html.slice(at);
 }
 if(process.argv[1]?.replaceAll('\\','/').endsWith('/patch-regions-repeat-v179.mjs')){
  const file='dist/server/index.js',s=fs.readFileSync(file,'utf8'),m=s.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/);if(!m)throw Error('Missing HTML');
