@@ -2,6 +2,7 @@
   let dialog,task,serial=0,plan,entries,identity,fileName,raster,rasterModule,groupPlan,ocrWorker,batch=[],active=null,busy=false,combinePlans;
   const edits=new Map(),specKey=t=>JSON.stringify(Object.fromEntries(Object.entries(t).filter(([k])=>!["key","name","_originalSignature"].includes(k)).sort(([a],[b])=>a.localeCompare(b))));
   const owner=()=>window.rafexProjectIdentityV133?.uuid;
+  window.rafexPdfReadingV201={fields:()=>rasterFields,contains:file=>batch.some(i=>i.file===file),ocr:file=>active?.file===file?raster?.text||'':'',apply(file,readings){if(active?.file!==file||!raster||owner()!==identity)throw Error('Bu dosyanın ölçü formu açık değil. Okunan değerleri ilgili raf tipinde elle kontrol et.');const targets=readings.map(r=>({r,input:dialog.querySelector('[data-raster-field="'+r.field+'"]')}));if(targets.some(t=>!t.input))throw Error('Seçilen ölçülerden biri bu formda yok; yalnız mevcut alanları seç.');for(const {r,input} of targets){input.value=r.value;input.dispatchEvent(new Event('change',{bubbles:true}));}dialog.querySelector('[data-raster-reviewed]').checked=false;}};
   function status(text){dialog.querySelector('[data-pdf-workflow] [role=status], :scope > [role=status]').textContent=text;}
   function clear(){window.rafexImportTypeEditorV198?.close();edits.clear();batch=[];active=null;busy=false;serial++;task?.destroy();task=null;plan=null;entries=null;raster=null;ocrWorker?.terminate().catch(()=>{});ocrWorker=null;dialog?.querySelector("[data-raster]")?.replaceChildren();}
   function open(){
@@ -22,6 +23,7 @@
           status(entry.importName+' tipi güncellendi. Bu tipe bağlı tüm bloklar düzenlenen ölçülerle yerleştirilecek. Kaynak konumlar korunur; boyut değişiklikleri yerleştirme sırasında çakışma kontrolünden geçer.');
         },next=>window.rafexPrepareImportedTypesV188(plan.importTypes.map((t,i)=>i===index?next:t))[index]);return;}
         const remove=event.target.closest('[data-remove-file]');if(remove){removeFile(Number(remove.dataset.removeFile));return;}
+        const read=event.target.closest('[data-read-file]');if(read){window.rafexDocumentAgentV201?.open(batch[Number(read.dataset.readFile)].file,dialog);return;}
         const retry=event.target.closest('[data-retry-file]');if(retry){batch[Number(retry.dataset.retryFile)].error=null;renderFiles();processNext();return;}
         if(event.target.closest('[data-raster-prepare]')){prepareRaster();return;}
         if(!event.target.closest('[data-apply]'))return;
@@ -42,7 +44,7 @@
   }
   function analyze(event){
     const files=[...event.target.files];event.target.value='';
-    if(files.some(f=>!(/\.(pdf|png)$/i.test(f.name)||['application/pdf','image/png'].includes(f.type)))){status('PDF veya PNG dosyası seç.');return;}
+    if(files.some(f=>!(/\.(pdf|png|jpe?g)$/i.test(f.name)||['application/pdf','image/png','image/jpeg'].includes(f.type)))){status('PDF, PNG veya JPEG dosyası seç.');return;}
     const additions=files.filter(f=>!batch.some(i=>i.name===f.name&&i.file.size===f.size&&i.file.lastModified===f.lastModified));
     if(batch.length+additions.length>10){status('En fazla 10 dosya ekleyebilirsin.');return;}
     if(additions.some(f=>f.size>20*1024*1024)){status('Her dosya en fazla 20 MB olabilir.');return;}
@@ -58,7 +60,7 @@
       const [pdfjs,reader,detector,batchReader]=await Promise.all([import('/pdfjs/pdf.mjs'),import('/pdfjs/pdf-vector-reader.mjs'),import('/pdfjs/pdf-rack-detection.mjs'),import('/pdfjs/pdf-batch-plan.mjs')]);
       if(token!==serial)return;combinePlans=batchReader.combinePlans;pdfjs.GlobalWorkerOptions.workerSrc='/pdfjs/pdf.worker.mjs';
       groupPlan=detector.groupRackPlan;
-      if(item.file.type==='image/png'||/\.png$/i.test(item.name)){
+      if(['image/png','image/jpeg'].includes(item.file.type)||/\.(png|jpe?g)$/i.test(item.name)){
         rasterModule=await import('/pdfjs/pdf-raster-reader.mjs');
         const scanned=await rasterModule.scanRasterImage(item.file,t=>{if(token===serial)status(item.name+': '+t);},()=>token===serial&&dialog.open,w=>{if(token===serial)ocrWorker=w;else w.terminate().catch(()=>{});});
         if(token!==serial||!dialog.open)return;raster=scanned;ocrWorker=null;showRaster();return;
