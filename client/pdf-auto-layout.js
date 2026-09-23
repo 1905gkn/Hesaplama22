@@ -2,7 +2,7 @@
   let dialog,task,serial=0,plan,entries,identity,fileName,raster,rasterModule,groupPlan,ocrWorker,batch=[],active=null,busy=false,combinePlans;
   const edits=new Map(),specKey=t=>JSON.stringify(Object.fromEntries(Object.entries(t).filter(([k])=>!["key","name","_originalSignature"].includes(k)).sort(([a],[b])=>a.localeCompare(b))));
   const owner=()=>window.rafexProjectIdentityV133?.uuid;
-  function status(text){dialog.querySelector('[role=status]').textContent=text;}
+  function status(text){dialog.querySelector('[data-pdf-workflow] [role=status], :scope > [role=status]').textContent=text;}
   function clear(){window.rafexImportTypeEditorV198?.close();edits.clear();batch=[];active=null;busy=false;serial++;task?.destroy();task=null;plan=null;entries=null;raster=null;ocrWorker?.terminate().catch(()=>{});ocrWorker=null;dialog?.querySelector("[data-raster]")?.replaceChildren();}
   function open(){
     if(!dialog){
