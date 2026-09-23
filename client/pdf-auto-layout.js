@@ -25,9 +25,10 @@
         const remove=event.target.closest('[data-remove-file]');if(remove){removeFile(Number(remove.dataset.removeFile));return;}
         const read=event.target.closest('[data-read-file]');if(read){window.rafexDocumentAgentV201?.open(batch[Number(read.dataset.readFile)].file,dialog);return;}
         const retry=event.target.closest('[data-retry-file]');if(retry){batch[Number(retry.dataset.retryFile)].error=null;renderFiles();processNext();return;}
+        const selective=event.target.closest('[data-selective-prepare]');if(selective){prepareSelective(Number(selective.dataset.selectivePrepare));return;}
         if(event.target.closest('[data-raster-prepare]')){prepareRaster();return;}
         if(!event.target.closest('[data-apply]'))return;
-        try{if(!entries||!plan)throw Error('Analiz sonucu geçersiz; Dosyaları yeniden seç.');if(!dialog.querySelector('[data-confirm] input').checked)throw Error('Önce önizlemenin altındaki uyarı onayını işaretle.');if(owner()!==identity)throw Error('Proje değişti; Dosyaları yeniden seç.');window.rafexApplyImportedLayoutV188(plan,entries,fileName);dialog.close();}catch(e){status('Uygulanmadı: '+e.message);}
+        try{if(!entries||!plan)throw Error('Analiz sonucu geçersiz; Dosyaları yeniden seç.');if(!dialog.querySelector('[data-confirm] input').checked)throw Error('Önce önizlemenin altındaki uyarı onayını işaretle.');if(owner()!==identity)throw Error('Proje değişti; Dosyaları yeniden seç.');window.rafexApplyImportedLayoutV188(plan,entries,fileName);dialog.close();}catch(e){status('Uygulanmadı: '+e.message);if(e.layoutConflict)showConflict(e.layoutConflict);}
       });
     }
     clear();renderFiles();identity=owner();dialog.querySelector('[data-file]').value='';dialog.querySelector('[data-preview]').hidden=true;dialog.querySelector('[data-confirm]').hidden=true;dialog.querySelector('[data-confirm] input').checked=false;dialog.querySelector('[data-apply]').disabled=true;status(identity?'PDF veya fotoğraf seçerek başlayabilirsin.':'Önce Ortak Çizim içinde bir proje oluştur.');dialog.querySelector('[data-file]').disabled=!identity;dialog.showModal();
@@ -69,6 +70,10 @@
       task=loadingTask=pdfjs.getDocument({data:bytes,isEvalSupported:false});const documentPdf=await loadingTask.promise;
       if(documentPdf.numPages!==1)throw Error('Her PDF plan ve kesitleri içeren tek sayfa olmalı.');
       const page=await documentPdf.getPage(1),vectors=await reader.readVectors(page,pdfjs.OPS);groupPlan=detector.groupRackPlan;
+      const selective=await import('/pdfjs/pdf-selective-reader.mjs');
+      if(token!==serial||!dialog.open)return;
+      const audit=selective.inspectSelectivePlan(vectors);
+      if(audit){item.audit=audit;item.error='Sayım doğrulandı; kat düzeni onayı bekleniyor.';active=null;await showSelective(item);return;}
       if(vectors.lines.length<10){
         rasterModule=await import('/pdfjs/pdf-raster-reader.mjs');
         const scanned=await rasterModule.scanRasterPage(page,t=>{if(token===serial)status(item.name+': '+t);},()=>token===serial&&dialog.open,w=>{if(token===serial)ocrWorker=w;else w.terminate().catch(()=>{});});
@@ -87,6 +92,27 @@
       entries.forEach((entry,i)=>{const saved=edits.get(result.importTypes[i]._originalSignature);if(saved)entry.importName=saved.name;});
       preview();dialog.querySelector('[data-confirm]').hidden=false;validateNames();
       const excluded=new Set(plan.conflicts.flat()).size;status(plan.importTypes.length+' raf tipi · '+plan.rows+' sıra · '+plan.placements.length+' göz algılandı.\n'+(plan.placements.length-excluded)+' göz, '+plan.blocks.length+' blok olarak hazır; '+plan.blocks.filter(p=>p.rowCount===2).length+' çift sıra blok.\n'+plan.warnings.join('\n')+'\nAynı tip sırt sırta gözler çift sıradır. Kesintisiz devam eden uyumlu gözler ortak ayakla birleştirilir; geçiş boşlukları korunur.');
+  }
+  async function showSelective(item){
+    const token=serial,module=await import('/pdfjs/pdf-analysis-review.mjs');
+    if(token!==serial||!dialog.open||!batch.includes(item))return;
+    module.renderReview(dialog.querySelector('[data-raster]'),item,answers=>prepareSelective(batch.indexOf(item),answers));
+  }
+  function showConflict(conflict){
+    dialog.querySelector('[data-layout-conflict]')?.remove();
+    const section=document.createElement('section');section.dataset.layoutConflict='';
+    const title=document.createElement('h3');title.textContent='Yerleşim kontrolü: '+conflict.id;section.append(title);
+    const note=document.createElement('p');note.textContent='Kırmızı: yerleşemeyen blok. Turuncu: kesişen komşular. Çizim geri alındı; kayıt yapılmadı. Raf dış ölçülerini ve ortak ayak / sıra eşleşmesini kontrol et.';section.append(note);
+    const items=[{id:conflict.id,bounds:conflict.bounds},...conflict.nearby],ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');
+    const left=Math.min(...items.map(p=>p.bounds.left)),top=Math.min(...items.map(p=>p.bounds.top)),right=Math.max(...items.map(p=>p.bounds.right)),bottom=Math.max(...items.map(p=>p.bounds.bottom)),pad=Math.max(right-left,bottom-top)*.15;
+    svg.setAttribute('viewBox',[left-pad,top-pad,right-left+2*pad,bottom-top+2*pad].join(' '));svg.setAttribute('aria-label','Çakışan blokların yakın görünümü');
+    items.forEach((p,i)=>{const b=p.bounds,rect=document.createElementNS(ns,'rect'),text=document.createElementNS(ns,'text');for(const [k,v] of Object.entries({x:b.left,y:b.top,width:b.right-b.left,height:b.bottom-b.top,fill:i?'#f59e0b88':'#ef444488',stroke:i?'#b45309':'#991b1b','stroke-width':pad/20}))rect.setAttribute(k,v);text.setAttribute('x',(b.left+b.right)/2);text.setAttribute('y',(b.top+b.bottom)/2);text.setAttribute('text-anchor','middle');text.setAttribute('font-size',pad/3);text.textContent=p.id;svg.append(rect,text);});
+    section.append(svg);dialog.querySelector('[data-preview]').before(section);section.scrollIntoView({block:'start'});
+  }
+  async function prepareSelective(index,answers){
+    const item=batch[index],token=serial;if(!item?.audit||busy)return;busy=true;
+    try{if(!answers)throw Error('Önce analiz sorularını yanıtla.');const module=await import('/pdfjs/pdf-selective-reader.mjs');if(token!==serial||!dialog.open||!batch.includes(item))return;if(owner()!==identity)throw Error('Proje değişti; dosyayı yeniden seç.');const source=module.selectivePlan(item.audit,{levels:answers.beams+1,groundHeightFactor:answers.stack});source.doubleRowGap=answers.gap;source.analysisReview=answers;source.warnings.push('Kullanıcı onaylı palet adedi: '+answers.capacity+'. Zemin palet istifi: '+answers.stack+'.');item.result=groupPlan(source);item.error=null;dialog.querySelector('[data-raster]').replaceChildren();renderFiles();}
+    catch(e){status(e.message);}finally{if(token===serial){busy=false;processNext();}}
   }
   const rasterFields=[['sectionWidth','Standart travers açıklığı (mm)'],['frameDepth','Raf çerçeve derinliği (mm)'],['footHeight','Ayak yüksekliği (mm)'],['levels','Zemin dahil kat adedi'],['palletCount','Standart gözde bir sıranın palet adedi'],['palletWidth','Palet eni (mm)'],['palletDepth','Palet derinliği (mm)'],['palletHeight','Yüklü palet yüksekliği (mm)'],['palletWeight','Bir paletin yükü (kg)'],['firstBeamTop','İlk travers üst kotu (mm)'],['beamHeight','Travers yüksekliği (mm)'],['clearOpening','Üst katlar arası net açıklık (mm)'],['doubleRowGap','Çift sıralarda çerçeveler arası mesafe (mm)'],['tunnelHeight','Tünel net geçiş yüksekliği (mm)']];
   function showRaster(){

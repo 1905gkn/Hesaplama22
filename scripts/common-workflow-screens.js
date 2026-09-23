@@ -46,6 +46,9 @@
   const start = () => { observer.observe(document.getElementById('page') || document.body, {childList:true,subtree:true}); sync(); };
   document.addEventListener('click', event => {
     const target = event.target instanceof Element ? event.target : null;
+    // Restored/cloned page fragments do not retain element-bound listeners.
+    if(target?.closest('#rafexOpenLayoutScreen')){event.stopImmediatePropagation();switchScreen('layout');return;}
+    if(target?.closest('#rafexBackToRackTypes')){event.stopImmediatePropagation();switchScreen('types');return;}
     if (target?.closest('#nav button[data-page]')) { screen = 'types'; queue(); }
     const add = target?.closest('#m2SavedTypesPanel button');
     if (screen === 'types' && add && /m2AddSelectedSavedRack/.test(add.getAttribute('onclick') || '')) switchScreen('layout');

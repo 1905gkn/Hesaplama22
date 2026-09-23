@@ -36,6 +36,16 @@ assert.deepEqual(physical.map(f=>f.bottom+f.beam),[1730,3485,5250,7025]);
 assert.deepEqual(physical.slice(1).map((f,i)=>f.bottom-physical[i].bottom-physical[i].beam),heightSpec.clearOpenings,'Net openings must exclude beam thickness');
 assert.deepEqual(Array.from(options.palletHeights),[1500,1500,1500,1500,1500]);
 assert.equal(heightDrawing.sideUprightHeight,8000);assert.equal(heightDrawing.totalRackHeight,8000);assert.deepEqual(Array.from(heightDrawing.plan.feet),[8000]);
+// Ground + seven beams: the doubled ground load must survive native conversion.
+for(const [firstBeamTop,pitch] of [[2400,1300],[2450,1350]]){
+ const selectiveSpec={...heightSpec,footHeight:11000,levels:8,palletCount:2,palletHeight:1100,palletHeights:[2200,...Array(7).fill(1100)],firstBeamTop,levelPitches:Array(6).fill(pitch)};
+ const native=profileContext.window.rafexPrepareImportedTypesV188([selectiveSpec])[0].drawing;
+ const opts=manualOptions(native.b2b,native.b2b.manualLevelSpecs),floors=physicalLevels(opts);
+ assert.equal(floors.length,7);
+ assert.deepEqual(floors.map(f=>f.bottom+f.beam),Array.from({length:7},(_,i)=>firstBeamTop+i*pitch));
+ assert.deepEqual(Array.from(opts.palletHeights),[2200,1100,1100,1100,1100,1100,1100,1100]);
+ assert.equal(native.sideUprightHeight,11000);
+}
 assert.throws(()=>profileContext.window.rafexPrepareImportedTypesV188([{...heightSpec,clearOpenings:[1490,1630,1630]}]),/palet yüksekliğinden kısa/);
 const joinedEntry={id:-2,name:'joined',drawing:{pdfSourceSpec:{key:'same'},footProfile:'HR100',b2b:{rowType:'single'}}};
 const joinContext={...context,window:{...context.window},document:{getElementById:()=>({click(){}})},m2RackInsideArea:()=>true,m2RackOverlaps:()=>false,m2B2BFootWidth:()=>100,b2bLayoutDrawing:()=>({totalWidth:2900,railLength:1200}),m2RenderSavedRackTypes(){},m2RenderLayoutProductList(){},m2RefreshActiveReport(){}};

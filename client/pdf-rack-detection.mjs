@@ -10,11 +10,19 @@ const fail=message=>{throw Error(message);};
 // Keep source bays intact for conflict reporting. Native blocks may represent two bays.
 export function groupRackPlan(plan){
   const excluded=new Set(plan.conflicts.flat()),used=new Set(),types=new Map(plan.types.map(t=>[t.key,t])),importTypes=new Map(),blocks=[];
+  const compatibleRows=new Map();
+  function sameRowSequence(a,b){
+    if(!plan.preserveUnequalRows)return true;
+    const key=[a,b].sort().join(':');if(compatibleRows.has(key))return compatibleRows.get(key);
+    const left=plan.placements.filter(p=>p.row===a).sort((x,y)=>x.y-y.y),right=plan.placements.filter(p=>p.row===b).sort((x,y)=>x.y-y.y);
+    const ok=left.length===right.length&&left.every((p,i)=>p.key===right[i].key&&Math.abs(p.y-right[i].y)<=10&&p.depth===right[i].depth);
+    compatibleRows.set(key,ok);return ok;
+  }
   for(const p of plan.placements){
     if(excluded.has(p.id)||used.has(p.id))continue;
     const spec=types.get(p.key);
     const matches=plan.placements.filter(q=>q.id!==p.id&&!used.has(q.id)&&!excluded.has(q.id)&&q.key===p.key&&!!q.braced===!!p.braced&&(q.tunnelHeight||0)===(p.tunnelHeight||0)&&Math.abs(q.y-p.y)<=10&&Math.abs(q.x-p.x)>=spec.palletDepth&&Math.abs(q.x-p.x)<=spec.frameDepth+500).sort((a,b)=>Math.abs(a.x-p.x)-Math.abs(b.x-p.x));
-    const partner=matches[0],gap=partner?(Number.isFinite(plan.doubleRowGap)?plan.doubleRowGap:Math.round((Math.abs(partner.x-p.x)-spec.frameDepth)/5)*5):0;
+    const partner=matches.find(q=>sameRowSequence(p.row,q.row)),gap=partner?(Number.isFinite(plan.doubleRowGap)?plan.doubleRowGap:Math.round((Math.abs(partner.x-p.x)-spec.frameDepth)/5)*5):0;
     const key=partner?spec.key+'-double-'+gap:spec.key;
     importTypes.set(key,{...spec,key,rowType:partner?'double':'single',rowGap:gap,name:spec.name+(partner?' · Çift sıra '+gap:' · Tek sıra')});
     const sources=partner?[p,partner]:[p];sources.forEach(q=>used.add(q.id));

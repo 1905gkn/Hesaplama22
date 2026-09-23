@@ -125,7 +125,14 @@
         if(p.braced)rack.seismicBraces=[{id:baseId+positions.length+i,type:'light',rackIds:[rack.id]}];
         if(p.joinGroup)rack.joinGroup=p.joinGroup+'-'+baseId;
         if(p.parentIndex!==undefined){rack.sharedFootWith=baseId+p.parentIndex;rack.sharedFootSide=p.sharedSide;}
-        if(!m2RackInsideArea(rack)||m2RackOverlaps(rack))throw Error(p.id+': hesaplanan raf dış ölçüsü başka bir blokla çakışıyor.');
+        if(!m2RackInsideArea(rack)||m2RackOverlaps(rack)){
+          const error=Error(p.id+': hesaplanan raf dış ölçüsü başka bir blokla çakışıyor.');
+          if(typeof m2RackBounds==='function'){
+            const bounds=m2RackBounds(rack),hits=m2LayoutState.racks.filter(other=>{const b=m2RackBounds(other);return bounds.left<b.right&&bounds.right>b.left&&bounds.top<b.bottom&&bounds.bottom>b.top;});
+            error.layoutConflict={id:p.id,bounds,nearby:hits.map(other=>({id:other.pdfSourceId,bounds:m2RackBounds(other)})),source:p,neighbors:hits.map(other=>positions.find(p=>p.id===other.pdfSourceId))};
+          }
+          throw error;
+        }
         m2LayoutState.racks.push(rack);
       }
       m2LayoutState.selected=null;m2RenderSavedRackTypes();m2RenderLayout();m2RenderLayoutProductList();m2RefreshActiveReport();
