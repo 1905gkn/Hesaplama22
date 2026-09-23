@@ -1,8 +1,9 @@
 (function(){
   let dialog,task,serial=0,plan,entries,identity,fileName,raster,rasterModule,groupPlan,ocrWorker,batch=[],active=null,busy=false,combinePlans;
+  const edits=new Map(),specKey=t=>JSON.stringify(Object.fromEntries(Object.entries(t).filter(([k])=>!["key","name","_originalSignature"].includes(k)).sort(([a],[b])=>a.localeCompare(b))));
   const owner=()=>window.rafexProjectIdentityV133?.uuid;
   function status(text){dialog.querySelector('[role=status]').textContent=text;}
-  function clear(){batch=[];active=null;busy=false;serial++;task?.destroy();task=null;plan=null;entries=null;raster=null;ocrWorker?.terminate().catch(()=>{});ocrWorker=null;dialog?.querySelector("[data-raster]")?.replaceChildren();}
+  function clear(){window.rafexImportTypeEditorV198?.close();edits.clear();batch=[];active=null;busy=false;serial++;task?.destroy();task=null;plan=null;entries=null;raster=null;ocrWorker?.terminate().catch(()=>{});ocrWorker=null;dialog?.querySelector("[data-raster]")?.replaceChildren();}
   function open(){
     if(!dialog){
       const style=document.createElement('style');style.textContent='#rafexAutoLayoutButton{background:#246447;color:white;border:0;border-radius:7px;padding:10px 14px;font-weight:700;cursor:pointer}#rafexPdfAutoDialog{width:min(840px,94vw);max-height:88vh;overflow:auto;border:1px solid #b9cec3;border-radius:12px;padding:24px;color:#173c2d}#rafexPdfAutoDialog::backdrop{background:#10211999}#rafexPdfAutoDialog header,#rafexPdfAutoDialog footer{display:flex;gap:12px;justify-content:space-between;align-items:center}#rafexPdfAutoDialog h2{margin:0}#rafexPdfAutoDialog p{line-height:1.6}#rafexPdfAutoDialog button{padding:10px 16px;cursor:pointer}#rafexPdfAutoDialog label{display:block;margin:18px 0}#rafexPdfAutoDialog [role=status]{white-space:pre-wrap;padding:12px;background:#f0f6f2}#rafexPdfAutoDialog table{width:100%;border-collapse:collapse;font-size:13px}#rafexPdfAutoDialog td,#rafexPdfAutoDialog th{padding:8px;border-bottom:1px solid #ddd;text-align:left}#rafexPdfAutoDialog svg{width:100%;height:280px;background:#f4f7f5}#rafexPdfAutoDialog [hidden]{display:none!important}';document.head.append(style);
@@ -12,6 +13,14 @@
       dialog.addEventListener('change',e=>{if(e.target.matches('[data-file]'))analyze(e);else if(e.target.closest('[data-raster]')){entries=null;plan=null;dialog.querySelector('[data-apply]').disabled=true;dialog.querySelector('[data-confirm]').hidden=true;dialog.querySelector('[data-preview]').hidden=true;}});
       dialog.addEventListener('click',event=>{
         if(event.target.closest('[data-close]'))dialog.close();
+        const editor=event.target.closest('[data-edit-type],[data-view-type]');
+        if(editor){const index=Number(editor.dataset.editType??editor.dataset.viewType),editable=editor.hasAttribute('data-edit-type');window.rafexImportTypeEditorV198.open(entries[index],plan.importTypes[index],editable,(entry,spec)=>{
+          spec._originalSignature=plan.importTypes[index]._originalSignature||specKey(plan.importTypes[index]);
+          edits.set(spec._originalSignature,{spec:{...spec},name:entry.importName});plan.importTypes[index]=spec;const refreshed=window.rafexPrepareImportedTypesV188(plan.importTypes);entries=refreshed.map((item,i)=>({...item,id:entries[i].id,importName:entries[i].importName}));
+          plan.blocks.filter(b=>b.key===spec.key).forEach(b=>b.rowCount=spec.rowType==='double'?2:1);
+          dialog.querySelector('[data-confirm] input').checked=false;preview();validateNames();
+          status(entry.importName+' tipi güncellendi. Bu tipe bağlı tüm bloklar düzenlenen ölçülerle yerleştirilecek. Kaynak konumlar korunur; boyut değişiklikleri yerleştirme sırasında çakışma kontrolünden geçer.');
+        },next=>window.rafexPrepareImportedTypesV188(plan.importTypes.map((t,i)=>i===index?next:t))[index]);return;}
         const remove=event.target.closest('[data-remove-file]');if(remove){removeFile(Number(remove.dataset.removeFile));return;}
         const retry=event.target.closest('[data-retry-file]');if(retry){batch[Number(retry.dataset.retryFile)].error=null;renderFiles();processNext();return;}
         if(event.target.closest('[data-raster-prepare]')){prepareRaster();return;}
@@ -69,8 +78,11 @@
   function prepare(result){
     if(owner()!==identity)throw Error('Proje değişti. Dosyaları yeniden seç.');
       if(m2ActiveModule!=='b2b'){const radio=document.querySelector('input[name="rafexUnifiedSystem"][value="b2b"]');if(!radio)throw Error('Ortak Çizim B2B motoru bulunamadı.');radio.checked=true;radio.dispatchEvent(new Event('change',{bubbles:true}));}
+      result={...result,blocks:result.blocks.map(b=>({...b})),importTypes:result.importTypes.map(t=>{const signature=specKey(t),saved=edits.get(signature);return saved?{...saved.spec,key:t.key,_originalSignature:signature}:{...t,_originalSignature:signature};})};
+      result.blocks.forEach(b=>{const t=result.importTypes.find(t=>t.key===b.key);if(t)b.rowCount=t.rowType==='double'?2:1;});
       entries=window.rafexPrepareImportedTypesV188(result.importTypes);plan=result;if(!Array.isArray(entries)||entries.length!==result.importTypes.length)throw Error('Raf tipi hesabı tamamlanamadı.');
       window.rafexImportedNamesV194.defaults(window.rafexProjectTypesV133||[],entries,result.blocks);
+      entries.forEach((entry,i)=>{const saved=edits.get(result.importTypes[i]._originalSignature);if(saved)entry.importName=saved.name;});
       preview();dialog.querySelector('[data-confirm]').hidden=false;validateNames();
       const excluded=new Set(plan.conflicts.flat()).size;status(plan.importTypes.length+' raf tipi · '+plan.rows+' sıra · '+plan.placements.length+' göz algılandı.\n'+(plan.placements.length-excluded)+' göz, '+plan.blocks.length+' blok olarak hazır; '+plan.blocks.filter(p=>p.rowCount===2).length+' çift sıra blok.\n'+plan.warnings.join('\n')+'\nAynı tip sırt sırta gözler çift sıradır. Kesintisiz devam eden uyumlu gözler ortak ayakla birleştirilir; geçiş boşlukları korunur.');
   }
@@ -101,8 +113,8 @@
   }
   function preview(){
     const box=dialog.querySelector('[data-preview]');box.replaceChildren();box.hidden=false;
-    const table=document.createElement('table'),head=table.createTHead().insertRow();['Blok adı','Açıklık × derinlik × yükseklik','Sıra','Kat','Palet yüksekliği','Kat açıklığı','Palet/kat/sıra','Blok'].forEach(s=>{const c=document.createElement('th');c.textContent=s;head.append(c);});
-    for(const [index,t] of plan.importTypes.entries()){const row=table.insertRow(),input=document.createElement('input');input.type='text';input.dataset.blockName=index;input.value=entries[index].importName;input.setAttribute('aria-label',(index+1)+'. raf tipinin blok adı');input.style.width='64px';row.insertCell().append(input);[t.sectionWidth+' × '+t.frameDepth+' × '+t.footHeight+' mm',t.rowType==='double'?'Çift · ara '+t.rowGap+' mm':'Tek',t.levels,(t.palletHeights||[t.palletHeight]).join(' / ')+' mm','İlk travers üstü '+t.firstBeamTop+' mm; '+(t.levelPitches?'kat adımı '+t.levelPitches.join(' / '):'net '+t.clearOpenings.join(' / '))+' mm',t.palletCount,plan.blocks.filter(p=>p.key===t.key).length].forEach(s=>row.insertCell().textContent=s);}
+    const table=document.createElement('table'),head=table.createTHead().insertRow();['Blok adı','Açıklık × derinlik × yükseklik','Sıra','Kat','Palet yüksekliği','Kat açıklığı','Palet/kat/sıra','Blok','İncele / düzenle'].forEach(s=>{const c=document.createElement('th');c.textContent=s;head.append(c);});
+    for(const [index,t] of plan.importTypes.entries()){const row=table.insertRow(),input=document.createElement('input');input.type='text';input.dataset.blockName=index;input.value=entries[index].importName;input.setAttribute('aria-label',(index+1)+'. raf tipinin blok adı');input.style.width='64px';row.insertCell().append(input);[t.sectionWidth+' × '+t.frameDepth+' × '+t.footHeight+' mm',t.rowType==='double'?'Çift · ara '+t.rowGap+' mm':'Tek',t.levels,(t.palletHeights||[t.palletHeight]).join(' / ')+' mm','İlk travers üstü '+t.firstBeamTop+' mm; '+(t.levelPitches?'kat adımı '+t.levelPitches.join(' / '):'net '+t.clearOpenings.join(' / '))+' mm',t.palletCount,plan.blocks.filter(p=>p.key===t.key).length].forEach(s=>row.insertCell().textContent=s);const actions=row.insertCell();for(const [key,label] of [['viewType','3D Görüntü'],['editType','Özelleştir']]){const button=document.createElement('button');button.type='button';button.dataset[key]=index;button.textContent=label;button.setAttribute('aria-label',entries[index].importName+' · '+label);actions.append(button);}}
     const shown=plan.batch?plan.placements.map(p=>({...p,x:p.previewX,y:p.previewY,width:p.previewWidth,depth:p.previewDepth})):plan.orientation==='horizontal'?plan.placements.map(p=>({...p,x:p.y,y:p.x,width:p.depth,depth:p.width})):plan.placements;
     const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg'),maxX=Math.max(...shown.map(p=>p.x+p.width)),maxY=Math.max(...shown.map(p=>p.y+p.depth)),excluded=new Set(plan.conflicts.flat());svg.setAttribute('viewBox',[-1000,-1000,maxX+2000,maxY+2000].join(' '));svg.setAttribute('role','img');svg.setAttribute('aria-label','Dosyalardan algılanan raf yerleşimi; çakışan gözler kırmızı');
     for(const p of shown){const rect=document.createElementNS(ns,'rect');for(const [k,v] of Object.entries({x:p.x-p.width/2,y:p.y-p.depth/2,width:p.width,height:p.depth,fill:excluded.has(p.id)?'#ca3939':['#3581b8','#77a8ce','#277b60','#79b797','#b47730','#d2ab77'][plan.types.findIndex(t=>t.key===p.key)],stroke:'white','stroke-width':30}))rect.setAttribute(k,v);svg.append(rect);}

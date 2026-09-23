@@ -5,7 +5,7 @@ import {detectRacks,groupRackPlan} from '../client/pdf-rack-detection.mjs';
 import {readVectors} from '../client/pdf-vector-reader.mjs';
 import {manualOptions,physicalLevels} from './b2b-level-plan-v121.mjs';
 import {transform} from './patch-pdf-auto-layout-v188.mjs';
-for(const file of ['pdf-auto-layout.js','pdf-native-placement.js'])new vm.Script(fs.readFileSync('client/'+file,'utf8'));
+for(const file of ['pdf-auto-layout.js','pdf-native-placement.js','imported-type-editor.js'])new vm.Script(fs.readFileSync('client/'+file,'utf8'));
 const exported=[...fs.readFileSync('client/pdf-native-placement.js','utf8').matchAll(/window\.(\w+)=function/g)].map(m=>m[1]);
 assert.equal(exported.length,2);
 for(const name of exported)assert(!/(pdf|report|print|a4|output)/i.test(name),'Import must not be intercepted by the existing output-only gate: '+name);
