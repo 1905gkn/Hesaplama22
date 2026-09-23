@@ -5,9 +5,14 @@
     const targets=entries.map(e=>merged.entries.find(t=>'b2b:'+t.id===(merged.aliases['b2b:'+e.id]||'b2b:'+e.id)));
     return {merged,targets};
   }
-  function defaults(current,entries){
-    const {targets}=resolve(current,entries);
-    entries.forEach((e,i)=>{e.importName=targets[i].name;});
+  function defaults(current,entries,blocks=[]){
+    const {merged,targets}=resolve(current,entries),targetSet=new Set(targets);
+    const used=new Set(merged.entries.filter(e=>!targetSet.has(e)).map(e=>normalize(e.name)));
+    const counts=new Map();blocks.forEach(b=>counts.set(b.key,(counts.get(b.key)||0)+1));
+    const ranked=entries.map((entry,index)=>({entry,index,count:counts.get(entry.drawing.pdfSourceSpec?.key)||0})).sort((a,b)=>b.count-a.count||a.index-b.index);
+    const letter=n=>{let s='';for(;n;n=Math.floor((n-1)/26))s=String.fromCharCode(65+(n-1)%26)+s;return s;};
+    let next=1;
+    ranked.forEach(({entry})=>{while(used.has(letter(next)))next++;entry.importName=letter(next++);used.add(entry.importName);});
   }
   function apply(current,entries){
     const {merged,targets}=resolve(current,entries),targetSet=new Set(targets);

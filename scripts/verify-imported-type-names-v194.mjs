@@ -5,3 +5,10 @@ const entries=[row(-1,'source',100),row(-2,'source',200),row(-3,'source',300)];a
 entries[0].importName=' c ';assert.throws(()=>api.apply([],entries),/zaten/);entries[2].importName='a';const result=api.apply([],entries);assert.deepEqual(result.entries.map(e=>e.name),['C','B','A']);assert.equal(result.entries[0].__rafexSnapshot.rafexGlobalTypeLetter,'C');assert.equal(result.entries[0].drawing.width,100);
 entries[0].importName='';assert.throws(()=>api.apply([],entries),/boş/);entries[0].importName='D';assert.throws(()=>api.apply([row(8,'D',800)],entries),/zaten/);entries[0].importName='E';assert.equal(api.apply([row(8,'D',800)],entries).entries.length,4);
 console.log('PASS defaults, swaps, case/whitespace duplicates, blank names, existing catalog conflict and snapshot persistence');
+const ranked=[row(-11,'source',1850),row(-12,'source',3300),row(-13,'source',2400),row(-14,'source',6600)];
+ranked.forEach((e,i)=>e.drawing.pdfSourceSpec={key:'type'+i});
+const blocks=[2,44,5,105].flatMap((count,i)=>Array.from({length:count},()=>({key:'type'+i})));
+api.defaults([],ranked,blocks);assert.deepEqual(ranked.map(e=>e.importName),['D','B','C','A']);
+api.defaults([row(90,'A',900)],ranked,blocks);assert.deepEqual(ranked.map(e=>e.importName),['E','C','D','B']);
+api.defaults([],ranked,[{key:'type2'},{key:'type1'}]);assert.deepEqual(ranked.map(e=>e.importName),['C','A','B','D']);
+console.log('PASS descending block counts, reserved names, stable ties');

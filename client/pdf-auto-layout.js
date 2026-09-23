@@ -70,7 +70,7 @@
     if(owner()!==identity)throw Error('Proje değişti. Dosyaları yeniden seç.');
       if(m2ActiveModule!=='b2b'){const radio=document.querySelector('input[name="rafexUnifiedSystem"][value="b2b"]');if(!radio)throw Error('Ortak Çizim B2B motoru bulunamadı.');radio.checked=true;radio.dispatchEvent(new Event('change',{bubbles:true}));}
       entries=window.rafexPrepareImportedTypesV188(result.importTypes);plan=result;if(!Array.isArray(entries)||entries.length!==result.importTypes.length)throw Error('Raf tipi hesabı tamamlanamadı.');
-      window.rafexImportedNamesV194.defaults(window.rafexProjectTypesV133||[],entries);
+      window.rafexImportedNamesV194.defaults(window.rafexProjectTypesV133||[],entries,result.blocks);
       preview();dialog.querySelector('[data-confirm]').hidden=false;validateNames();
       const excluded=new Set(plan.conflicts.flat()).size;status(plan.importTypes.length+' raf tipi · '+plan.rows+' sıra · '+plan.placements.length+' göz algılandı.\n'+(plan.placements.length-excluded)+' göz, '+plan.blocks.length+' blok olarak hazır; '+plan.blocks.filter(p=>p.rowCount===2).length+' çift sıra blok.\n'+plan.warnings.join('\n')+'\nAynı tip sırt sırta gözler çift sıradır. Kesintisiz devam eden uyumlu gözler ortak ayakla birleştirilir; geçiş boşlukları korunur.');
   }
@@ -106,7 +106,7 @@
     const shown=plan.batch?plan.placements.map(p=>({...p,x:p.previewX,y:p.previewY,width:p.previewWidth,depth:p.previewDepth})):plan.orientation==='horizontal'?plan.placements.map(p=>({...p,x:p.y,y:p.x,width:p.depth,depth:p.width})):plan.placements;
     const ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg'),maxX=Math.max(...shown.map(p=>p.x+p.width)),maxY=Math.max(...shown.map(p=>p.y+p.depth)),excluded=new Set(plan.conflicts.flat());svg.setAttribute('viewBox',[-1000,-1000,maxX+2000,maxY+2000].join(' '));svg.setAttribute('role','img');svg.setAttribute('aria-label','Dosyalardan algılanan raf yerleşimi; çakışan gözler kırmızı');
     for(const p of shown){const rect=document.createElementNS(ns,'rect');for(const [k,v] of Object.entries({x:p.x-p.width/2,y:p.y-p.depth/2,width:p.width,height:p.depth,fill:excluded.has(p.id)?'#ca3939':['#3581b8','#77a8ce','#277b60','#79b797','#b47730','#d2ab77'][plan.types.findIndex(t=>t.key===p.key)],stroke:'white','stroke-width':30}))rect.setAttribute(k,v);svg.append(rect);}
-    const hint=document.createElement('p');hint.textContent='Blok adlarını değiştirebilirsin. Aynı raf tipindeki tüm bloklar bu adı kullanır. Her tipin adı farklı olmalıdır.';
+    const hint=document.createElement('p');hint.textContent='Harfler blok adedine göre çoktan aza atanır: A, B, C… Eşit adette dosyadaki sıra korunur; projede kullanılan harfler atlanır. Blok adlarını değiştirebilirsin. Aynı raf tipindeki tüm bloklar bu adı kullanır. Her tipin adı farklı olmalıdır.';
     const error=document.createElement('p');error.dataset.nameError='';error.setAttribute('role','alert');error.style.color='#a71919';error.hidden=true;
     box.append(hint,table,error,svg);
   }
