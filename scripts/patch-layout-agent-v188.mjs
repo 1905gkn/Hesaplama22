@@ -5,6 +5,11 @@ function runtime(){
  const snapshot=()=>JSON.stringify({points:m2LayoutState.points,racks:m2LayoutState.racks,symbols:m2LayoutState.symbols,scale:m2LayoutState.scale});
  function clear(){pending=null;$('rafexAgentPreviewV188')?.remove();const b=$('rafexAgentApplyV188');if(b)b.disabled=true;}
  function install(){
+  const auto=$('rafexPdfAutoDialog');
+  if(auto&&!auto.querySelector('[data-rack-agent]')){
+   const button=document.createElement('button');button.type='button';button.dataset.rackAgent='';button.textContent='Seçili raf için agent · yan yana yerleştir';
+   button.onclick=()=>{auto.close();$('rafexOpenLayoutScreen')?.click();requestAnimationFrame(()=>{install();const panel=$('rafexAgentV188');if(panel){panel.open=true;panel.scrollIntoView({block:'center'});}});};auto.querySelector('header').after(button);
+  }
   const host=$('m2AutoFillControls');if(!host||$('rafexAgentV188'))return;
   const box=document.createElement('details');box.id='rafexAgentV188';
   box.innerHTML='<summary>Otomatik yerleşim · Agent</summary><p>Seçili rafı yan yana çoğaltır. Örnek: “Sağa 20 yeni blok ekle”. Diğer yerleşim türleri bu sürümde desteklenmez.</p><label>Yerleşim talebi<textarea id="rafexAgentPromptV188" maxlength="1200" rows="2" placeholder="Sağa 20 yeni blok ekle"></textarea></label><small>GPT-5.6 Sol · düşük düşünme · istek başına en fazla 0,10 $ · toplam üst bütçe 25 $. Her gönderimde güvenlik için 0,10 $ kota ayrılır; bu, gerçek fatura tutarı değildir. Talep metni ve raf sistemi OpenAI’a gönderilir.</small><div><button type="button" id="rafexAgentAskV188">Öneri oluştur</button> <button type="button" id="rafexAgentApplyV188" disabled>Uygula</button> <button type="button" id="rafexAgentCancelV188">Vazgeç</button></div><p role="status" id="rafexAgentStatusV188">Önce alan içinde bir raf seç.</p>';
@@ -36,6 +41,7 @@ function runtime(){
  }
  function apply(){if(!pending)return;const p=pending;if(p.before!==snapshot()){clear();status('Çizim değişti. Yeni öneri oluştur.');return;}clear();const ok=window.rafexRegionsV179.repeat(p.options);status(ok?'Yerleşim uygulandı. Geri Al ile geri döndürebilirsin.':'Geometri kontrolü geçmedi; raf eklenmedi.');}
  const base=m2RenderLayout;m2RenderLayout=window.m2RenderLayout=function(){const result=base.apply(this,arguments);install();if(pending){if(pending.before!==snapshot()){clear();status('Çizim değişti; öneri iptal edildi.');}else{const p=window.rafexRegionsV179.repeat({...pending.options,dryRun:true});if(p)draw(p.racks);}}return result;};
+ document.addEventListener('click',e=>{if(e.target.closest('#rafexAutoLayoutButton,#rafexOpenLayoutScreen'))requestAnimationFrame(install);});
  window.rafexLayoutAgentV188={install,clear};install();
 }
 export function transform(html){
