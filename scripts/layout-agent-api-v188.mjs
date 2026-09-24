@@ -1,6 +1,7 @@
 import {automaticRequest,validAutomaticPlan} from './automatic-agent-schema.mjs';
 import {documentRequest,validReading} from './document-agent-schema.mjs';
 const MODEL='gpt-5.6-sol';
+export const MODEL_TIMEOUT_MS=45000;
 export function buildAgentRequest(input) {
   if(typeof input.prompt!=='string'||!input.prompt.trim()||input.prompt.length>1200) throw new Error('Talebi 1–1200 karakter arasında yaz.');
   if(!/^[a-f0-9-]{36}$/i.test(input.requestId||'')) throw new Error('Geçersiz işlem kimliği.');
@@ -44,7 +45,7 @@ export async function layoutAgent(request,{proxyApi,env=process.env,fetchImpl=fe
     return reply({error:message+' Çizim değiştirilmedi. Otomatik tekrar yok. Referans: '+input.requestId,code,requestId:input.requestId,reservedUsd:.10},status);
   };
   try{
-    const response=await fetchImpl('https://api.openai.com/v1/responses',{method:'POST',headers:{'authorization':'Bearer '+env.OPENAI_API_KEY,'content-type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(20000)});
+    const response=await fetchImpl('https://api.openai.com/v1/responses',{method:'POST',headers:{'authorization':'Bearer '+env.OPENAI_API_KEY,'content-type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(MODEL_TIMEOUT_MS)});
     if(!response.ok)return failure('PROVIDER_HTTP','Model servisi HTTP '+response.status+' hatası verdi.',502,response.status);
     stage='provider_json';
     const data=await response.json();
@@ -58,7 +59,7 @@ export async function layoutAgent(request,{proxyApi,env=process.env,fetchImpl=fe
     if(input.mode==='document'?!validReading(plan):input.mode==='automatic'?!validAutomaticPlan(plan,input):(!['repeat','clarify'].includes(plan.action)||!Number.isInteger(plan.count)||plan.count<0||plan.count>1000||![1,-1].includes(plan.direction)||typeof plan.reason!=='string'||plan.reason.length>1500||(plan.action==='repeat'&&plan.count<1)))throw Error('Invalid plan');
     return reply({plan,model:MODEL,reservedUsd:.10});
   }catch(e){
-    if(e?.name==='TimeoutError'||e?.name==='AbortError')return failure('MODEL_TIMEOUT','Model servisi 20 saniyelik yanıt süresini aştı.',504);
+    if(e?.name==='TimeoutError'||e?.name==='AbortError')return failure('MODEL_TIMEOUT','Model servisi '+(MODEL_TIMEOUT_MS/1000)+' saniyelik yanıt süresini aştı.',504);
     const errors={provider_fetch:['PROVIDER_CONNECTION','Model servisine bağlantı kurulamadı.'],provider_json:['PROVIDER_JSON','Model servisinin yanıtı çözümlenemedi.'],output_extract:['RESPONSE_FORMAT','Model yanıtının yapısı beklenen biçimde değil.'],plan_json:['OUTPUT_JSON','Model çıktısı geçerli JSON biçiminde değil.'],plan_validation:['OUTPUT_VALIDATION','Model çıktısındaki alanlar doğrulama kurallarına uymuyor.']};
     const [code,message]=errors[stage]||['INTERNAL_ERROR','Yanıt işlenirken beklenmeyen hata oluştu.'];return failure(code,message);
   }

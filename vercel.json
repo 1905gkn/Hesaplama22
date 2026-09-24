@@ -13,7 +13,7 @@
   "functions": {
     "api/index.js": {
       "includeFiles": "dist/server/index.js",
-      "maxDuration": 30
+      "maxDuration": 60
     }
   },
   "rewrites": [
