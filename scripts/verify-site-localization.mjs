@@ -1,10 +1,13 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+import vm from 'node:vm';
 import { createRequire } from 'node:module';
 import { transform } from './patch-site-localization-v202.mjs';
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
 const portal = fs.readFileSync('portal.html', 'utf8');
+const quoted = transform('<html><body><script>const printed="<body>Print</body>";</script></body></html>');
+for (const match of quoted.matchAll(/<script>([\s\S]*?)<\/script>/g)) new vm.Script(match[1]);
 const declarations = portal.slice(portal.indexOf('const UI_TRANSLATIONS ='), portal.indexOf('      function applyTranslations('));
 const html = transform(`<html lang="tr"><body><button id="label">Ölçüleri Düzenle</button><span id="dynamic">Kat sayısı</span><input id="user" value="Ortak Çizim"><span translate="no">Ortak Çizim</span><select id="m2ReportLanguage"><option value="fr">FR</option></select><section id="m2A4Sheet"><b>Ölçüleri Düzenle</b></section><script>let appLanguage='tr';${declarations};function applyTranslations(){};const i18nObserver=new MutationObserver(()=>{});</script></body></html>`);
 assert.equal(transform(html), html, 'patch must be idempotent');
