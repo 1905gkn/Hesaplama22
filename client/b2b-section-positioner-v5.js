@@ -3,7 +3,7 @@
   window.__rafexB2BSectionPositionerFallbackV5 = true;
 
   const STORAGE_KEY = "rafex_b2b_perspective_by_type_v4";
-  const DIMENSION_DEFAULTS = { levels: true, markers: true, eye: true, width: false, depth: true };
+  const DIMENSION_DEFAULTS = { traverseIncluded: false, levels: true, markers: true, eye: true, width: false, depth: true };
   const DEFAULT_VIEW = { x: 0, y: 0, scale: 1, azimuth: 41, elevation: 24, counts: [], showPallets: true, dimensions: DIMENSION_DEFAULTS };
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const number = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
@@ -21,6 +21,7 @@
       counts: Array.isArray(value.counts) ? [...new Set(value.counts.map(Number).filter((n) => n >= 1 && n <= 4))].sort((a, b) => b - a) : [],
       showPallets: value.showPallets !== false,
       dimensions: {
+        traverseIncluded: value.dimensions?.traverseIncluded ?? defaultDimensions.traverseIncluded,
         levels: value.dimensions?.levels ?? defaultDimensions.levels,
         markers: value.dimensions?.markers ?? defaultDimensions.markers,
         eye: value.dimensions?.eye ?? defaultDimensions.eye,
@@ -596,7 +597,7 @@
             <section class="rafex-perspective-card"><b>PERSPEKTİF ÇIKTISI</b><div class="rafex-placement-stage" data-rafex-placement-stage="perspective"><div class="rafex-placement-empty">Perspektif hazırlanıyor…</div></div>
               <div class="rafex-placement-controls"><span>Sürükle · Tekerlek</span><button type="button" data-rafex-zoom-out>−</button><strong data-rafex-placement-zoom="perspective">100%</strong><button type="button" data-rafex-zoom-in>+</button><button type="button" data-rafex-fit>Sığdır</button><span></span><button type="button" data-rafex-rotate-left title="Sola döndür">↺</button><button type="button" data-rafex-rotate-right title="Sağa döndür">↻</button><button type="button" data-rafex-rotate-up title="Yukarıdan bak">↑</button><button type="button" data-rafex-rotate-down title="Aşağıdan bak">↓</button></div>
               <div class="rafex-option-row"><strong>PALETLER</strong><button type="button" data-rafex-pallets>Paletleri Gizle</button></div>
-              <div class="rafex-option-row rafex-dimension-options"><strong>ÖLÇÜLERİ GÖSTER</strong><label><input type="checkbox" data-rafex-dimension="levels"> Kat aralıkları ve ilk travers</label><label><input type="checkbox" data-rafex-dimension="markers"> Üst palet kotu ve ayak boyu</label><label><input type="checkbox" data-rafex-dimension="eye"> Göz / travers ölçüsü</label><label><input type="checkbox" data-rafex-dimension="width"> Toplam genişlik</label><label><input type="checkbox" data-rafex-dimension="depth"> Raf derinliği</label><button type="button" data-rafex-dim-all>Hepsini Göster</button><button type="button" data-rafex-dim-none>Hepsini Gizle</button></div>
+              <div class="rafex-option-row rafex-dimension-options"><strong>ÖLÇÜLERİ GÖSTER</strong><label><input type="checkbox" data-rafex-dimension="traverseIncluded"> Travers dahil ölçü</label><label><input type="checkbox" data-rafex-dimension="levels"> Kat aralıkları ve ilk travers</label><label><input type="checkbox" data-rafex-dimension="markers"> Üst palet kotu ve ayak boyu</label><label><input type="checkbox" data-rafex-dimension="eye"> Göz / travers ölçüsü</label><label><input type="checkbox" data-rafex-dimension="width"> Toplam genişlik</label><label><input type="checkbox" data-rafex-dimension="depth"> Raf derinliği</label><button type="button" data-rafex-dim-all>Hepsini Göster</button><button type="button" data-rafex-dim-none>Hepsini Gizle</button></div>
               <div class="rafex-module-selector"><span>MODÜLLER <small data-rafex-angle-label style="margin-left:8px;color:#68736c">41° / 24°</small></span><button type="button" class="rafex-module-count" data-rafex-count="4">4</button><button type="button" class="rafex-module-count" data-rafex-count="3">3</button><button type="button" class="rafex-module-count" data-rafex-count="2">2</button><button type="button" class="rafex-module-count" data-rafex-count="1">1</button></div>
             </section>
           </div>

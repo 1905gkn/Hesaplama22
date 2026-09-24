@@ -198,6 +198,7 @@ class B2BViewer {
       showPallets: next.showPallets !== false,
       dimensionLabelScale: clamp(Number(next.dimensionLabelScale) || 1, .7, 1.5),
       dimensions: {
+        traverseIncluded: next.dimensions?.traverseIncluded === true,
         levels: next.dimensions?.levels !== false,
         markers: next.dimensions?.markers !== false,
         eye: next.dimensions?.eye !== false,
@@ -215,6 +216,7 @@ class B2BViewer {
     if(!this.models)return;
     while(this.content.children.length)this.content.remove(this.content.children[0]);
     this.dimensionLabels=[];
+    this.frameDepthAnchors=null;
     const baseOptions=this.options;
     const moduleSpecs=Array.isArray(baseOptions.moduleOptions)&&baseOptions.moduleOptions.length
       ? baseOptions.moduleOptions.map((item)=>this.normalizeOptions({...baseOptions,...item,moduleCount:1,moduleOptions:null}))
@@ -244,6 +246,24 @@ class B2BViewer {
         const targetHeight=Math.max(500,this.uprightHeight()),verticalScale=targetHeight/5006.16;
         const section=new THREE.Group();section.name=`B2B Değişken Bölüm ${moduleIndex+1}`;
         const frame=this.models.module.clone(true);this.stripFrameSupports(frame);frame.scale.set(sectionScale,depthScale,verticalScale);this.preserveUprightThickness(frame,sectionScale);this.applyRackMaterials(frame);section.add(frame);
+        // Measure the structural uprights, never the pallet or base plates.
+        frame.updateMatrixWorld(true);
+        const bounds=new THREE.Box3();
+        frame.traverse(object=>{
+          if(!object.isMesh||!object.geometry)return;
+          const name=(object.name||"").toLocaleUpperCase("tr-TR");
+          if(!/AYAK|HRTD|UPRIGHT/.test(name))return;
+          const box=new THREE.Box3().setFromObject(object);
+          if(box.max.z-box.min.z<targetHeight*.5)return;
+          bounds.union(box);
+        });
+        if(!bounds.isEmpty()){
+          const front=rowIndex===0?bounds.min.y:baseFrameDepth*2+baseOptions.rowGap-bounds.max.y;
+          const back=rowIndex===0?bounds.max.y:baseFrameDepth*2+baseOptions.rowGap-bounds.min.y;
+          const side=positions[moduleIndex]+bounds.max.x;
+          const previous=this.frameDepthAnchors;
+          this.frameDepthAnchors={front:Math.min(previous?.front??front,front),back:Math.max(previous?.back??back,back),side:Math.max(previous?.side??side,side)};
+        }
         this.addTraverses(section,sectionScale,depthScale);if(spec.showPallets)this.addLoads(section,sectionScale);
         section.position.x=positions[moduleIndex];row.add(section);
       });
@@ -526,7 +546,16 @@ class B2BViewer {
           .filter((floor) => !(this.options.tunnelHeight > 0 && floor.bottom < this.options.tunnelHeight))
           .sort((left, right) => left.bottom - right.bottom)
         : [];
-      if (this.options.firstPalletPosition === "traverse" && collectionFloors.length) {
+      if (this.options.dimensions.traverseIncluded) {
+        const tops = Array.from({length:traverseCount},(_,level)=>({
+          bottom:this.traverseBottom(level),top:this.traverseTop(level)
+        })).filter(floor=>!(this.options.tunnelHeight>0&&floor.bottom<this.options.tunnelHeight));
+        for(let index=0;index<tops.length;index++){
+          const start=index===0?0:tops[index-1].top,end=tops[index].top;
+          this.addVerticalDimension(levelsLayer,lineX,frontY,start,end,
+            `${index===0?'Z – K1':'K'+index+' – K'+(index+1)} · ${this.dimensionValue(end-start)}`,0);
+        }
+      } else if (this.options.firstPalletPosition === "traverse" && collectionFloors.length) {
         const firstCollectionBottom = collectionFloors[0].bottom;
         if (firstCollectionBottom > 0) {
           this.addVerticalDimension(
@@ -558,7 +587,7 @@ class B2BViewer {
         if(this.options.tunnelHeight>0){const first=Array.from({length:traverseCount},(_,i)=>i).find(i=>this.traverseBottom(i)>=this.options.tunnelHeight);if(first!==undefined&&this.traverseBottom(first)>this.options.tunnelHeight)this.addVerticalDimension(levelsLayer,lineX,frontY,this.options.tunnelHeight,this.traverseBottom(first),`TÜNEL – K${first+1} · ${this.dimensionValue(this.traverseBottom(first)-this.options.tunnelHeight)}`,0);}
         this.addVerticalDimension(levelsLayer,lineX,frontY,0,firstLevelHeight,`${this.options.tunnelHeight > 0 ? "TÜNEL" : "Z+TRAVERS"}  ·  ${this.dimensionValue(firstLevelHeight)}`,0);
       }
-      for (let level = 1; level < traverseCount; level += 1) {
+      for (let level = 1; !this.options.dimensions.traverseIncluded && level < traverseCount; level += 1) {
         if(this.options.tunnelHeight>0&&this.traverseBottom(level-1)<this.options.tunnelHeight)continue;
         this.addVerticalDimension(
           levelsLayer,
@@ -588,7 +617,11 @@ class B2BViewer {
         widthSegments.forEach((segment,index) => this.addHorizontalDimension(widthLayer, segment.from, segment.to, rackDepth + 650 + index * 520, 0, `GENİŞLİK  ·  ${this.dimensionValue(segment.width)}`));
       } else this.addHorizontalDimension(widthLayer, 0, rackWidth, rackDepth + 650, 0, `GENİŞLİK  ·  ${this.dimensionValue(rackWidth)}`);
     }
-    if (this.options.dimensions.depth) this.addDepthDimension(depthLayer, rackWidth + 420, 0, rackDepth, 0, `DERİNLİK  ·  ${this.dimensionValue(rackDepth)}`);
+    if (this.options.dimensions.depth) {
+      const anchor=this.frameDepthAnchors||{front:0,back:rackDepth,side:rackWidth};
+      this.addDepthDimension(depthLayer,anchor.side+420,anchor.front,anchor.back,0,
+        `${rowCount===2?'TOPLAM AYAK DERİNLİĞİ':'AYAK DERİNLİĞİ'}  ·  ${this.dimensionValue(rackDepth)}`,anchor.side);
+    }
     this.content.add(layer);
   }
 
@@ -651,11 +684,11 @@ class B2BViewer {
     this.addDimensionLabelAt(layer, (from + to) / 2, y - 145, -height, label, labelWidth);
   }
 
-  addDepthDimension(layer, x, from, to, height, label) {
+  addDepthDimension(layer, x, from, to, height, label, anchorX = 0) {
     const front = new THREE.Vector3(x, from, -height), back = new THREE.Vector3(x, to, -height), arrow = 92;
     this.addLine(layer, [front, back]);
-    this.addLine(layer, [new THREE.Vector3(0, from, -height), front]);
-    this.addLine(layer, [new THREE.Vector3(0, to, -height), back]);
+    this.addLine(layer, [new THREE.Vector3(anchorX, from, -height), front]);
+    this.addLine(layer, [new THREE.Vector3(anchorX, to, -height), back]);
     this.addLine(layer, [new THREE.Vector3(x - arrow, from + arrow, -height), front, new THREE.Vector3(x + arrow, from + arrow, -height)]);
     this.addLine(layer, [new THREE.Vector3(x - arrow, to - arrow, -height), back, new THREE.Vector3(x + arrow, to - arrow, -height)]);
     this.addPoint(layer, front); this.addPoint(layer, back);
