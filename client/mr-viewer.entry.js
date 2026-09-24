@@ -174,6 +174,7 @@ class MRViewer {
     const traverseHeight = { ZS35: 55, ZS55: 75, ZS65: 85 }[traverseType];
     return {
       modules: Math.round(bounded(config.modules, 1, 1, 50)), levels,
+      language: config.language || '',
       width: bounded(config.width, 2400, 300, 6000),
       depth: bounded(config.depth, 800, 300, 2500),
       uprightType, uprightThickness, uprightWidth: 60,
@@ -301,9 +302,20 @@ class MRViewer {
     canvas.width = width * scale; canvas.height = labelHeight * scale;
     const context = canvas.getContext("2d"); context.scale(scale, scale); context.font = "900 48px Arial";
     context.fillStyle = "rgba(5,40,72,.96)"; context.beginPath(); context.roundRect(0, 0, width, labelHeight, 16); context.fill();
-    context.strokeStyle = "#3e8fb2"; context.lineWidth = 4; context.stroke(); context.fillStyle = "#fff"; context.textAlign = "center"; context.textBaseline = "middle"; context.fillText(text, width / 2, labelHeight / 2, width - 30);
+    const localizedText = window.rafexDimensionText?.(text, this.config.language || document.documentElement.lang) || text;
+    context.strokeStyle = "#3e8fb2"; context.lineWidth = 4; context.stroke(); context.fillStyle = "#fff"; context.textAlign = "center"; context.textBaseline = "middle"; context.fillText(localizedText, width / 2, labelHeight / 2, width - 30);
     const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace;
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map:texture, depthTest:false, transparent:true }));
+    let labelLanguage = this.config.language || document.documentElement.lang;
+    sprite.onBeforeRender = () => {
+      const language = this.config.language || document.documentElement.lang;
+      if (language === labelLanguage) return;
+      labelLanguage = language;
+      context.clearRect(0, 0, width, labelHeight);
+      context.fillStyle = 'rgba(5,40,72,.96)'; context.beginPath(); context.roundRect(0, 0, width, labelHeight, 16); context.fill(); context.stroke();
+      context.fillStyle = '#fff'; context.fillText(window.rafexDimensionText?.(text, language) || text, width / 2, labelHeight / 2, width - 30);
+      texture.needsUpdate = true;
+    };
     const factor = this.config.dimensionScale; sprite.position.set(x, y, z); sprite.scale.set(width * factor, labelHeight * factor, 1); sprite.renderOrder = 101; sprite.userData.mrEditKey = editKey; this.dimensionLabels.push(sprite); layer.add(sprite);
     sprite.userData.savedAspect=width/labelHeight;
   }

@@ -1,0 +1,966 @@
+[
+  [
+    "Anında güncellenir",
+    "Updates instantly",
+    "Mise à jour instantanée"
+  ],
+  [
+    "Ölçüleri Düzenle",
+    "Edit Dimensions",
+    "Modifier les cotes"
+  ],
+  [
+    "Ölçüleri Uygula",
+    "Apply Dimensions",
+    "Appliquer les cotes"
+  ],
+  [
+    "Ön genişlik (mm)",
+    "Front width (mm)",
+    "Largeur de face (mm)"
+  ],
+  [
+    "Özel palet",
+    "Custom pallet",
+    "Palette personnalisée"
+  ],
+  [
+    "Özel Palet Ölçüleri",
+    "Custom Pallet Dimensions",
+    "Dimensions de palette personnalisées"
+  ],
+  [
+    "Modül sayısı",
+    "Number of bays",
+    "Nombre de travées"
+  ],
+  [
+    "Bölüm genişliği (mm)",
+    "Bay width (mm)",
+    "Largeur de travée (mm)"
+  ],
+  [
+    "Raf derinliği (mm)",
+    "Rack depth (mm)",
+    "Profondeur du rayonnage (mm)"
+  ],
+  [
+    "Raf yüksekliği (mm)",
+    "Rack height (mm)",
+    "Hauteur du rayonnage (mm)"
+  ],
+  [
+    "Yerleşim alanı",
+    "Layout area",
+    "Zone d’implantation"
+  ],
+  [
+    "Konfigürasyon",
+    "Configuration",
+    "Configuration"
+  ],
+  [
+    "Ön",
+    "Front",
+    "Face"
+  ],
+  [
+    "Üst",
+    "Top",
+    "Dessus"
+  ],
+  [
+    "Yan",
+    "Side",
+    "Côté"
+  ],
+  [
+    "Önden",
+    "Front",
+    "De face"
+  ],
+  [
+    "Perspektif",
+    "Perspective",
+    "Perspective"
+  ],
+  [
+    "ÖN",
+    "FRONT",
+    "FACE"
+  ],
+  [
+    "SAĞ",
+    "RIGHT",
+    "DROITE"
+  ],
+  [
+    "SOL",
+    "LEFT",
+    "GAUCHE"
+  ],
+  [
+    "ARKA",
+    "REAR",
+    "ARRIÈRE"
+  ],
+  [
+    "SIĞDIR",
+    "FIT",
+    "AJUSTER"
+  ],
+  [
+    "＋ YAKLAŞ",
+    "＋ ZOOM IN",
+    "＋ ZOOM AVANT"
+  ],
+  [
+    "－ UZAKLAŞ",
+    "－ ZOOM OUT",
+    "－ ZOOM ARRIÈRE"
+  ],
+  [
+    "KAMERA",
+    "CAMERA",
+    "CAMÉRA"
+  ],
+  [
+    "DÖNÜŞ KAPALI",
+    "ROTATION OFF",
+    "ROTATION DÉSACTIVÉE"
+  ],
+  [
+    "DÖNÜŞ AÇIK",
+    "ROTATION ON",
+    "ROTATION ACTIVÉE"
+  ],
+  [
+    "Otomatik döndür",
+    "Auto-rotate",
+    "Rotation automatique"
+  ],
+  [
+    "Sürükle · Döndür · Yakınlaştır",
+    "Drag · Rotate · Zoom",
+    "Glisser · Tourner · Zoomer"
+  ],
+  [
+    "Fareyle döndür, yakınlaştır ve kaydır",
+    "Rotate, zoom and pan with the mouse",
+    "Tournez, zoomez et déplacez avec la souris"
+  ],
+  [
+    "3D Raf Görünüşü",
+    "3D Rack View",
+    "Vue 3D du rayonnage"
+  ],
+  [
+    "3D RAF ÖNİZLEMESİ",
+    "3D RACK PREVIEW",
+    "APERÇU 3D DU RAYONNAGE"
+  ],
+  [
+    "3D Ölçü Görünürlüğü",
+    "3D Dimension Visibility",
+    "Visibilité des cotes 3D"
+  ],
+  [
+    "3D palet görünümü",
+    "Pallet visibility in 3D",
+    "Visibilité des palettes en 3D"
+  ],
+  [
+    "Ölçü Ayarları",
+    "Dimension Settings",
+    "Réglages des cotes"
+  ],
+  [
+    "Ölçü yazı oranı",
+    "Dimension text scale",
+    "Échelle du texte des cotes"
+  ],
+  [
+    "Ölçü puntosu",
+    "Dimension font size",
+    "Taille du texte des cotes"
+  ],
+  [
+    "Yazı puntosu",
+    "Text font size",
+    "Taille du texte"
+  ],
+  [
+    "TIP YAZI ORANI",
+    "TYPE LABEL SCALE",
+    "ÉCHELLE DU LIBELLÉ DE TYPE"
+  ],
+  [
+    "TİP YAZI ORANI",
+    "TYPE LABEL SCALE",
+    "ÉCHELLE DU LIBELLÉ DE TYPE"
+  ],
+  [
+    "RENK KONTRASTI",
+    "COLOUR CONTRAST",
+    "CONTRASTE DES COULEURS"
+  ],
+  [
+    "Palet–Travers Net Boşluğu",
+    "Load-to-beam Clearance",
+    "Jeu libre entre charge et lisse"
+  ],
+  [
+    "Net boşluk (mm)",
+    "Clearance (mm)",
+    "Jeu libre (mm)"
+  ],
+  [
+    "Travers yüksekliği (mm)",
+    "Beam section height (mm)",
+    "Hauteur de section de la lisse (mm)"
+  ],
+  [
+    "Palet taşma payı · ön ve arka (mm)",
+    "Pallet overhang · front and rear (mm)",
+    "Débord de palette · avant et arrière (mm)"
+  ],
+  [
+    "İlk ve Son Kat Mesafeleri",
+    "First and Last Level Clearances",
+    "Distances du premier et du dernier niveau"
+  ],
+  [
+    "Son palette ayak devamı (mm)",
+    "Upright extension above the top pallet base (mm)",
+    "Dépassement du montant au-dessus de la base de la dernière palette (mm)"
+  ],
+  [
+    "ÜST PALET KOTU",
+    "TOP OF LOAD",
+    "COTE SUPÉRIEURE DE LA CHARGE"
+  ],
+  [
+    "AYAK BOYU",
+    "UPRIGHT HEIGHT",
+    "HAUTEUR DU MONTANT"
+  ],
+  [
+    "DERİNLİK",
+    "DEPTH",
+    "PROFONDEUR"
+  ],
+  [
+    "GENİŞLİK",
+    "WIDTH",
+    "LARGEUR"
+  ],
+  [
+    "YÜKSEKLİK",
+    "HEIGHT",
+    "HAUTEUR"
+  ],
+  [
+    "TÜNEL",
+    "TUNNEL",
+    "PASSAGE"
+  ],
+  [
+    "Z+TRAVERS",
+    "GROUND–BEAM",
+    "SOL–LISSE"
+  ],
+  [
+    "Z",
+    "GROUND",
+    "SOL"
+  ],
+  [
+    "Göz sayısı",
+    "Number of bays",
+    "Nombre de travées"
+  ],
+  [
+    "Maksimum 50 göz",
+    "Maximum 50 bays",
+    "50 travées maximum"
+  ],
+  [
+    "Palet genişliği (mm)",
+    "Pallet width (mm)",
+    "Largeur de palette (mm)"
+  ],
+  [
+    "Palet ağırlığı (kg)",
+    "Load per pallet (kg)",
+    "Charge par palette (kg)"
+  ],
+  [
+    "Palet derinliği",
+    "Pallet depth",
+    "Profondeur de palette"
+  ],
+  [
+    "Diğer",
+    "Other",
+    "Autre"
+  ],
+  [
+    "Diğer derinlik (mm)",
+    "Other depth (mm)",
+    "Autre profondeur (mm)"
+  ],
+  [
+    "Ray yüksekliği",
+    "Rail height",
+    "Hauteur du rail"
+  ],
+  [
+    "Önerilen ayak tipi",
+    "Recommended upright type",
+    "Type de montant recommandé"
+  ],
+  [
+    "ÖNERİLEN AYAK TİPİ",
+    "RECOMMENDED UPRIGHT TYPE",
+    "TYPE DE MONTANT RECOMMANDÉ"
+  ],
+  [
+    "ÖNERİLEN TRAVERS TİPİ",
+    "RECOMMENDED BEAM TYPE",
+    "TYPE DE LISSE RECOMMANDÉ"
+  ],
+  [
+    "Hesaplanıyor…",
+    "Calculating…",
+    "Calcul en cours…"
+  ],
+  [
+    "DENETLENİYOR",
+    "CHECKING",
+    "VÉRIFICATION EN COURS"
+  ],
+  [
+    "UYGUN",
+    "SUITABLE",
+    "COMPATIBLE"
+  ],
+  [
+    "UYGUN DEĞİL",
+    "NOT SUITABLE",
+    "NON COMPATIBLE"
+  ],
+  [
+    "AYAK YÜKSEKLİĞİ",
+    "UPRIGHT HEIGHT",
+    "HAUTEUR DU MONTANT"
+  ],
+  [
+    "AYAK BAŞI YÜK",
+    "LOAD PER UPRIGHT",
+    "CHARGE PAR MONTANT"
+  ],
+  [
+    "TOPLAM PALET YÜKÜ",
+    "TOTAL PALLET LOAD",
+    "CHARGE TOTALE DES PALETTES"
+  ],
+  [
+    "RAY UZUNLUĞU",
+    "RAIL LENGTH",
+    "LONGUEUR DU RAIL"
+  ],
+  [
+    "TOPLAM KAPASİTE",
+    "TOTAL CAPACITY",
+    "CAPACITÉ TOTALE"
+  ],
+  [
+    "Ayak / düz arabağ dağılımı",
+    "Frame / spacer arrangement",
+    "Répartition des échelles et entretoises"
+  ],
+  [
+    "Elle Düzenle",
+    "Edit Manually",
+    "Modifier manuellement"
+  ],
+  [
+    "Otomatik Hesaba Dön",
+    "Restore Automatic Calculation",
+    "Rétablir le calcul automatique"
+  ],
+  [
+    "Hesabı Kabul Et",
+    "Accept Calculation",
+    "Valider le calcul"
+  ],
+  [
+    "+ Satır Ekle",
+    "+ Add Row",
+    "+ Ajouter une ligne"
+  ],
+  [
+    "Alanı Belirle",
+    "Define Area",
+    "Définir la zone"
+  ],
+  [
+    "Alan Çizimi",
+    "Area Drawing",
+    "Tracé de la zone"
+  ],
+  [
+    "Serbest Alan Çiz",
+    "Draw Free-form Area",
+    "Tracer une zone libre"
+  ],
+  [
+    "Alanı Bitir",
+    "Finish Area",
+    "Terminer la zone"
+  ],
+  [
+    "Yeni çizgi ölçüsü (mm)",
+    "New line length (mm)",
+    "Longueur de la nouvelle ligne (mm)"
+  ],
+  [
+    "Yönü göster → ölçüyü yaz → Enter",
+    "Point in the direction → enter length → Enter",
+    "Indiquez la direction → saisissez la longueur → Entrée"
+  ],
+  [
+    "Raf İşlemleri",
+    "Rack Actions",
+    "Actions sur les rayonnages"
+  ],
+  [
+    "Birleştir",
+    "Join",
+    "Assembler"
+  ],
+  [
+    "Ayır",
+    "Separate",
+    "Séparer"
+  ],
+  [
+    "Çoğalt",
+    "Duplicate",
+    "Dupliquer"
+  ],
+  [
+    "90° Döndür",
+    "Rotate 90°",
+    "Tourner de 90°"
+  ],
+  [
+    "Ölçü ve Yazı",
+    "Dimensions and Text",
+    "Cotes et texte"
+  ],
+  [
+    "Alan Ölçülerini Göster",
+    "Show Area Dimensions",
+    "Afficher les cotes de la zone"
+  ],
+  [
+    "Mesafe Ölç",
+    "Measure Distance",
+    "Mesurer une distance"
+  ],
+  [
+    "Ölçü Yeri Düzenle",
+    "Reposition Dimensions",
+    "Repositionner les cotes"
+  ],
+  [
+    "Raf Uzunluğu",
+    "Rack Length",
+    "Longueur du rayonnage"
+  ],
+  [
+    "Raf Derinliği",
+    "Rack Depth",
+    "Profondeur du rayonnage"
+  ],
+  [
+    "Kenar ölçülerini göster",
+    "Show edge dimensions",
+    "Afficher les cotes des côtés"
+  ],
+  [
+    "Kayıtlı Raf Tipleri",
+    "Saved Rack Types",
+    "Types de rayonnage enregistrés"
+  ],
+  [
+    "Kayıtları Getir",
+    "Load Saved Types",
+    "Charger les types enregistrés"
+  ],
+  [
+    "Seçileni Ekle",
+    "Add Selected",
+    "Ajouter la sélection"
+  ],
+  [
+    "Tümünü Sil",
+    "Delete All",
+    "Tout supprimer"
+  ],
+  [
+    "Rafı Kaydet",
+    "Save Rack",
+    "Enregistrer le rayonnage"
+  ],
+  [
+    "DXF İndir",
+    "Download DXF",
+    "Télécharger le DXF"
+  ],
+  [
+    "Okları Göster",
+    "Show Arrows",
+    "Afficher les flèches"
+  ],
+  [
+    "Yeni projeyi kaydet",
+    "Save as New Project",
+    "Enregistrer comme nouveau projet"
+  ],
+  [
+    "Proje Adı",
+    "Project Name",
+    "Nom du projet"
+  ],
+  [
+    "PROJE NO",
+    "PROJECT NO.",
+    "N° DE PROJET"
+  ],
+  [
+    "Kaynak proje",
+    "Source project",
+    "Projet source"
+  ],
+  [
+    "Proje seç…",
+    "Select a project…",
+    "Sélectionner un projet…"
+  ],
+  [
+    "Listeyi yenile",
+    "Refresh List",
+    "Actualiser la liste"
+  ],
+  [
+    "Seçilen tipleri kopyala",
+    "Copy Selected Types",
+    "Copier les types sélectionnés"
+  ],
+  [
+    "Eski projeden raf tipi kopyala",
+    "Copy Rack Types from Another Project",
+    "Copier les types d’un autre projet"
+  ],
+  [
+    "Modülü Özelleştir",
+    "Customize Bay",
+    "Personnaliser la travée"
+  ],
+  [
+    "Palet / göz adedi",
+    "Pallets per bay",
+    "Palettes par travée"
+  ],
+  [
+    "Tünel",
+    "Tunnel",
+    "Passage"
+  ],
+  [
+    "AKSESUAR EKLE",
+    "ADD ACCESSORIES",
+    "AJOUTER DES ACCESSOIRES"
+  ],
+  [
+    "PALETLER",
+    "PALLETS",
+    "PALETTES"
+  ],
+  [
+    "PALETLER · GÖSTERİLİYOR",
+    "PALLETS · VISIBLE",
+    "PALETTES · VISIBLES"
+  ],
+  [
+    "PALETLER · GİZLİ",
+    "PALLETS · HIDDEN",
+    "PALETTES · MASQUÉES"
+  ],
+  [
+    "+ Toplama Katı Ekle",
+    "+ Add Picking Level",
+    "+ Ajouter un niveau de préparation"
+  ],
+  [
+    "+ Aksesuar Ekle",
+    "+ Add Accessory",
+    "+ Ajouter un accessoire"
+  ],
+  [
+    "Yalnızca seçilen blok düzenleniyor.",
+    "Only the selected block is being edited.",
+    "Seul le bloc sélectionné est modifié."
+  ],
+  [
+    "Ayrac",
+    "Zone",
+    "Zone"
+  ],
+  [
+    "Ayraç",
+    "Zone",
+    "Zone"
+  ],
+  [
+    "Renklendir ve İsimlendir",
+    "Colour and Name",
+    "Colorer et nommer"
+  ],
+  [
+    "Tamam",
+    "OK",
+    "Valider"
+  ],
+  [
+    "Tamam Ayır",
+    "Confirm Separation",
+    "Confirmer la séparation"
+  ],
+  [
+    "Ayrılmamış bölge",
+    "Unassigned area",
+    "Zone non affectée"
+  ],
+  [
+    "Otomatik Yerleşim",
+    "Automatic Layout",
+    "Implantation automatique"
+  ],
+  [
+    "PDF / Fotoğraf Okuma ve Yerleşim",
+    "PDF / Image Analysis and Layout",
+    "Analyse et implantation à partir d’un PDF ou d’une image"
+  ],
+  [
+    "PDF / Fotoğraf Okuma Agent’ı",
+    "PDF / Image Analysis Assistant",
+    "Assistant d’analyse de PDF et d’images"
+  ],
+  [
+    "Agent ile oku",
+    "Analyse with Assistant",
+    "Analyser avec l’assistant"
+  ],
+  [
+    "Seçili sayfa / bölgeyi agent ile oku",
+    "Analyse Selected Page / Region",
+    "Analyser la page / zone sélectionnée"
+  ],
+  [
+    "Agent’a isteğini yaz",
+    "Describe Your Request",
+    "Décrivez votre demande"
+  ],
+  [
+    "Bu dosyadaki konuşma",
+    "Conversation for This File",
+    "Conversation pour ce fichier"
+  ],
+  [
+    "Eksikleri yanıtla ve devam et",
+    "Answer the Missing Information and Continue",
+    "Compléter les informations manquantes et continuer"
+  ],
+  [
+    "Yanıtlarla yeniden değerlendir (en fazla 0,10 $)",
+    "Reassess Using Answers (up to $0.10)",
+    "Réévaluer avec les réponses (0,10 $ maximum)"
+  ],
+  [
+    "Seçtiğim ölçüleri kontrol formuna aktar",
+    "Transfer Selected Dimensions to Review Form",
+    "Transférer les cotes sélectionnées au formulaire de contrôle"
+  ],
+  [
+    "Raf tiplerini oluştur ve yerleştir",
+    "Create and Place Rack Types",
+    "Créer et implanter les types de rayonnage"
+  ],
+  [
+    "Tüm sayfa",
+    "Entire Page",
+    "Page entière"
+  ],
+  [
+    "Geniş görünüm",
+    "Expanded View",
+    "Vue agrandie"
+  ],
+  [
+    "90° döndür",
+    "Rotate 90°",
+    "Tourner de 90°"
+  ],
+  [
+    "B2B ÜRÜNLERİ",
+    "B2B COMPONENTS",
+    "COMPOSANTS B2B"
+  ],
+  [
+    "SERBEST ALAN AKSESUARLARI",
+    "LAYOUT ACCESSORIES",
+    "ACCESSOIRES D’IMPLANTATION"
+  ],
+  [
+    "ALT ÇİZİM TOPLAM PALET",
+    "TOTAL PALLETS IN LAYOUT",
+    "TOTAL DES PALETTES IMPLANTÉES"
+  ],
+  [
+    "Ölçü ve yük özeti",
+    "Dimensions and Load Summary",
+    "Récapitulatif des cotes et des charges"
+  ],
+  [
+    "Çıktıyı Oluştur",
+    "Generate Report",
+    "Générer le rapport"
+  ],
+  [
+    "PDF Çıktı Alanı",
+    "PDF Report Area",
+    "Zone de sortie PDF"
+  ],
+  [
+    "Ürün dökümü",
+    "Bill of Materials",
+    "Nomenclature"
+  ],
+  [
+    "Ayraclı listele",
+    "Group by Zone",
+    "Regrouper par zone"
+  ],
+  [
+    "3’LÜ GÖSTER",
+    "SHOW THREE VIEWS",
+    "AFFICHER TROIS VUES"
+  ],
+  [
+    "Ayak rengi",
+    "Upright colour",
+    "Couleur des montants"
+  ],
+  [
+    "Travers rengi",
+    "Beam colour",
+    "Couleur des lisses"
+  ],
+  [
+    "Mavi",
+    "Blue",
+    "Bleu"
+  ],
+  [
+    "Sarı",
+    "Yellow",
+    "Jaune"
+  ],
+  [
+    "Turuncu",
+    "Orange",
+    "Orange"
+  ],
+  [
+    "Ön galvaniz",
+    "Pre-galvanized",
+    "Prégalvanisé"
+  ],
+  [
+    "Otomatik",
+    "Automatic",
+    "Automatique"
+  ],
+  [
+    "Otomatik hesaplanır",
+    "Calculated automatically",
+    "Calcul automatique"
+  ],
+  [
+    "Yok",
+    "No",
+    "Non"
+  ],
+  [
+    "Var",
+    "Yes",
+    "Oui"
+  ],
+  [
+    "EKLE",
+    "ADD",
+    "AJOUTER"
+  ],
+  [
+    "Düzenle",
+    "Edit",
+    "Modifier"
+  ],
+  [
+    "Seç",
+    "Select",
+    "Sélectionner"
+  ],
+  [
+    "Geri",
+    "Back",
+    "Retour"
+  ],
+  [
+    "İleri",
+    "Next",
+    "Suivant"
+  ],
+  [
+    "Yükleniyor...",
+    "Loading...",
+    "Chargement..."
+  ],
+  [
+    "MR SİSTEM KONFİGÜRATÖRÜ",
+    "MR RACK CONFIGURATOR",
+    "CONFIGURATEUR DE RAYONNAGE MR"
+  ],
+  [
+    "Modüler Raf — 3D Tasarım Alanı",
+    "Modular Shelving — 3D Design",
+    "Rayonnage modulaire — conception 3D"
+  ],
+  [
+    "MR Parça Görünümleri",
+    "MR Component Views",
+    "Vues des composants MR"
+  ],
+  [
+    "Drive-In Malzeme Hesabı",
+    "Drive-In Bill of Materials",
+    "Nomenclature du rayonnage Drive-In"
+  ],
+  [
+    "Mekik Malzeme Hesabı",
+    "Shuttle Bill of Materials",
+    "Nomenclature du rayonnage navette"
+  ],
+  [
+    "Derinlemesine palet sayısı",
+    "Number of pallets in depth",
+    "Nombre de palettes en profondeur"
+  ],
+  [
+    "Ayak sıra",
+    "Upright row",
+    "Rangée de montants"
+  ],
+  [
+    "Ara bölüm",
+    "Intermediate section",
+    "Section intermédiaire"
+  ],
+  [
+    "Ünite",
+    "Unit",
+    "Unité"
+  ],
+  [
+    "Ölçü (mm)",
+    "Dimension (mm)",
+    "Cote (mm)"
+  ],
+  [
+    "ARA BÖLÜM",
+    "INTERMEDIATE SECTION",
+    "SECTION INTERMÉDIAIRE"
+  ],
+  ["MODEL KAYNAĞI", "MODEL SOURCE", "SOURCE DU MODÈLE"],
+  ["MR GLB SETİ", "MR GLB ASSETS", "MODÈLES GLB MR"],
+  ["MR sistemi için hazırlanan çalışma değerleri", "Configuration values for the MR system", "Paramètres de configuration du système MR"],
+  ["MR modeli yükleniyor…", "Loading the MR model…", "Chargement du modèle MR…"],
+  ["Yüklediğiniz GLB dosyaları yalnız bu modülde kullanılır", "Uploaded GLB files are used only in this module", "Les fichiers GLB importés sont utilisés uniquement dans ce module"],
+  ["Tam sistem görünümü", "Complete system view", "Vue du système complet"],
+  ["Ayak montaj görünümü", "Upright assembly view", "Vue de montage des montants"],
+  ["Travers detay görünümü", "Beam detail view", "Vue détaillée des lisses"],
+  ["Tava detay görünümü", "Shelf panel detail view", "Vue détaillée des plateaux"],
+  ["+ Sıra grubu ekle", "+ Add row group", "+ Ajouter un groupe de rangées"],
+  ["+ Arabağ ekle", "+ Add spacer", "+ Ajouter une entretoise"],
+  ["Değişiklik yaptınız. Yeni sonuç için Hesapla butonuna basın.", "Values have changed. Click Calculate to update the result.", "Les valeurs ont changé. Cliquez sur Calculer pour actualiser le résultat."],
+  ["Sıradaki ekstra profil", "Additional section in the row", "Profilé supplémentaire dans la rangée"],
+  ["Tünel olacak bölüm", "Bay to use as a passage", "Travée à utiliser comme passage"],
+  ["Listeden bölüm seç", "Select bays from the list", "Sélectionner des travées dans la liste"],
+  ["Listeyi açıp birden fazla bölüm seçebilirsin.", "Open the list to select multiple bays.", "Ouvrez la liste pour sélectionner plusieurs travées."],
+  ["1 MODÜL GENİŞLİĞİ · TRAVERS + AYAK", "BAY WIDTH · BEAM + UPRIGHT", "LARGEUR DE TRAVÉE · LISSE + MONTANT"],
+  ["1 MODÜL TOPLAM YÜKÜ", "TOTAL LOAD PER BAY", "CHARGE TOTALE PAR TRAVÉE"],
+  ["AYAK HESABI İLK KAT", "FIRST LEVEL FOR UPRIGHT CALCULATION", "PREMIER NIVEAU POUR LE CALCUL DES MONTANTS"],
+  ["YÜKE GİREN PALET", "PALLETS INCLUDED IN THE LOAD", "PALETTES PRISES EN COMPTE DANS LA CHARGE"],
+  ["AYAK SEÇİM YÜKÜ", "LOAD FOR UPRIGHT SELECTION", "CHARGE POUR LE CHOIX DES MONTANTS"],
+  ["Palet + 75 mm ara ve yan boşluklar", "Pallets + 75 mm gaps between pallets and at each side", "Palettes + jeux de 75 mm entre palettes et sur les côtés"],
+  ["Önden görünen palet genişliğini ve palet derinliğini milimetre olarak gir.", "Enter the pallet front width and depth in millimetres.", "Saisissez la largeur frontale et la profondeur de la palette en millimètres."],
+  ["B2B GLB DOSYALARI AÇILIYOR…", "LOADING B2B GLB ASSETS…", "CHARGEMENT DES MODÈLES GLB B2B…"],
+  ["Alt kattaki yükün üst yüzeyi ile üstündeki traversin alt yüzeyi arasındaki net mesafeyi girin.", "Enter the clear distance between the top of the load and the underside of the beam above.", "Saisissez le jeu libre entre le dessus de la charge et la face inférieure de la lisse située au-dessus."],
+  ["İlk traversin yerden yüksekliğini ve ayağın son palette ne kadar devam edeceğini girin.", "Enter the first beam height above the floor and the upright extension above the top pallet.", "Saisissez la hauteur de la première lisse au-dessus du sol et le dépassement du montant au-dessus de la dernière palette."],
+  ["3D alanı açılamadı.", "The 3D view could not be opened.", "Impossible d’ouvrir la vue 3D."],
+  ["Yer–ilk travers (yalnız Travers üstü, mm)", "Floor to first beam (beam-supported first level only, mm)", "Sol–première lisse (premier niveau sur lisses uniquement, mm)"],
+  ["Kalabalığı azaltmak için ihtiyaç duyduğun ölçü gruplarını ayrı ayrı açıp kapat.", "Show or hide individual dimension groups to keep the view clear.", "Affichez ou masquez les groupes de cotes pour alléger la vue."],
+  ["GÖRSEL DENEME ALANI", "VISUAL PREVIEW", "APERÇU VISUEL"],
+  ["Mekik — Canlı Raf Çizimi", "Shuttle — Live Racking Layout", "Navette — Implantation du rayonnage en direct"],
+  ["Her Ly sistemi için iki uygun ayak profili gösterilir.", "Two suitable upright sections are shown for each Ly system.", "Deux profilés de montant adaptés sont affichés pour chaque système Ly."],
+  ["150 mm veya 170 mm olarak elle seçilir.", "Select 150 mm or 170 mm manually.", "Sélectionnez manuellement 150 mm ou 170 mm."],
+  ["Formül bekleniyor", "Formula pending", "Formule en attente"],
+  ["Ayak hesabındaki ilk kat yüksekliği", "First level height used for the upright calculation", "Hauteur du premier niveau utilisée pour le calcul des montants"],
+  ["AutoCAD Teknik Çizimi", "AutoCAD Technical Drawing", "Dessin technique AutoCAD"],
+  ["Milimetre ölçülü, katmanlı DXF dosyası", "Layered DXF file with dimensions in millimetres", "Fichier DXF avec calques et cotes en millimètres"],
+  ["GLB Parça Seti", "GLB Component Set", "Ensemble de composants GLB"],
+  ["Kat rayları", "Level rails", "Rails de niveau"],
+  ["Travers ve bağlantılar", "Beams and connectors", "Lisses et connecteurs"],
+  ["İlk palet arası mesafesi", "First pallet gap", "Premier espacement entre palettes"],
+  ["FIFO’da ilk ve son aralıkta, FILO’da giriş aralığında kullanılır.", "Used for the first and last gaps in FIFO and the entry gap in FILO.", "Utilisé pour les premiers et derniers espacements en FIFO et l’espacement d’entrée en FILO."],
+  ["Paletler arası mesafe", "Gap between pallets", "Espacement entre palettes"],
+  ["İlk/uç aralık dışındaki bütün palet aralarında kullanılır.", "Used for all pallet gaps except the first/end gaps.", "Utilisé pour tous les espacements entre palettes sauf ceux d’extrémité."],
+  ["İlk kat yüksekliği", "First level height", "Hauteur du premier niveau"],
+  ["Zeminden K1 paletinin taşıyıcı kotuna kadar olan dikey mesafedir.", "Vertical distance from the floor to the supporting level of the K1 pallet.", "Distance verticale du sol au niveau d’appui de la palette K1."],
+  ["İki palet arası mesafe", "Distance between two pallets", "Distance entre deux palettes"],
+  ["K1–K2 ve sonraki bütün katların taşıyıcı kotları arasındaki dikey mesafedir.", "Vertical distance between the supporting levels of K1–K2 and all subsequent levels.", "Distance verticale entre les niveaux d’appui K1–K2 et tous les niveaux suivants."],
+  ["Ayak / Düz Arabağ Hesabını Elle Düzenle", "Manually Edit Frame / Straight Connector Calculation", "Modifier manuellement le calcul des échelles et des entretoises droites"],
+  ["ÜRÜN", "PRODUCT", "PRODUIT"],
+  ["ÖLÇÜ × ADET", "SIZE × QUANTITY", "DIMENSION × QUANTITÉ"],
+  ["TOPLAM RAY UZUNLUĞU", "TOTAL RAIL LENGTH", "LONGUEUR TOTALE DES RAILS"],
+  ["Geçerli ölçü aralığı 500–1.200 mm’dir.", "The valid dimension range is 500–1,200 mm.", "La plage de dimensions autorisée est de 500 à 1 200 mm."],
+  ["Dikdörtgen alan oluşturabilir veya Serbest Alan Çiz ile köşeleri işaretleyebilirsin.", "Create a rectangular area or mark the corners using Draw Freeform Area.", "Créez une zone rectangulaire ou marquez les angles avec Dessiner une zone libre."],
+  ["Bir raf tipini veya yerleşimdeki rafı seçtiğinde ayrıntıları burada görünür.", "Select a rack type or a rack in the layout to see its details here.", "Sélectionnez un type de rayonnage ou un rayonnage dans l’implantation pour afficher ses détails ici."],
+  ["Alanı oluştur, hesaplanan rafı ekle ve sürükleyerek yerleştir.", "Create the area, add the configured rack and drag it into position.", "Créez la zone, ajoutez le rayonnage configuré et faites-le glisser à sa position."],
+  ["Ortak Ayağı Gizle", "Hide Shared Upright", "Masquer le montant commun"],
+  ["Blok adı projeye özel kalır; teknik değişiklikler yeni raf tipi olarak kaydedilir.", "The block name remains specific to this project; technical changes are saved as a new rack type.", "Le nom du bloc reste propre au projet ; les modifications techniques sont enregistrées comme nouveau type de rayonnage."],
+  ["Serbest Yerleşim Sembolleri", "Free Layout Symbols", "Symboles d’implantation libre"],
+  ["Kolonlar fiziksel engeldir; raflar üzerinden geçemez.", "Columns are physical obstacles; racks cannot overlap them.", "Les poteaux sont des obstacles physiques ; les rayonnages ne peuvent pas les chevaucher."],
+  ["Kapı", "Door", "Porte"],
+  ["İnsan", "Person", "Personne"],
+  ["Açıklama ve ölçüyü sembol üzerinde göster", "Show the description and dimensions on the symbol", "Afficher la description et les cotes sur le symbole"],
+  ["Bariyer uzunluğu (mm)", "Barrier length (mm)", "Longueur de la barrière (mm)"],
+  ["Tipi seç; ardından serbest yerleşimde uygulanacak raf ünitesini tarayarak işaretle.", "Select the type, then drag a selection over the rack unit in the free layout.", "Sélectionnez le type, puis tracez une sélection sur l’unité de rayonnage dans l’implantation libre."],
+  ["Hafif Deprem Çaprazı", "Light Seismic Bracing", "Contreventement sismique léger"],
+  ["1 raf ünitesine X", "X-bracing across 1 rack unit", "Contreventement en X sur 1 unité de rayonnage"],
+  ["Yan yana 2 raf ünitesine X", "X-bracing across 2 adjacent rack units", "Contreventement en X sur 2 unités de rayonnage adjacentes"],
+  ["Ölçüyü değiştir", "Change dimension", "Modifier la cote"]
+]

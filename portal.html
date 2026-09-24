@@ -4522,6 +4522,10 @@
           en:{project:"SHUTTLE RACK PROJECT",projectType:"PROJECT TYPE",layout:"FREE LAYOUT",sections:"RACK SECTIONS",front:"FRONT VIEW",side:"SIDE VIEW",pallets:"PALLET TYPES",palletUnit:"PALLETS",totalPallets:"TOTAL PALLET COUNT",variants:"SHOW 3-WAY",upright:"UPRIGHT",topPallet:"TOP PALLET",eye:"BAY",depth:"DEPTH",extraTitle:"Extra profile system",extraText:"When the extra profile is selected, the existing calculation rule is preserved; the single profile is shown at the rear and the final upright dimension is not forced.",whyTitle:"Why choose a shuttle system?",whyText:"A shuttle rack system provides high storage density, controlled FIFO/FILO flow, fewer aisles and faster pallet movement. It improves warehouse volume utilisation while strengthening operational safety and traceability.",images:"PROJECT IMAGES",technical:"CORPORATE TECHNICAL PRESENTATION",bom:"PRODUCT BREAKDOWN",bomCombined:"CONSOLIDATED PRODUCT BREAKDOWN",item:"PRODUCT",spec:"CODE / SIZE / DESCRIPTION",qty:"QTY",unit:"UNIT",rackCount:"RACK COUNT",unitEach:"pcs",items:{foot:"Upright profile",footTeam:"Upright frame",footShoe:"Base plate",shim:"Shim",anchor:"Chemical anchor",safetyPin:"Safety pin",extra:"Extra straight profile",traverse:"Traverse",rail:"Rail",pad:"Pallet pad",rearStop:"Rear stop",forkStop:"Forklift stop",entryConsole:"Entry console",horizontalBrace:"Horizontal brace set",straightBrace:"Straight tie"}},
           fr:{project:"PROJET DE RAYONNAGE NAVETTE",projectType:"TYPE DE PROJET",layout:"IMPLANTATION LIBRE",sections:"COUPES DU RAYONNAGE",front:"VUE DE FACE",side:"VUE LATÉRALE",pallets:"TYPES DE PALETTES",palletUnit:"PALETTES",totalPallets:"NOMBRE TOTAL DE PALETTES",variants:"AFFICHER 3 VARIANTES",upright:"MONTANT",topPallet:"PALETTE HAUTE",eye:"TRAVÉE",depth:"PROFONDEUR",extraTitle:"Système de profil supplémentaire",extraText:"Lorsque le profil supplémentaire est sélectionné, la règle de calcul existante est conservée ; le profil unique reste à l’arrière et la dimension du dernier montant n’est pas imposée.",whyTitle:"Pourquoi choisir un système navette ?",whyText:"Le rayonnage navette offre une forte densité de stockage, un flux FIFO/FILO contrôlé, moins d’allées et des mouvements de palettes plus rapides. Il optimise le volume de l’entrepôt tout en renforçant la sécurité et la traçabilité.",images:"IMAGES DU PROJET",technical:"PRÉSENTATION TECHNIQUE INSTITUTIONNELLE",bom:"NOMENCLATURE PRODUITS",bomCombined:"NOMENCLATURE PRODUITS GROUPÉE",item:"PRODUIT",spec:"CODE / DIMENSION / DESCRIPTION",qty:"QTÉ",unit:"UNITÉ",rackCount:"NOMBRE DE RACKS",unitEach:"pcs",items:{foot:"Profil de montant",footTeam:"Cadre de montant",footShoe:"Plaque de pied",shim:"Cale",anchor:"Ancrage chimique",safetyPin:"Goupille de sécurité",extra:"Profil droit supplémentaire",traverse:"Traverse",rail:"Rail",pad:"Support palette",rearStop:"Butée arrière",forkStop:"Butée chariot",entryConsole:"Console d’entrée",horizontalBrace:"Jeu de croisillons horizontaux",straightBrace:"Liaison droite"}}
         };
+        Object.assign(dictionaries.en,{bom:"BILL OF MATERIALS",bomCombined:"CONSOLIDATED BILL OF MATERIALS",variants:"SHOW THREE VIEWS",technical:"TECHNICAL PROJECT REPORT"});
+        Object.assign(dictionaries.en.items,{traverse:"Beam",footTeam:"Upright frame",foot:"Upright section",shim:"Levelling shim",rearStop:"Pallet backstop"});
+        Object.assign(dictionaries.fr,{bom:"NOMENCLATURE",bomCombined:"NOMENCLATURE REGROUPÉE",variants:"AFFICHER TROIS VUES",technical:"DOSSIER TECHNIQUE",unitEach:"pièce(s)"});
+        Object.assign(dictionaries.fr.items,{traverse:"Lisse",footTeam:"Échelle",footShoe:"Platine de pied",shim:"Cale de nivellement",anchor:"Cheville chimique",rearStop:"Butée de palette"});
         return dictionaries[language] || dictionaries.tr;
       }
       function m2CorporateUsedTypes() {
@@ -7474,6 +7478,375 @@
           "İşlem başarısız":"Échec de l’opération","Sunucu yanıtı alınamadı. Lütfen sayfayı yenileyip tekrar deneyin.":"Aucune réponse du serveur. Actualisez la page et réessayez.","Oturum gerekli.":"Connexion requise.","Yetkisiz.":"Non autorisé.","Kullanıcı adı veya şifre hatalı.":"Nom d’utilisateur ou mot de passe incorrect.","Bu kullanıcı adı kullanılıyor.":"Ce nom d’utilisateur est déjà utilisé.","Şifre güncellendi. Kullanıcının açık oturumları kapatıldı.":"Mot de passe mis à jour. Les sessions actives de l’utilisateur ont été fermées.","Geçersiz program dili.":"Langue du programme non valide.","Yeni şifre (en az 8 karakter):":"Nouveau mot de passe (8 caractères minimum) :","Yeni kullanıcı adı:":"Nouveau nom d’utilisateur :","Ad Soyad:":"Nom complet :","PDF penceresi açılamadı. Açılır pencereye izin verip tekrar deneyin.":"Impossible d’ouvrir la fenêtre PDF. Autorisez les fenêtres contextuelles et réessayez.","kullanıcısını silmek istediğinize emin misiniz? Eski proje kayıtları korunacaktır.":"Voulez-vous vraiment supprimer cet utilisateur ? Les anciens projets seront conservés."
         }
       };
+      // Technical labels, shared across UI languages.
+      const RACK_TERMINOLOGY = [
+  [
+    "Ortak Çizim",
+    "Combined Layout",
+    "Implantation combinée"
+  ],
+  [
+    "ORTAK ÇİZİM",
+    "COMBINED LAYOUT",
+    "IMPLANTATION COMBINÉE"
+  ],
+  [
+    "Mekik",
+    "Shuttle",
+    "Navette"
+  ],
+  [
+    "Konsol Kollu",
+    "Cantilever",
+    "Rayonnage cantilever"
+  ],
+  [
+    "Travers",
+    "Beam",
+    "Lisse"
+  ],
+  [
+    "Travers Hesaplama",
+    "Beam Calculation",
+    "Calcul des lisses"
+  ],
+  [
+    "Önerilen Travers",
+    "Recommended Beam",
+    "Lisse recommandée"
+  ],
+  [
+    "Ayak",
+    "Upright",
+    "Montant"
+  ],
+  [
+    "Ayak takımı",
+    "Upright frame",
+    "Échelle"
+  ],
+  [
+    "Ayak profili",
+    "Upright section",
+    "Profil de montant"
+  ],
+  [
+    "Ayak pabucu",
+    "Base plate",
+    "Platine de pied"
+  ],
+  [
+    "Kimyasal dübel",
+    "Chemical anchor",
+    "Cheville chimique"
+  ],
+  [
+    "Emniyet pimi",
+    "Safety pin",
+    "Goupille de sécurité"
+  ],
+  [
+    "Şim",
+    "Levelling shim",
+    "Cale de nivellement"
+  ],
+  [
+    "Travers dahil ölçü",
+    "Dimensions to beam tops",
+    "Cotes au-dessus des lisses"
+  ],
+  [
+    "Ayak derinliği",
+    "Frame depth",
+    "Profondeur d’échelle"
+  ],
+  [
+    "AYAK DERİNLİĞİ",
+    "FRAME DEPTH",
+    "PROFONDEUR D’ÉCHELLE"
+  ],
+  [
+    "TOPLAM AYAK DERİNLİĞİ",
+    "OVERALL FRAME DEPTH",
+    "PROFONDEUR TOTALE DES ÉCHELLES"
+  ],
+  [
+    "Raf Ölçüleri",
+    "Rack Dimensions",
+    "Dimensions du rayonnage"
+  ],
+  [
+    "Ölçüleri Göster",
+    "Show Dimensions",
+    "Afficher les cotes"
+  ],
+  [
+    "ÖLÇÜLERİ GÖSTER",
+    "SHOW DIMENSIONS",
+    "AFFICHER LES COTES"
+  ],
+  [
+    "ÖLÇÜLERİ GÖSTER / GİZLE",
+    "SHOW / HIDE DIMENSIONS",
+    "AFFICHER / MASQUER LES COTES"
+  ],
+  [
+    "ÖLÇÜ AYARLARI",
+    "DIMENSION SETTINGS",
+    "RÉGLAGES DES COTES"
+  ],
+  [
+    "Kat aralıkları ve ilk travers",
+    "Level spacing and first beam",
+    "Espacement des niveaux et première lisse"
+  ],
+  [
+    "Üst palet kotu ve ayak boyu",
+    "Top of load and upright height",
+    "Cote supérieure de la charge et hauteur du montant"
+  ],
+  [
+    "Göz / travers ölçüsü",
+    "Bay / beam span",
+    "Largeur de travée / portée de lisse"
+  ],
+  [
+    "Toplam genişlik",
+    "Overall width",
+    "Largeur totale"
+  ],
+  [
+    "Raf derinliği",
+    "Rack depth",
+    "Profondeur du rayonnage"
+  ],
+  [
+    "Tümünü Göster",
+    "Show All",
+    "Tout afficher"
+  ],
+  [
+    "Tümünü Gizle",
+    "Hide All",
+    "Tout masquer"
+  ],
+  [
+    "Hepsini Göster",
+    "Show All",
+    "Tout afficher"
+  ],
+  [
+    "Hepsini Gizle",
+    "Hide All",
+    "Tout masquer"
+  ],
+  [
+    "Palet–travers net boşluğu (mm)",
+    "Clearance between load and beam (mm)",
+    "Jeu libre entre la charge et la lisse (mm)"
+  ],
+  [
+    "Palet yüksekliği (mm)",
+    "Loaded pallet height (mm)",
+    "Hauteur de la palette chargée (mm)"
+  ],
+  [
+    "Palet başına ağırlık (kg)",
+    "Load per pallet (kg)",
+    "Charge par palette (kg)"
+  ],
+  [
+    "Kat sayısı",
+    "Number of levels",
+    "Nombre de niveaux"
+  ],
+  [
+    "Bölüm başına palet",
+    "Pallets per bay",
+    "Palettes par travée"
+  ],
+  [
+    "İlk paletin bulunduğu yer",
+    "First pallet level",
+    "Position du premier niveau de palettes"
+  ],
+  [
+    "Zemin",
+    "Ground level",
+    "Sol"
+  ],
+  [
+    "Travers üstü",
+    "On beams",
+    "Sur lisses"
+  ],
+  [
+    "Manuel yükseklik",
+    "Manual level heights",
+    "Hauteurs des niveaux manuelles"
+  ],
+  [
+    "Ayak yüksekliği",
+    "Upright height",
+    "Hauteur du montant"
+  ],
+  [
+    "Sıra tipi",
+    "Row configuration",
+    "Configuration des rangées"
+  ],
+  [
+    "Tek sıra",
+    "Single row",
+    "Rangée simple"
+  ],
+  [
+    "Çift sıra",
+    "Back-to-back rows",
+    "Rangées dos à dos"
+  ],
+  [
+    "İki sıra arası (mm)",
+    "Gap between frames (mm)",
+    "Espace entre les échelles (mm)"
+  ],
+  [
+    "Tünel yüksekliği (mm)",
+    "Clear tunnel height (mm)",
+    "Hauteur libre du passage (mm)"
+  ],
+  [
+    "Palet Dayama",
+    "Pallet backstop",
+    "Butée de palette"
+  ],
+  [
+    "H Travers",
+    "H-beam",
+    "Lisse en H"
+  ],
+  [
+    "Tava",
+    "Shelf decking",
+    "Platelage"
+  ],
+  [
+    "Toplama Katı",
+    "Picking level",
+    "Niveau de préparation"
+  ],
+  [
+    "Ayak koruma",
+    "Upright protector",
+    "Protection de montant"
+  ],
+  [
+    "Bariyer koruma",
+    "Safety barrier",
+    "Barrière de protection"
+  ],
+  [
+    "Deprem çaprazı",
+    "Seismic bracing",
+    "Contreventement sismique"
+  ],
+  [
+    "Ağır deprem çaprazı",
+    "Heavy-duty seismic bracing",
+    "Contreventement sismique renforcé"
+  ],
+  [
+    "Blok adı",
+    "Block name",
+    "Nom du bloc"
+  ],
+  [
+    "Yeni raf tipi adı",
+    "New rack type name",
+    "Nom du nouveau type de rayonnage"
+  ],
+  [
+    "Serbest Yerleşim Alanı",
+    "Layout Area",
+    "Zone d’implantation"
+  ],
+  [
+    "Özelleştir",
+    "Customize",
+    "Personnaliser"
+  ],
+  [
+    "Vazgeç",
+    "Cancel",
+    "Annuler"
+  ],
+  [
+    "Uygula",
+    "Apply",
+    "Appliquer"
+  ],
+  [
+    "Değişiklikleri Kaydet",
+    "Save Changes",
+    "Enregistrer les modifications"
+  ],
+  [
+    "Ürün Listesi",
+    "Bill of Materials",
+    "Nomenclature"
+  ],
+  [
+    "ÜRÜN LİSTESİ",
+    "BILL OF MATERIALS",
+    "NOMENCLATURE"
+  ],
+  [
+    "Ayraclı Listele",
+    "Group by Zone",
+    "Regrouper par zone"
+  ],
+  [
+    "Ayrılmamış Bölge",
+    "Unassigned Area",
+    "Zone non affectée"
+  ],
+  [
+    "Çıktı Oluştur",
+    "Generate Report",
+    "Générer le rapport"
+  ],
+  [
+    "Kesit Yer Belirleme",
+    "Position Section Views",
+    "Positionner les vues en coupe"
+  ],
+  [
+    "Ölçü ve yük özeti",
+    "Dimensions and loads",
+    "Récapitulatif des dimensions et des charges"
+  ],
+  [
+    "Seçili Raf",
+    "Selected Rack",
+    "Rayonnage sélectionné"
+  ],
+  [
+    "SEÇİLİ RAF",
+    "SELECTED RACK",
+    "RAYONNAGE SÉLECTIONNÉ"
+  ],
+  [
+    "ORTALA",
+    "CENTRE",
+    "CENTRER"
+  ],
+  [
+    "UZATMA MESAFESİ",
+    "EXTENSION DISTANCE",
+    "DISTANCE DE PROLONGEMENT"
+  ]
+];
+      for (const [tr,en,fr] of RACK_TERMINOLOGY) { UI_TRANSLATIONS.en[tr]=en; UI_TRANSLATIONS.fr[tr]=fr; }
       const i18nOriginalText = new WeakMap(), i18nOriginalAttributes = new WeakMap();
       function translatedUiText(source, language = appLanguage) {
         if (language === "tr" || !source) return source;
@@ -7515,10 +7888,7 @@
         document.title = appLanguage === "en" ? "Rafex Configurator" : appLanguage === "fr" ? "Configurateur Rafex" : "Rafex Configurator";
         if ($("authLanguage")) $("authLanguage").value = appLanguage;
         if ($("programLanguage")) $("programLanguage").value = appLanguage;
-        if ($("m2ReportLanguage")) {
-          $("m2ReportLanguage").value = appLanguage;
-          if (typeof m2RefreshActiveReport === "function") m2RefreshActiveReport();
-        }
+        // Output language is independent from the program language.
         applyTranslations(document.body);
       }
       const i18nObserver = new MutationObserver((mutations) => {

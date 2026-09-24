@@ -129,6 +129,7 @@ node scripts/patch-b2b-default-clearance-v187.mjs
 node scripts/patch-pdf-auto-layout-v188.mjs
 node scripts/patch-free-area-preserve-v189.mjs
 node scripts/patch-layout-agent-v188.mjs
+node scripts/patch-site-localization-v202.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs

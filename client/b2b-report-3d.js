@@ -221,7 +221,7 @@
   }
 
   function variantsEnabled(){return document.getElementById("m2ReportCompleteFront")?.checked===true;}
-  function reportCacheKey(key){return `${key}|${variantsEnabled()?"variants":"single"}`;}
+  function reportCacheKey(key){return `${key}|${document.getElementById('m2ReportLanguage')?.value||'tr'}|${variantsEnabled()?"variants":"single"}`;}
   function adaptiveCameraPadding(drawing,combined=false){
     const levels=Math.max(1,number(drawing?.levels??drawing?.b2b?.levels,1));
     if(combined)return levels>=8?1.18:levels>=6?1.16:1.14;
@@ -354,7 +354,7 @@
     const enabled=document.getElementById("m2ReportCompleteFront")?.checked===true;
     const entries=enabled?visibleVariantDrawings():[];
     if(entries.length<2){combinedVariantCache=null;return null;}
-    const signature=entries.map((entry)=>entry.key).join("|");
+    const signature=reportCacheKey(entries.map((entry)=>entry.key).join("|"));
     if(combinedVariantCache?.signature===signature)return combinedVariantCache;
     if(combinedVariantPending)return combinedVariantPending;
     combinedVariantPending=(async()=>{
@@ -388,7 +388,7 @@
     const visibleIds=new Set([...document.querySelectorAll("[data-rafex-type-group]")].map((host)=>host.dataset.rafexTypeGroup).filter(Boolean));
     const groups=corporateVariantGroups().filter((group)=>group.entries.length>1&&visibleIds.has(group.id));
     for(const group of groups){
-      const signature=group.entries.map((entry)=>entry.key).join("|");
+      const signature=reportCacheKey(group.entries.map((entry)=>entry.key).join("|"));
       if(corporateCombinedCache.get(group.id)?.signature===signature)continue;
       if(corporateCombinedPending.has(group.id)){await corporateCombinedPending.get(group.id);continue;}
       const task=(async()=>{

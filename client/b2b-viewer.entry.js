@@ -171,6 +171,7 @@ class B2BViewer {
       ? requestedWidth : count === 4 && width === 800 ? 3600 : calculated;
     return {
       moduleCount: clamp(Math.round(Number(next.moduleCount) || 4), 1, 50),
+      language: next.language || '',
       moduleOptions: Array.isArray(next.moduleOptions) ? next.moduleOptions.map((item) => ({ ...item })) : null,
       palletCount: count,
       palletWidth: width,
@@ -708,9 +709,20 @@ class B2BViewer {
     context.scale(scale, scale); context.font = `900 ${fontSize}px Arial`;
     context.fillStyle = "rgba(5,40,72,.98)"; context.beginPath(); context.roundRect(0, 0, labelWidth, labelHeight, 18); context.fill();
     context.strokeStyle = "#3e8fb2"; context.lineWidth = 4; context.stroke();
-    context.fillStyle = "#fff"; context.textAlign = "center"; context.textBaseline = "middle"; context.fillText(text, labelWidth / 2, labelHeight / 2, labelWidth - 36);
+    const localizedText = window.rafexDimensionText?.(text, this.options.language || document.documentElement.lang) || text;
+    context.fillStyle = "#fff"; context.textAlign = "center"; context.textBaseline = "middle"; context.fillText(localizedText, labelWidth / 2, labelHeight / 2, labelWidth - 36);
     const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace; texture.anisotropy = Math.min(16, this.renderer.capabilities.getMaxAnisotropy());
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map:texture, depthTest:false, transparent:true }));
+    let labelLanguage = this.options.language || document.documentElement.lang;
+    sprite.userData.refreshLanguage = () => {
+      const language = this.options.language || document.documentElement.lang;
+      if (language === labelLanguage) return;
+      labelLanguage = language;
+      context.clearRect(0, 0, labelWidth, labelHeight);
+      context.fillStyle = 'rgba(5,40,72,.98)'; context.beginPath(); context.roundRect(0, 0, labelWidth, labelHeight, 18); context.fill(); context.stroke();
+      context.fillStyle = '#fff'; context.fillText(window.rafexDimensionText?.(text, language) || text, labelWidth / 2, labelHeight / 2, labelWidth - 36);
+      texture.needsUpdate = true;
+    };
     const userScale = this.options.dimensionLabelScale || 1;
     sprite.position.set(x, y, z); sprite.scale.set(width * 1.85 * userScale, 220 * userScale, 1); sprite.userData.dimensionLabel=true;sprite.userData.baseScale=sprite.scale.clone();sprite.renderOrder = 101;this.dimensionLabels.push(sprite);layer.add(sprite);
   }
@@ -798,6 +810,7 @@ class B2BViewer {
 
   animate() {
     if (this.destroyed) return;
+    this.dimensionLabels.forEach(label => label.userData.refreshLanguage?.());
     this.controls.update();
     this.dimensionLabels.forEach((object)=>{object.getWorldPosition(this.dimensionWorldPosition).applyMatrix4(this.camera.matrixWorldInverse);const base=object.userData.baseScale,depth=Math.max(1,-this.dimensionWorldPosition.z),height=Math.max(1,this.canvas.clientHeight),ratio=2*depth*Math.tan(THREE.MathUtils.degToRad(this.camera.fov/2))*28/(height*220);object.scale.set(base.x*ratio,base.y*ratio,1);});
     this.renderer.render(this.scene, this.camera);
@@ -814,6 +827,7 @@ class B2BViewer {
 
 
 async function captureB2BViews(options = {}, settings = {}) {
+  options = { ...options, language: settings.language || options.language || document.getElementById('m2ReportLanguage')?.value || document.documentElement.lang };
   const width = Math.max(640, Math.round(Number(settings.width) || 1200));
   const height = Math.max(480, Math.round(Number(settings.height) || 760));
   const host = document.createElement("div");
