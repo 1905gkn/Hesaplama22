@@ -1,0 +1,22 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const source=fs.readFileSync('client/pdf-auto-layout.js','utf8');
+const bridgeSource=source.slice(source.indexOf('  window.rafexPdfReadingV201='),source.indexOf('  function status('));
+const fileA={},fileB={},a={file:fileA},b={file:fileB};
+let project='one',shown=null;
+const context=vm.createContext({window:{},batch:[a,b],active:b,raster:null,identity:'one',owner:()=>project,
+  rasterFields:[['footHeight','Ayak'],['palletCount','Palet']],dialog:{open:true},measurementForm:item=>shown=item});
+vm.runInContext(bridgeSource,context);
+const bridge=context.window.rafexPdfReadingV201;
+assert.equal(bridge.apply(fileA,[{field:'footHeight',value:6400,confidence:'high'}]).status,'notes');
+assert.equal(a.measurements.footHeight,6400);assert.equal(b.measurements,undefined);assert.equal(shown,a);
+bridge.apply(fileA,[{field:'palletCount',value:2,confidence:'high'}]);
+assert.equal(a.measurements.palletCount,2,'never inflate tunnel pallets to match printed total');
+assert.equal(428*9+52*a.measurements.palletCount+37*3,4067);
+assert.equal(bridge.measurements(fileA).footHeight,6400);
+assert.throws(()=>bridge.apply(fileA,[{field:'footHeight',value:6500,confidence:'uncertain'}]));
+assert.equal(a.measurements.footHeight,6400);
+assert.throws(()=>bridge.apply({},[{field:'footHeight',value:6400,confidence:'high'}]));
+project='two';assert.throws(()=>bridge.apply(fileA,[{field:'footHeight',value:6400,confidence:'high'}]));
+console.log('PASS: failed-parser readings retained per file; 2 tunnel pallets stay 2 (4067 total); uncertain/stale/foreign readings rejected.');

@@ -2,9 +2,41 @@
   let dialog,task,serial=0,plan,entries,identity,fileName,raster,rasterModule,groupPlan,ocrWorker,batch=[],active=null,busy=false,combinePlans;
   const edits=new Map(),specKey=t=>JSON.stringify(Object.fromEntries(Object.entries(t).filter(([k])=>!["key","name","_originalSignature"].includes(k)).sort(([a],[b])=>a.localeCompare(b))));
   const owner=()=>window.rafexProjectIdentityV133?.uuid;
-  window.rafexPdfReadingV201={fields:()=>rasterFields,contains:file=>batch.some(i=>i.file===file),ocr:file=>active?.file===file?raster?.text||'':'',apply(file,readings){if(active?.file!==file||!raster||owner()!==identity)throw Error('Bu dosyanın ölçü formu açık değil. Okunan değerleri ilgili raf tipinde elle kontrol et.');const targets=readings.map(r=>({r,input:dialog.querySelector('[data-raster-field="'+r.field+'"]')}));if(targets.some(t=>!t.input))throw Error('Seçilen ölçülerden biri bu formda yok; yalnız mevcut alanları seç.');for(const {r,input} of targets){input.value=r.value;input.dispatchEvent(new Event('change',{bubbles:true}));}dialog.querySelector('[data-raster-reviewed]').checked=false;}};
+  function measurementForm(item){
+    let box=dialog.querySelector('[data-agent-measurements]');
+    if(!box){box=document.createElement('section');box.dataset.agentMeasurements='';dialog.querySelector('[data-raster]').after(box);}
+    box.replaceChildren();
+    const title=document.createElement('h3');title.textContent=item.name+' — Okunan ölçüler';box.append(title);
+    const note=document.createElement('p');note.textContent='Bu dosyanın ölçü notlarıdır. Yerleşim veya raf tipi oluşturulmadı. Farklı raf tiplerine ait değerler ortak ölçü kabul edilmez.';box.append(note);
+    for(const [key,value] of Object.entries(item.measurements||{})){
+      const label=document.createElement('label');label.textContent=new Map(rasterFields).get(key)||key;
+      const input=document.createElement('input');input.type='number';input.min='0';input.value=value;input.dataset.agentMeasurement=key;
+      input.onchange=()=>{const n=Number(input.value);if(input.value!==''&&Number.isFinite(n)&&n>=0&&n<=1000000)item.measurements[key]=n;};
+      label.append(input);box.append(label);
+    }
+  }
+  window.rafexPdfReadingV201={
+    fields:()=>rasterFields,contains:file=>batch.some(i=>i.file===file),
+    ocr:file=>active?.file===file?raster?.text||'':'',
+    measurements:file=>({...batch.find(i=>i.file===file)?.measurements}),
+    apply(file,readings){
+      const item=batch.find(i=>i.file===file);
+      if(!item||owner()!==identity||!dialog.open)throw Error('Dosya veya proje değişti; ölçüler aktarılmadı.');
+      const allowed=new Set(rasterFields.map(([key])=>key));
+      if(!Array.isArray(readings)||!readings.length||readings.some(r=>!allowed.has(r.field)||r.confidence!=='high'||!Number.isFinite(r.value)||r.value<0||r.value>1000000)||new Set(readings.map(r=>r.field)).size!==readings.length)throw Error('Yalnız doğrulanabilir ve benzersiz ölçüler aktarılabilir.');
+      // A failed plan parser must not discard valid readings from a section.
+      // Store them on this file only; never write into another active file.
+      item.measurements={...item.measurements,...Object.fromEntries(readings.map(r=>[r.field,r.value]))};
+      if(active?.file===file&&raster){
+        for(const r of readings){const input=dialog.querySelector('[data-raster-field="'+r.field+'"]');if(input){input.value=r.value;input.dispatchEvent(new Event('change',{bubbles:true}));}}
+        const checked=dialog.querySelector('[data-raster-reviewed]');if(checked)checked.checked=false;
+      }
+      measurementForm(item);
+      return {status:active?.file===file&&raster?'form':'notes'};
+    }
+  };
   function status(text){dialog.querySelector('[data-pdf-workflow] [role=status], :scope > [role=status]').textContent=text;}
-  function clear(){window.rafexImportTypeEditorV198?.close();edits.clear();batch=[];active=null;busy=false;serial++;task?.destroy();task=null;plan=null;entries=null;raster=null;ocrWorker?.terminate().catch(()=>{});ocrWorker=null;dialog?.querySelector("[data-raster]")?.replaceChildren();}
+  function clear(){window.rafexImportTypeEditorV198?.close();edits.clear();dialog?.querySelector('[data-agent-measurements]')?.remove();batch=[];active=null;busy=false;serial++;task?.destroy();task=null;plan=null;entries=null;raster=null;ocrWorker?.terminate().catch(()=>{});ocrWorker=null;dialog?.querySelector("[data-raster]")?.replaceChildren();}
   function open(){
     if(!dialog){
       const style=document.createElement('style');style.textContent='#rafexAutoLayoutButton{background:#246447;color:white;border:0;border-radius:7px;padding:10px 14px;font-weight:700;cursor:pointer}#rafexPdfAutoDialog{width:min(840px,94vw);max-height:88vh;overflow:auto;border:1px solid #b9cec3;border-radius:12px;padding:24px;color:#173c2d}#rafexPdfAutoDialog::backdrop{background:#10211999}#rafexPdfAutoDialog header,#rafexPdfAutoDialog footer{display:flex;gap:12px;justify-content:space-between;align-items:center}#rafexPdfAutoDialog h2{margin:0}#rafexPdfAutoDialog p{line-height:1.6}#rafexPdfAutoDialog button{padding:10px 16px;cursor:pointer}#rafexPdfAutoDialog label{display:block;margin:18px 0}#rafexPdfAutoDialog [role=status]{white-space:pre-wrap;padding:12px;background:#f0f6f2}#rafexPdfAutoDialog table{width:100%;border-collapse:collapse;font-size:13px}#rafexPdfAutoDialog td,#rafexPdfAutoDialog th{padding:8px;border-bottom:1px solid #ddd;text-align:left}#rafexPdfAutoDialog svg{width:100%;height:280px;background:#f4f7f5}#rafexPdfAutoDialog [hidden]{display:none!important}';document.head.append(style);
@@ -41,7 +73,7 @@
   function removeFile(index){
     const item=batch[index];if(!item)return;
     if(active===item){serial++;task?.destroy();task=null;ocrWorker?.terminate().catch(()=>{});ocrWorker=null;busy=false;active=null;raster=null;dialog.querySelector('[data-raster]').replaceChildren();}
-    batch.splice(index,1);invalidate();renderFiles();processNext();
+    dialog.querySelector('[data-agent-measurements]')?.remove();batch.splice(index,1);invalidate();renderFiles();processNext();
   }
   function analyze(event){
     const files=[...event.target.files];event.target.value='';
@@ -126,7 +158,7 @@
     }box.append(svg);
     const details=document.createElement('details'),summary=document.createElement('summary'),raw=document.createElement('pre');summary.textContent='OCR ile okunan yazılar';raw.textContent=raster.text||'Okunabilir yazı bulunamadı.';raw.style.whiteSpace='pre-wrap';details.append(summary,raw);box.append(details);
     const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px';
-    for(const [key,title] of rasterFields){if(key==='tunnelHeight'&&!raster.geometry.rows.some(r=>r.bays.some(b=>b.tunnel)))continue;const label=document.createElement('label'),input=document.createElement('input');label.textContent=title;label.style.margin='4px 0';input.type='number';input.min='1';input.required=true;input.dataset.rasterField=key;input.style.cssText='display:block;width:95%;padding:8px';input.placeholder='Görselden okunamadı';if(raster.suggestions[key])input.value=raster.suggestions[key];label.append(input);grid.append(label);}box.append(grid);
+    for(const [key,title] of rasterFields){if(key==='tunnelHeight'&&!raster.geometry.rows.some(r=>r.bays.some(b=>b.tunnel)))continue;const label=document.createElement('label'),input=document.createElement('input');label.textContent=title;label.style.margin='4px 0';input.type='number';input.min='1';input.required=true;input.dataset.rasterField=key;input.style.cssText='display:block;width:95%;padding:8px';input.placeholder='Görselden okunamadı';const known=active.measurements?.[key]??raster.suggestions[key];if(known!==undefined&&known!==null)input.value=known;label.append(input);grid.append(label);}box.append(grid);
     const check=document.createElement('label'),accept=document.createElement('input');accept.type='checkbox';accept.dataset.rasterReviewed='';check.append(accept,document.createTextNode(' Ölçüleri ve yeşil gözleri kontrol ettim. İkili/üçlü gözleri, tünel işaretlerini ve geçiş yüksekliğini doğruladım. Mor işaretler sistemin tek göz çaprazı olarak uygulanacak.'));box.append(check);
     const button=document.createElement('button');button.type='button';button.dataset.rasterPrepare='';button.textContent='Ölçüleri doğrula ve yerleşimi hazırla';box.append(button);status('Resim algılandı. OCR ile okunamayan ölçüleri tamamla ve gözleri kontrol et.');
   }
