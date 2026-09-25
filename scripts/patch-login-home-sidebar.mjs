@@ -8,13 +8,13 @@ let html = fs.readFileSync(portalPath, "utf8");
 html = html.replace(/\s*body:has\(\.auth:not\(\.hidden\)\) \.shell\{display:none!important\}\s*/g, "\n");
 
 // Turkce zaten aktifken buyuk uygulama DOM'unu giriste yeniden cevirme.
-const languageNeedle = 'await changeProgramLanguage(user.default_language || appLanguage, false);';
-const languageFastPath = `const targetLanguage = user.default_language || appLanguage;
+const languageNeedle = 'await changeProgramLanguage($("authLanguage")?.value || appLanguage || user.default_language, false);';
+const languageFastPath = `const targetLanguage = $("authLanguage")?.value || appLanguage || user.default_language;
         if (!(targetLanguage === "tr" && appLanguage === "tr")) {
           await changeProgramLanguage(targetLanguage, false);
         }`;
 if (html.includes(languageNeedle)) html = html.replace(languageNeedle, languageFastPath);
-else if (!html.includes('const targetLanguage = user.default_language || appLanguage;')) throw new Error("Giris dil hizli yolu eklenemedi.");
+else if (!html.includes('const targetLanguage = $("authLanguage")?.value || appLanguage || user.default_language;')) throw new Error("Giris dil hizli yolu eklenemedi.");
 
 // Proje gecmisi ana ekranin acilmasini bloklamasin; veri arka planda hazirlanir.
 const projectLoadNeedle = /await loadProjects\(\);\r?\n\s*showPage\("home"\);/;

@@ -2127,7 +2127,7 @@
       };
       async function enter(user) {
         me = user;
-        await changeProgramLanguage(user.default_language || appLanguage, false);
+        await changeProgramLanguage($("authLanguage")?.value || appLanguage || user.default_language, false);
         $("auth").classList.add("hidden");
         $("app").classList.remove("hidden");
         $("who").textContent = user.full_name || user.username;
