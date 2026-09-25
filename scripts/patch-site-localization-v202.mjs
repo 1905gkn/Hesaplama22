@@ -1,6 +1,9 @@
 import fs from 'node:fs';
 export function transform(html) {
   if (html.includes('/* site-localization-v202 */')) return html;
+  // Change the generated report template, not an already-rendered user's report.
+  html = html.replaceAll('<article><h3>${t.extraTitle}</h3><p>${t.extraText}</p></article>', '');
+  html = html.replaceAll('<article><h3>Çizim Notu</h3><p>Çizimler 3D olduğu için perspektiften dolayı görsel yanılmalar olabilir.</p></article>', '<article class="rafex-drawing-note-footer"><h3>Çizim Notu</h3><p>Çizimler 3D olduğu için perspektiften dolayı görsel yanılmalar olabilir.</p></article>');
   // The legacy navigation observer owns this label and watches characterData.
   // It must agree with the translator, otherwise each observer undoes the other
   // in the same microtask checkpoint and the browser never paints again.
@@ -12,7 +15,7 @@ export function transform(html) {
   // Earlier occurrences can belong to quoted print-window HTML inside scripts.
   const closingBody = html.lastIndexOf('</body>');
   if (closingBody < 0) throw Error('Missing application closing body');
-  return html.slice(0, closingBody) + `<script>\n${runtime}\n</script>\n` + html.slice(closingBody);
+  return html.slice(0, closingBody) + `<style>.m2-corporate-final{min-height:0;flex:1}.m2-corporate-copy:has(.rafex-drawing-note-footer){display:flex;flex-direction:column;height:100%}.m2-corporate-copy .rafex-drawing-note-footer{margin-top:auto;padding:6px 8px;background:transparent;font-size:9px;line-height:1.35}.m2-corporate-copy .rafex-drawing-note-footer h3{font-size:10px;margin:0 0 3px}.m2-corporate-copy .rafex-drawing-note-footer p{font-size:9px;margin:0}</style><script>\n${runtime}\n</script>\n` + html.slice(closingBody);
 }
 if (process.argv[1]?.replaceAll('\\', '/').endsWith('/patch-site-localization-v202.mjs')) {
   const file = 'dist/server/index.js', source = fs.readFileSync(file, 'utf8');
