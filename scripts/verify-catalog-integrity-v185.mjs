@@ -66,6 +66,9 @@ const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return{p
  assert.deepEqual(await Promise.all([create,save]),[true,true]);assert.equal(writes.length,2,'Save arriving during creation must persist its catalog');
 }
 {
- const {window,status}=harness(async()=>({revision:0}));assert.equal(await window.rafexSaveDrawingCatalogV158(),false);assert.match(status.textContent,/yanıtı doğrulanamadı/);
+ const {window}=harness(async()=>({revision:0}));assert.equal(await window.rafexSaveDrawingCatalogV158(),true,'An unchanged catalog is already persisted');
+}
+{
+ const {window,status}=harness(async()=>({revision:-1}));assert.equal(await window.rafexSaveDrawingCatalogV158(),false);assert.match(status.textContent,/yanıtı doğrulanamadı/);
 }
 console.log('PASS: 5 systems × 25 import/copy cycles; collision isolation; origin/content distinction; pending changes; retry; invalid IDs; owner switches; create/save overlap; invalid acknowledgements.');
