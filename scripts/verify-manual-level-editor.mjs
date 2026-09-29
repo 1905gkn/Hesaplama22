@@ -33,6 +33,16 @@ try{
  await page.locator('[data-save]').click();assert.match(await page.locator('.error').textContent(),/ayak boyunu aşıyor/);
  assert.equal(await page.locator('#m2CustomizeLevels').inputValue(),'3');
  await page.locator('[data-cancel]').click();
+ await page.evaluate(()=>rafexOpenManualHeightV121('custom'));
+ await rows.first().locator('[data-pallet]').fill('499');await page.locator('[data-save]').click();
+ assert.match(await page.locator('.error').textContent(),/500/);
+ await rows.first().locator('[data-pallet]').fill('0');await page.locator('[data-save]').click();
+ await page.evaluate(()=>rafexSaveManualV121(rack));assert.equal(await page.evaluate(()=>rack.b2b.manualLevelSpecs[0].palletHeight),0);
+ await page.evaluate(()=>rafexOpenManualHeightV121('custom'));
+ assert.equal(await rows.first().locator('[data-pallet]').inputValue(),'0');
+ await rows.nth(1).locator('[data-pallet]').fill('0');await page.locator('[data-save]').click();assert.match(await page.locator('.error').textContent(),/500/);
+ await rows.nth(1).locator('[data-pallet]').fill('500');await page.locator('[data-save]').click();
+ assert.equal(await page.locator('#rafexManualHeightV121').evaluate(el=>el.open),false);
  assert.deepEqual(errors,[]);
  console.log('PASS: insert between levels/at top, preserve edited rows, cancel, apply count, persisted manual specs, remove and ground protection.');
 }finally{await browser.close();}

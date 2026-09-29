@@ -43,7 +43,7 @@
     const defaultClearance = Math.max(0, num(options.palletTraverseGap, 200));
     const palletHeights = Array.isArray(options.palletHeights) ? options.palletHeights : [];
     const levelClearances = Array.isArray(options.levelClearances) ? options.levelClearances : [];
-    const palletHeightAt = (level) => Math.max(300, num(palletHeights[level], defaultPalletHeight));
+    const palletHeightAt = (level) => level===0&&options.firstPalletPosition!=="traverse"&&palletHeights[level]===0?0:Math.max(300, num(palletHeights[level], defaultPalletHeight));
     const clearanceAt = (level) => Math.max(0, num(levelClearances[level], defaultClearance));
 
     let loadBottom = options.firstPalletPosition === "traverse"

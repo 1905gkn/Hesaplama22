@@ -138,10 +138,10 @@
     const customLevels = Array.isArray(state.customLevels) ? state.customLevels : [];
     const palletHeight = Math.max(300, number(drawing?.palletHeight ?? state.palletHeight, 1200));
     const traverseHeight = b2bTraverseHeight(drawing);
-    const palletHeights = customLevels.map((item) => Math.max(300, number(item?.palletHeight, palletHeight)));
+    const palletHeights = customLevels.map((item,index) => index===0&&state.firstPalletPosition!=="traverse"&&item?.palletHeight===0?0:Math.max(300, number(item?.palletHeight, palletHeight)));
     const levelClearances = customLevels.map((item, index) => Math.max(
       0,
-      number(item?.interval, 0) - (palletHeights[index] || palletHeight) - traverseHeight,
+      number(item?.interval, 0) - (palletHeights[index] ?? palletHeight) - traverseHeight,
     ));
     const footHeight = b2bFullUprightHeight(drawing);
     const tiePlan = typeof b2bStraightTiePlan === "function"

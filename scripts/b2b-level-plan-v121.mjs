@@ -4,8 +4,8 @@ export function physicalLevels(o) {
   for(let i=0;i<count;i++){
     const loadIndex=o.firstPalletPosition==='traverse'?i:i+1;
     if(Array.isArray(o.traverseBottoms)&&Number.isFinite(o.traverseBottoms[i]))bottom=o.traverseBottoms[i];
-    else if(i===0&&o.firstPalletPosition!=='traverse')bottom=(o.palletHeights?.[0]||o.palletHeight||1200)+(o.levelClearances?.[0]??o.palletTraverseGap??200);
-    else if(i>0){const previousLoad=loadIndex-1;bottom=out[i-1].bottom+out[i-1].beam+(o.palletHeights?.[previousLoad]||o.palletHeight||1200)+(o.levelClearances?.[previousLoad]??o.palletTraverseGap??200)}
+    else if(i===0&&o.firstPalletPosition!=='traverse')bottom=(o.palletHeights?.[0]??o.palletHeight??1200)+(o.levelClearances?.[0]??o.palletTraverseGap??200);
+    else if(i>0){const previousLoad=loadIndex-1;bottom=out[i-1].bottom+out[i-1].beam+(o.palletHeights?.[previousLoad]??o.palletHeight??1200)+(o.levelClearances?.[previousLoad]??o.palletTraverseGap??200)}
     out.push({index:i,level:i+1,loadIndex,bottom,beam:o.traverseHeights?.[i]||o.traverseHeight||140});
   }
   return out;
@@ -18,7 +18,7 @@ export function manualOptions(o,rows) {
   const firstPalletPosition=o.firstPalletPosition==='traverse'?'traverse':'ground';
   o={...o,firstPalletPosition,traverseBottoms:[],traverseHeights:[],palletHeights:[],levelClearances:[]};
   const selected=rows.slice(0,o.levels);
-  o.palletHeights=selected.map(r=>Number(r.palletHeight)||o.palletHeight||1200);
+  o.palletHeights=selected.map((r,i)=>firstPalletPosition==='ground'&&i===0&&Number(r.palletHeight)===0?0:Number(r.palletHeight)||o.palletHeight||1200);
   const traverseCount=firstPalletPosition==='traverse'?selected.length:Math.max(0,selected.length-1);
   let bottom=0;
   selected.slice(0,traverseCount).forEach((r,i)=>{

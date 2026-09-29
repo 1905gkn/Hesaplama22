@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import {manualOptions} from './b2b-level-plan-v121.mjs';
+const base={levels:2,firstPalletPosition:'ground',palletHeight:1200,traverseHeight:140};
+const rows=[{distance:1400,palletHeight:1200,traverseType:'CC140'},{distance:0,palletHeight:1200,traverseType:''}];
+const before=manualOptions(base,rows),after=manualOptions(base,[{...rows[0],palletHeight:0},rows[1]]);
+assert.deepEqual(after.palletHeights,[0,1200]);assert.deepEqual(after.traverseBottoms,before.traverseBottoms);
+const viewer=fs.readFileSync('client/b2b-viewer.entry.js','utf8');
+const method=viewer.match(/  addLoads\(section, sectionScale\) \{[\s\S]*?\n  \}/)[0];
+const addLoads=vm.runInNewContext('({'+method+'}).addLoads');
+const fake={options:{levels:1,palletCount:3,sectionWidth:2700,palletWidth:800,firstPalletPosition:'ground',palletHeights:[0]},loadBottom(){throw Error('visible pallet path');}};
+assert.doesNotThrow(()=>addLoads.call(fake,{},1));
+fake.options.palletHeights=[500];assert.throws(()=>addLoads.call(fake,{},1),/visible pallet path/);
+console.log('PASS: zero ground height removes load geometry; 500 restores visible path; beam elevations unchanged.');

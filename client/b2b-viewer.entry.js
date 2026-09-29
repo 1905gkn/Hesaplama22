@@ -184,7 +184,7 @@ class B2BViewer {
       straightTiePositions: Array.isArray(next.straightTiePositions) ? next.straightTiePositions.map(Number).filter((value) => Number.isFinite(value) && value > 0) : [],
       palletTraverseGap: clamp(Number.isFinite(Number(next.palletTraverseGap)) ? Number(next.palletTraverseGap) : 200, 0, 2000),
       levelClearances: Array.isArray(next.levelClearances) ? next.levelClearances.map((value) => clamp(Number(value) || 0, 0, 5000)) : [],
-      palletHeights: Array.isArray(next.palletHeights) ? next.palletHeights.map((value) => clamp(Number(value) || 800, 300, 3000)) : [],
+      palletHeights: Array.isArray(next.palletHeights) ? next.palletHeights.map((value,index) => index===0&&next.firstPalletPosition!=="traverse"&&value===0?0:clamp(Number(value) || 800, 300, 3000)) : [],
       traverseBottoms: Array.isArray(next.traverseBottoms)?next.traverseBottoms.map(Number):[],
       traverseHeights: Array.isArray(next.traverseHeights)?next.traverseHeights.map(Number):[],
       tunnelHeight: clamp(Number(next.tunnelHeight) || 0, 0, 30000),
@@ -457,6 +457,7 @@ class B2BViewer {
     const { palletCount, palletWidth, palletDepth, palletHeight, levels, sectionWidth } = this.options;
     const gap = (sectionWidth - palletCount * palletWidth) / (palletCount + 1);
     for (let level = 0; level < levels; level += 1) {
+      if(level===0&&this.options.firstPalletPosition==="ground"&&this.options.palletHeights[0]===0)continue;
       const loadBottom = this.loadBottom(level);
       if (this.options.tunnelHeight > 0 && (level===0&&this.options.firstPalletPosition==="ground" || this.traverseBottom(this.options.firstPalletPosition==="traverse"?level:level-1)<this.options.tunnelHeight)) continue;
       for (let position = 0; position < palletCount; position += 1) {
@@ -502,7 +503,7 @@ class B2BViewer {
   }
 
   palletHeightAt(level) {
-    return this.options.palletHeights[level] || this.options.palletHeight;
+    return this.options.palletHeights[level] ?? this.options.palletHeight;
   }
 
   clearanceAt(level) {

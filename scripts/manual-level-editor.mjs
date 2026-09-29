@@ -12,6 +12,7 @@ export function installManualLevelEditor(dialog,ground,rebind,maxLevels=30){
   const list=all();
   list.forEach((row,i)=>{
    const distance=row.querySelector('[data-distance]'),weight=row.querySelector('[data-weight]'),pallet=row.querySelector('[data-pallet]'),traverse=row.querySelector('[data-traverse]');
+   pallet.min=ground&&i===0?'0':'500';
    const setLabel=(input,value)=>{const host=input.closest('label');let caption=host.querySelector('[data-level-caption]');if(!caption){for(const node of [...host.childNodes])if(node.nodeType===3)node.remove();caption=document.createElement('span');caption.dataset.levelCaption='';host.prepend(caption);}text(caption,value);};
    const hasDistance=!ground||i<list.length-1;
    if(hasDistance&&distance.disabled)distance.value=Number(pallet.value)+200;
@@ -38,6 +39,7 @@ export function installManualLevelEditor(dialog,ground,rebind,maxLevels=30){
  add.onclick=()=>{
   const list=all(),index=Number(position.value);if(list.length>=maxLevels)return;
   const row=list[Math.min(index,list.length-1)].cloneNode(true);
+  const pallet=row.querySelector('[data-pallet]');if(Number(pallet.value)<500)pallet.value='500';
   const distance=row.querySelector('[data-distance]');distance.value=Number(row.querySelector('[data-pallet]').value)+200;distance.disabled=false;
   if(list[index])list[index].before(row);else rows.append(row);
   refresh(true);
