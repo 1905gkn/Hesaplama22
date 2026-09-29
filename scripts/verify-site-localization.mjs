@@ -39,6 +39,40 @@ try {
  assert.equal(await page.locator('#m2A4Sheet b').textContent(), 'Modifier les cotes');
  assert.equal(await page.locator('#user').inputValue(),'Ortak Çizim');
  assert.equal(await page.locator('[translate=no]').textContent(),'Ortak Çizim');
+ // No wait/observer turn: each connected rendering write must already expose
+ // the selected language when it returns, including repeated dynamic updates.
+ for (const [language, expected] of [['en','Edit Dimensions'],['fr','Modifier les cotes']]) {
+  const result = await page.evaluate(async ({language}) => {
+   document.documentElement.lang=language;
+   const host=document.createElement('section'); document.body.appendChild(host);
+   const values=[];
+   for(let i=0;i<20;i++) {
+    host.innerHTML='<button title="Ölçüleri Düzenle">Ölçüleri Düzenle</button><span translate="no">Ortak Çizim</span>';
+    const button=host.querySelector('button');
+    values.push(button.textContent,button.title);
+    button.textContent='Ölçüleri Düzenle'; values.push(button.textContent);
+    button.firstChild.nodeValue='Ölçüleri Düzenle'; values.push(button.textContent);
+    button.firstChild.data='Ölçüleri Düzenle'; values.push(button.textContent);
+    button.innerText='Ölçüleri Düzenle'; values.push(button.textContent);
+    button.setAttribute('title','Ölçüleri Düzenle'); values.push(button.title);
+    host.insertAdjacentHTML('beforeend','<b>Ölçüleri Düzenle</b>'); values.push(host.lastChild.textContent);
+   }
+   const protectedText=host.querySelector('[translate=no]').textContent;
+   const report=document.querySelector('#m2A4Sheet');
+   report.innerHTML='<b>Ölçüleri Düzenle</b>';
+   const reportText=report.textContent;
+   const detached=document.createElement('b'); detached.textContent='Ölçüleri Düzenle'; host.appendChild(detached);
+   const firstFrame=await new Promise(resolve=>requestAnimationFrame(()=>resolve(detached.textContent)));
+   host.remove();
+   return {values,protectedText,reportText,firstFrame};
+  },{language});
+  assert(result.values.every(value=>value===expected),`${language}: synchronous render must never return Turkish`);
+  assert.equal(result.firstFrame,expected,`${language}: detached node must be localized before first paint`);
+  assert.equal(result.protectedText,'Ortak Çizim');
+  assert.equal(result.reportText,'Modifier les cotes');
+ }
+ await page.evaluate(()=>document.documentElement.lang='en');
+ console.log('PASS: EN/FR synchronous HTML/text/attribute writes, 20 repeated changes and first-frame insertion; protected content/report language preserved.');
  await page.evaluate(()=>document.querySelector('#dynamic').firstChild.nodeValue='Ölçüleri Düzenle');
  await page.waitForFunction(()=>document.querySelector('#dynamic').textContent==='Edit Dimensions');
  await page.evaluate(()=>document.documentElement.lang='fr');
