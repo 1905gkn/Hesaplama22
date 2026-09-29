@@ -1,4 +1,5 @@
 import {physicalLevels,automaticOptions,manualOptions} from './b2b-level-plan-v121.mjs';
+import {installManualLevelEditor} from './manual-level-editor.mjs';
 export function netLevelRows(rows){return rows.map((r,i)=>({...r,distance:r.distance-(i?Number(String(rows[i-1].traverseType).match(/\d+/)?.[0])||140:0)}))}
 export function storedLevelRows(rows){return rows.map((r,i)=>({...r,distance:r.distance+(i?Number(String(rows[i-1].traverseType).match(/\d+/)?.[0])||140:0)}))}
 export const manualRuntime=String.raw`
@@ -9,11 +10,13 @@ export const manualRuntime=String.raw`
 #rafexManualHeightV121 .level-row{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:10px;border-bottom:1px solid #ddd;padding:12px 0}
 #rafexManualHeightV121 label{display:grid;gap:6px;font-size:12px}#rafexManualHeightV121 input,#rafexManualHeightV121 select{width:100%;box-sizing:border-box;padding:8px}
 #rafexManualHeightV121 footer{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+#rafexManualHeightV121 .manual-level-toolbar{display:flex;align-items:end;gap:12px;padding:12px;background:#edf5f0;border-radius:8px}#rafexManualHeightV121 .manual-level-toolbar label{flex:1}#rafexManualHeightV121 [data-remove-level]{grid-column:1/-1;justify-self:end;padding:7px 12px;color:#8a2030}#rafexManualHeightV121 [data-add-level]{padding:10px 14px}
 @media(max-width:650px){#rafexManualHeightV121 .level-row{grid-template-columns:1fr 1fr}}
 </style><script data-rafex-manual-height="v121">
 (function(){
 const physicalLevels=${physicalLevels.toString()},automaticOptions=${automaticOptions.toString()},manualOptions=${manualOptions.toString()},copy=x=>JSON.parse(JSON.stringify(x));
 const netLevelRows=${netLevelRows.toString()},storedLevelRows=${storedLevelRows.toString()};
+const installManualLevelEditor=${installManualLevelEditor.toString()};
 let mainRows=[],customRows=[],customId=null,customCleared=false,editing='main';
 const value=(id,fallback)=>Number(document.getElementById(id)?.value)||fallback;
 function height(o){const p=physicalLevels(o),last=p.at(-1);return last?last.bottom+last.beam:500}
@@ -48,9 +51,9 @@ function open(kind){
  const rows=[...dialog.querySelectorAll('.level-row')].map(row=>({distance:Number(row.querySelector('[data-distance]').value),weight:Number(row.querySelector('[data-weight]').value),palletHeight:Number(row.querySelector('[data-pallet]').value),traverseType:row.querySelector('[data-traverse]').value,selectionMode:row.querySelector('[data-traverse]').dataset.manual==='true'?'manual':'auto'}));
  let error='';rows.forEach((r,i)=>{const needsDistance=!ground||i<rows.length-1,containedPallet=ground?r.palletHeight:rows[i-1]?.palletHeight;if((needsDistance&&(!Number.isFinite(r.distance)||r.distance<0||r.distance>30000))||!Number.isFinite(r.weight)||r.weight<0||r.weight>100000||r.palletHeight<300||r.palletHeight>3000)error='Geçerli mesafe, ağırlık ve palet yüksekliği girin.';if(needsDistance&&(ground||i>0)&&r.distance<containedPallet)error=(i===0?'Zemin – 1. kat':i+'. kat – '+(i+1)+'. kat')+' mesafesi bu aralıktaki palet yüksekliğinden kısa olamaz.'});
  const mapped=rows.map((r,i)=>({...r,traverseType:ground?(rows[i+1]?.traverseType||''):r.traverseType,selectionMode:ground?(rows[i+1]?.selectionMode||'auto'):r.selectionMode}));
- const stored=storedLevelRows(mapped),planned=manualOptions({...o,tunnelHeight:0},stored);if(rack?.b2b?.footHeightMode==='manual'&&height(planned)>o.footHeight)error='Kat düzeni manuel ayak boyunu aşıyor.';
- if(error){dialog.querySelector('.error').textContent=error;return}commit(stored);
- };window.RafexRackTravers?.bindLevels(dialog,Number(o.sectionWidth)||Number(rack?.b2bLayout?.sectionWidth)||b2bPalletGeometry().sectionWidth,false,displayed);dialog.showModal();
+ const stored=storedLevelRows(mapped),planned=manualOptions({...o,levels:rows.length,tunnelHeight:0},stored);if(rack?.b2b?.footHeightMode==='manual'&&height(planned)>o.footHeight)error='Kat düzeni manuel ayak boyunu aşıyor.';
+ if(error){dialog.querySelector('.error').textContent=error;return}if(custom){const countInput=document.getElementById('m2CustomizeLevels');if(countInput)countInput.value=String(rows.length);}commit(stored);
+ };const bind=rows=>window.RafexRackTravers?.bindLevels(dialog,Number(o.sectionWidth)||Number(rack?.b2bLayout?.sectionWidth)||b2bPalletGeometry().sectionWidth,false,rows);bind(displayed);if(custom)installManualLevelEditor(dialog,ground,bind,Number(document.getElementById('m2CustomizeLevels')?.max)||30);dialog.showModal();
 }
 window.rafexOpenManualHeightV121=open;
 const read=b2bReadInputState;b2bReadInputState=window.b2bReadInputState=function(){const s=read.apply(this,arguments);if(!s)return s;const rows=copy(mainRows.slice(0,s.levels)),position=positionOf(s);return {...s,manualLevelSpecs:rows,...(rows.length?{firstPalletPosition:position,firstFloorGap:rows[0].distance,customLevels:rowsToCustom(rows,position)}:{customLevels:[]})}};
