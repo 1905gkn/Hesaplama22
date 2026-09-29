@@ -85,6 +85,7 @@ body.rafex-common-header-v95 #page #rafexCommonProjectName,#page.rafex-free-draw
       wrap.className='rafex-common-project-name-wrap';
       wrap.innerHTML='<label class="rafex-common-project-name-field" for="rafexCommonProjectName"><span>Proje Adı</span><input id="rafexCommonProjectName" type="text" autocomplete="off" placeholder="Ortak proje adını yaz"></label>';
       commonWrap=wrap;
+      if(window.rafexLocalizeUi)window.rafexLocalizeUi(wrap);
       var input=wrap.querySelector('#rafexCommonProjectName');
       input.addEventListener('input',function(event){
         event.stopPropagation();

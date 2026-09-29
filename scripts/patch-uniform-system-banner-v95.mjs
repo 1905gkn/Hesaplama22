@@ -97,10 +97,11 @@ body.rafex-common-header-v95 #pageTitle{display:none!important}
     }
     var label=common?'ORTAK ÇİZİM':(labels[key]||'ORTAK ÇİZİM');
     var title=hero.querySelector(':scope>[data-rafex-system-banner-title]');
-    var clean=title&&hero.children.length===1&&title.textContent===label;
-    if(clean)return;
+    var clean=title&&hero.children.length===1;
+    if(clean){if(window.rafexSetUiText)window.rafexSetUiText(title,label);else if(title.textContent!==label)title.textContent=label;return;}
     busy=true;
     hero.innerHTML='<h2 data-rafex-system-banner-title>'+label+'</h2>';
+    if(window.rafexLocalizeUi)window.rafexLocalizeUi(hero);
     hero.dataset.rafexSystemBanner=key||'common';
     busy=false;
   }

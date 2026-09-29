@@ -109,8 +109,8 @@ const runtime = String.raw`<style data-rafex-common-b2b-input="v100">
     frame=0;var page=document.getElementById('page');sharedHead(page);if(!active(page))return;
     var card=page.querySelector('.b2b-input-card'),body=card&&card.querySelector('.b2b-input-body');if(!card||!body)return;
     var title=card.querySelector('.b2b-input-head h3'),note=card.querySelector('.b2b-input-head span');
-    if(title&&title.textContent!=='Raf Ölçüleri')title.textContent='Raf Ölçüleri';
-    if(note&&note.textContent!=='Anında güncellenir')note.textContent='Anında güncellenir';
+    if(window.rafexSetUiText){window.rafexSetUiText(title,'Raf Ölçüleri');window.rafexSetUiText(note,'Anında güncellenir');}
+    else {if(title&&title.textContent!=='Raf Ölçüleri')title.textContent='Raf Ölçüleri';if(note&&note.textContent!=='Anında güncellenir')note.textContent='Anında güncellenir';}
     var result=body.querySelector('.b2b-result'),accessories=body.querySelector('#b2bAccessoryArea,.b2b-accessory-area');
     if(result&&accessories){
       var details=body.querySelector('.b2b-summary-details');

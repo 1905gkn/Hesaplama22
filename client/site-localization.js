@@ -52,6 +52,57 @@
   // Canvas callers can provide the independently selected output language.
   window.rafexDimensionText = translate;
   const languageFor = element => element.closest(reportSelector) ? (document.getElementById('m2ReportLanguage')?.value || 'tr') : (document.documentElement.lang || 'tr');
+  // Explicit rendering API: callers provide the canonical label, not the
+  // previously translated DOM. Never intercept native DOM setters globally.
+  window.rafexSetUiText = (target, source) => {
+    if (!target) return source;
+    const element = target.nodeType === 3 ? target.parentElement : target;
+    const original = String(source ?? '');
+    const rendered = element?.closest(protectedSelector) ? original : translate(original, element ? languageFor(element) : undefined);
+    if (target.textContent !== rendered) target.textContent = rendered;
+    const node = target.nodeType === 3 ? target : target.firstChild;
+    if (node?.nodeType === 3) textState.set(node, { source: original, rendered });
+    return source;
+  };
+  window.rafexLocalizeUi = apply;
+  window.rafexSetUiAttribute = (target, name, source) => {
+    const original=String(source);
+    const rendered=target.closest(protectedSelector)?original:translate(original,languageFor(target));
+    if(target.getAttribute(name)!==rendered)target.setAttribute(name,rendered);
+    let states=attributeState.get(target);
+    if(!states)attributeState.set(target,states={});
+    states[name]={source:original,rendered};
+  };
+  window.rafexSetUiHTML = (target, source) => {
+    const markup=String(source ?? '');
+    if(target.closest(protectedSelector)||languageFor(target)==='tr') {
+      if(target.innerHTML!==markup)target.innerHTML=markup;
+      return source;
+    }
+    // Translate a detached tree: Turkish text never enters the visible page.
+    const draft=target.cloneNode(false);
+    draft.innerHTML=markup;
+    apply(draft,languageFor(target));
+    if(target.innerHTML!==draft.innerHTML){
+      const fragment=document.createDocumentFragment();
+      while(draft.firstChild)fragment.appendChild(draft.firstChild);
+      target.replaceChildren(fragment);
+    }
+    return source;
+  };
+  window.rafexInsertUiHTML = (target, position, source) => {
+    const side=String(position).toLowerCase();
+    const context=['beforebegin','afterend'].includes(side)?target.parentElement:target;
+    if(!context||!['beforebegin','afterbegin','beforeend','afterend'].includes(side)||context.closest(protectedSelector)||languageFor(context)==='tr')return target.insertAdjacentHTML(position,source);
+    const draft=context.cloneNode(false);draft.innerHTML=String(source);
+    apply(draft,languageFor(context));
+    const fragment=document.createDocumentFragment();
+    while(draft.firstChild)fragment.appendChild(draft.firstChild);
+    if(side==='beforebegin')target.before(fragment);
+    else if(side==='afterend')target.after(fragment);
+    else if(side==='afterbegin')target.prepend(fragment);
+    else target.append(fragment);
+  };
   function updateText(node, language) {
     stats.textChecks++;
     const current = node.nodeValue;
@@ -65,29 +116,29 @@
     state.rendered = next;
     if (next !== current) node.nodeValue = next;
   }
-  function apply(root = document.body) {
+  function apply(root = document.body, languageOverride) {
     if (!root || root.nodeType !== 1 || root.closest(protectedSelector)) return;
     if (!root.firstChild && !root.matches('[placeholder],[title],[aria-label]')) return;
     stats.subtreeScans++;
     // Geometry, paths and groups have no translatable text. Never enumerate
     // every SVG element just to translate a caption or tooltip.
     for (const element of [root, ...root.querySelectorAll('[placeholder],[title],[aria-label]')]) {
-      updateAttributes(element);
+      updateAttributes(element, undefined, languageOverride);
     }
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     let node;
-    while ((node = walker.nextNode())) translateNode(node);
+    while ((node = walker.nextNode())) translateNode(node, languageOverride);
   }
-  function translateNode(node) {
+  function translateNode(node, languageOverride) {
     const element = node.parentElement;
     if (!element || !node.nodeValue.trim() || element.closest(protectedSelector)) return;
-    const language = languageFor(element);
+    const language = element.closest(reportSelector) ? languageFor(element) : (languageOverride || languageFor(element));
     if (language === 'tr' && !textState.has(node) && !i18nOriginalText.has(node)) return;
     updateText(node, language);
   }
-  function updateAttributes(element, onlyName) {
+  function updateAttributes(element, onlyName, languageOverride) {
       if (element.closest(protectedSelector)) return;
-      const language = languageFor(element);
+      const language = element.closest(reportSelector) ? languageFor(element) : (languageOverride || languageFor(element));
       if (language === 'tr' && !attributeState.has(element) && !i18nOriginalAttributes.has(element)) return;
       let states = attributeState.get(element);
       if (!states) attributeState.set(element, states = {});
