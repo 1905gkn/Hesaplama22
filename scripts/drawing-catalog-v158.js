@@ -41,8 +41,11 @@
       }
       if(!Number.isSafeInteger(identity.drawingCatalogRevision)||identity.drawingCatalogRevision<0)throw Error('Katalog sürümü doğrulanamadı; mevcut kayıt korunuyor.');
       const snapshot=JSON.stringify(types);
-      const result=await req('/api/drawing-projects/'+identity.drawingCatalogId+'/types',{method:'PUT',body:JSON.stringify({revision:identity.drawingCatalogRevision,rackTypes:types})});
-      if(!Number.isSafeInteger(result.revision)||result.revision<=identity.drawingCatalogRevision)throw Error('Kayıt yanıtı doğrulanamadı. Yeniden açmadan önce yerel değişikliklerini koru.');
+      const requestedRevision=identity.drawingCatalogRevision;
+      const result=await req('/api/drawing-projects/'+identity.drawingCatalogId+'/types',{method:'PUT',body:JSON.stringify({revision:requestedRevision,rackTypes:types})});
+      // The API returns the existing revision when these exact types are
+      // already persisted. That successful no-op must not block layout saves.
+      if(!Number.isSafeInteger(result.revision)||result.revision<requestedRevision)throw Error('Kayıt yanıtı doğrulanamadı. Yeniden açmadan önce yerel değişikliklerini koru.');
       identity.drawingCatalogRevision=result.revision;
       if(!active())return false;
       if(snapshot===JSON.stringify(window.rafexProjectTypesV133||[]))break;
