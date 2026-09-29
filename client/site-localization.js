@@ -7,8 +7,6 @@
     UI_TRANSLATIONS.fr[tr] = fr;
   }
   const textState = new WeakMap(), attributeState = new WeakMap();
-  const nativeTextValue = Object.getOwnPropertyDescriptor(Node.prototype, 'nodeValue').set;
-  const nativeSetAttribute = Element.prototype.setAttribute;
   const stats = { batches: 0, textChecks: 0, attributeChecks: 0, subtreeScans: 0 };
   window.rafexTranslationStats = stats;
   const protectedSelector = 'script,style,textarea,code,pre,[contenteditable="true"],[translate="no"],[data-no-translate],#m2ReportProjectName,.m2-user-note,[data-user-note],[data-rafex-type-name] > strong > span';
@@ -65,7 +63,7 @@
     }
     const next = translate(state.source, language);
     state.rendered = next;
-    if (next !== current) nativeTextValue.call(node, next);
+    if (next !== current) node.nodeValue = next;
   }
   function apply(root = document.body) {
     if (!root || root.nodeType !== 1 || root.closest(protectedSelector)) return;
@@ -100,72 +98,20 @@
         let state = states[name];
         if (!state || current !== state.rendered) state = states[name] = { source: (!state && i18nOriginalAttributes.get(element)?.[name]) || current, rendered: current };
         state.rendered = translate(state.source, language);
-        if (current !== state.rendered) nativeSetAttribute.call(element, name, state.rendered);
+        if (current !== state.rendered) element.setAttribute(name, state.rendered);
       }
   }
   i18nObserver.disconnect();
   applyTranslations = apply;
   // Alerts/prompts retain their existing translation entry point with safer matching.
   translatedUiText = translate;
-  // Legacy renderers share these DOM sinks. Finish localization in the same
-  // write transaction, before returning to the caller (and before any paint).
-  // Do not rewrite input values, user content, CSS, scripts or other documents.
-  // Detached trees are localized by the observer before their first paint,
-  // once their actual report/protected-content ancestry is known.
-  let rendering = false;
-  const needsRender = node => {
-    if (!node) return false;
-    const element = node.nodeType === 1 ? node : node.parentElement;
-    return element?.ownerDocument === document && element.isConnected &&
-      !element.closest(protectedSelector) &&
-      languageFor(element) !== 'tr';
-  };
-  function renderWrite(node, attribute) {
-    if (rendering || !needsRender(node)) return;
-    rendering = true;
-    try {
-      if (attribute) updateAttributes(node, attribute);
-      else if (node.nodeType === 3) translateNode(node);
-      else apply(node);
-    } finally { rendering = false; }
-  }
-  function wrapSetter(prototype, name) {
-    const descriptor = Object.getOwnPropertyDescriptor(prototype, name);
-    if (!descriptor?.set || !descriptor.configurable) return;
-    Object.defineProperty(prototype, name, {
-      ...descriptor,
-      set(value) {
-        descriptor.set.call(this, value);
-        renderWrite(this);
-      }
-    });
-  }
-  wrapSetter(Node.prototype, 'textContent');
-  wrapSetter(Node.prototype, 'nodeValue');
-  wrapSetter(CharacterData.prototype, 'data');
-  wrapSetter(Element.prototype, 'innerHTML');
-  wrapSetter(HTMLElement.prototype, 'innerText');
-  Element.prototype.setAttribute = function(name, value) {
-    const key = String(name).toLowerCase();
-    const state = attributeState.get(this)?.[key];
-    if (!rendering && state && state.source === value && this.getAttribute(name) === state.rendered && state.rendered === translate(state.source, languageFor(this))) return;
-    const result = nativeSetAttribute.call(this, name, value);
-    if (['placeholder', 'title', 'aria-label'].includes(key)) renderWrite(this, key);
-    return result;
-  };
-  const nativeInsertHTML = Element.prototype.insertAdjacentHTML;
-  Element.prototype.insertAdjacentHTML = function(position, html) {
-    const result = nativeInsertHTML.call(this, position, html);
-    renderWrite(/^(beforebegin|afterend)$/i.test(position) ? this.parentElement : this);
-    return result;
-  };
   const roots = new Set(), texts = new Set(), attributes = new Map();
   let timer = null;
   function flush() {
     timer = null;
     stats.batches++;
-    // Fallback for newly attached DOM trees. Microtasks run before paint;
-    // no timer may expose the source-language frame. Guarded writes settle.
+    // Keep observing: guarded writes do not change state twice. The deferred
+    // batch prevents other legacy observers from starving browser input/paint.
     const work = new Set(roots); roots.clear();
     const covered = node => {
       while (node) { if (work.has(node)) return true; node = node.parentElement; }
@@ -199,17 +145,14 @@
         else if (node.nodeType === 1) roots.add(node);
       }
     }
-    if (timer === null && (roots.size || texts.size || attributes.size)) {
-      timer = true;
-      queueMicrotask(flush);
-    }
+    if (timer === null && (roots.size || texts.size || attributes.size)) timer = setTimeout(flush, 16);
   });
   function observe() {
     observer.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['placeholder', 'title', 'aria-label'] });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
   }
   document.addEventListener('change', event => {
-    if (event.target.id === 'm2ReportLanguage') apply(document.body);
+    if (event.target.id === 'm2ReportLanguage') requestAnimationFrame(() => apply(document.body));
   });
   apply();
   observe();
