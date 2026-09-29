@@ -103,7 +103,7 @@ html=html.replace(legacyMountV120,'');
 html=html.replace('const o=m2Rack3DOptions(candidateV109);','const o=window.rafexB2BDetailOptionsV117(candidateV109);');
 if(!html.includes(saveGeometry))throw Error('Tunnel save geometry anchor missing');
 html=html.replace(saveGeometry,'rack.b2b.footHeight=rack.sideUprightHeight;window.rafexSaveTunnelV120?.(rack);m2B2BResizeRack(rack,count);');
-html=html.replace('window.rafexCustomizeCollectionOptionsV119?.(o,candidateV109);','const planV120=window.rafexB2BCustomizeOptionsV120(candidateV109);if(planV120.invalidTunnel){alert("Tünel yüksekliği mevcut ayak boyu ve üst palet kotuna sığmıyor.");return;}Object.assign(o,planV120);');
+html=html.replace('window.rafexCustomizeCollectionOptionsV119?.(o,candidateV109);','const planV120=window.rafexB2BCustomizeOptionsV120(candidateV109);if(planV120.invalidCustomizeHeight){alert("Kat düzeni mevcut ayak boyunu aşıyor. Ayak boyu Özelleştir bölümünde değişmez.");return;}if(planV120.invalidTunnel){alert("Tünel yüksekliği mevcut ayak boyu ve üst palet kotuna sığmıyor.");return;}Object.assign(o,planV120);');
 html=html.replace('<label class="b2b-field">Palet tipi<select id="b2bPalletType"','<button type="button" onclick="rafexOpenManualHeightV121(\'main\')">Manuel yükseklik</button><label class="b2b-field">Palet tipi<select id="b2bPalletType"');
 html=html.replace('<label>Palet yüksekliği (mm)<input id="m2CustomizePalletHeight"','<button type="button" onclick="rafexOpenManualHeightV121(\'custom\')">Manuel yükseklik</button><label>Palet yüksekliği (mm)<input id="m2CustomizePalletHeight"');
 html=html.replace('rack.sideUprightHeight=m2B2BCalculatedFootHeight(rack);','window.rafexSaveManualV121?.(rack);rack.sideUprightHeight=m2B2BCalculatedFootHeight(rack);');

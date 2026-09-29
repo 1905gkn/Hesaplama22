@@ -17,7 +17,7 @@ export const manualRuntime=String.raw`
 const physicalLevels=${physicalLevels.toString()},automaticOptions=${automaticOptions.toString()},manualOptions=${manualOptions.toString()},copy=x=>JSON.parse(JSON.stringify(x));
 const netLevelRows=${netLevelRows.toString()},storedLevelRows=${storedLevelRows.toString()};
 const installManualLevelEditor=${installManualLevelEditor.toString()};
-let mainRows=[],customRows=[],customId=null,customCleared=false,editing='main';
+let mainRows=[],customRows=[],customId=null,customFootHeight=0,customCleared=false,editing='main';
 const value=(id,fallback)=>Number(document.getElementById(id)?.value)||fallback;
 function height(o){const p=physicalLevels(o),last=p.at(-1);return last?last.bottom+last.beam:500}
 function positionOf(o){return o?.firstPalletPosition==='traverse'?'traverse':'ground'}
@@ -32,10 +32,11 @@ function syncMainHeightMode(){
 function rowsToCustom(rows,position){return rows.map((r,i)=>{const beam=Number(String(r.traverseType).match(/\d+/)?.[0])||140;return {interval:position==='ground'?(i?Number(r.distance)||r.palletHeight+200+beam:(Number(r.distance)||r.palletHeight+200)+beam):(Number(rows[i+1]?.distance)||r.palletHeight+200+beam),palletHeight:r.palletHeight,weight:r.weight,traverseType:r.traverseType}})}
 window.rafexManualOptionsV121=(o,rows)=>manualOptions(o,rows);
 window.rafexPhysicalLevelsV121=physicalLevels;
-window.rafexLoadManualCustomizeV121=rack=>{customId=rack.id;customRows=copy(rack.b2b?.manualLevelSpecs||[]);customCleared=false};
+window.rafexLoadManualCustomizeV121=rack=>{customId=rack.id;customFootHeight=Number(window.rafexB2BDetailOptionsV117?.(rack)?.footHeight)||Number(rack.sideUprightHeight)||Number(rack.b2b?.footHeight)||0;customRows=copy(rack.b2b?.manualLevelSpecs||[]);customCleared=false};
+window.rafexPreserveCustomizeFootHeight=(options,rack)=>{if(rack.id!==customId||!(customFootHeight>0))return options;return {...options,footHeight:customFootHeight,invalidCustomizeHeight:height(options)>customFootHeight};};
 window.rafexManualCustomizeActiveV121=()=>customRows.length>0;
 window.rafexCustomizeManualOptionsV121=(o,rack)=>rack.id===customId?(customRows.length?manualOptions(o,customRows):customCleared?automaticOptions(o):o):o;
-window.rafexSaveManualV121=rack=>{if(rack.id!==customId)return;rack.b2b.manualLevelSpecs=copy(customRows);if(customRows.length){const position=positionOf(rack.b2b);rack.b2b.firstPalletPosition=position;rack.b2b.firstFloorGap=customRows[0].distance;rack.b2b.customLevels=rowsToCustom(customRows,position);}else if(customCleared){rack.b2b.customLevels=[];if(positionOf(rack.b2b)==='traverse')rack.b2b.firstFloorGap=200;}};
+window.rafexSaveManualV121=rack=>{if(rack.id!==customId)return;if(customFootHeight>0){rack.b2b.footHeightMode='manual';rack.b2b.footHeight=customFootHeight;}rack.b2b.manualLevelSpecs=copy(customRows);if(customRows.length){const position=positionOf(rack.b2b);rack.b2b.firstPalletPosition=position;rack.b2b.firstFloorGap=customRows[0].distance;rack.b2b.customLevels=rowsToCustom(customRows,position);}else if(customCleared){rack.b2b.customLevels=[];if(positionOf(rack.b2b)==='traverse')rack.b2b.firstFloorGap=200;}};
 function open(kind){
  editing=kind;const custom=kind==='custom',rack=custom?m2LayoutState.racks.find(r=>r.id===customId):null;
  const o=custom?window.rafexB2BCustomizeOptionsV120(rack):b2b3DOptions(),saved=netLevelRows(custom?customRows:mainRows),physical=physicalLevels({...o,tunnelHeight:0});
@@ -55,6 +56,7 @@ function open(kind){
  if([...dialog.querySelectorAll('[data-pallet]')].some(input=>!input.value.trim()))error='Palet yüksekliği girin; zemin paletini gizlemek için 0 yazın.';
  const mapped=rows.map((r,i)=>({...r,traverseType:ground?(rows[i+1]?.traverseType||''):r.traverseType,selectionMode:ground?(rows[i+1]?.selectionMode||'auto'):r.selectionMode}));
  const stored=storedLevelRows(mapped),planned=manualOptions({...o,levels:rows.length,tunnelHeight:0},stored);if(rack?.b2b?.footHeightMode==='manual'&&height(planned)>o.footHeight)error='Kat düzeni manuel ayak boyunu aşıyor.';
+ if(custom&&customFootHeight>0&&height(planned)>customFootHeight)error='Kat düzeni mevcut ayak boyunu aşıyor ('+customFootHeight+' mm). Ayak boyu Özelleştir bölümünde değişmez.';
  if(error){dialog.querySelector('.error').textContent=error;return}if(custom){const countInput=document.getElementById('m2CustomizeLevels');if(countInput)countInput.value=String(rows.length);}commit(stored);
  };const bind=rows=>window.RafexRackTravers?.bindLevels(dialog,Number(o.sectionWidth)||Number(rack?.b2bLayout?.sectionWidth)||b2bPalletGeometry().sectionWidth,false,rows);bind(displayed);if(custom)installManualLevelEditor(dialog,ground,bind,Number(document.getElementById('m2CustomizeLevels')?.max)||30);dialog.showModal();
 }
