@@ -137,6 +137,7 @@ node scripts/patch-pallet-palette-v207.mjs
 node scripts/patch-top-palette-v208.mjs
 node scripts/patch-opening-perf-v209.mjs
 node scripts/patch-lane-contour-v210.mjs
+node scripts/patch-b2b-contour-v211.mjs
 node scripts/patch-site-localization-v202.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
