@@ -132,6 +132,7 @@ node scripts/patch-layout-agent-v188.mjs
 node scripts/patch-customize-save-v203.mjs
 node scripts/patch-column-collision-v204.mjs
 node scripts/patch-wallless-workspace-v205.mjs
+node scripts/patch-pallet-clean-v206.mjs
 node scripts/patch-site-localization-v202.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
