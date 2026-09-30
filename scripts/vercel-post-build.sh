@@ -155,6 +155,7 @@ node scripts/patch-wall-guides-v225.mjs
 node scripts/patch-shortcut-b2b-v226.mjs
 node scripts/patch-area-width-v227.mjs
 node scripts/patch-actual-walls-v228.mjs
+node scripts/patch-unit-status-v229.mjs
 node scripts/patch-site-localization-v202.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
