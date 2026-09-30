@@ -148,6 +148,7 @@ node scripts/patch-sidebar-auto-v218.mjs
 node scripts/patch-center-menus-v219.mjs
 node scripts/patch-canvas-height-v220.mjs
 node scripts/patch-ruler-extension-v221.mjs
+node scripts/patch-shortcuts-v222.mjs
 node scripts/patch-site-localization-v202.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
