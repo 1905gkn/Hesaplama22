@@ -1,0 +1,5 @@
+import fs from 'node:fs';
+export function transform(html){if(html.includes('wall-guides-v225'))return html;const anchor='      function m2WallDistanceGuides(rack, visible = { left: true, right: true, top: true, bottom: true }) {';if(!html.includes(anchor))throw Error('Wall guide function missing');html=html.replace(anchor,`      /* wall-guides-v225 */
+      function m2HasDrawnWallV225(){const points=m2LayoutState.points||[],breaks=m2LayoutState.pathBreaks||[];return points.some((point,i)=>i>0&&!breaks.includes(i-1)&&Math.hypot(point.x-points[i-1].x,point.y-points[i-1].y)>.001);}
+`+anchor+'\n        if(!m2HasDrawnWallV225())return "";');html=html.replace('if(!symbol||!m2LayoutState.points.length)return"";','if(!symbol||!m2HasDrawnWallV225())return"";');return html;}
+if(process.argv[1]?.replaceAll('\\','/').endsWith('/patch-wall-guides-v225.mjs')){const file='dist/server/index.js',s=fs.readFileSync(file,'utf8'),m=s.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/);if(!m)throw Error('Missing HTML');fs.writeFileSync(file,s.replace(m[1],Buffer.from(transform(Buffer.from(m[1],'base64').toString())).toString('base64')));}
