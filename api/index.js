@@ -111,6 +111,29 @@ async function rackCatalog(request) {
   return Response.json({types},{headers:{'cache-control':'no-store'}});
 }
 
+
+// Never expose previous-day or undated rates from the legacy backend.
+function dailyRatesOnly(data, today = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Europe/Istanbul', year: 'numeric', month: '2-digit', day: '2-digit'
+}).format(new Date())) {
+  const raw = data.rates?.date;
+  let date = typeof raw === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : null;
+  // Legacy ExchangeRate-API responses retain the provider's UTC calendar date.
+  if (!date && typeof raw === 'string' && /^[A-Za-z]{3}, \d{2} [A-Za-z]{3} \d{4}$/.test(raw)) {
+    const parsed = new Date(raw + ' 00:00:00 GMT');
+    if (Number.isFinite(parsed.getTime())) date = parsed.toISOString().slice(0, 10);
+  }
+  const valid = !data.stale && date === today && ['eurTry','usdTry','eurUsd'].every(key =>
+    typeof data.rates?.[key] === 'number' && Number.isFinite(data.rates[key]) && data.rates[key] > 0);
+  return {...data, rates: valid ? {...data.rates, date} : null};
+}
+async function dailyDashboard(request) {
+  const response = await proxyApi(request);
+  if (!response.ok) return response;
+  const data = dailyRatesOnly(await response.json());
+  return Response.json(data, {headers: {'cache-control': 'no-store'}});
+}
+
 export default {
   async fetch(request) {
     const path = new URL(request.url).pathname;
@@ -121,6 +144,7 @@ export default {
       if(error)return Response.json({error},{status:400});
     }
     if (path === '/api/rack-types' && request.method === 'GET') return rackCatalog(request);
+    if (path === '/api/dashboard' && request.method === 'GET') return dailyDashboard(request);
     if (path.startsWith("/api/")) return proxyApi(request);
     return worker.fetch(request, {});
   },

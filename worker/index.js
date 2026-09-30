@@ -862,6 +862,15 @@ function metWeatherCode(symbol = "") {
   if (symbol.includes("partlycloudy")) return 2;
   return 0;
 }
+function istanbulDate(value = new Date()) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Istanbul", year: "numeric", month: "2-digit", day: "2-digit" }).format(value);
+}
+function rateDate(data) {
+  if (typeof data?.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data.date)) return data.date;
+  if (!data?.time_last_update_utc) return null;
+  const date = new Date(data.time_last_update_utc);
+  return Number.isFinite(date.getTime()) ? istanbulDate(date) : null;
+}
 let dashboardCache = null;
 async function dashboardData() {
   const openMeteo =
@@ -877,7 +886,7 @@ async function dashboardData() {
   );
   const ratesPromise = firstValid(
     [() => fetchJson(frankfurter), () => fetchJson(exchangeRate)],
-    (data) => Boolean(data?.rates?.TRY && data?.rates?.USD),
+    (data) => rateDate(data) === istanbulDate() && [data?.rates?.TRY, data?.rates?.USD].every(value => Number.isFinite(Number(value)) && Number(value) > 0),
   );
   const [weatherResult, ratesResult] = await Promise.allSettled([
     weatherPromise,
@@ -913,7 +922,7 @@ async function dashboardData() {
       };
     }
   }
-  if (ratesResult.status === "fulfilled") {
+  if (ratesResult.status === "fulfilled" && rateDate(ratesResult.value) === istanbulDate()) {
     const data = ratesResult.value,
       eurTry = Number(data.rates.TRY),
       eurUsd = Number(data.rates.USD);
@@ -921,17 +930,15 @@ async function dashboardData() {
       eurTry,
       usdTry: eurTry / eurUsd,
       eurUsd,
-      date:
-        data.date ||
-        data.time_last_update_utc?.slice(0, 16) ||
-        new Date().toISOString().slice(0, 10),
+      date: rateDate(data),
+      source: data.date ? "Frankfurter" : "ExchangeRate-API",
     };
   }
   if (result.weather || result.rates) {
     dashboardCache = { ...result };
     return result;
   }
-  return dashboardCache ? { ...dashboardCache, stale: true } : result;
+  return dashboardCache ? { ...dashboardCache, rates: null, stale: true } : result;
 }
 
 async function api(request, env, path) {

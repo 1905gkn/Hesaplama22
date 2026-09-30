@@ -2231,8 +2231,9 @@
             const info = weatherInfo(Number(data.weather.weatherCode));
             weather = `<article class="dashboard-card"><small>GÜNÜN HAVA DURUMU</small><div class="weather-main"><div><b class="metric">${Number(data.weather.temperature).toLocaleString(localeForLanguage())} °C</b><p>${info[0]}</p></div><span class="weather-icon" aria-hidden="true">${info[1]}</span></div><div class="dashboard-meta">${esc(data.weather.location)} · Hissedilen ${Number(data.weather.apparentTemperature).toLocaleString(localeForLanguage())} °C · Rüzgâr ${Number(data.weather.windSpeed).toLocaleString(localeForLanguage())} km/sa</div></article>`;
           }
+          const currentRateDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Istanbul", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
           const rate = (label, value, meta) =>
-            `<article class="dashboard-card"><small>${label}</small>${Number.isFinite(value) ? `<b class="metric">${rateFmt(value)}</b><p>Güncel gösterge kuru</p><div class="dashboard-meta">Frankfurter · ${esc(meta || "")}</div>` : '<b class="metric dashboard-error">Alınamadı</b><p>Kur verisi şu anda kullanılamıyor.</p>'}</article>`;
+            `<article class="dashboard-card"><small>${label}</small>${Number.isFinite(value) && value > 0 && meta === currentRateDate && !data.stale ? `<b class="metric">${rateFmt(value)}</b><p>Günlük gösterge kuru</p><div class="dashboard-meta">${esc(data.rates?.source || "Kur kaynağı")} · ${esc(meta || "")}</div>` : '<b class="metric dashboard-error">—</b><p>Bugünün kuru doğrulanamadı.</p>'}</article>`;
           grid.innerHTML =
             weather +
             rate("EUR / TL", Number(data.rates?.eurTry), data.rates?.date) +
