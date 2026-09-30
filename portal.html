@@ -2211,34 +2211,53 @@
           maximumFractionDigits: 4,
         });
       }
+      let homeDashboardData = null;
+      function renderHomeDashboard(data) {
+        const grid = $("dashboardGrid");
+        if (!grid) return;
+        grid.setAttribute('translate', 'no');
+          let weather =
+            `<article class="dashboard-card"><small>${esc(translatedUiText("GÜNÜN HAVA DURUMU"))}</small><b class="metric dashboard-error">${esc(translatedUiText("Alınamadı"))}</b><p>${esc(translatedUiText("Hava durumu verisi şu anda kullanılamıyor."))}</p></article>`;
+          if (data.weather) {
+            const info = weatherInfo(Number(data.weather.weatherCode));
+            weather = `<article class="dashboard-card"><small>${esc(translatedUiText("GÜNÜN HAVA DURUMU"))}</small><div class="weather-main"><div><b class="metric">${Number(data.weather.temperature).toLocaleString(localeForLanguage())} °C</b><p>${esc(translatedUiText(info[0]))}</p></div><span class="weather-icon" aria-hidden="true">${info[1]}</span></div><div class="dashboard-meta">${esc(data.weather.location)} · ${esc(translatedUiText("Hissedilen"))} ${Number(data.weather.apparentTemperature).toLocaleString(localeForLanguage())} °C · ${esc(translatedUiText("Rüzgâr"))} ${Number(data.weather.windSpeed).toLocaleString(localeForLanguage())} ${esc(translatedUiText("km/sa"))}</div></article>`;
+          }
+          const currentRateDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Istanbul", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+          const rate = (label, value, meta) =>
+            `<article class="dashboard-card"><small>${label}</small>${Number.isFinite(value) && value > 0 && meta === currentRateDate && !data.stale ? `<b class="metric">${rateFmt(value)}</b><p>${esc(translatedUiText("Günlük gösterge kuru"))}</p><div class="dashboard-meta">${esc(data.rates?.source || translatedUiText("Kur kaynağı"))} · ${esc(meta || "")}</div>` : `<b class="metric dashboard-error">—</b><p>${esc(translatedUiText("Bugünün kuru doğrulanamadı."))}</p>`}</article>`;
+          grid.innerHTML =
+            weather +
+            rate("EUR / TL", Number(data.rates?.eurTry), data.rates?.date) +
+            rate("USD / TL", Number(data.rates?.usdTry), data.rates?.date) +
+            rate("EUR / USD", Number(data.rates?.eurUsd), data.rates?.date);
+      }
+      function refreshHomeLanguage() {
+        const hero = document.querySelector('.welcome-hero');
+        if (!hero) return;
+        const greeting = hero.querySelector('h2'), date = hero.querySelector('.welcome-date');
+        if (greeting && me) greeting.textContent = translatedUiText('Merhaba, ' + (me.full_name || me.username));
+        if (date) date.textContent = new Intl.DateTimeFormat(localeForLanguage(), {timeZone:'Europe/Istanbul',weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date());
+        if (homeDashboardData) renderHomeDashboard(homeDashboardData);
+        if (typeof updateWorldClocks === 'function') updateWorldClocks();
+      }
       async function renderHome() {
+        homeDashboardData = null;
         const name = me.full_name || me.username,
           today = new Intl.DateTimeFormat(localeForLanguage(), {
+            timeZone: "Europe/Istanbul",
             weekday: "long",
             day: "numeric",
             month: "long",
             year: "numeric",
           }).format(new Date());
         $("page").innerHTML =
-          `<section class="welcome-hero"><p>RAFEX HESAPLAMA PORTALI</p><h2>Merhaba, ${esc(name)}</h2><div class="welcome-date">${esc(today)}</div></section><div class="dashboard-grid" id="dashboardGrid">${["GÜNÜN HAVA DURUMU", "EUR / TL", "USD / TL", "EUR / USD"].map((x) => `<article class="dashboard-card"><small>${x}</small><b class="metric">Yükleniyor…</b></article>`).join("")}</div>`;
+          `<section class="welcome-hero"><p>RAFEX HESAPLAMA PORTALI</p><h2 translate="no">${esc(translatedUiText("Merhaba, " + name))}</h2><div class="welcome-date" translate="no">${esc(today)}</div></section><div class="dashboard-grid" id="dashboardGrid">${["GÜNÜN HAVA DURUMU", "EUR / TL", "USD / TL", "EUR / USD"].map((x) => `<article class="dashboard-card"><small>${x}</small><b class="metric">Yükleniyor…</b></article>`).join("")}</div>`;
         try {
           const data = await req("/api/dashboard"),
             grid = $("dashboardGrid");
           if (!grid) return;
-          let weather =
-            '<article class="dashboard-card"><small>GÜNÜN HAVA DURUMU</small><b class="metric dashboard-error">Alınamadı</b><p>Hava durumu verisi şu anda kullanılamıyor.</p></article>';
-          if (data.weather) {
-            const info = weatherInfo(Number(data.weather.weatherCode));
-            weather = `<article class="dashboard-card"><small>GÜNÜN HAVA DURUMU</small><div class="weather-main"><div><b class="metric">${Number(data.weather.temperature).toLocaleString(localeForLanguage())} °C</b><p>${info[0]}</p></div><span class="weather-icon" aria-hidden="true">${info[1]}</span></div><div class="dashboard-meta">${esc(data.weather.location)} · Hissedilen ${Number(data.weather.apparentTemperature).toLocaleString(localeForLanguage())} °C · Rüzgâr ${Number(data.weather.windSpeed).toLocaleString(localeForLanguage())} km/sa</div></article>`;
-          }
-          const currentRateDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Istanbul", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
-          const rate = (label, value, meta) =>
-            `<article class="dashboard-card"><small>${label}</small>${Number.isFinite(value) && value > 0 && meta === currentRateDate && !data.stale ? `<b class="metric">${rateFmt(value)}</b><p>Günlük gösterge kuru</p><div class="dashboard-meta">${esc(data.rates?.source || "Kur kaynağı")} · ${esc(meta || "")}</div>` : '<b class="metric dashboard-error">—</b><p>Bugünün kuru doğrulanamadı.</p>'}</article>`;
-          grid.innerHTML =
-            weather +
-            rate("EUR / TL", Number(data.rates?.eurTry), data.rates?.date) +
-            rate("USD / TL", Number(data.rates?.usdTry), data.rates?.date) +
-            rate("EUR / USD", Number(data.rates?.eurUsd), data.rates?.date);
+          homeDashboardData = data;
+          renderHomeDashboard(data);
         } catch (e) {
           const grid = $("dashboardGrid");
           if (grid)
@@ -7015,21 +7034,22 @@
           return;
         }
         const now = new Date();
+        box.setAttribute("translate", "no");
         box.innerHTML = flaggedWorldZones
           .map(([city, zone, flag]) => {
-            const time = new Intl.DateTimeFormat("tr-TR", {
+            const time = new Intl.DateTimeFormat(localeForLanguage(), {
                 timeZone: zone,
                 hour: "2-digit",
                 minute: "2-digit",
                 hour12: false,
               }).format(now),
-              date = new Intl.DateTimeFormat("tr-TR", {
+              date = new Intl.DateTimeFormat(localeForLanguage(), {
                 timeZone: zone,
                 weekday: "short",
                 day: "2-digit",
                 month: "2-digit",
               }).format(now);
-            return `<article class="world-clock"><small class="world-city"><span class="world-flag" aria-hidden="true">${flag}</span>${esc(city)}</small><b>${esc(time)}</b><span>${esc(date)}</span></article>`;
+            return `<article class="world-clock"><small class="world-city"><span class="world-flag" aria-hidden="true">${flag}</span>${esc(translatedUiText(city))}</small><b>${esc(time)}</b><span>${esc(date)}</span></article>`;
           })
           .join("");
       };
@@ -7891,6 +7911,7 @@
         if ($("programLanguage")) $("programLanguage").value = appLanguage;
         // Output language is independent from the program language.
         applyTranslations(document.body);
+        refreshHomeLanguage();
       }
       const i18nObserver = new MutationObserver((mutations) => {
         i18nObserver.disconnect();

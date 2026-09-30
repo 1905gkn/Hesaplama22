@@ -10,6 +10,17 @@ export function transform(html) {
   html = html.replace(/<script data-rafex-free-nav-ortak="v39">([\s\S]*?)<\/script>/g, (script) => script
     .replace('function apply(){', "function apply(){\n    const LABEL=window.rafexTranslateText?.('Ortak Çizim',document.documentElement.lang)||'Ortak Çizim';")
     .replace("button.setAttribute('aria-label',LABEL);", "if(button.getAttribute('aria-label')!==LABEL)button.setAttribute('aria-label',LABEL);"));
+  // UI maintainers must not restore Turkish after the language layer renders.
+  for (const [name, label] of [
+    ['title', 'Raf Ölçüleri'], ['note', 'Anında güncellenir'],
+    ['title', 'PDF Çıktı Alanı'], ['heading', 'Kayıtlı Projeler · Tüm Sistemler'],
+    ['header', 'PDF / Fotoğraf Okuma ve Yerleşim']
+  ]) {
+    const assignment = name + ".textContent='" + label + "'";
+    html = html.replaceAll(assignment, "(window.rafexSetUiText ? window.rafexSetUiText(" + name + "," + JSON.stringify(label) + ") : (" + assignment + "))");
+  }
+  html = html.replace("if(subtitle&&subtitle.textContent!==text)subtitle.textContent=text;",
+    "if(subtitle){if(window.rafexSetUiText)window.rafexSetUiText(subtitle,text);else if(subtitle.textContent!==text)subtitle.textContent=text;}");
   const rows = JSON.parse(fs.readFileSync(new URL('../client/site-translations.json', import.meta.url), 'utf8'));
   const runtime = fs.readFileSync(new URL('../client/site-localization.js', import.meta.url), 'utf8').replace('/* TRANSLATION_ROWS */ []', JSON.stringify(rows).replaceAll('<', '\\u003c'));
   // Earlier occurrences can belong to quoted print-window HTML inside scripts.

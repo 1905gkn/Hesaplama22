@@ -1,6 +1,18 @@
 /* site-localization-v202 */
 (() => {
-  const rows = /* TRANSLATION_ROWS */ [];
+  const rows = (/* TRANSLATION_ROWS */ []).concat([
+ ['Tava Hesabı','Shelf Panel Calculation','Calcul des plateaux'],
+ ['Hissedilen','Feels like','Ressenti'],['Rüzgâr','Wind','Vent'],['km/sa','km/h','km/h'],
+ ['Bugünün kuru doğrulanamadı.',"Today's exchange rate could not be verified.",'Le taux de change du jour n’a pas pu être vérifié.'],
+ ['Günlük gösterge kuru','Daily reference rate','Taux indicatif du jour'],['Kur kaynağı','Rate source','Source du taux'],
+ ['Saat dilimine göre otomatik güncellenir','Updates automatically by time zone','Mise à jour automatique selon le fuseau horaire'],
+ ['Tamamla','Mark complete','Marquer comme terminée'],['Tamamlandı','Completed','Terminée'],['Notu sil','Delete note','Supprimer la note'],
+ ['İstanbul','Istanbul','Istanbul'],['Londra','London','Londres'],['Kazablanka','Casablanca','Casablanca'],['Riyad','Riyadh','Riyad'],['Şanghay','Shanghai','Shanghai'],
+ ['Raf Ölçüleri','Rack Dimensions','Dimensions du rayonnage'],['PDF Çıktı Alanı','PDF Output Area','Zone de sortie PDF'],
+ ['Kayıtlı Projeler · Tüm Sistemler','Saved Projects · All Systems','Projets enregistrés · Tous les systèmes'],
+ ['Yerleşim ve teknik görünüşler','Layout and technical views','Implantation et vues techniques'],
+ ['Hava durumu verisi şu anda kullanılamıyor.','Weather data is currently unavailable.','Les données météo sont actuellement indisponibles.']
+ ]);
   for (const [tr, en, fr] of rows) {
     if (tr.length < 2) continue;
     UI_TRANSLATIONS.en[tr] = en;
@@ -9,7 +21,7 @@
   const textState = new WeakMap(), attributeState = new WeakMap();
   const stats = { batches: 0, textChecks: 0, attributeChecks: 0, subtreeScans: 0 };
   window.rafexTranslationStats = stats;
-  const protectedSelector = 'script,style,textarea,code,pre,[contenteditable="true"],[translate="no"],[data-no-translate],#m2ReportProjectName,.m2-user-note,[data-user-note],[data-rafex-type-name] > strong > span';
+  const protectedSelector = 'script,style,textarea,code,pre,[contenteditable="true"],[translate="no"],[data-no-translate],#m2ReportProjectName,.todo-row > span,.m2-user-note,[data-user-note],[data-rafex-type-name] > strong > span';
   const reportSelector = '#m2A4Sheet,#m2CorporatePreview,.m2-corporate-preview,#m2CorporatePrint,#m2CorporatePrintArea,#konsolOutputPreview';
   const lookup = { en: new Map(), fr: new Map() };
   const normalize = value => value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('tr');
@@ -23,6 +35,12 @@
     if (exact) return source.replace(trimmed, exact);
     const fr = language === 'fr';
     const patterns = [
+      [/^Merhaba, (.+)$/, m => (fr ? 'Bonjour, ' : 'Hello, ') + m[1]],
+      [/^(\d+) açık$/, m => m[1] + (fr ? ' ouvertes' : ' open')],
+      [/^(\d+) kapalı$/, m => m[1] + (fr ? ' clôturées' : ' closed')],
+      [/^(\d+) tamamlandı$/, m => m[1] + (fr ? ' terminées' : ' completed')],
+      [/^Hissedilen (.+)$/, m => (fr ? 'Ressenti ' : 'Feels like ') + m[1]],
+      [/^Rüzgâr (.+) km\/sa$/, m => (fr ? 'Vent ' : 'Wind ') + m[1] + ' km/h'],
       [/^(Kapalı Notları (?:Göster|Gizle)|Tüm Sistemler)\s*(\(\d+\))$/, m => `${translate(m[1], language)} ${m[2]}`],
       [/^(\d+)\.\s*ÖNERİ$/, m => `${m[1]}. ${fr ? 'RECOMMANDATION' : 'RECOMMENDATION'}`],
       [/^(\d+)\.\s*Alanı Aç$/, m => fr ? `Ouvrir la zone ${m[1]}` : `Open Area ${m[1]}`],
@@ -52,6 +70,13 @@
   // Canvas callers can provide the independently selected output language.
   window.rafexDimensionText = translate;
   const languageFor = element => element.closest(reportSelector) ? (document.getElementById('m2ReportLanguage')?.value || 'tr') : (document.documentElement.lang || 'tr');
+  window.rafexSetUiText = (element, source) => {
+    if (!element) return;
+    const rendered = translate(source, languageFor(element));
+    if (element.textContent !== rendered) element.textContent = rendered;
+    if (element.childNodes.length === 1 && element.firstChild.nodeType === 3)
+      textState.set(element.firstChild, {source, rendered});
+  };
   function updateText(node, language) {
     stats.textChecks++;
     const current = node.nodeValue;
@@ -133,6 +158,8 @@
     // before allocating queues or walking through thousands of added nodes.
     if (document.documentElement.lang === 'tr' && (!document.getElementById('m2ReportLanguage') || document.getElementById('m2ReportLanguage').value === 'tr') && !records.some(r => r.target === document.documentElement) && !roots.has(document.body)) return;
     for (const record of records) {
+      const owner = record.target.nodeType === 1 ? record.target : record.target.parentElement;
+      if (owner?.closest(protectedSelector)) continue;
       if (record.target === document.documentElement) roots.add(document.body);
       else if (record.type === 'characterData') {
         if (textState.get(record.target)?.rendered !== record.target.nodeValue) texts.add(record.target);
