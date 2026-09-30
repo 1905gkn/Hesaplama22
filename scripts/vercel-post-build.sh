@@ -141,6 +141,7 @@ node scripts/patch-b2b-contour-v211.mjs
 node scripts/patch-common-perf-v212.mjs
 node scripts/patch-mr-speed-v213.mjs
 node scripts/patch-floating-tools-v214.mjs
+node scripts/patch-seismic-color-v215.mjs
 node scripts/patch-site-localization-v202.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
