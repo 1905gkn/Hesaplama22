@@ -1,0 +1,9 @@
+import fs from 'node:fs';
+export function transform(html){if(html.includes('data-floating-tools="v214"'))return html;let buttons='';for(const id of ['m2SymbolButton','m2SeismicButton','m2ProtectionButton']){const re=new RegExp('<button\\b[^>]*id="'+id+'"[^>]*>[\\s\\S]*?</button>');const m=html.match(re);if(!m)throw Error('Missing '+id);buttons+=m[0];html=html.replace(m[0],'');}const anchor='<div class="m2-floor-canvas-wrap"><div class="m2-floor-canvas">';if(!html.includes(anchor))throw Error('Canvas wrapper');html=html.replace(anchor,'<div class="m2-floor-canvas-wrap"><div class="rafex-floating-tools-v214" role="group" aria-label="Yerleşim ekleme araçları">'+buttons+'</div><div class="m2-floor-canvas">');return html.replace('</head>',`<style data-floating-tools="v214">
+.m2-floor-canvas-wrap{position:relative}
+#page .rafex-floating-tools-v214{position:absolute;right:14px;top:14px;z-index:12;display:flex;flex-direction:column;gap:7px;width:180px;padding:9px;border:1px solid #cbd6ce;border-radius:12px;background:rgba(255,255,255,.96);box-shadow:0 3px 12px #173c2d22}
+#page .rafex-floating-tools-v214 button{width:100%;margin:0;min-height:36px;padding:8px 10px;font-size:11px;text-align:left;white-space:normal}
+@media(max-width:600px){#page .rafex-floating-tools-v214{right:7px;top:7px;width:142px;padding:6px;gap:5px}#page .rafex-floating-tools-v214 button{font-size:10px;padding:6px;min-height:32px}}
+@media print{.rafex-floating-tools-v214{display:none!important}}
+</style></head>`);}
+if(process.argv[1]?.replaceAll('\\','/').endsWith('/patch-floating-tools-v214.mjs')){const file='dist/server/index.js',s=fs.readFileSync(file,'utf8'),m=s.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/);if(!m)throw Error('Missing HTML');fs.writeFileSync(file,s.replace(m[1],Buffer.from(transform(Buffer.from(m[1],'base64').toString())).toString('base64')));}
