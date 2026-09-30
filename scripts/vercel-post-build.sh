@@ -144,6 +144,7 @@ node scripts/patch-floating-tools-v214.mjs
 node scripts/patch-seismic-color-v215.mjs
 node scripts/patch-tool-menus-v216.mjs
 node scripts/patch-selection-menu-v217.mjs
+node scripts/patch-sidebar-auto-v218.mjs
 node scripts/patch-site-localization-v202.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
