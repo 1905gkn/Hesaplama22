@@ -173,6 +173,7 @@ node scripts/verify-save-errors-v241.mjs
 node scripts/patch-floor-pitch-v242.mjs
 node scripts/patch-rack-array-v243.mjs
 node scripts/patch-shared-save-v244.mjs
+node scripts/patch-shared-fill-v245.mjs
 node scripts/patch-site-localization-v202.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
