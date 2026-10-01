@@ -162,6 +162,8 @@ node scripts/patch-bulk-mixed-v232.mjs
 node scripts/patch-single-preview-v233.mjs
 node scripts/patch-section-variants-v234.mjs
 node scripts/patch-scan-join-v235.mjs
+node scripts/patch-symbol-space-v236.mjs
+node scripts/patch-tunnel-manual-v237.mjs
 node scripts/patch-site-localization-v202.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
