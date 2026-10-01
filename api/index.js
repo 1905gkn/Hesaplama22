@@ -1,3 +1,4 @@
+import {decodeRequest,encodeResponse} from '../scripts/wire-gzip-v244.mjs';
 import worker from "../dist/server/index.js";
 import {validateCatalogWrite} from '../scripts/catalog-validation-v185.mjs';
 import {layoutAgent} from '../scripts/layout-agent-api-v188.mjs';
@@ -134,7 +135,7 @@ async function dailyDashboard(request) {
   return Response.json(data, {headers: {'cache-control': 'no-store'}});
 }
 
-export default {
+const application = {
   async fetch(request) {
     const path = new URL(request.url).pathname;
     if(path==='/api/layout-agent') return layoutAgent(request,{proxyApi});
@@ -149,3 +150,10 @@ export default {
     return worker.fetch(request, {});
   },
 };
+
+export default {async fetch(request){
+ if(!new URL(request.url).pathname.startsWith('/api/'))return application.fetch(request);
+ const accepted=request.headers.get('x-rafex-accept-encoding')==='gzip';
+ try{request=await decodeRequest(request);}catch(error){return Response.json({error:error.message},{status:error.status||400});}
+ return encodeResponse(await application.fetch(request),accepted);
+}};
