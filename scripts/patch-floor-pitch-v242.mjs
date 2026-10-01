@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+export function transform(html){
+ if(html.includes('data-floor-pitch="v242"'))return html;
+ const replace=(a,b)=>{if(!html.includes(a))throw Error('Missing '+a.slice(0,100));html=html.replace(a,b);};
+ replace('id="b2bPalletHeight" type="number" min="300" max="3000" step="10" value="1200" oninput="b2bApplyInputs(event)"></label>', 'id="b2bPalletHeight" type="number" min="300" max="3000" step="10" value="1200" oninput="b2bApplyInputs(event)"><button id="b2bPitchButtonV242" type="button" aria-pressed="false" onclick="b2bTogglePitchV242()">Kat Mesafesi</button><input id="b2bFloorPitchV242" aria-label="Travers ve boşluk dahil kat mesafesi (mm)" type="number" step="1" data-active="0" hidden oninput="b2bApplyInputs(event)"><small id="b2bPitchNoteV242" hidden></small></label>');
+ replace('      function b2bVerticalLayout() {','      function b2bVerticalLayout() {\n        b2bSyncPitchV242();');
+ replace('        const geometry = b2bPalletGeometry();\n        if (event?.target?.id === "b2bPalletHeight"', '        if(!b2bSyncPitchV242())return;\n        const geometry = b2bPalletGeometry();\n        if (event?.target?.id === "b2bPalletHeight"');
+ replace('      function b2bReadInputState() {','      function b2bReadInputState() {\n        b2bSyncPitchV242();');
+ replace('return { footColor:$("b2bFootColor")', 'return { floorPitchEnabled:$("b2bFloorPitchV242")?.dataset.active==="1",floorPitch:Number($("b2bFloorPitchV242")?.value)||null,palletHeightBeforePitch:Number($("b2bFloorPitchV242")?.dataset.pallet)||null, footColor:$("b2bFootColor")');
+ replace('        b2bSpecialPallet = { width:Number(state.palletWidth)', '        const pitch=$("b2bFloorPitchV242");if(pitch){pitch.dataset.active=state.floorPitchEnabled&&!state.manualLevelSpecs?.length?"1":"0";pitch.value=state.floorPitch??"";pitch.dataset.pallet=String(state.palletHeightBeforePitch??state.palletHeight??1200);}\n        b2bSpecialPallet = { width:Number(state.palletWidth)');
+ replace('const active=mainRows.length>0;if(input.readOnly!==active)input.readOnly=active;', 'const active=mainRows.length>0,locked=active||document.getElementById("b2bFloorPitchV242")?.dataset.active==="1";if(input.readOnly!==locked)input.readOnly=locked;');
+ replace("window.rafexOpenManualHeightV121=open;", "window.rafexMainManualActiveV242=()=>mainRows.length>0;\nwindow.rafexOpenManualHeightV121=open;");
+ replace('mainRows=rows;syncMainHeightMode();','mainRows=rows;const pitch=document.getElementById("b2bFloorPitchV242");if(rows.length&&pitch)pitch.dataset.active="0";syncMainHeightMode();');
+ replace('      function b2bValidateHeightV109(options,state,report=true) {','      function b2bValidateHeightV109(options,state,report=true) {\n        if(!b2bSyncPitchV242()){if(report)$("b2bFloorPitchV242")?.reportValidity();return false;}');
+ const end=html.lastIndexOf('</body>'),js=fs.readFileSync(new URL('./floor-pitch-v242.js',import.meta.url),'utf8');
+ return html.slice(0,end)+'<style data-floor-pitch="v242">#b2bPitchButtonV242{margin-top:6px;padding:7px;font-size:11px}#b2bPitchButtonV242[aria-pressed="true"]{background:#74192a;color:white}#b2bFloorPitchV242{margin-top:6px}#b2bPitchNoteV242{font-size:10px;line-height:1.4}#b2bFloorPitchV242[hidden],#b2bPitchNoteV242[hidden]{display:none!important}</style><script>'+js+'</script>'+html.slice(end);
+}
+if(process.argv[1]?.replaceAll('\\','/').endsWith('/patch-floor-pitch-v242.mjs')){const file='dist/server/index.js',source=fs.readFileSync(file,'utf8'),match=source.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/);if(!match)throw Error('Missing HTML');fs.writeFileSync(file,source.replace(match[1],Buffer.from(transform(Buffer.from(match[1],'base64').toString())).toString('base64')));}
