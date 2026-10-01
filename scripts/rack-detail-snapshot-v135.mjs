@@ -22,11 +22,23 @@ export function mrDetailMatches(d,view) {
   const expected={width:b.width||l.palletWidth||d.palW,modules:b.modules||d.bays};
   return Object.entries(expected).every(([key,value])=>!(Number(value)>0)||Math.abs(Number(view[key])-Number(value))<.01);
 }
+export function b2bPlanDetail(d,view) {
+  const out=JSON.parse(JSON.stringify(view)),layout=d.b2bLayout;
+  if(!layout)return out;
+  // A copied narrow bay retains its vertical detail, but its live plan owns
+  // horizontal geometry. A three-pallet snapshot must not widen a two-pallet bay.
+  for(const key of ['palletCount','palletWidth','palletDepth','sectionWidth'])if(Number(layout[key])>0)out[key]=Number(layout[key]);
+  out.moduleCount=1;out.moduleOptions=null;
+  if(Number(layout.rowCount)===1||Number(layout.rowCount)===2)out.rowType=Number(layout.rowCount)===2?'double':'single';
+  if(out.rowType==='single'){out.rowGap=0;out.straightTieCount=0;out.straightTiePositions=[];}
+  else if(layout.rowGap!=null)out.rowGap=Number(layout.rowGap);
+  return out;
+}
 export function readDetail(d,kind) {
   const s=d?.rackDetail;
   if(!s||s.version!==1||s.signature!==detailSignature(d))return null;
   if(kind==='mr'&&!mrDetailMatches(d,s.views.mr))return null;
-  return s.views[kind]==null?null:JSON.parse(JSON.stringify(s.views[kind]));
+  return s.views[kind]==null?null:kind==='b2b'?b2bPlanDetail(d,s.views[kind]):JSON.parse(JSON.stringify(s.views[kind]));
 }
 export function sealDetail(d,views) {
   const out=JSON.parse(JSON.stringify(d));
@@ -36,7 +48,7 @@ export function sealDetail(d,views) {
 
 export const runtime=String.raw`<script data-rafex-rack-detail="v135">
 (function(){
- const detailSystem=${detailSystem.toString()},detailSignature=${detailSignature.toString()},mrDetailMatches=${mrDetailMatches.toString()},readDetail=${readDetail.toString()},sealDetail=${sealDetail.toString()};
+ const detailSystem=${detailSystem.toString()},detailSignature=${detailSignature.toString()},mrDetailMatches=${mrDetailMatches.toString()},b2bPlanDetail=${b2bPlanDetail.toString()},readDetail=${readDetail.toString()},sealDetail=${sealDetail.toString()};
  const clone=x=>JSON.parse(JSON.stringify(x));
  let copied=null;
  window.rafexReadRackDetailV135=readDetail;

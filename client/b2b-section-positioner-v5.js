@@ -204,7 +204,7 @@
         moduleCount: 1,
         moduleOptions: null,
         palletCount: count,
-        sectionWidth: widthForCount(count, base.palletWidth),
+        sectionWidth: exact?.drawing && Number(base.sectionWidth)>0 ? Number(base.sectionWidth) : widthForCount(count, base.palletWidth),
         showPallets: settings.showPallets,
         dimensions: { ...settings.dimensions },
       };
