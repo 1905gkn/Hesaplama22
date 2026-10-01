@@ -1,0 +1,8 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
+const path=process.argv[2]||'outputs/verify-v235/dist/server/index.js';const s=fs.readFileSync(path,'utf8'),m=s.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/),html=Buffer.from(m[1],'base64').toString();
+function extract(start,end){const a=html.indexOf(start),b=html.indexOf(end,a);assert(a>=0&&b>a,start);return html.slice(a,b);}
+const values={b2bPalletType:'euro',b2bPalletCount:2};const c=vm.createContext({$:id=>({value:values[id]}),b2bSpecialPallet:{width:1100,depth:1300},B2B_PHYSICAL_FOOT_WIDTH:60,m2B2BFootWidth:()=>120});
+vm.runInContext(extract('function b2bPalletGeometry(','function b2bPanelMarkup(')+extract('function b2bLayoutDrawing(','function m2AddRack('),c);
+for(const type of ['euro','american','special'])for(const count of [1,2,3,4]){values.b2bPalletType=type;values.b2bPalletCount=count;const upper=c.b2bPalletGeometry();const settings={palletType:type,palletCount:count,palletWidth:1100,palletDepth:1300};const explicit=c.b2bPalletGeometry(settings),lower=c.b2bLayoutDrawing({b2b:settings});assert.equal(explicit.sectionWidth,upper.sectionWidth);assert.equal(lower.b2bLayout.sectionWidth,upper.sectionWidth);assert.equal(lower.totalWidth,upper.sectionWidth+240);assert.equal(lower.footType,120);}
+const imported=c.b2bLayoutDrawing({b2b:{palletType:'euro',palletCount:2,importedSectionWidth:1850}});assert.equal(imported.b2bLayout.sectionWidth,1850);assert.equal(imported.totalWidth,2090);
+console.log('PASS shared main/layout geometry: all pallet types, 1–4 pallets, imported width, selected foot profile preserved');
