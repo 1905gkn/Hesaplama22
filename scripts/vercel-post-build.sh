@@ -178,6 +178,7 @@ node scripts/patch-uniform-feet-v246.mjs
 node scripts/patch-mekik-freeze-v247.mjs
 node scripts/patch-layout-speed-v248.mjs
 node scripts/patch-rack-alignment-v249.mjs
+node scripts/patch-alignment-help-v250.mjs
 node scripts/patch-site-localization-v202.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
