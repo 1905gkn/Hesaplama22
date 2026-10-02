@@ -187,6 +187,7 @@ node scripts/patch-copy-all-v254.mjs
 node scripts/patch-shared-stations-v255.mjs
 node scripts/patch-wall-alignment-v256.mjs
 node scripts/patch-first-point-v257.mjs
+node scripts/patch-output-viewport-v258.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
