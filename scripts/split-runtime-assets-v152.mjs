@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 export function splitRuntimeAssets(html){
 const assets=new Map();
 // Only independently injected, known top-level runtimes. Preserve execution order.
-for(const marker of ['data-rafex-common-single-line-letter="v58"','data-rafex-type-letter-scale="v65"','data-layout-budget="v152"']){
+for(const marker of ['data-rafex-common-single-line-letter="v58"','data-rafex-type-letter-scale="v65"',(html.includes('data-layout-speed="v248"')?'data-layout-speed="v248"':'data-layout-budget="v152"')]){
  const open='<script '+marker+'>',start=html.lastIndexOf(open);if(start<0)throw Error('Missing runtime '+marker);
  const end=html.indexOf('</script>',start),body=html.slice(start+open.length,end);
  if(end<0)throw Error('Unclosed runtime '+marker);
