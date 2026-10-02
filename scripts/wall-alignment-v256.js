@@ -1,6 +1,13 @@
 /* wall-alignment-v256 */
 (function(){
- function snap(raw,points,index,tolerance){const start=points[index];if(!start)return{point:raw,guides:[]};let best=null,d=tolerance;
+ function snap(raw,points,index,tolerance){const start=points[index];if(!start){
+   const point={...raw},matches=[];
+   for(const axis of ['x','y']){const cross=axis==='x'?'y':'x';let best=null,d=tolerance;
+    for(const p of points){const distance=Math.abs(p[axis]-raw[axis]);if(distance<=d&&Math.abs(p[cross]-raw[cross])<=tolerance*50){d=distance;best=p;}}
+    if(best){point[axis]=best[axis];matches.push(best);}
+   }
+   return{point,guides:matches.map(p=>({a:point,b:p}))};
+  }let best=null,d=tolerance;
   points.forEach((p,i)=>{if(i===index||Math.hypot(p.x-start.x,p.y-start.y)<1e-8)return;const n=Math.hypot(p.x-raw.x,p.y-raw.y);if(n<=d){d=n;best=p;}});
   if(best)return{point:{x:best.x,y:best.y},guides:[{a:raw,b:best}],endpoint:true};
   const horizontal=Math.abs(raw.x-start.x)>=Math.abs(raw.y-start.y),point=horizontal?{x:raw.x,y:start.y}:{x:start.x,y:raw.y},axis=horizontal?'x':'y';d=tolerance;best=null;

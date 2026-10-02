@@ -1,0 +1,6 @@
+import fs from 'node:fs';
+export function transform(html){if(html.includes('/* first-point-alignment-v257 */'))return html;const old='} else if (m2LayoutState.mode === "draw" && m2LayoutState.points.length) {';if(html.split(old).length!==2)throw Error('Draw hover anchor mismatch');html=html.replace('if (!m2LayoutState.closed && m2LayoutState.hover) {','if (!m2LayoutState.closed && m2LayoutState.hover && m2CurrentDrawPoint()) {');
+html=html.replace('onpointerdown="event.stopPropagation();m2ResumeFreeArea(${index})"','onpointerdown="if(m2LayoutState.mode!==\'draw\'){event.stopPropagation();m2ResumeFreeArea(${index})}"');
+html=html.replace('class="m2-b2b-joined-mark rafex-tunnel-label-v255"','class="m2-b2b-joined-mark rafex-tunnel-label-v255" style="font-size:${Math.min(6,rack.w/4)}px!important;fill:#00679d!important" textLength="${Math.min(rack.w*.85,Math.min(6,rack.w/4)*3.6)}" lengthAdjust="spacingAndGlyphs"');
+return html.replace(old,'} else if (m2LayoutState.mode === "draw") { /* first-point-alignment-v257 */');}
+if(process.argv[1]?.replaceAll('\\','/').endsWith('/patch-first-point-v257.mjs')){const f='dist/server/index.js',s=fs.readFileSync(f,'utf8'),m=s.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/);if(!m)throw Error('Missing HTML');fs.writeFileSync(f,s.replace(m[1],Buffer.from(transform(Buffer.from(m[1],'base64').toString())).toString('base64')));}
