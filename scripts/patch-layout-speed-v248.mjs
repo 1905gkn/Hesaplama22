@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+export function transform(html){
+ if(html.includes('data-layout-speed="v248"'))return html;
+ const rep=(a,b)=>{if(!html.includes(a))throw Error('Missing anchor '+a.slice(0,90));html=html.replace(a,b)};
+ html=html.replace(/<script data-layout-budget="v152"[^>]*>[\s\S]*?<\/script>/,'');
+ rep('        const rackCacheV212=window.rafexCommonPerfV212.racks;','        const visibleV248=window.rafexViewportV248?.prepare();\n        const peerGroupsV248=new Map();for(const r of m2LayoutState.racks){if(!r.joinGroup)continue;let group=peerGroupsV248.get(r.joinGroup);if(!group)peerGroupsV248.set(r.joinGroup,group=[]);group.push([r.id,r.x,r.y,r.w,r.h,r.angle]);}\n        const rackCacheV212=window.rafexCommonPerfV212.racks;');
+ rep('          liveIdsV212.add(rack.id);','          liveIdsV212.add(rack.id);if(visibleV248&&!visibleV248.has(Number(rack.id)))return;');
+ rep('m2LayoutState.racks.filter(r=>r.joinGroup===rack.joinGroup).map(r=>[r.id,r.x,r.y,r.w,r.h,r.angle])','peerGroupsV248.get(rack.joinGroup)');
+ rep('      if(!rack||!rack.sharedFootWith||!rack.sharedFootSide)return;','      if(!rack||!rack.sharedFootWith||!rack.sharedFootSide)return;if(window.rafexViewportV248?.visible()&&!window.rafexViewportV248.visible().has(Number(rack.id)))return;');
+ rep('      function rafexPdfLayoutCloneV140(source,margin=0){','      function rafexPdfLayoutCloneV140(source,margin=0){\n        if(source?.id==="m2LayoutSvg"&&window.rafexViewportV248&&!window.rafexViewportV248.exporting)return window.rafexViewportV248.withFull(()=>rafexPdfLayoutCloneV140(source,margin));');
+ rep('if(!drag||drag.selectionGroup||drag.symbolMembers?.length||','if(!drag||drag.symbolMembers?.length||');
+ rep('      function m2PerfMovingGroupSeismicSvg(movingIds){\n        const seen=new Set(),out=[];\n        m2LayoutState.racks.forEach((owner)=>','      function m2PerfMovingGroupSeismicSvg(movingIds){\n        const seen=new Set(),out=[],drag=m2LayoutState.drag;\n        const owners=drag?(drag.seismicOwnersV248||(drag.seismicOwnersV248=m2LayoutState.racks.filter(r=>(r.seismicBraces||[]).some(b=>(b.rackIds||[]).some(id=>movingIds.has(Number(id))))))):m2LayoutState.racks;\n        owners.forEach((owner)=>');
+ rep('new MutationObserver(clean).observe(document.documentElement,{childList:true,subtree:true});',"new MutationObserver(records=>{if(records.some(r=>Array.from(r.addedNodes).some(n=>n.nodeType===1&&n.namespaceURI!=='http://www.w3.org/2000/svg'&&(n.matches?.('.mr-block-panel')||n.querySelector?.('.mr-block-panel')))))clean();}).observe(document.documentElement,{childList:true,subtree:true});");
+ html=html.replace(/<style\b[^>]*>[\s\S]*?<\/style>/g,css=>css.replaceAll('#m2LayoutSvg',':is(#m2LayoutSvg,.rafex-drag-scene-v248)').replaceAll('#m2LayoutContent',':is(#m2LayoutContent,.rafex-scene-content-v248)'));
+ const at=html.lastIndexOf('</body>');return html.slice(0,at)+'<script data-layout-speed="v248">'+fs.readFileSync(new URL('./layout-speed-v248.js',import.meta.url),'utf8')+'</script>'+html.slice(at);
+}
+if(process.argv[1]?.replaceAll('\\','/').endsWith('/patch-layout-speed-v248.mjs')){const file='dist/server/index.js',source=fs.readFileSync(file,'utf8'),match=source.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/);if(!match)throw Error('Missing HTML');fs.writeFileSync(file,source.replace(match[1],Buffer.from(transform(Buffer.from(match[1],'base64').toString())).toString('base64')));}
