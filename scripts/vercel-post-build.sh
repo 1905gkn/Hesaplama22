@@ -194,6 +194,7 @@ node scripts/patch-history-speed-v261.mjs
 node scripts/patch-section-order-speed-v262.mjs
 node scripts/patch-output-tight-frame-v263.mjs
 node scripts/patch-measure-pin-observers-v264.mjs
+node scripts/patch-joined-members-v265.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
