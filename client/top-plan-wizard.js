@@ -3,6 +3,15 @@
  'use strict';
  if(typeof document==='undefined')return;
  const api=globalThis.RafexTopPlan,copy=v=>JSON.parse(JSON.stringify(v)),round=v=>Math.round(v),palette=['#17744b','#246ac2','#a14395','#b85e16','#6554ac','#00838b'];
+ // Catalog names remain distinct from existing user types, but the drawing's
+ // A/B labels must survive draft recovery and project hydration as well.
+ if(typeof m2RenderLayout==='function'){
+  const renderLayout=m2RenderLayout;
+  m2RenderLayout=window.m2RenderLayout=function(){
+   for(const rack of m2LayoutState.racks||[]){const code=rack.topPlanSource?.type;if(!code||!rack.topPlanType)continue;rack.typeName=code;rack.rafexCustomNameV203=code;rack.rafexGlobalTypeLetter=code;}
+   return renderLayout.apply(this,arguments);
+  };
+ }
  let dialog,base,pdf,pdfText=[],raw=[],region=null,selection=null,unit=0,native=false,source='',serial=0,stage=1,draft=[],types=[],wall={w:0,h:0},selected=-1,drag=null,sourceStart=null,draftView=null,entries=[],owner=null;
  const el=id=>dialog.querySelector('#tpi-'+id),msg=s=>{el('message').textContent=s;},identity=()=>String(window.rafexProjectIdentityV133?.uuid||document.querySelector('#m2ProjectName')?.value||document.querySelector('#rafexAuthorityProjectName')?.value||'');
  const button=(text,fn)=>{const b=document.createElement('button');b.type='button';b.textContent=text;b.onclick=fn;return b;};
