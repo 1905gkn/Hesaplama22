@@ -33,3 +33,9 @@ assert.equal(api.joinedRuns([{...bays[0]},{...bays[1],x:500}]).length,0,'True ov
 assert.equal(api.joinedRuns([{...bays[0]},{...bays[1],h:1600}]).length,0,'Different frame depths cannot share a frame');
 assert.equal(api.joinedRuns(bays,{compatible:()=>false}).length,0);
 console.log('PASS: 100 raster modules, cropped scan, CAD parsing, dimensions, rotations and separate types.');
+
+assert.equal(api.dimensions({w:1000,h:1050,spanAxis:'x'}).d,1050);
+assert.equal(api.groups([{w:2700,h:1050,nominalW:2700,nominalD:1050,spanAxis:'x'},{w:2750,h:1050,nominalW:2750,nominalD:1050,spanAxis:'x'}],150).length,2);
+const vg={rects:[0,30,60].map(cx=>({cx,cy:10,w:27,h:10.5,color:'red'})),labels:[0,30,60].map(cx=>({cx,cy:10,nominalW:2700,nominalD:1050,spanAxis:'x',label:''}))};
+assert.equal(api.detectVectors(vg,{x:29,y:0,w:2,h:20}).length,1);
+console.log('PASS: explicit dimensions stay separate and a partial rescan preserves vector measurements.');
