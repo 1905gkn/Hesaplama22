@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
-const runtime=fs.readFileSync(new URL('../client/top-plan-import.js',import.meta.url),'utf8');
+const runtime=['top-plan-import.js','top-plan-wizard.js'].map(name=>fs.readFileSync(new URL('../client/'+name,import.meta.url),'utf8')).join('\n');
 const inject=html=>{
   html=html.replace(/<script data-rafex-top-plan-import>[\s\S]*?<\/script>/g,'');
   const end=html.lastIndexOf('</body>');
