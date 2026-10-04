@@ -18,4 +18,18 @@ const dark=(x,y)=>{const i=(y*width+x)*4;data[i]=data[i+1]=data[i+2]=0;};
 for(let j=0;j<10;j++)for(let i=0;i<10;i++){const x=5+i*58,y=5+j*38;for(let dx=0;dx<=40;dx++){dark(x+dx,y);dark(x+dx,y+22);}for(let dy=0;dy<=22;dy++){dark(x,y+dy);dark(x+40,y+dy);}}
 assert.equal(api.detect({width,height,data},{x:0,y:0,w:width,h:height}).length,100);
 assert.equal(api.detect({width,height,data},{x:0,y:0,w:58,h:38}).length,1);
+// A beam extension must not erase the adjoining bays. The lower beam ends
+// before the upper one, as in dimension lines in the supplied PDF.
+const broken=new Uint8ClampedArray(150*60*4).fill(255);
+const ink=(x,y)=>{const i=(y*150+x)*4;broken[i]=broken[i+1]=broken[i+2]=0;};
+for(let x=5;x<=140;x++)ink(x,10);
+for(let x=15;x<=135;x++)ink(x,30);
+for(const x of [15,55,95,135])for(let y=10;y<=30;y++)ink(x,y);
+assert.equal(api.detect({width:150,height:60,data:broken},{x:0,y:0,w:150,h:60}).length,3);
+const bays=[0,2800,5600,12000,14800].map(x=>({x,y:1000,w:2800,h:1100,angle:0}));
+assert.deepEqual(Array.from(api.joinedRuns(bays),r=>r.indices.length),[3,2]);
+assert.deepEqual(Array.from(api.joinedRuns(bays.map(r=>({...r,x:1000,y:r.x,angle:90}))),r=>r.indices.length),[3,2]);
+assert.equal(api.joinedRuns([{...bays[0]},{...bays[1],x:500}]).length,0,'True overlaps cannot become shared frames');
+assert.equal(api.joinedRuns([{...bays[0]},{...bays[1],h:1600}]).length,0,'Different frame depths cannot share a frame');
+assert.equal(api.joinedRuns(bays,{compatible:()=>false}).length,0);
 console.log('PASS: 100 raster modules, cropped scan, CAD parsing, dimensions, rotations and separate types.');

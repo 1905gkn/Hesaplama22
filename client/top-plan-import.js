@@ -46,11 +46,18 @@
     const dark=(x,y)=>{const i=(y*width+x)*4,min=Math.min(data[i],data[i+1],data[i+2]),max=Math.max(data[i],data[i+1],data[i+2]);return data[i+3]>100&&(max<190||(max-min>35&&min<210));};
     const runs=[];
     for(let y=y0;y<y1;y++){let start=-1,gap=0;for(let x=x0;x<=x1+2;x++){if(x<x1&&dark(x,y)){if(start<0)start=x;gap=0;}else if(start>=0&&++gap>2){const end=x-gap;if(end-start>=12)runs.push({x:start,end,y});start=-1;gap=0;}}}
-    const edges=[];
+    let edges=[];
     for(const r of runs){const old=edges.find(e=>Math.abs(e.x-r.x)<=3&&Math.abs(e.end-r.end)<=3&&r.y-e.last<=3);if(old)old.last=r.y;else edges.push({...r,last:r.y});}
+    const colored=edges.filter(e=>{for(let y=e.y;y<=e.last;y++){let hit=0;for(let x=e.x;x<=e.end;x++){const i=(y*width+x)*4;if(Math.max(data[i],data[i+1],data[i+2])-Math.min(data[i],data[i+1],data[i+2])>60)hit++;}if(hit/(e.end-e.x+1)>.6)return true;}return false;});
+    // In predominantly coloured CAD plans, select the complete coloured stroke,
+    // not its pale antialiased first scanline. Monochrome scans keep every edge.
+    const colorPlan=colored.length>=10&&colored.length>edges.length*.35;if(colorPlan)edges=colored;
     if(edges.length>4000)throw Error('Çizim çok yoğun. Üst görünüm bölgesini daha dar seçin.');
-    const result=[],vertical=(x,a,b)=>{let hit=0;for(let y=a;y<=b;y++)if([-2,-1,0,1,2].some(dx=>x+dx>=0&&x+dx<width&&dark(x+dx,y)))hit++;return hit/(b-a+1)>.65;};
-    for(let i=0;i<edges.length;i++){const a=edges[i];for(let j=i+1;j<edges.length;j++){const b=edges[j],h=b.y-a.y;if(h<8||Math.abs(a.x-b.x)>4||Math.abs(a.end-b.end)>4)continue;if(vertical(a.x,a.y,b.y)&&vertical(a.end,a.y,b.y)){const stations=[];for(let x=a.x;x<=a.end;x++){if(vertical(x,a.last+2,b.y-2)){const last=stations.at(-1);if(last&&x-last.end<=2)last.end=x;else stations.push({x,end:x});}}const centers=stations.map(s=>(s.x+s.end)/2);for(let k=0;k+1<centers.length;k++){const left=centers[k],right=centers[k+1];if(right-left>=12)result.push({cx:(left+right)/2,cy:(a.y+b.y)/2,w:right-left,h,angle:0});}break;}}}
+    const beam=(edge,l,r)=>{if(!colorPlan)return true;for(let y=edge.y;y<=edge.last;y++){let hit=0;for(let x=Math.ceil(l);x<=Math.floor(r);x++){const i=(y*width+x)*4;if(Math.max(data[i],data[i+1],data[i+2])-Math.min(data[i],data[i+1],data[i+2])>35)hit++;}if(hit/(r-l+1)>.5)return true;}return false;};
+    const result=[],vertical=(x,a,b)=>{let hit=0;for(let y=a;y<=b;y++)if([-2,-1,0,1,2].some(dx=>x+dx>=0&&x+dx<width&&dark(x+dx,y)))hit++;return hit/(b-a+1)>.85;};
+    // Dimension extensions and partially covered beams need not have matching
+    // endpoints. Test their common span and require two actual upright lines.
+    for(let i=0;i<edges.length;i++){const a=edges[i];for(let j=i+1;j<edges.length;j++){const b=edges[j],h=b.y-a.y,left=Math.max(a.x,b.x),right=Math.min(a.end,b.end);if(h<8||h>120||right-left<12)continue;const stations=[];for(let x=left;x<=right;x++){if(vertical(x,a.y,b.last)){const last=stations.at(-1);if(last&&x-last.end<=2)last.end=x;else stations.push({x,end:x});}}const centers=stations.map(s=>(s.x+s.end)/2);for(let k=0;k+1<centers.length;k++){const l=centers[k],r=centers[k+1];if(r-l>=12&&beam(a,l,r)&&beam(b,l,r)&&beam(a,l,l+3)&&beam(b,l,l+3)&&beam(a,r-3,r)&&beam(b,r-3,r))result.push({cx:(l+r)/2,cy:(a.y+b.y)/2,w:r-l,h,angle:0});}}}
     const accepted=[];
     for(const r of result.sort((a,b)=>a.h-b.h)){
       if(accepted.some(s=>{const w=Math.max(0,Math.min(r.cx+r.w/2,s.cx+s.w/2)-Math.max(r.cx-r.w/2,s.cx-s.w/2)),h=Math.max(0,Math.min(r.cy+r.h/2,s.cy+s.h/2)-Math.max(r.cy-r.h/2,s.cy-s.h/2));return w*h/Math.min(r.w*r.h,s.w*s.h)>.55;}))continue;
@@ -58,6 +65,24 @@
     }
     return accepted.sort((a,b)=>a.cy-b.cy||a.cx-b.cx);
   }
-  globalThis.RafexTopPlan={groups,rectangle,cad,detect};
+  function joinedRuns(items,{gap=150,alignment=5,compatible=()=>true}={}) {
+    const rows=[];
+    items.forEach((r,index)=>{
+      const angle=((r.angle+(r.h>r.w?90:0))%180+180)%180,a=angle*Math.PI/180;
+      const p={index,angle,along:r.x*Math.cos(a)+r.y*Math.sin(a),across:-r.x*Math.sin(a)+r.y*Math.cos(a),width:Math.max(r.w,r.h),depth:Math.min(r.w,r.h)};
+      let row=rows.find(row=>Math.abs(row.angle-angle)<.01&&Math.abs(row.across-p.across)<=alignment);
+      if(!row)rows.push(row={angle,across:p.across,points:[]});row.points.push(p);
+    });
+    return rows.flatMap(row=>{
+      const runs=[];let run=null;
+      for(const p of row.points.sort((a,b)=>a.along-b.along)){
+        const prev=run?.at(-1),space=prev?p.along-prev.along-(p.width+prev.width)/2:Infinity;
+        if(!prev||Math.abs(space)>Math.min(gap,Math.min(p.width,prev.width)*.1)||Math.abs(p.depth-prev.depth)>alignment||!compatible(items[prev.index],items[p.index])){run=[];runs.push(run);}
+        run.push(p);
+      }
+      return runs.filter(run=>run.length>1).map(run=>({angle:row.angle,indices:run.map(p=>p.index)}));
+    });
+  }
+  globalThis.RafexTopPlan={groups,rectangle,cad,detect,joinedRuns};
   if(typeof document==='undefined')return;
 })();
