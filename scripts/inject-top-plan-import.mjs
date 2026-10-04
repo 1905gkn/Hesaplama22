@@ -1,6 +1,17 @@
 import fs from 'node:fs';
+import vm from 'node:vm';
 const runtime=fs.readFileSync(new URL('../client/top-plan-import.js',import.meta.url),'utf8');
-const inject=html=>html.replace(/<script data-rafex-top-plan-import>[\s\S]*?<\/script>/g,'').replace('</body>',`<script data-rafex-top-plan-import>\n${runtime}\n</script>\n</body>`);
+const inject=html=>{
+  html=html.replace(/<script data-rafex-top-plan-import>[\s\S]*?<\/script>/g,'');
+  const end=html.lastIndexOf('</body>');
+  if(end<0)throw Error('Closing document body not found');
+  const result=html.slice(0,end)+`<script data-rafex-top-plan-import>\n${runtime}\n</script>\n`+html.slice(end);
+  for(const script of result.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)){
+    if(/\bsrc\s*=|application\/json|application\/ld\+json/.test(script[1])||!script[2].trim())continue;
+    new vm.Script(script[2]);
+  }
+  return result;
+};
 const root=new URL('../',import.meta.url);
 const portal=new URL('portal.html',root);fs.writeFileSync(portal,inject(fs.readFileSync(portal,'utf8')));
 for(const relative of ['worker/index.js','dist/server/index.js']){
