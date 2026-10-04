@@ -39,3 +39,14 @@ assert.equal(api.groups([{w:2700,h:1050,nominalW:2700,nominalD:1050,spanAxis:'x'
 const vg={rects:[0,30,60].map(cx=>({cx,cy:10,w:27,h:10.5,color:'red'})),labels:[0,30,60].map(cx=>({cx,cy:10,nominalW:2700,nominalD:1050,spanAxis:'x',label:''}))};
 assert.equal(api.detectVectors(vg,{x:29,y:0,w:2,h:20}).length,1);
 console.log('PASS: explicit dimensions stay separate and a partial rescan preserves vector measurements.');
+
+const face=(cx,cy,extra={})=>({cx,cy,w:2700,h:1050,spanAxis:'x',...extra});
+const pair=api.pairBackToBack([face(1500,1000),face(1500,2300)]);
+assert.equal(pair.length,1);assert.equal(pair[0].rowType,'double');assert.equal(pair[0].h,2350);assert.equal(pair[0].rowGap,350);assert.equal(pair[0].sourceCount,2);
+assert.equal(api.pairBackToBack([face(1500,1000),face(1500,5000)]).length,2,'Do not pair across an aisle');
+assert.equal(api.pairBackToBack([face(1500,1000),face(1600,2300)]).length,2,'Misaligned bays remain separate');
+assert.equal(api.pairBackToBack([face(1500,1000),face(1500,2300,{label:'Tünel'})]).length,2,'Different face types remain separate');
+assert.equal(api.pairBackToBack([face(1500,1000),face(1500,2300),face(1500,3600)]).length,3,'Ambiguous three-row groups remain separate');
+const turned=api.pairBackToBack([face(1000,1500,{w:1050,h:2700,spanAxis:'y'}),face(2300,1500,{w:1050,h:2700,spanAxis:'y'})]);
+assert.equal(turned.length,1);assert.equal(turned[0].w,2350);assert.equal(turned[0].h,2700);
+console.log('PASS: back-to-back detection preserves aisles, singles, ambiguous rows, distinct types and rotated footprints.');

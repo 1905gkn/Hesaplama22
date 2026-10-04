@@ -15,6 +15,18 @@
     result.forEach((g,i)=>{g.id=i;g.name=letter(i);});
     return result;
   }
+  function pairBackToBack(items,{tolerance=20,maxGap=500}={}) {
+    items=items.map(r=>({...r,spanAxis:r.spanAxis||(r.h>r.w?'y':'x')}));
+    const details=items.map(r=>{const d=dimensions(r),angle=(r.angle||0)+(r.spanAxis==='y'?90:0),a=angle*Math.PI/180;return{...d,angle,ux:Math.cos(a),uy:Math.sin(a)};});
+    const nearby=items.map((a,i)=>items.flatMap((b,j)=>{if(i===j)return[];const x=details[i],y=details[j];if(Math.abs(x.angle-y.angle)>.1||Math.abs(x.w-y.w)>tolerance||Math.abs(x.d-y.d)>tolerance||(a.label||'')!==(b.label||''))return[];const dx=b.cx-a.cx,dy=b.cy-a.cy,along=Math.abs(dx*x.ux+dy*x.uy),across=Math.abs(-dx*x.uy+dy*x.ux),gap=across-(x.d+y.d)/2;if(along>Math.min(80,x.w*.06)||gap< -Math.min(tolerance,20)||gap>Math.min(maxGap,Math.min(x.d,y.d)*.5))return[];return[{j,gap,across}];}));
+    const used=new Set(),result=[];
+    items.forEach((r,i)=>{if(used.has(i))return;const choices=nearby[i],match=choices.length===1&&nearby[choices[0].j].length===1?choices[0]:null;
+      if(!match){result.push({...r,rowType:'single',sourceCount:1});return;}
+      const b=items[match.j],d=details[i],gap=Math.max(0,Math.round(match.gap/10)*10),depth=Math.round((d.d+details[match.j].d+gap)*10)/10;
+      used.add(i);used.add(match.j);const vertical=r.spanAxis==='y';result.push({...r,cx:(r.cx+b.cx)/2,cy:(r.cy+b.cy)/2,w:vertical?depth:d.w,h:vertical?d.w:depth,nominalD:r.nominalD?depth:undefined,rowType:'double',rowGap:gap+100,singleDepth:(d.d+details[match.j].d)/2,sourceCount:2});
+    });
+    return result;
+  }
   function letter(index) { let s=''; for(let n=index+1;n;n=Math.floor((n-1)/26))s=String.fromCharCode(65+(n-1)%26)+s; return s; }
   function rectangle(points, label) {
     if (points.length > 4 && Math.hypot(points[0].x-points.at(-1).x,points[0].y-points.at(-1).y)<.01) points=points.slice(0,-1);
@@ -145,6 +157,6 @@
     }
     result.sort((a,b)=>a.cy-b.cy||a.cx-b.cx);result.review=[];result.vector=true;return result;
   }
-  globalThis.RafexTopPlan={groups,dimensions,rectangle,cad,detect,joinedRuns,reviewCandidates,pdfGeometry,detectVectors,vectorBoundary};
+  globalThis.RafexTopPlan={groups,pairBackToBack,dimensions,rectangle,cad,detect,joinedRuns,reviewCandidates,pdfGeometry,detectVectors,vectorBoundary};
   if(typeof document==='undefined')return;
 })();
