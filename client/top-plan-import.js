@@ -11,6 +11,8 @@
       if (!group) result.push(group = { id: result.length, name: letter(result.length), w, d, exact: !!item.nominalW, label: item.label || '', members: [] });
       group.members.push(index);
     });
+    result.sort((a,b)=>b.members.length-a.members.length||a.id-b.id);
+    result.forEach((g,i)=>{g.id=i;g.name=letter(i);});
     return result;
   }
   function letter(index) { let s=''; for(let n=index+1;n;n=Math.floor((n-1)/26))s=String.fromCharCode(65+(n-1)%26)+s; return s; }
