@@ -1,0 +1,21 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const scope={};vm.createContext(scope);vm.runInContext(fs.readFileSync(new URL('../client/top-plan-import.js',import.meta.url),'utf8'),scope);
+const api=scope.RafexTopPlan;
+const modules=Array.from({length:100},(_,i)=>({w:i<60?2700:1800,h:1100,cx:i*3000,cy:0}));
+assert.equal(api.groups(modules).length,2);assert.equal(api.groups(modules)[0].members.length,60);
+assert.equal(api.groups([{w:2700,h:1100},{w:1100,h:2700}]).length,1);
+assert.equal(api.groups([{w:2700,h:1100,label:'A'},{w:2700,h:1100,label:'B'}]).length,2);
+assert.equal(api.rectangle([{x:0,y:0},{x:10,y:0},{x:9,y:8},{x:0,y:8}]),null);
+const json=JSON.stringify({units:'mm',objects:[{type:'rack',closed:true,points:[[0,0],[2700,0],[2700,1100],[0,1100]]},{type:'wall',closed:true,points:[[0,0],[5000,0],[5000,4000],[0,4000]]}]});
+assert.equal(api.cad(json,'json').length,1);assert.equal(api.cad(json,'json')[0].w,2700);
+assert.throws(()=>api.cad('{"units":"inch","objects":[]}','json'));
+const dxf='0\nSECTION\n2\nENTITIES\n0\nLWPOLYLINE\n8\nRACK\n70\n1\n10\n0\n20\n0\n10\n2700\n20\n0\n10\n2700\n20\n1100\n10\n0\n20\n1100\n0\nENDSEC\n0\nEOF\n';
+assert.equal(api.cad(dxf,'dxf').length,1);
+const width=600,height=400,data=new Uint8ClampedArray(width*height*4).fill(255);
+const dark=(x,y)=>{const i=(y*width+x)*4;data[i]=data[i+1]=data[i+2]=0;};
+for(let j=0;j<10;j++)for(let i=0;i<10;i++){const x=5+i*58,y=5+j*38;for(let dx=0;dx<=40;dx++){dark(x+dx,y);dark(x+dx,y+22);}for(let dy=0;dy<=22;dy++){dark(x,y+dy);dark(x+40,y+dy);}}
+assert.equal(api.detect({width,height,data},{x:0,y:0,w:width,h:height}).length,100);
+assert.equal(api.detect({width,height,data},{x:0,y:0,w:58,h:38}).length,1);
+console.log('PASS: 100 raster modules, cropped scan, CAD parsing, dimensions, rotations and separate types.');

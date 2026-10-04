@@ -199,6 +199,8 @@ node scripts/patch-drag-members-v266.mjs
 node scripts/patch-selection-motion-v267.mjs
 node scripts/patch-anchor-measure-v268.mjs
 node scripts/patch-pin-toggle-v269.mjs
+node scripts/verify-top-plan-import.mjs
+node scripts/inject-top-plan-import.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
