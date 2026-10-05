@@ -112,6 +112,12 @@
       return runs.filter(run=>run.length>1).map(run=>({angle:row.angle,indices:run.map(p=>p.index)}));
     });
   }
+  // Use the same label grammar in the PDF routing and geometry stages.
+  function dimensionLabel(text) {
+    const normalized=String(text).normalize('NFKC').replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632)).replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776));
+    const match=normalized.match(/(\d{3,5})\s*[x×X/\u2215]\s*(\d{3,5})\s*(?:mm)?/);
+    return match ? {w:Number(match[1]),d:Number(match[2])} : null;
+  }
   function pdfGeometry(list,OPS,viewport,textItems=[]) {
     const mul=(a,b)=>[a[0]*b[0]+a[2]*b[1],a[1]*b[0]+a[3]*b[1],a[0]*b[2]+a[2]*b[3],a[1]*b[2]+a[3]*b[3],a[0]*b[4]+a[2]*b[5]+a[4],a[1]*b[4]+a[3]*b[5]+a[5]];
     let matrix=viewport.transform.slice(),color='0,0,0',parts=[],points=[],curved=false;const stack=[],rects=[],segments=[];let pathSegments=[];
@@ -128,7 +134,7 @@
       else if([OPS.fill,OPS.eoFill,OPS.endPath].includes(fn)){parts=[];points=[];pathSegments=[];curved=false;}
     }
     const labels=[];
-    for(const t of textItems){const match=t.str.match(/(\d{3,5})\s*[x×X]\s*(\d{3,5})\s*(?:mm)?/),tunnel=/t[üu]nel/i.test(t.str);if(!match&&!tunnel)continue;const m=mul(viewport.transform,t.transform),font=Math.hypot(t.transform[0],t.transform[1])||1,cx=m[4]+m[0]*t.width/font/2+m[2]*.3,cy=m[5]+m[1]*t.width/font/2+m[3]*.3;labels.push({cx,cy,spanAxis:Math.abs(m[0])>=Math.abs(m[1])?'x':'y',nominalW:match?+match[1]:null,nominalD:match?+match[2]:null,label:tunnel?'Tünel':''});}
+    for(const t of textItems){const match=dimensionLabel(t.str),tunnel=/t[üu]nel/i.test(t.str);if(!match&&!tunnel)continue;const m=mul(viewport.transform,t.transform),font=Math.hypot(t.transform[0],t.transform[1])||1,cx=m[4]+m[0]*t.width/font/2+m[2]*.3,cy=m[5]+m[1]*t.width/font/2+m[3]*.3;labels.push({cx,cy,spanAxis:Math.abs(m[0])>=Math.abs(m[1])?'x':'y',nominalW:match?match.w:null,nominalD:match?match.d:null,label:tunnel?'Tünel':''});}
     return {rects,labels,segments};
   }
   function vectorBoundary(geometry,region){
@@ -138,11 +144,46 @@
     if(!left||!right||right.x-left.x<region.w*.7||Math.abs(left.top-right.top)>5||Math.abs(left.bottom-right.bottom)>5)return null;
     return{x:left.x,y:(left.top+right.top)/2,w:right.x-left.x,h:(left.bottom+right.bottom-left.top-right.top)/2};
   }
+  // CAD exporters often draw beams and uprights as separate strokes instead
+  // of closed rectangles. Reconstruct only boxes supported on all four sides
+  // and whose aspect ratio agrees with their own dimension label.
+  function strokedBoxes(geometry) {
+    const axes={x:[],y:[]},seen=new Set();
+    for(const {a,b,color} of geometry.segments||[]){
+      if(String(color).split(',').map(Number).every(n=>n>=245))continue;
+      const axis=Math.abs(a.y-b.y)<.1?'x':Math.abs(a.x-b.x)<.1?'y':null;
+      if(!axis)continue;
+      const lo=Math.min(a[axis],b[axis]),hi=Math.max(a[axis],b[axis]);if(hi-lo<2)continue;
+      const at=axis==='x'?(a.y+b.y)/2:(a.x+b.x)/2,key=[axis,lo.toFixed(2),hi.toFixed(2),at.toFixed(2),color].join(':');
+      if(seen.has(key))continue;seen.add(key);axes[axis].push({lo,hi,at,color});
+    }
+    const boxes=[];
+    for(const label of geometry.labels){
+      if(!label.nominalW||!label.nominalD)continue;
+      const axis=label.spanAxis,along=axis==='x'?label.cx:label.cy,across=axis==='x'?label.cy:label.cx;
+      const beams=axes[axis].filter(l=>l.lo<along&&l.hi>along&&Math.abs(l.at-across)<(l.hi-l.lo)*label.nominalD/label.nominalW*1.2);
+      const candidates=[];
+      for(const a of beams.filter(l=>l.at<across))for(const b of beams.filter(l=>l.at>across)){
+        const span=Math.min(a.hi,b.hi)-Math.max(a.lo,b.lo),depth=b.at-a.at,tol=Math.max(.25,depth*.1);
+        if(a.color!==b.color||Math.abs(a.lo-b.lo)>tol||Math.abs(a.hi-b.hi)>tol||Math.abs(span/depth/(label.nominalW/label.nominalD)-1)>.1)continue;
+        const lo=(a.lo+b.lo)/2,hi=(a.hi+b.hi)/2;
+        const sides=axes[axis==='x'?'y':'x'];
+        const supported=end=>sides.some(l=>Math.abs(l.at-end)<=tol&&l.lo<=a.at+tol&&l.hi>=b.at-tol);
+        if(!supported(lo)||!supported(hi))continue;
+        candidates.push({cx:axis==='x'?(lo+hi)/2:(a.at+b.at)/2,cy:axis==='x'?(a.at+b.at)/2:(lo+hi)/2,w:axis==='x'?hi-lo:depth,h:axis==='x'?depth:hi-lo,angle:0,color:a.color,stroked:true});
+      }
+      const ratio=r=>{const d=dimensions({...r,spanAxis:axis});return Math.abs(d.w/d.d/(label.nominalW/label.nominalD)-1);};
+      const smallest=Math.min(...candidates.map(r=>r.w*r.h));
+      candidates.sort((a,b)=>Number(a.w*a.h>smallest*1.3)-Number(b.w*b.h>smallest*1.3)||ratio(a)-ratio(b)||a.w*a.h-b.w*b.h);
+      if(candidates[0])boxes.push(candidates[0]);
+    }
+    return boxes;
+  }
   function detectVectors(geometry,region){
     const inside=r=>r.cx>=region.x&&r.cx<=region.x+region.w&&r.cy>=region.y&&r.cy<=region.y+region.h;
-    const rects=geometry.rects.filter(inside),anchors=[];
+    const allRects=[...geometry.rects,...strokedBoxes(geometry)],rects=allRects.filter(inside),anchors=[];
     for(const label of geometry.labels){
-      const matches=geometry.rects.filter(r=>Math.abs(label.cx-r.cx)<=r.w/2+.5&&Math.abs(label.cy-r.cy)<=r.h/2+.5).filter(r=>{if(!label.nominalW)return true;const d=dimensions({...r,spanAxis:label.spanAxis});return Math.abs(d.w/d.d-label.nominalW/label.nominalD)<.12;}).sort((a,b)=>a.w*a.h-b.w*b.h);
+      const matches=allRects.filter(r=>Math.abs(label.cx-r.cx)<=r.w/2+.5&&Math.abs(label.cy-r.cy)<=r.h/2+.5).filter(r=>{if(!label.nominalW)return true;const d=dimensions({...r,spanAxis:label.spanAxis});return Math.abs(d.w/d.d-label.nominalW/label.nominalD)<.12;}).sort((a,b)=>a.w*a.h-b.w*b.h);
       if(matches[0])anchors.push({...matches[0],...label,cx:matches[0].cx,cy:matches[0].cy,widthKind:'clear'});
     }
     if(anchors.filter(r=>r.nominalW).length<3)return null;
@@ -153,10 +194,10 @@
       if(!template)continue;const d=dimensions({...r,spanAxis:template.spanAxis});let nominalW=template.nominalW,nominalD=template.nominalD;
       if(!nominalW){const scaleAnchor=anchors.find(a=>a.nominalW&&a.spanAxis===template.spanAxis&&Math.abs(dimensions(a).d-d.d)<.25);if(scaleAnchor){nominalD=scaleAnchor.nominalD;nominalW=Math.round(d.w/(dimensions(scaleAnchor).w/scaleAnchor.nominalW)/10)*10;}}
       if(!nominalW||!nominalD)continue;
-      seen.add(key);result.push({...r,spanAxis:template.spanAxis,nominalW,nominalD,label:template.label,widthKind:'clear',evidence:own?'PDF ölçü yazısı ve kapalı raf sınırı':'Ölçüsü yazılı rafla aynı sınır ve çizgi rengi'});
+      seen.add(key);result.push({...r,spanAxis:template.spanAxis,nominalW,nominalD,label:template.label,widthKind:'clear',evidence:own?(r.stroked?'PDF ölçü yazısı ve dört kenarı doğrulanan raf':'PDF ölçü yazısı ve kapalı raf sınırı'):'Ölçüsü yazılı rafla aynı sınır ve çizgi rengi'});
     }
-    result.sort((a,b)=>a.cy-b.cy||a.cx-b.cx);result.review=[];result.vector=true;return result;
+    result.sort((a,b)=>a.cy-b.cy||a.cx-b.cx);result.review=[];result.vector=true;result.unmatchedLabels=geometry.labels.filter(l=>l.nominalW&&inside(l)&&!result.some(r=>Math.abs(l.cx-r.cx)<=r.w/2+.5&&Math.abs(l.cy-r.cy)<=r.h/2+.5)).length;return result.length?result:null;
   }
-  globalThis.RafexTopPlan={groups,pairBackToBack,dimensions,rectangle,cad,detect,joinedRuns,reviewCandidates,pdfGeometry,detectVectors,vectorBoundary};
+  globalThis.RafexTopPlan={groups,pairBackToBack,dimensions,rectangle,cad,detect,joinedRuns,reviewCandidates,dimensionLabel,pdfGeometry,detectVectors,vectorBoundary};
   if(typeof document==='undefined')return;
 })();
