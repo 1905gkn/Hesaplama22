@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import * as THREE from 'three';
+import {frameHeights,installEndFrames} from './end-frames-v274.mjs';
+const rack=(id,x,extra={})=>({id,x,y:0,w:28.8,h:12,depthMm:1200,angle:0,sideUprightHeight:4900,b2b:{endFrameHeightEnabled:true,endFrameHeight:6000},b2bLayout:{rowCount:1,frameDepth:1100,palletDepth:1200,palletOverhang:50},...extra});
+const a=rack(1,0),b=rack(2,27.9,{sharedFootWith:1,sharedFootSide:'left'}),c=rack(3,55.8,{sharedFootWith:2,sharedFootSide:'left'}),all=[a,b,c];
+assert.deepEqual(all.map(r=>frameHeights(r,4900,all)),[[{left:6000,right:4900}],[{left:4900,right:4900}],[{left:4900,right:6000}]]);
+assert.deepEqual(frameHeights(a,6500,[]),[{left:6500,right:6500}]);
+assert.deepEqual(frameHeights(a,4900,[a]),[{left:6000,right:6000}]);
+const reverse=[rack(1,55.8),rack(2,27.9,{sharedFootWith:1,sharedFootSide:'right'}),rack(3,0,{sharedFootWith:2,sharedFootSide:'right'})];
+assert.deepEqual(reverse.map(r=>frameHeights(r,4900,reverse)),[[{left:4900,right:6000}],[{left:4900,right:4900}],[{left:6000,right:4900}]]);
+for(const angle of [90,180,270]){const rad=angle*Math.PI/180;const rotated=all.map(r=>{const cx=(r.x+r.w/2)*Math.cos(rad)-(r.y+r.h/2)*Math.sin(rad),cy=(r.x+r.w/2)*Math.sin(rad)+(r.y+r.h/2)*Math.cos(rad);return {...r,x:cx-r.w/2,y:cy-r.h/2,angle};});assert.deepEqual(rotated.map(r=>frameHeights(r,4900,rotated)),all.map(r=>frameHeights(r,4900,all)));}
+const doubles=all.map(r=>({...r,h:26,depthMm:2600,b2bLayout:{...r.b2bLayout,rowCount:2,rowGap:300}}));
+assert.deepEqual(frameHeights(doubles[1],4900,doubles),[{left:4900,right:4900},{left:4900,right:4900}]);
+const nodes=new Map();for(const id of ['b2bEndFrameToggle','b2bEndFrameHeight','b2bEndFrameHint'])nodes.set(id,{value:'',attrs:{'aria-pressed':'false'},setAttribute(k,v){this.attrs[k]=v;},getAttribute(k){return this.attrs[k]},setCustomValidity(v){this.validation=v},focus(){},get valueAsNumber(){return Number(this.value)}});
+let normal=4900;const ctx={document:{getElementById:id=>nodes.get(id)},b2bVerticalLayout:()=>({footHeight:normal}),b2b3DOptions:()=>({footHeight:normal}),b2bReadInputState:()=>({footHeight:normal}),b2bApplySavedInputState:()=>{},b2bApplyInputs:()=>{},b2bUpdateMain3D:()=>{},m2LayoutState:{racks:all},frameHeights};ctx.window=ctx;vm.createContext(ctx);vm.runInContext('('+installEndFrames.toString()+')()',ctx);
+ctx.rafexToggleEndFrames();assert.equal(nodes.get('b2bEndFrameHeight').value,'4900');nodes.get('b2bEndFrameHeight').value='4200';ctx.rafexEditEndFrames(false);assert.ok(nodes.get('b2bEndFrameHeight').validation);assert.equal(ctx.b2bReadInputState().endFrameHeight,4900);ctx.rafexEditEndFrames(true);assert.equal(nodes.get('b2bEndFrameHeight').value,'4900');
+nodes.get('b2bEndFrameHeight').value='6123';const saved=JSON.parse(JSON.stringify(ctx.b2bReadInputState()));ctx.rafexToggleEndFrames();assert.equal(ctx.b2bReadInputState().endFrameHeight,null);ctx.b2bApplySavedInputState(saved);assert.equal(nodes.get('b2bEndFrameHeight').value,6123);normal=7000;assert.equal(ctx.b2bReadInputState().endFrameHeight,7000);
+const src=fs.readFileSync('client/b2b-viewer.entry.js','utf8'),method=src.slice(src.indexOf('  resizeEndFrames('),src.indexOf('  preserveUprightThickness('));const context={THREE};vm.createContext(context);vm.runInContext('result=({'+method+'})',context);
+const root=new THREE.Group();for(const x of [0,2700]){const mesh=new THREE.Mesh(new THREE.BoxGeometry(90,1100,4900));mesh.position.set(x,0,-2450);root.add(mesh);}const original=root.children[0].geometry;context.result.resizeEndFrames(root,4900,6000,4900);assert.equal(new THREE.Box3().setFromObject(root.children[0]).min.z,-6000);assert.equal(new THREE.Box3().setFromObject(root.children[1]).min.z,-4900);assert.notEqual(root.children[0].geometry,original);assert.equal(original.boundingBox.max.z,2450);
+console.log('PASS end-frame validation, save/restore, joined/reversed/rotated/double rows, detach, and independent 3D frame geometry');
+
+const {transform}=await import('./patch-end-frames-v274.mjs');
+const stationSource=fs.readFileSync('scripts/shared-stations-v255.js','utf8').replaceAll('\r\n','\n');
+const fixture='<script>function b2bApplySavedInputState(state) {} function read(){return { footColor:$("b2bFootColor")}}const mock={footHeight: vertical.footHeight,};</script><body><label class="b2b-field">Ayak yüksekliği</label><script>function preview(d){return normalizeRackPreviewV233(storedV135,d);}function b2bOptions(d){return finalizeDetail(o,d.b2b||{})}\n  function renderSharedFeet(state,svg){}\n  function decorate(){}\n</script><script>'+stationSource+'</script></body>';
+const patched=transform(fixture);assert.equal(transform(patched),patched);
+const stationScript=[...patched.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]).find(s=>s.includes('/* shared-stations-v255 */'));
+const sc={window:{},m2RenderLayout:()=>{},m2OpenCustomizeModal:()=>{},rowAxis:(r,row)=>row*1300,m2B2BFootProductData:r=>({height:r.sideUprightHeight,profile:'HR90.80.2,0',family:'HR090',depth:1100,thickness:2,width:90})};vm.createContext(sc);vm.runInContext(stationScript,sc);
+const actual=[...sc.window.rafexSharedFramesV255.stations(all).values()].flat().filter(s=>!s.omit);assert.deepEqual(Array.from(actual,s=>s.product.height),[6000,4900,4900,6000]);assert.equal(actual.length,4);assert.equal(actual.filter(s=>s.shared).length,2);console.log('PASS physical BOM: 2 special and 2 normal frame teams for 3 joined modules');

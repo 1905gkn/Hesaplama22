@@ -195,6 +195,8 @@ class B2BViewer {
       rearPalletGap: clamp(Number.isFinite(Number(next.rearPalletGap)) ? Number(next.rearPalletGap) : 50, 0, 1000),
       traverseHeight: clamp(Number(next.traverseHeight) || 140, 50, 500),
       footHeight: Number(next.footHeight) > 0 ? clamp(Number(next.footHeight), 500, 30000) : null,
+      endFrameHeight: Number(next.endFrameHeight)>0?Number(next.endFrameHeight):null,
+      frameHeights: Array.isArray(next.frameHeights)?next.frameHeights.map(r=>({...r})):null,
       footWidth: clamp(Number(next.footWidth) || 120, 60, 300),
       showPallets: next.showPallets !== false,
       dimensionLabelScale: clamp(Number(next.dimensionLabelScale) || 1, .7, 1.5),
@@ -247,6 +249,9 @@ class B2BViewer {
         const targetHeight=Math.max(500,this.uprightHeight()),verticalScale=targetHeight/5006.16;
         const section=new THREE.Group();section.name=`B2B Değişken Bölüm ${moduleIndex+1}`;
         const frame=this.models.module.clone(true);this.stripFrameSupports(frame);frame.scale.set(sectionScale,depthScale,verticalScale);this.preserveUprightThickness(frame,sectionScale);this.applyRackMaterials(frame);section.add(frame);
+        const explicit=spec.frameHeights?.[rowIndex],special=Math.max(targetHeight,Number(spec.endFrameHeight)||targetHeight);
+        const left=Math.max(targetHeight,Number(explicit?.left)||(moduleIndex===0?special:targetHeight)),right=Math.max(targetHeight,Number(explicit?.right)||(moduleIndex===moduleSpecs.length-1?special:targetHeight));
+        this.resizeEndFrames(frame,targetHeight,left,right);
         // Measure the structural uprights, never the pallet or base plates.
         frame.updateMatrixWorld(true);
         const bounds=new THREE.Box3();
@@ -275,6 +280,23 @@ class B2BViewer {
     this.content.rotation.x=Math.PI/2;
     this.addDimensions(baseOptions.sectionWidth+120,totalRackWidth,widthSegments);
     this.content.updateMatrixWorld(true);this.addGround();this.fitCamera(initial?"perspective":this.view);
+  }
+
+  resizeEndFrames(root,normal,left,right){
+    if(left===normal&&right===normal)return;
+    // CAD frames rise along negative Z; keep the base (maximum Z) fixed.
+    root.updateMatrixWorld(true);
+    const bounds=new THREE.Box3().setFromObject(root),mid=(bounds.min.x+bounds.max.x)/2,point=new THREE.Vector3();
+    root.traverse(object=>{
+      if(!object.isMesh||!object.geometry?.attributes.position)return;
+      const geometry=object.geometry.clone(),positions=geometry.attributes.position,inverse=object.matrixWorld.clone().invert();
+      for(let i=0;i<positions.count;i++){
+        point.fromBufferAttribute(positions,i).applyMatrix4(object.matrixWorld);
+        point.z=bounds.max.z+(point.z-bounds.max.z)*(point.x<mid?left:right)/normal;
+        point.applyMatrix4(inverse);positions.setXYZ(i,point.x,point.y,point.z);
+      }
+      positions.needsUpdate=true;geometry.computeVertexNormals();geometry.computeBoundingBox();geometry.computeBoundingSphere();object.geometry=geometry;
+    });
   }
 
   preserveUprightThickness(root,sectionScale){
@@ -606,7 +628,8 @@ class B2BViewer {
     const topPallet = this.loadBottom(this.options.levels - 1) + this.palletHeightAt(this.options.levels - 1);
     if (this.options.dimensions.markers) {
       this.addLevelMarker(markersLayer, markerX, frontY, topPallet, `ÜST PALET KOTU  ·  ${this.dimensionValue(topPallet)}`, 0);
-      this.addLevelMarker(markersLayer, rackWidth + 1400, frontY, this.uprightHeight(), `AYAK BOYU  ·  ${this.dimensionValue(this.uprightHeight())}`, rackWidth);
+      const markerHeight=this.options.frameHeights?Math.max(this.uprightHeight(),...this.options.frameHeights.map(r=>Number(r.right)||0)):Math.max(this.uprightHeight(),Number(this.options.moduleOptions?.at(-1)?.endFrameHeight??this.options.endFrameHeight)||0);
+      this.addLevelMarker(markersLayer, rackWidth + 1400, frontY, markerHeight, `AYAK BOYU  ·  ${this.dimensionValue(markerHeight)}`, rackWidth);
     }
 
     const eyeStart = SOURCE_CLEAR_LEFT * sectionScale;

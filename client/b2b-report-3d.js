@@ -69,6 +69,7 @@
       rowCount: number(layout.rowCount, state.rowType === "double" ? 2 : 1),
       rowGap: number(layout.rowGap ?? state.rowGap, 200),
       uprightHeight: b2bFullUprightHeight(drawing),
+      endFrames: [state.endFrameHeightEnabled,state.endFrameHeight,drawing?.id,drawing?.sharedFootWith,drawing?.sharedFootSide,window.rafexB2BDetailOptionsV117?.(drawing)?.frameHeights],
       traverseHeight: b2bTraverseHeight(drawing),
       tunnelHeight: number(state.tunnelHeight, 0),
       firstPalletPosition: state.firstPalletPosition || "ground",
