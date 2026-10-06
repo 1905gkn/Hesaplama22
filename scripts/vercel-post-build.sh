@@ -202,6 +202,7 @@ node scripts/patch-pin-toggle-v269.mjs
 node scripts/verify-top-plan-import.mjs
 node scripts/verify-top-plan-strokes.mjs
 node scripts/inject-top-plan-import.mjs
+node scripts/patch-upright-consistency-v270.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
