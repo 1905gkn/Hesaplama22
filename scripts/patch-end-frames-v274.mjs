@@ -5,7 +5,7 @@ export function transform(html){
  const rep=(a,b)=>{if(!html.includes(a))throw Error('End frames anchor missing: '+a.slice(0,100));html=html.replace(a,b);};
  const field='<label class="b2b-field">Ayak yüksekliği';const a=html.indexOf(field),b=html.indexOf('</label>',a)+8;if(a<0||b<8)throw Error('Height field missing');
  html=html.slice(0,b)+`<div class="b2b-field"><div class="b2b-mode-row"><button type="button" id="b2bEndFrameToggle" aria-pressed="false" onclick="rafexToggleEndFrames()">Yan rafların özel ölçüsü</button><input id="b2bEndFrameHeight" type="number" aria-label="Yan raf ayak yüksekliği (mm)" aria-describedby="b2bEndFrameHint" min="500" max="30000" step="1" hidden disabled oninput="rafexEditEndFrames(false)" onchange="rafexEditEndFrames(true)"></div><small id="b2bEndFrameHint" aria-live="polite"></small></div>`+html.slice(b);
- rep('return { footColor:$("b2bFootColor")', 'return { ...window.rafexReadEndFrameState(), footColor:$("b2bFootColor")');
+ rep('return { floorPitchEnabled:', 'return { ...window.rafexReadEndFrameState(), floorPitchEnabled:');
  rep('footHeight: vertical.footHeight,','footHeight: vertical.footHeight,endFrameHeight:window.rafexReadEndFrameState().endFrameHeight,');
  rep('function b2bApplySavedInputState(state) {','function b2bApplySavedInputState(state) { window.rafexRestoreEndFrameState(state);');
  rep('return finalizeDetail(o,d.b2b||{})}', 'o=finalizeDetail(o,d.b2b||{});return window.rafexEndFrameOptions?window.rafexEndFrameOptions(d,o):o}');
