@@ -10,6 +10,7 @@ export function transform(html){
  rep('function b2bApplySavedInputState(state) {','function b2bApplySavedInputState(state) { window.rafexRestoreEndFrameState(state);');
  rep('return finalizeDetail(o,d.b2b||{})}', 'o=finalizeDetail(o,d.b2b||{});return window.rafexEndFrameOptions?window.rafexEndFrameOptions(d,o):o}');
  rep('return normalizeRackPreviewV233(storedV135,d);','return window.rafexEndFrameOptions?window.rafexEndFrameOptions(d,normalizeRackPreviewV233(storedV135,d)):normalizeRackPreviewV233(storedV135,d);');
+ rep("const stored=window.rafexReadRackDetailV135?.(rack,'b2b');if(stored)return stored;","const stored=window.rafexReadRackDetailV135?.(rack,'b2b');if(stored)return window.rafexEndFrameOptions?window.rafexEndFrameOptions(rack,stored):stored;");
  rep('  }return out;',`  }
   for(const r of racks){const slots=out.get(Number(r.id));if(!slots||!r.b2b?.endFrameHeightEnabled)continue;for(const slot of slots){if(slot.shared)continue;slot.product.height=Math.max(slot.product.height,Number(r.b2b.endFrameHeight)||0);slot.product.code=slot.product.family+String(slot.product.height).padStart(5,'0')+slot.product.depth+String(Math.round(slot.product.thickness*100));}}
   return out;`);
