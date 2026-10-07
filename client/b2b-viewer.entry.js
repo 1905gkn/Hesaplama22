@@ -477,13 +477,17 @@ class B2BViewer {
     traverse.userData.depthMirrored = true;
   }
 
+  hasPalletAt(level) {
+    if(level===0&&this.options.firstPalletPosition==="ground"&&this.options.palletHeights[0]===0)return false;
+    return !(this.options.tunnelHeight>0&&(level===0&&this.options.firstPalletPosition==="ground"||this.traverseBottom(this.options.firstPalletPosition==="traverse"?level:level-1)<this.options.tunnelHeight));
+  }
+
   addLoads(section, sectionScale) {
     const { palletCount, palletWidth, palletDepth, palletHeight, levels, sectionWidth } = this.options;
     const gap = (sectionWidth - palletCount * palletWidth) / (palletCount + 1);
     for (let level = 0; level < levels; level += 1) {
-      if(level===0&&this.options.firstPalletPosition==="ground"&&this.options.palletHeights[0]===0)continue;
+      if(!this.hasPalletAt(level))continue;
       const loadBottom = this.loadBottom(level);
-      if (this.options.tunnelHeight > 0 && (level===0&&this.options.firstPalletPosition==="ground" || this.traverseBottom(this.options.firstPalletPosition==="traverse"?level:level-1)<this.options.tunnelHeight)) continue;
       for (let position = 0; position < palletCount; position += 1) {
         const x = SOURCE_CLEAR_LEFT * sectionScale + gap + position * (palletWidth + gap);
         const levelPalletHeight = this.palletHeightAt(level);
@@ -905,6 +909,11 @@ async function captureB2BViews(options = {}, settings = {}) {
 
 let active = null;
 window.RafexB2BViewer = {
+  palletCapacity(options) {
+    const model=Object.create(B2BViewer.prototype);model.options=model.normalizeOptions({...options,moduleCount:1,moduleOptions:null});
+    const occupied=Array.from({length:model.options.levels},(_,level)=>level).filter(level=>model.hasPalletAt(level));
+    return occupied.length*model.options.palletCount*(model.options.rowType==='double'?2:1);
+  },
   getSavedDetail() { return active?.canvas?.id === 'b2bMain3DCanvas' ? JSON.parse(JSON.stringify(active.options)) : null; },
   mount(canvas, options) {
     // Customize owns a detached scene; legacy recovery hooks must not take its canvas.
