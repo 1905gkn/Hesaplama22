@@ -219,6 +219,7 @@ node scripts/patch-pallet-capacity-v280.mjs
 node scripts/patch-section-capacity-v281.mjs
 node scripts/patch-report-project-name-v282.mjs
 node scripts/patch-direct-vector-pdf-v283.mjs
+node scripts/patch-mixed-row-choice-v284.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
