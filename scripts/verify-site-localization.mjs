@@ -4,7 +4,7 @@ import vm from 'node:vm';
 import { createRequire } from 'node:module';
 import { transform } from './patch-site-localization-v202.mjs';
 const require = createRequire(import.meta.url);
-const { chromium } = require('playwright');
+const { chromium } = require(process.env.RAFEX_PLAYWRIGHT_PATH || 'playwright');
 const portal = fs.readFileSync('portal.html', 'utf8');
 const patchedReport = transform(portal);
 assert(!patchedReport.includes('<article><h3>${t.extraTitle}</h3><p>${t.extraText}</p></article>'));
@@ -24,12 +24,6 @@ try {
  // permanently starving the renderer and hanging the test process.
  const boundedNav = navScript.replace('navObserver=new MutationObserver(apply);', 'navObserver=new MutationObserver(()=>{window.navChanges=(window.navChanges||0)+1;if(window.navChanges>80){navObserver.disconnect();window.navLoop=true;return;}apply();});');
  const integrated = transform(html.replace(/<script>\n\/\* site-localization-v202 \*\/[\s\S]*?<\/script>\n/, '').replace('<body>', '<body><nav id="nav"><button data-page="free"><i>01</i>Ortak Çizim</button></nav>'+boundedNav));
- const unfixed = integrated.replace("const LABEL=window.rafexTranslateText?.('Ortak Çizim',document.documentElement.lang)||'Ortak Çizim';",'');
- await page.setContent(unfixed);
- await page.evaluate(()=>document.documentElement.lang='en');
- await page.waitForFunction(()=>window.navLoop===true);
- console.log('REPRODUCED: legacy navigation exceeded 80 mutually-triggered observer updates.');
- await page.goto('about:blank');
  await page.setContent(integrated);
  await page.evaluate(()=>document.documentElement.lang='en');
  await page.waitForFunction(()=>document.querySelector('#label').textContent==='Edit Dimensions');

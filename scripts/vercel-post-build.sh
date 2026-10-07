@@ -208,6 +208,9 @@ node scripts/patch-history-layout-v272.mjs
 node scripts/patch-solid-shared-feet-v273.mjs
 node scripts/patch-end-frames-v274.mjs
 node scripts/verify-end-frames-v274.mjs
+node scripts/patch-report-localization-v275.mjs
+node scripts/verify-localization-preserved.mjs dist/server/index.js
+node scripts/patch-upright-paint-v276.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
