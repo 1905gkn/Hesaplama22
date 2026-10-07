@@ -13,11 +13,21 @@
     ['Bariyer koruma', 'Safety barrier', 'Barrière de protection'],
     ['Deprem çaprazı', 'Seismic bracing', 'Contreventement sismique'],
     ['Ağır deprem çaprazı', 'Heavy-duty seismic bracing', 'Contreventement sismique renforcé'],
-    ['PALLET KG', 'PALLET LOAD (kg)', 'CHARGE PALETTE (kg)']
+    ['PALLET KG', 'PALLET LOAD (kg)', 'CHARGE PALETTE (kg)'],
+    ['RAF KESİTLERİ', 'RACK SECTIONS', 'COUPES DU RAYONNAGE'],
+    ['PALET', 'PALLETS', 'PALETTES'], ['ADET', 'PCS', 'PIÈCES'], ['TİPİ', 'TYPE', 'TYPE'],
+    ['Ürün listesini gizle', 'Hide bill of materials', 'Masquer la nomenclature'],
+    ['Bariyer hangi yönde olsun?', 'Which side should the barrier go on?', 'De quel côté placer la barrière ?'],
+    ['Taranan ayakların hangi tarafına bariyer eklensin?', 'Choose the side of the selected frames for the barriers.', 'Choisissez le côté des échelles sélectionnées pour les barrières.'],
+    ['Ayaktan net uzaklık', 'Clearance from upright', 'Jeu libre depuis le montant'],
+    ['Altına', 'Below', 'En dessous'], ['Üstüne', 'Above', 'Au-dessus'],
+    ['Soluna', 'To the left', 'À gauche'], ['Sağına', 'To the right', 'À droite']
   ];
   const language = () => document.getElementById('m2ReportLanguage')?.value || 'tr';
   const translate = (source, lang = language()) => {
     if (lang === 'tr') return source;
+    const separator=source.match(/^(\s*[·|]\s*)([\s\S]*)$/);
+    if(separator)return separator[1]+translate(separator[2],lang);
     const row = rows.find(row => row[0].toLocaleLowerCase('tr') === source.trim().toLocaleLowerCase('tr'));
     if (row) return source.replace(source.trim(), row[lang === 'fr' ? 2 : 1]);
     return window.rafexTranslateText?.(source, lang) || source;
@@ -29,10 +39,12 @@
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     let node;
     while ((node = walker.nextNode())) {
-      if (node.parentElement?.closest('script,style,[translate="no"],[data-user-note],.m2-user-note,#m2ReportProjectName,.m2-corporate-cover h1,[data-rafex-type-name] > strong > span')) continue;
+      if (node.parentElement?.closest('script,style,[translate="no"],[data-user-note],.m2-user-note,#m2ReportProjectName,.m2-corporate-cover h1')) continue;
       const previous = originals.get(node);
       const source = previous && previous.rendered === node.nodeValue ? previous.source : node.nodeValue;
-      const rendered = translate(source);
+      const nameOwner=node.parentElement?.closest('[data-rafex-type-name] > strong > span');
+      const name=nameOwner?.closest('[data-rafex-type-name]')?.getAttribute('data-rafex-type-name');
+      const rendered = name && source.startsWith(name) ? name+translate(source.slice(name.length)) : translate(source);
       originals.set(node, { source, rendered });
       if (node.nodeValue !== rendered) node.nodeValue = rendered;
     }

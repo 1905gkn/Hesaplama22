@@ -1,0 +1,71 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url);
+const {chromium}=require(process.env.RAFEX_PLAYWRIGHT_PATH||'playwright');
+const barrier=fs.readFileSync('client/barrier-scan.js','utf8').replaceAll('export function ','function ');
+const translate=fs.readFileSync('client/site-localization.js','utf8').replace('/* TRANSLATION_ROWS */ []',fs.readFileSync('client/site-translations.json','utf8'));
+const report=fs.readFileSync('client/report-localization.js','utf8'),products=fs.readFileSync('client/report-products-toggle.js','utf8');
+const viewer=fs.readFileSync(process.argv[2] || 'client/b2b-viewer.entry.js','utf8');
+const method=viewer.slice(viewer.indexOf('  addDimensionLabelAt('),viewer.indexOf('  uprightHeight()',viewer.indexOf('  addDimensionLabelAt(')));
+const browser=await chromium.launch({channel:'msedge',headless:true});
+try {
+ const page=await browser.newPage({viewport:{width:1100,height:750}});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ const fixtures=`
+let appLanguage='tr',UI_TRANSLATIONS={en:{},fr:{}},i18nOriginalText=new WeakMap(),i18nOriginalAttributes=new WeakMap();function applyTranslations(){};function translatedUiText(s){return s};const i18nObserver=new MutationObserver(()=>{});
+let m2LayoutState={points:[{x:0,y:0}],scale:.1,racks:[{id:1,x:100,y:100,w:288,h:120,widthMm:2880,depthMm:1200,footType:90,angle:0,b2b:{tunnelHeight:2500},b2bLayout:{frameDepth:1100,palletOverhang:50,palletDepth:1200,rowCount:1,rowGap:200,sectionWidth:2700}}]},m2ProtectionChoice='barrier',m2ProtectionDraft=null,m2LayoutSymbols=[],m2SelectedSymbolId=null,undo=0,legacy=0;
+function m2StartProtectionPlacement(){legacy++}function m2CommitProtectionArea(){legacy++}function m2SyncAttachedProtections(){}function m2BarrierHostRack(){return null}function m2OpenProtectionDialog(){}function m2CloseProtectionDialog(){}function m2PushUndo(){undo++}function m2RefreshActiveReport(){};
+function m2RenderLayout(){document.getElementById('m2LayoutSvg').innerHTML=m2LayoutSymbols.map(s=>'<g transform="rotate('+s.angle+' '+(s.x+s.w/2)+' '+(s.y+s.h/2)+')"><rect x="'+s.x+'" y="'+s.y+'" width="'+s.w+'" height="'+s.h+'" fill="#e5be01" stroke="#6d5900"/></g>').join('');}
+function m2BuildCorporatePages(){return '<section class="m2-corporate-page"><header>RAF KESİTLERİ · 1</header><article data-rafex-type-name="A"><strong><span>A · 3 paletli · Single row</span><small>18 PALET</small><small>2 ADET</small></strong></article><footer class="m2-corporate-page-footer">1 / 2</footer></section><section class="m2-corporate-page rafex-product-flow-page"><div class="m2-corporate-bom-card">Products</div><footer class="m2-corporate-page-footer">2 / 2</footer></section>'};
+function m2RenderCorporateReport(){document.getElementById('m2CorporatePreview').innerHTML=m2BuildCorporatePages()};function m2RenderA4Report(){}function m2ChangeReportLanguage(){m2RenderCorporateReport()};
+`;
+ await page.setContent(`<html lang="tr"><body><div id="page"><div class="m2-report-head-actions"><select id="m2ReportLanguage"><option value="en">English</option><option value="tr">Türkçe</option></select></div><button id="m2ProtectionButton" onclick="m2StartProtectionPlacement()">Taramaya Başla</button><input id="m2BarrierDepth" value="150"><p id="m2FloorStatus"></p><svg id="m2LayoutSvg" width="600" height="300"></svg><div id="m2CorporatePreview"></div></div><script>${fixtures}</script><script>${translate}</script><script>${report}</script><script>${barrier};installBarrierScan();</script><script>${products}</script></body></html>`);
+ await page.locator('#m2ProtectionButton').click();
+ await page.evaluate(()=>{m2ProtectionDraft.start={x:95,y:95};m2ProtectionDraft.hover={x:115,y:225};m2CommitProtectionArea();});
+ assert.equal(await page.locator('#rafexBarrierDirection').count(),1);
+ assert.equal(await page.evaluate(()=>m2LayoutSymbols.length),0,'No additions before direction choice');
+ await page.getByRole('button',{name:'Soluna',exact:true}).click();
+ const first=await page.evaluate(()=>({symbols:m2LayoutSymbols,undo}));
+ assert.equal(first.symbols.length,1);assert.equal(first.symbols[0].widthMm,1100);assert.equal(first.undo,1);
+ assert.equal(await page.evaluate(()=>m2BarrierHostRack(m2LayoutSymbols[0]).id),1,'Tunnel has explicit rack association');
+ await page.evaluate(()=>{m2LayoutState.racks[0].x+=20;m2SyncAttachedProtections();});
+ assert.equal(await page.evaluate(()=>m2LayoutSymbols[0].x),first.symbols[0].x+20,'Barrier follows moved rack');
+ await page.locator('#m2ProtectionButton').click();
+ await page.evaluate(()=>{m2ProtectionDraft.start={x:115,y:95};m2ProtectionDraft.hover={x:135,y:225};m2CommitProtectionArea();});
+ await page.getByRole('button',{name:'Vazgeç',exact:true}).click();
+ assert.equal(await page.evaluate(()=>undo),1,'Cancellation makes no undo entry');
+ await page.locator('#m2ProtectionButton').click();
+ await page.evaluate(()=>{m2ProtectionDraft.start={x:115,y:95};m2ProtectionDraft.hover={x:135,y:225};m2CommitProtectionArea();});
+ await page.getByRole('button',{name:'Soluna',exact:true}).click();
+ assert.equal(await page.evaluate(()=>m2LayoutSymbols.length),1,'Repeat scan does not duplicate a barrier');
+ assert.equal(await page.evaluate(()=>undo),1,'Repeat scan creates no empty undo');
+ await page.evaluate(()=>{const stored=JSON.stringify(m2LayoutSymbols);m2LayoutSymbols=JSON.parse(stored);m2LayoutState.racks[0].angle=90;m2SyncAttachedProtections();});
+ assert.equal(await page.evaluate(()=>m2LayoutSymbols[0].angle),180,'Restored attachment follows rack rotation');
+ await page.evaluate(()=>{m2ProtectionChoice='uaks';m2StartProtectionPlacement();});assert.equal(await page.evaluate(()=>legacy),1,'Original foot protection preserved');
+ await page.evaluate(()=>m2RenderCorporateReport());
+ let text=await page.locator('#m2CorporatePreview').innerText();
+ for(const expected of ['RACK SECTIONS','3 pallets','18 PALLETS','2 PCS'])assert(text.includes(expected),expected);
+ await page.locator('#rafexHideReportProducts').check();
+ assert.equal(await page.locator('#m2CorporatePreview .rafex-product-flow-page').count(),0);
+ assert.equal(await page.locator('#m2CorporatePreview .m2-corporate-page-footer').innerText(),'1 / 1');
+ assert.equal(await page.evaluate(()=>m2BuildCorporatePages().includes('m2-corporate-bom-card')),false,'Print builder excludes BOM');
+ await page.locator('#rafexHideReportProducts').uncheck();
+ assert.equal(await page.locator('#m2CorporatePreview .rafex-product-flow-page').count(),1,'BOM restored');
+ // Run the actual canvas label method with minimal scene mocks, inspecting text sent to fillText.
+ const labels=await page.evaluate(({method})=>{
+   const drawn=[];
+   const real=document.createElement.bind(document);
+   const ctx={scale(){},beginPath(){},roundRect(){},fill(){},stroke(){},clearRect(){},fillText(text){drawn.push(text)}};
+   document.createElement=(name)=>name==='canvas'?{width:0,height:0,getContext:()=>ctx}:real(name);
+   window.THREE={CanvasTexture:class{},SpriteMaterial:class{},Sprite:class{constructor(){this.userData={};this.position={set(){}};this.scale={set(){},clone(){return {}}};}},SRGBColorSpace:1};
+   const Klass=Function('return class { '+method+' }')();
+   const instance=new Klass();instance.options={language:'tr'};instance.reportLanguage=document.getElementById('m2ReportLanguage').value;instance.renderer={capabilities:{getMaxAnisotropy:()=>1}};instance.dimensionLabels=[];
+   for(const label of ['ÜST PALET KOTU · 5.840 mm','AYAK BOYU · 5.000 mm','AYAK DERİNLİĞİ · 1.100 mm','Z+TRAVERS · 1.900 mm'])instance.addDimensionLabelAt({add(){}},0,0,0,label);
+   document.createElement=real;return drawn;
+ },{method});
+ for(const expected of ['TOP OF LOAD','UPRIGHT HEIGHT','FRAME DEPTH','GROUND–BEAM'])assert(labels.some(label=>label.includes(expected)),expected);
+ assert.deepEqual(errors,[]);
+ await page.screenshot({path:'../outputs/barrier-scan-release/verified-ui.png'});
+ console.log('PASS: scan→direction→1100mm barrier, cancellation, rack movement, tunnel association, original foot protection, English report captions/canvas labels, hide/restore BOM and page numbers.');
+}finally{await browser.close();}

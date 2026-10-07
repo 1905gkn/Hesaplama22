@@ -54,6 +54,9 @@
       [/^HER BÖLÜM ([\d.,]+ mm)$/, m => `${fr ? 'CHAQUE TRAVÉE' : 'EACH BAY'} ${m[1]}`],
       [/^HER BÖLÜMDE (\d+) PALET × ([\d.,]+ mm)$/, m => fr ? `${m[1]} PALETTES × ${m[2]} PAR TRAVÉE` : `${m[1]} PALLETS × ${m[2]} PER BAY`],
       [/^(\d+) KAT$/, m => `${m[1]} ${fr ? 'NIVEAUX' : 'LEVELS'}`],
+      [/^(\d+)\s+paletli$/i, m => fr ? `${m[1]} palettes` : `${m[1]} pallets`],
+      [/^([\d.,]+)\s+PALET$/, m => `${m[1]} ${fr ? 'PALETTES' : 'PALLETS'}`],
+      [/^([\d.,]+)\s+ADET$/, m => `${m[1]} ${fr ? 'PIÈCES' : 'PCS'}`],
       [/^KATTA TOPLAM (\d+) PALET$/, m => `${m[1]} ${fr ? 'PALETTES PAR NIVEAU' : 'PALLETS PER LEVEL'}`],
       [/^AYAK ([\d.,]+ mm)$/, m => `${fr ? 'MONTANT' : 'UPRIGHT'} ${m[1]}`]
     ];

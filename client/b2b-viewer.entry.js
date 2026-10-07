@@ -35,6 +35,8 @@ const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 class B2BViewer {
   constructor(canvas, options = {}) {
     this.canvas = canvas;
+    // Detached report scenes use output language, independent of saved program language.
+    this.reportLanguage = !canvas.id ? document.getElementById('m2ReportLanguage')?.value : null;
     this.options = options;
     this.models = null;
     this.frame = null;
@@ -733,13 +735,13 @@ class B2BViewer {
     context.scale(scale, scale); context.font = `900 ${fontSize}px Arial`;
     context.fillStyle = "rgba(5,40,72,.98)"; context.beginPath(); context.roundRect(0, 0, labelWidth, labelHeight, 18); context.fill();
     context.strokeStyle = "#3e8fb2"; context.lineWidth = 4; context.stroke();
-    const localizedText = window.rafexDimensionText?.(text, this.options.language || document.documentElement.lang) || text;
+    const localizedText = window.rafexDimensionText?.(text, this.reportLanguage || this.options.language || document.documentElement.lang) || text;
     context.fillStyle = "#fff"; context.textAlign = "center"; context.textBaseline = "middle"; context.fillText(localizedText, labelWidth / 2, labelHeight / 2, labelWidth - 36);
     const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace; texture.anisotropy = Math.min(16, this.renderer.capabilities.getMaxAnisotropy());
     const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map:texture, depthTest:false, transparent:true }));
-    let labelLanguage = this.options.language || document.documentElement.lang;
+    let labelLanguage = this.reportLanguage || this.options.language || document.documentElement.lang;
     sprite.onBeforeRender = () => {
-      const language = this.options.language || document.documentElement.lang;
+      const language = this.reportLanguage || this.options.language || document.documentElement.lang;
       if (language === labelLanguage) return;
       labelLanguage = language;
       context.clearRect(0, 0, labelWidth, labelHeight);
