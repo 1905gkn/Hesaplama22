@@ -97,7 +97,7 @@ export function installBarrierScan() {
   const start=m2StartProtectionPlacement;
   m2StartProtectionPlacement=function(){
     if(m2ProtectionChoice!=='barrier')return start.apply(this,arguments);
-    if(!m2LayoutState.points.length){status('Önce serbest yerleşim alanını oluştur.');return;}
+    if(!m2LayoutState.racks.some(rack=>barrierFrameSlots(rack,m2LayoutState.scale).length)){status('Önce çizim alanına en az bir B2B raf ekle.');return;}
     close();m2ProtectionDraft={type:'barrier',start:null,hover:null};m2CloseProtectionDialog();
     document.getElementById('m2ProtectionButton')?.classList.add('active');
     status('Bariyer eklenecek ayakları basılı tutup tarayarak seç. Tarama sonunda yönünü seçebilirsin.');
