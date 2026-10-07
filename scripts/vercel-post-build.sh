@@ -229,6 +229,7 @@ node scripts/patch-section-viewer-loader-v290.mjs
 node scripts/patch-section-right-drag-v291.mjs
 node scripts/patch-section-held-wheel-v292.mjs
 node scripts/patch-detail-held-wheel-v293.mjs
+node scripts/patch-common-main-mouse-v294.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
