@@ -182,6 +182,7 @@ node scripts/patch-alignment-help-v250.mjs
 node scripts/patch-mr-tray-clean-v251.mjs
 node scripts/patch-mr-span-v252.mjs
 node scripts/patch-new-project-lock-v253.mjs
+node scripts/patch-site-localization-v202.mjs
 node scripts/patch-copy-all-v254.mjs
 node scripts/patch-shared-stations-v255.mjs
 node scripts/patch-wall-alignment-v256.mjs
