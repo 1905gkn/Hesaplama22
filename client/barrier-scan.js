@@ -89,7 +89,7 @@ export function installBarrierScan() {
     const plus=vertical?(Math.sin(angle)>0?'Altına':'Üstüne'):(Math.cos(angle)>0?'Sağına':'Soluna');
     const minus=vertical?(Math.sin(angle)>0?'Üstüne':'Altına'):(Math.cos(angle)>0?'Soluna':'Sağına');
     const sizes=[...new Set(slots.map(s=>Math.round(s.lengthMm)))].sort((a,b)=>a-b).join(' / ');
-    modal.innerHTML=`<div class="m2-symbol-dialog"><div class="m2-symbol-head"><div><b id="rafexBarrierDirectionTitle">${tr('Bariyer hangi yönde olsun?')}</b><small>${slots.length} ${tr('ayak takımı')} · ${sizes} mm · ${tr('Ayaktan net uzaklık')}: 100 mm</small></div><button type="button" data-cancel aria-label="${tr('Kapat')}">×</button></div><p>${tr('Taranan ayakların hangi tarafına bariyer eklensin?')}</p><div class="m2-symbol-actions"><button type="button" data-cancel>${tr('Vazgeç')}</button><button type="button" data-side="-1">${tr(minus)}</button><button type="button" data-side="1">${tr(plus)}</button></div></div>`;
+    modal.innerHTML=`<style>#rafexBarrierDirection .rafex-barrier-actions{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-top:16px}#rafexBarrierDirection .rafex-barrier-sides{display:flex;flex-direction:column;gap:8px;flex:0 1 220px}#rafexBarrierDirection .rafex-barrier-actions button{padding:10px 20px;border:0;border-radius:8px;font-weight:700;cursor:pointer}#rafexBarrierDirection [data-side]{background:#197452;color:white}#rafexBarrierDirection .rafex-barrier-cancel{background:#edf0ef;color:#173e30}</style><div class="m2-symbol-dialog"><div class="m2-symbol-head"><div><b id="rafexBarrierDirectionTitle">${tr('Bariyer hangi yönde olsun?')}</b><small>${slots.length} ${tr('ayak takımı')} · ${sizes} mm · ${tr('Ayaktan net uzaklık')}: 100 mm</small></div><button type="button" data-cancel aria-label="${tr('Kapat')}">×</button></div><p>${tr('Taranan ayakların hangi tarafına bariyer eklensin?')}</p><div class="rafex-barrier-actions"><div class="rafex-barrier-sides"><button type="button" data-side="-1">${tr(minus)}</button><button type="button" data-side="1">${tr(plus)}</button></div><button type="button" class="rafex-barrier-cancel" data-cancel>${tr('Vazgeç')}</button></div></div>`;
     modal.addEventListener('click',event=>{const button=event.target.closest('button');if(button?.hasAttribute('data-cancel'))close();else if(button?.dataset.side)finish(Number(button.dataset.side));});
     modal.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();close();}if(event.key==='Tab'){const buttons=[...modal.querySelectorAll('button')];const index=buttons.indexOf(document.activeElement);event.preventDefault();buttons[(index+(event.shiftKey?-1:1)+buttons.length)%buttons.length].focus();}});
     document.body.appendChild(modal);modal.querySelector('[data-side]')?.focus();
@@ -98,7 +98,11 @@ export function installBarrierScan() {
   m2StartProtectionPlacement=function(){
     if(m2ProtectionChoice!=='barrier')return start.apply(this,arguments);
     if(!m2LayoutState.racks.some(rack=>barrierFrameSlots(rack,m2LayoutState.scale).length)){status('Önce çizim alanına en az bir B2B raf ekle.');return;}
-    close();m2ProtectionDraft={type:'barrier',start:null,hover:null};m2CloseProtectionDialog();
+    close();
+    // A previous barrier stays selected after adding it. Clear that selection
+    // before scanning, so the outside-pointer handler cannot cancel this draft.
+    if(typeof m2ClearAllSelections==='function')m2ClearAllSelections('',false);
+    m2ProtectionDraft={type:'barrier',start:null,hover:null};m2CloseProtectionDialog();
     document.getElementById('m2ProtectionButton')?.classList.add('active');
     status('Bariyer eklenecek ayakları basılı tutup tarayarak seç. Tarama sonunda yönünü seçebilirsin.');
   };
