@@ -222,6 +222,7 @@ node scripts/patch-direct-vector-pdf-v283.mjs
 node scripts/patch-mixed-row-choice-v284.mjs
 node scripts/patch-native-faithful-pdf-v285.mjs
 node scripts/patch-output-performance-measures-v286.mjs
+node scripts/patch-pallet-separation-v287.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
