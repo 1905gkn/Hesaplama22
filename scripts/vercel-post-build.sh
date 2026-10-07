@@ -182,7 +182,6 @@ node scripts/patch-alignment-help-v250.mjs
 node scripts/patch-mr-tray-clean-v251.mjs
 node scripts/patch-mr-span-v252.mjs
 node scripts/patch-new-project-lock-v253.mjs
-node scripts/patch-site-localization-v202.mjs
 node scripts/patch-copy-all-v254.mjs
 node scripts/patch-shared-stations-v255.mjs
 node scripts/patch-wall-alignment-v256.mjs
@@ -208,6 +207,7 @@ node scripts/patch-history-layout-v272.mjs
 node scripts/patch-solid-shared-feet-v273.mjs
 node scripts/patch-end-frames-v274.mjs
 node scripts/verify-end-frames-v274.mjs
+node scripts/patch-site-localization-v202.mjs
 node scripts/patch-report-localization-v275.mjs
 node scripts/verify-localization-preserved.mjs dist/server/index.js
 node scripts/patch-upright-paint-v276.mjs
