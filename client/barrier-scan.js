@@ -69,7 +69,7 @@ export function installBarrierScan() {
       const rack=m2LayoutState.racks.find(r=>r.id===slot.rackId);
       if(!rack)return[];
       const fresh=barrierFrameSlots(rack,m2LayoutState.scale).find(s=>s.edge===slot.edge);
-      return fresh?[barrierPlacement(fresh,side,current.depthMm)]:[];
+      return fresh?[{...barrierPlacement(fresh,side,current.depthMm),ral:current.ral}]:[];
     });
     const additions=candidates.filter(candidate=>!m2LayoutSymbols.some(symbol=>symbol.type==='barrier' && Math.hypot(symbol.x+symbol.w/2-candidate.x-candidate.w/2,symbol.y+symbol.h/2-candidate.y-candidate.h/2)<Math.max(1,m2LayoutState.scale*10) && Math.abs(Number(symbol.widthMm)-candidate.widthMm)<1));
     if(additions.length){
@@ -82,8 +82,8 @@ export function installBarrierScan() {
     if(typeof m2RefreshActiveReport==='function')m2RefreshActiveReport();
     status(additions.length ? `${additions.length} bariyer eklendi; ayaktan net 100 mm önde.` : 'Bu ayaklarda seçilen yöndeki bariyer zaten mevcut.');
   }
-  function ask(slots,depthMm) {
-    close();pending={slots,depthMm};
+  function ask(slots,depthMm,ral='1007') {
+    close();pending={slots,depthMm,ral};
     const modal=document.createElement('div');modal.id='rafexBarrierDirection';modal.className='m2-layout-modal';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-labelledby','rafexBarrierDirectionTitle');
     const angle=slots[0].angle*Math.PI/180,vertical=Math.abs(Math.sin(angle))>Math.abs(Math.cos(angle));
     const plus=vertical?(Math.sin(angle)>0?'Altına':'Üstüne'):(Math.cos(angle)>0?'Sağına':'Soluna');
@@ -116,7 +116,7 @@ export function installBarrierScan() {
     const depthMm=Math.max(50,Number(document.getElementById('m2BarrierDepth')?.value)||150);
     m2ProtectionDraft=null;document.getElementById('m2ProtectionButton')?.classList.remove('active');m2RenderLayout();
     if(!slots.length){status('Taranan alan içinde bariyer eklenecek raf ayağı bulunamadı.');return;}
-    ask(slots,depthMm);
+    ask(slots,depthMm,document.getElementById('m2BarrierRal')?.value==='2004'?'2004':'1007');
   };
   const sync=m2SyncAttachedProtections;
   m2SyncAttachedProtections=function(){
@@ -129,8 +129,21 @@ export function installBarrierScan() {
     });
   };
   const host=m2BarrierHostRack;
-  m2BarrierHostRack=function(symbol){return symbol?.barrierScan ? m2LayoutState.racks.find(r=>r.id===symbol.rackId)||null : host.apply(this,arguments);};
+  m2BarrierHostRack=function(symbol){
+    if(!symbol?.barrierScan)return host.apply(this,arguments);
+    const center={x:symbol.x+symbol.w/2,y:symbol.y+symbol.h/2};
+    // The frame may belong to the neighboring regular bay. Its barrier can
+    // project into the tunnel, so resolve the occupied tunnel before its owner.
+    const tunnel=m2LayoutState.racks.find(r=>Number(r.b2b?.tunnelHeight)>0&&typeof m2RackContainsCanvasPoint==='function'&&m2RackContainsCanvasPoint(r,center));
+    return tunnel||m2LayoutState.racks.find(r=>r.id===symbol.rackId)||null;
+  };
+  if(typeof barrierShape==='function'){
+    const shape=barrierShape;
+    barrierShape=function(symbol){const html=shape.apply(this,arguments);return symbol?.ral==='2004'?html.replaceAll('#e5be01','#f44611').replaceAll('#6d5900','#91300e').replaceAll('#fff3a2','#ffbb91').replaceAll('#806900','#91300e'):html;};
+  }
   const open=m2OpenProtectionDialog;
   m2OpenProtectionDialog=function(){open.apply(this,arguments);const modal=document.getElementById('m2ProtectionModal');const note=modal?.querySelector('.m2-symbol-head small');if(note)note.textContent='Ayak veya bariyer koruma için çizimde taranacak alanı seç.';const length=document.getElementById('m2BarrierLength');if(length){length.disabled=true;length.title='Bariyer uzunluğu seçilen ayak derinliğine göre otomatik hesaplanır.';length.closest('label').style.display='none';}};
+  const colorOpen=m2OpenProtectionDialog;
+  m2OpenProtectionDialog=function(){colorOpen.apply(this,arguments);const sizes=document.getElementById('m2BarrierSizes');if(sizes&&!document.getElementById('m2BarrierRal')){const label=document.createElement('label');label.textContent='Bariyer rengi';const select=document.createElement('select');select.id='m2BarrierRal';select.innerHTML='<option value="1007">RAL 1007</option><option value="2004">RAL 2004</option>';label.appendChild(select);sizes.appendChild(label);}const color=document.getElementById('m2BarrierRal');if(color)color.value='1007';};
   window.rafexBarrierScan={cancel:close,finish};
 }
