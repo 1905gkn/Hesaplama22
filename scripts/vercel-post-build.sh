@@ -214,6 +214,7 @@ node scripts/verify-localization-preserved.mjs dist/server/index.js
 node scripts/patch-upright-paint-v276.mjs
 node scripts/patch-barrier-scan-v277.mjs
 node scripts/patch-report-options-v278.mjs
+node scripts/patch-pdf-plan-clean-v279.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
