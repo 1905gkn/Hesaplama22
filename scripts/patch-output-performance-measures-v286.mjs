@@ -1,0 +1,38 @@
+import fs from 'node:fs';
+export function transform(html){
+ if(html.includes('output-performance-measures-v286'))return html;
+ const rep=(a,b)=>{if(!html.includes(a))throw Error('Missing v286 anchor '+a.slice(0,80));html=html.replaceAll(a,b);};
+ rep("const copy=document.createElement('div');copy.innerHTML=target.innerHTML;","const copy=document.createElement('div');copy.append(...target.childNodes);");
+ rep('print.innerHTML=prepared?document.getElementById("m2CorporatePreview").innerHTML:m2BuildCorporatePages();','if(prepared)print.append(...[...document.getElementById("m2CorporatePreview").childNodes].map(node=>node.cloneNode(true)));else print.innerHTML=m2BuildCorporatePages();');
+ rep("originals.forEach((original,index)=>{", "const paintRulesV286=new Map(),paintTokenV286=String(window.__rafexPaintSequenceV286=(window.__rafexPaintSequenceV286||0)+1);copy.setAttribute('data-rafex-paint-v286',paintTokenV286);originals.forEach((original,index)=>{");
+ rep("for(const name of properties){", "const declarationsV286=[];for(const name of properties){");
+ rep("if(value)target.style.setProperty(name,value,'important');", "if(value&&name!=='filter')declarationsV286.push(name+':'+value+' !important');");
+ rep("if(paint.getPropertyValue('vector-effect')==='non-scaling-stroke'){", "const cssV286=declarationsV286.join(';');let classV286=paintRulesV286.get(cssV286);if(!classV286){classV286='rafex-paint-v286-'+paintRulesV286.size;paintRulesV286.set(cssV286,classV286);}target.classList.add(classV286);if(paint.getPropertyValue('vector-effect')==='non-scaling-stroke'){");
+ rep("  copy.querySelectorAll('[data-wall-alignment-v256],[data-draw-hover-v260]').forEach(n=>n.remove());", "const paintStyleV286=document.createElementNS('http://www.w3.org/2000/svg','style');paintStyleV286.textContent=[...paintRulesV286].map(([css,name])=>'[data-rafex-paint-v286=\"'+paintTokenV286+'\"] .'+name+'{'+css+'}').join('');copy.appendChild(paintStyleV286);\n"+"  copy.querySelectorAll('[data-wall-alignment-v256],[data-draw-hover-v260]').forEach(n=>n.remove());");
+ rep("[root,...root.querySelectorAll('*')].forEach(node=>{if(!node.style)return;set(node,'filter','none');node.removeAttribute('filter');});","[root,...root.querySelectorAll('[filter],[style*=\"filter:\"]')].forEach(node=>{if(!node.style)return;if(node.hasAttribute('filter')||node.style.filter&&node.style.filter!=='none')set(node,'filter','none');node.removeAttribute('filter');});");
+ rep("const scopes='#m2LayoutSvg,.rafex-drag-scene-v248,#m2ReportFloor,#m2CorporatePreview,#m2CorporatePrint,#m2CorporatePrintArea,#m2A4PrintSheet,#m2A4PrintArea';","const scopes='#m2LayoutSvg,.rafex-drag-scene-v248,#m2ReportFloor svg,#m2CorporatePreview .m2-corporate-floor svg,#m2CorporatePrint .m2-corporate-floor svg,#m2CorporatePrintArea .m2-corporate-floor svg,#m2A4PrintSheet .m2-a4-floor svg,#m2A4PrintArea .m2-a4-floor svg';");
+ rep("set(node,'font-size','12px');","if(!node.dataset.rafexPdfGapV286)set(node,'font-size','12px');");
+ rep("async function restoreSelectedB2B(){try{if(typeof window.rafexRenderSelectedB2BSections==='function')await window.rafexRenderSelectedB2BSections(true)}","async function restoreSelectedB2B(){try{if(typeof window.rafexRenderSelectedB2BSections==='function')await window.rafexRenderSelectedB2BSections(false)}");
+ rep("if(activeId==null)return [];\n    var active=racks.find",`if(window.__rafexPdfMeasurePassV286){
+      const rows=new Map(),pairs=new Map();const axis=r=>{const angle=(Number(r.angle)||0)*Math.PI/180;return {angle,cross:-(r.x+r.w/2)*Math.sin(angle)+(r.y+r.h/2)*Math.cos(angle),along:(r.x+r.w/2)*Math.cos(angle)+(r.y+r.h/2)*Math.sin(angle)};};
+      for(const rack of racks){const a=axis(rack),key=Math.round(a.angle*1000)+':'+Math.round(a.cross*100);if(!rows.has(key))rows.set(key,[]);rows.get(key).push(rack);}
+      const representatives=[...rows.values()].map(row=>{row.sort((a,b)=>axis(a).along-axis(b).along);return row[Math.floor(row.length/2)];});
+      for(const rack of representatives){const a=axis(rack),near=[];for(const other of representatives){if(rack===other)continue;const b=axis(other);if(Math.abs(a.angle-b.angle)>.01||Math.abs(a.cross-b.cross)<.01)continue;const pair=pairCandidate(rack,other);if(pair&&pairMm(pair)>0)near.push(pair);}near.sort((a,b)=>a.distance-b.distance);const sides=new Set();for(const pair of near){const other=pair.a===rack?pair.b:pair.a,side=axis(other).cross<a.cross?'before':'after';if(sides.has(side))continue;sides.add(side);pairs.set(pairKey(pair),pair);}}
+      return [...pairs.values()];
+    }
+    if(activeId==null)return [];
+    var active=racks.find`);
+ rep('return activeId!=null&&pairTouches(pair,activeId)||pinnedPairGaps.has(pairKey(pair));','return window.__rafexPdfMeasurePassV286||activeId!=null&&pairTouches(pair,activeId)||pinnedPairGaps.has(pairKey(pair));');
+ rep("window.rafexRefreshPairDistances=function(){if(isFree()){var pairs=allPairs();renderPairControls(pairs);renderPairGuides(pairs);}};",`window.rafexRefreshPairDistances=function(){if(isFree()){var pairs=allPairs();renderPairControls(pairs);renderPairGuides(pairs);}};
+  window.rafexPreparePdfGapsV286=function(){
+    if(!isFree())return()=>{};const layer=document.getElementById('m2LayoutContent');if(!layer)return()=>{};
+    const original=[...layer.querySelectorAll('.m2-distance-guide[data-rack-gap],.rafex-common-pair-gap')];original.forEach(n=>n.remove());
+    window.__rafexPdfMeasurePassV286=true;try{renderPairGuides(allPairs());}finally{window.__rafexPdfMeasurePassV286=false;}
+    return()=>{layer.querySelectorAll('.m2-distance-guide[data-rack-gap],.rafex-common-pair-gap').forEach(n=>n.remove());layer.append(...original);};
+  };`);
+ const end=html.lastIndexOf('</body>');return html.slice(0,end)+`<script>/* output-performance-measures-v286 */
+(()=>{const clone=rafexPdfLayoutCloneV140;let preparing=false;rafexPdfLayoutCloneV140=function(source){if(preparing||source?.id!=='m2LayoutSvg')return clone.apply(this,arguments);const cache=window.rafexPlanCacheV258,existing=cache?.get(m2LayoutState);if(existing?.copy?.dataset.rafexMeasuresV286)return clone.apply(this,arguments);preparing=true;const restore=window.rafexPreparePdfGapsV286?.()||(()=>{});try{const result=clone.apply(this,arguments);result?.setAttribute('data-rafex-measures-v286','1');if(result){const size=Math.max(12,result.viewBox.baseVal.height/70);result.querySelectorAll('[data-rack-gap] .m2-rack-distance-label').forEach(label=>{label.dataset.rafexPdfGapV286='1';label.style.setProperty('font-size',size+'px','important');label.style.setProperty('font-weight','700','important');const line=label.closest('[data-rack-gap]')?.querySelector('line');if(line&&Math.abs(Number(line.getAttribute('x2'))-Number(line.getAttribute('x1')))>Math.abs(Number(line.getAttribute('y2'))-Number(line.getAttribute('y1')))){label.style.setProperty('transform','rotate(-90deg)','important');label.style.setProperty('transform-origin',label.getAttribute('x')+'px '+label.getAttribute('y')+'px','important');label.style.setProperty('transform-box','view-box','important');}});}const saved=cache?.get(m2LayoutState);if(saved&&result)saved.copy=result.cloneNode(true);return result;}finally{restore();preparing=false;}};window.rafexOutputPerfV286=true;})();</script>`+html.slice(end);
+}
+if(process.argv[1]?.replaceAll('\\','/').endsWith('/patch-output-performance-measures-v286.mjs')){
+ const f='dist/server/index.js',s=fs.readFileSync(f,'utf8'),m=s.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/);if(!m)throw Error('Missing HTML');fs.writeFileSync(f,s.replace(m[1],Buffer.from(transform(Buffer.from(m[1],'base64').toString())).toString('base64')));
+}
