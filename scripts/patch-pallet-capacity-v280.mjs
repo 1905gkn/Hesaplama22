@@ -12,7 +12,7 @@ export function transform(html){
  ];
  for(const [from,to]of exact){if(!html.includes(from))throw Error('Missing pallet count anchor: '+from.slice(0,60));html=html.replaceAll(from,to);}
  const runtime=fs.readFileSync(new URL('../client/pallet-capacity.js',import.meta.url),'utf8');
- return html.replace('</body>','<script>'+runtime+'</script></body>');
+ const end=html.lastIndexOf('</body>');if(end<0)throw Error('Missing document body');return html.slice(0,end)+'<script>'+runtime+'</script>'+html.slice(end);
 }
 if(process.argv[1]?.replaceAll('\\','/').endsWith('/patch-pallet-capacity-v280.mjs')){
  const f='dist/server/index.js',s=fs.readFileSync(f,'utf8'),m=s.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/);if(!m)throw Error('Missing embedded HTML');fs.writeFileSync(f,s.replace(m[1],Buffer.from(transform(Buffer.from(m[1],'base64').toString())).toString('base64')));
