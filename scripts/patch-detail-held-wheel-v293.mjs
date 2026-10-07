@@ -26,7 +26,8 @@ export function transform(html){
  if(html.includes('detail-held-wheel-v293'))return html;
  const anchor="detailViewer=viewer;viewer?.setView?.('perspective');";
  if(!html.includes(anchor))throw Error('Missing shared rack detail viewer');
- return html.replace(anchor,"detailViewer=viewer;window.rafexDetailMouseV293(viewer,canvas);viewer?.setView?.('perspective');").replace("Mouse ile döndür · tekerlek ile yakınlaştır","Sağ tuş: döndür · sağ tuş basılı + tekerlek: yakınlaştır").replace('</body>','<script>'+runtime+'</script></body>');
+ const patched=html.replace(anchor,"detailViewer=viewer;window.rafexDetailMouseV293(viewer,canvas);viewer?.setView?.('perspective');").replace("Mouse ile döndür · tekerlek ile yakınlaştır","Sağ tuş: döndür · sağ tuş basılı + tekerlek: yakınlaştır");
+ const end=patched.lastIndexOf('</body>');if(end<0)throw Error('Missing document body');return patched.slice(0,end)+'<script>'+runtime+'</script>'+patched.slice(end);
 }
 if(process.argv[1]?.replaceAll('\\','/').endsWith('/patch-detail-held-wheel-v293.mjs')){
  const f='dist/server/index.js',s=fs.readFileSync(f,'utf8'),m=s.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/);if(!m)throw Error('Missing HTML');fs.writeFileSync(f,s.replace(m[1],Buffer.from(transform(Buffer.from(m[1],'base64').toString())).toString('base64')));
