@@ -225,6 +225,7 @@ node scripts/patch-output-performance-measures-v286.mjs
 node scripts/patch-pallet-separation-v287.mjs
 node scripts/patch-bulk-join-restore-v288.mjs
 node scripts/patch-konsol-snapshot-sync-v289.mjs
+node scripts/patch-section-viewer-loader-v290.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
