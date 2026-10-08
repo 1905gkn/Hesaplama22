@@ -240,6 +240,7 @@ node scripts/patch-output-array-v301.mjs
 node scripts/patch-area-save-validation-v302.mjs
 node scripts/patch-visible-collision-v303.mjs
 node scripts/patch-save-error-marker-v304.mjs
+node scripts/patch-pallet-variant-label-v305.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
