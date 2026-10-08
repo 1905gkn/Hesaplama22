@@ -12,7 +12,7 @@ export function transform(html){
         const drawing=entry?.drawing;
         const original=Number(drawing?.b2bLayout?.palletCount||drawing?.b2b?.palletCount||drawing?.b2bViewerOptions?.palletCount);
         const variant=Number.isInteger(count)&&count>0&&original>0&&count!==original;
-        return variant?(tunnel?tunnel+' - '+count:'- '+count):tunnel;
+        return variant?(tunnel?tunnel+' - '+count:String(count)):tunnel;
       }
       function m2ProjectPlacementError() {`);
  rep('JSON.stringify([rack,index,globalKeyV212,rack.id===', 'JSON.stringify([rack,index,globalKeyV212,m2PalletVariantLabelV305(rack),rack.id===');
