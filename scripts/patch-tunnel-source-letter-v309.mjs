@@ -5,7 +5,7 @@ export function transform(html){
  if(!html.includes(anchor))throw Error('Missing tunnel-only identity restore');
  return html.replace(anchor,`   /* tunnel-source-letter-v309 */
    const sourceName=String(session.original.rafexCustomNameV203||session.original.typeName||session.original.rafexGlobalTypeLetter||'').trim();
-   if(sourceName){r.typeName=sourceName;r.rafexGlobalTypeLetter=sourceName;r.rafexSectionLetter=sourceName;}
+   if(sourceName){r.typeName=sourceName;r.rafexGlobalTypeLetter=sourceName;r.rafexSectionLetter=sourceName;r.rafexCustomNameV203=sourceName;}
 `+anchor);
 }
 if(process.argv[1]?.replaceAll('\\','/').endsWith('/patch-tunnel-source-letter-v309.mjs')){
