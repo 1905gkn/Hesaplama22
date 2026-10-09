@@ -120,7 +120,7 @@
         const calculationOptions = options?.__rafexCalculationOptions;
         if (calculationOptions && typeof calculationOptions === "object") {
           Object.assign(captureOptions, calculationOptions);
-        } else {
+        } else if (!(num(captureOptions.footHeight, 0) > 0)) {
           captureOptions.footHeight = viewerFormulaFootHeight(captureOptions);
         }
         delete captureOptions.__rafexCalculationOptions;
