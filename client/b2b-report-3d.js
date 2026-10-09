@@ -181,7 +181,10 @@
 
   function viewerOptions(drawing) {
     if(drawing?.b2b&&!drawing.b2b.mr&&typeof window.rafexB2BDetailOptionsV117==='function'){
-      return {...window.rafexB2BDetailOptionsV117(drawing),moduleCount:1,moduleOptions:null};
+      // Type sections describe the calculated rack, independent of its layout neighbours.
+      const source={...drawing};
+      delete source.id;delete source.sharedFootWith;delete source.sharedFootSide;delete source.joinGroup;
+      return {...window.rafexB2BDetailOptionsV117(source),moduleCount:1,moduleOptions:null,frameHeights:null};
     }
     let options = null;
     try {
