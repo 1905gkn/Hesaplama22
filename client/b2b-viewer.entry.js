@@ -723,7 +723,41 @@ class B2BViewer {
     this.addLine(layer, [new THREE.Vector3(x - arrow, from + arrow, -height), front, new THREE.Vector3(x + arrow, from + arrow, -height)]);
     this.addLine(layer, [new THREE.Vector3(x - arrow, to - arrow, -height), back, new THREE.Vector3(x + arrow, to - arrow, -height)]);
     this.addPoint(layer, front); this.addPoint(layer, back);
-    this.addDimensionLabelAt(layer, x + 320, (from + to) / 2, -height, label, 620);
+    if (!this.canvas.id) this.addReportDepthLabel(layer, x + 320, (from + to) / 2, -height, label);
+    else this.addDimensionLabelAt(layer, x + 320, (from + to) / 2, -height, label, 620);
+  }
+
+
+  addReportDepthLabel(layer, x, y, z, text) {
+    // Report preview and PDF share this texture; keep the measurement on its own line.
+    const canvas = document.createElement("canvas"), width = 1000, height = 210, scale = 3;
+    canvas.width = width * scale; canvas.height = height * scale;
+    const context = canvas.getContext("2d"); context.scale(scale, scale);
+    const language = () => this.reportLanguage || this.options.language || document.documentElement.lang;
+    const paint = () => {
+      const localized = String(window.rafexDimensionText?.(text, language()) || text);
+      const separator = localized.lastIndexOf("·");
+      const title = separator < 0 ? localized : localized.slice(0, separator).trim();
+      const value = separator < 0 ? "" : localized.slice(separator + 1).trim();
+      context.clearRect(0, 0, width, height);
+      context.fillStyle = "rgba(5,40,72,.98)"; context.beginPath(); context.roundRect(0, 0, width, height, 18); context.fill();
+      context.strokeStyle = "#3e8fb2"; context.lineWidth = 3; context.stroke();
+      context.textAlign = "center"; context.textBaseline = "middle";
+      let fontSize = 44; context.font = `600 ${fontSize}px Arial`;
+      while (context.measureText(title).width > width - 64 && fontSize > 30) context.font = `600 ${--fontSize}px Arial`;
+      context.fillStyle = "#d8edf7"; context.fillText(title, width / 2, 61);
+      context.font = "700 82px Arial"; context.fillStyle = "#fff"; context.fillText(value, width / 2, 143);
+    };
+    paint();
+    const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace;
+    texture.anisotropy = Math.min(16, this.renderer.capabilities.getMaxAnisotropy());
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, depthTest: false, transparent: true }));
+    let previousLanguage = language();
+    sprite.onBeforeRender = () => { if (previousLanguage !== language()) { previousLanguage = language(); paint(); texture.needsUpdate = true; } };
+    const userScale = this.options.dimensionLabelScale || 1;
+    sprite.position.set(x, y, z); sprite.scale.set(1240 * userScale, 260.4 * userScale, 1);
+    sprite.userData.dimensionLabel = true; sprite.userData.baseScale = sprite.scale.clone();
+    sprite.renderOrder = 101; this.dimensionLabels.push(sprite); layer.add(sprite);
   }
 
   addDimensionLabel(layer, x, y, height, text, width = 800) {
@@ -762,7 +796,9 @@ class B2BViewer {
   }
 
   contentBounds() {
-    return new THREE.Box3().setFromObject(this.content);
+    const bounds = new THREE.Box3().setFromObject(this.content);
+    if (!this.canvas.id && this.options.dimensions?.depth) bounds.min.y -= 320;
+    return bounds;
   }
 
   addGround() {
