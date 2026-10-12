@@ -55,6 +55,12 @@ function rejects(f,pattern){const before=JSON.stringify(f.areas),types=JSON.stri
  const f=fixture();f.source.drawing.b2bLayout.rowCount=2;rejects(f,/sıra/);
 }
 {
+ const f=fixture();f.rack.joinGroup='group';f.source.drawing.totalWidth=1000;f.source.drawing.widthMm=1000;delete f.source.drawing.levels;f.source.drawing.b2bLayout.frameDepth=900;rejects(f,/Birleşik/);
+}
+{
+ const f=fixture();f.source.drawing.totalWidth=Infinity;f.source.drawing.widthMm=Infinity;rejects(f,/geçersiz/);
+}
+{
  const f=fixture();f.layout.closed=false;f.layout.openFinished=true;f.layout.points=[{x:100,y:0},{x:100,y:200}];rejects(f,/duvar/);
 }
 {

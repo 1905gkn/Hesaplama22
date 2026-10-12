@@ -27,7 +27,7 @@
     result.typeColor = typeof m2TypeColor === 'function' ? m2TypeColor(target.name) : rack.typeColor;
     result.widthMm = Number(drawing.totalWidth || drawing.widthMm);
     result.depthMm = Number(drawing.railLength || drawing.depthMm);
-    if (!(result.widthMm > 0 && result.depthMm > 0)) throw Error('Kopyalanacak kesitin ölçüleri geçersiz.');
+    if (![result.widthMm,result.depthMm].every(value=>Number.isFinite(value)&&value>0)) throw Error('Kopyalanacak kesitin ölçüleri geçersiz.');
     result.w = Math.max(.5, result.widthMm * scale);
     result.h = Math.max(.5, result.depthMm * scale);
     return result;
@@ -47,10 +47,11 @@
         const old = previous.racks.find(item => item.id === rack.id);
         const linked = old.joinGroup || old.sharedFootWith != null || racks.some(item => item.sharedFootWith === rack.id);
         const dimensionsChanged = Math.abs(Number(old.w)-rack.w)>.001 || Math.abs(Number(old.h)-rack.h)>.001;
+        const frameChanged = ['frameDepth','rowGap','palletOverhang'].some(field => Number(old.b2bLayout?.[field]||0)!==Number(rack.b2bLayout?.[field]||0));
         const upright = item => Number(item.sideUprightHeight || item.totalRackHeight || item.footLy || item.footHeight || item.b2b?.footHeight || 0);
         const calculatedHeightChanged = system(rack)==='b2b' && typeof m2B2BCalculatedFootHeight==='function' && m2B2BCalculatedFootHeight(old)!==m2B2BCalculatedFootHeight(rack);
         const footChanged = calculatedHeightChanged || upright(old)!==upright(rack) || ['footType','footProfile'].some(field => JSON.stringify(old[field]) !== JSON.stringify(rack[field]));
-        if (linked && (dimensionsChanged || footChanged)) fail(rack,'Birleşik rafın ölçüleri veya ayağı değişiyor. Önce birleşimi ayırın, ardından kesiti değiştirip rafları yeniden birleştirin.');
+        if (linked && (dimensionsChanged || frameChanged || footChanged)) fail(rack,'Birleşik rafın ölçüleri veya ayağı değişiyor. Önce birleşimi ayırın, ardından kesiti değiştirip rafları yeniden birleştirin.');
         if (rack.staged) continue;
         if (!m2RackInsideArea(rack)) fail(rack,'Yeni kesit alan sınırını aşıyor veya duvarla çakışıyor.');
         // Corner containment alone misses a rack spanning a recess in a concave area.
