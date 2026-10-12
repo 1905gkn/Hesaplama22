@@ -1,6 +1,13 @@
 (() => {
   const clone = value => JSON.parse(JSON.stringify(value));
   const system = entry => entry.__rafexSystem || entry.system || entry.rafexSystem || entry.drawing?.rafexSystem || (entry.b2b?.mr ? 'mr' : entry.b2b ? 'b2b' : entry.systemType || 'mekik2');
+  const rowCount = entry => {
+    if (system(entry) !== 'b2b') return null;
+    const drawing = entry.__rafexSnapshot || entry.drawing || entry;
+    const rows = Number(drawing.b2bLayout?.rowCount);
+    return rows === 1 || rows === 2 ? rows : (drawing.b2b?.rowType || drawing.b2bViewerOptions?.rowType) === 'double' ? 2 : 1;
+  };
+  const compatible = (target, source) => system(target) === system(source) && rowCount(target) === rowCount(source);
   const key = entry => system(entry) + ':' + entry.id;
   const status = text => { const node = document.getElementById('m2FloorStatus'); if (node) node.textContent = text; };
   function replaceRack(rack, drawing, target, scale) {
@@ -26,7 +33,7 @@
     return result;
   }
   function applyReplacement(target, source) {
-    if (key(target) === key(source) || system(target) !== system(source)) throw Error('Aynı sistemde farklı bir kesit seçin.');
+    if (key(target) === key(source) || !compatible(target, source)) throw Error('Aynı sistemde ve aynı sıra tipinde farklı bir kesit seçin. Tek sıra çift sıraya, çift sıra tek sıraya dönüştürülemez.');
     if (window.rafexCanEditProjectV134?.() === false) throw Error('Bu proje değiştirilemiyor.');
     const types = window.rafexProjectTypesV133 || m2SavedRackTypes;
     const index = types.findIndex(entry => key(entry) === key(target));
@@ -45,6 +52,7 @@
       area.layout.racks = (area.layout.racks || []).map(rack => {
         const matches = system(rack) === system(target) && (rack.rafexCatalogKey ? rack.rafexCatalogKey === key(target) : rack.typeName === target.name);
         if (!matches) return rack;
+        if (!compatible(rack, source)) throw Error(target.name + ' içinde farklı sıra tipinde blok var; sıra tipi değiştirilmedi.');
         count++;
         return replaceRack(rack, drawing, target, scale);
       });
@@ -83,12 +91,12 @@
   let dialog, targetKey, projectOwner;
   function open(target) {
     const types = window.rafexProjectTypesV133 || m2SavedRackTypes;
-    const sources = types.filter(entry => system(entry) === system(target) && key(entry) !== key(target));
-    if (!sources.length) { status('Bu sistemde kopyalanabilecek başka bir kesit yok.'); return; }
+    const sources = types.filter(entry => compatible(target, entry) && key(entry) !== key(target));
+    if (!sources.length) { status('Bu sistemde aynı sıra tipinde kopyalanabilecek başka bir kesit yok.'); return; }
     dialog?.remove();
     dialog = document.createElement('dialog');
     dialog.id = 'rafexReplaceTypeV319';
-    dialog.innerHTML = '<form method="dialog"><h3>Değiştir · <span data-name></span></h3><label>Kopyalanacak kesit<select aria-label="Kopyalanacak kesit"></select></label><p>Seçilen kesitin özellikleri bu projedeki tüm <b data-name></b> bloklarına uygulanır. İsimleri korunur.</p><p data-error role="alert"></p><footer><button value="cancel">Vazgeç</button><button type="button" data-apply>Değiştir</button></footer></form>';
+    dialog.innerHTML = '<form method="dialog"><h3>Değiştir · <span data-name></span></h3><label>Kopyalanacak kesit<select aria-label="Kopyalanacak kesit"></select></label><p>Seçilen kesitin özellikleri bu projedeki tüm <b data-name></b> bloklarına uygulanır. İsimleri ve tek / çift sıra tipi korunur.</p><p data-error role="alert"></p><footer><button value="cancel">Vazgeç</button><button type="button" data-apply>Değiştir</button></footer></form>';
     dialog.querySelectorAll('[data-name]').forEach(node => node.textContent = target.name);
     const select = dialog.querySelector('select');
     for (const entry of sources) { const option = document.createElement('option'); option.value = key(entry); option.textContent = entry.name; select.appendChild(option); }
