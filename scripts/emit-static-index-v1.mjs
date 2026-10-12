@@ -17,7 +17,9 @@ if (!html.startsWith("<!doctype html>")) {
 
 
 const replacementRuntime=fs.readFileSync("client/replace-rack-type-v319.js","utf8");
-html=html.replace("</body>",'<script data-rafex-replace-type="v319">'+replacementRuntime+'</script></body>');
+const bodyEnd=html.lastIndexOf("</body>");
+if(bodyEnd<0)throw Error("Ana sayfanın kapanış etiketi bulunamadı.");
+html=html.slice(0,bodyEnd)+'<script data-rafex-replace-type="v319">'+replacementRuntime+'</script>'+html.slice(bodyEnd);
 
 const assetDirectory = "dist/inline-assets";
 fs.mkdirSync(assetDirectory, { recursive: true });
