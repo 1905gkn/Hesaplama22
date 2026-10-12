@@ -41,7 +41,7 @@ export function transform(html) {
   changeScript('data-common-perf',(text,original)=>original.replace(text,'/* simplified-ui-v321 */\n'+coordinator+'\n'+text));
   changeScript('data-rafex-uniform-system-banner',(text,original)=>{
     text=replace(text,"    var page=document.getElementById('page');if(!page)return;",`    var page=document.getElementById('page');if(!page)return;
-    if(page.querySelector('#trayForm')||document.querySelector('#nav button.active[data-page]')?.dataset.page==='tava'){
+    if(page.querySelector('#trayForm')||document.querySelector('#nav button.active[data-page]')?.dataset.page!=='free'){
       page.querySelectorAll('[data-rafex-system-banner]').forEach(node=>node.remove());
       if(document.body.classList.contains('rafex-common-header-v95'))document.body.classList.remove('rafex-common-header-v95');return;
     }`);
@@ -81,3 +81,4 @@ export function transform(html) {
   if(!html.slice(html.lastIndexOf('<script')).includes('window.rafexInstallLayoutBoundaryV321();'))html=html.slice(0,end)+'\nwindow.rafexInstallLayoutBoundaryV321();\n'+html.slice(end);
   return html;
 }
+
