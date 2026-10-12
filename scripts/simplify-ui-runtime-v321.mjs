@@ -43,7 +43,7 @@ export function transform(html) {
     text=replace(text,"    var page=document.getElementById('page');if(!page)return;",`    var page=document.getElementById('page');if(!page)return;
     if(page.querySelector('#trayForm')||document.querySelector('#nav button.active[data-page]')?.dataset.page==='tava'){
       page.querySelectorAll('[data-rafex-system-banner]').forEach(node=>node.remove());
-      document.body.classList.remove('rafex-common-header-v95');return;
+      if(document.body.classList.contains('rafex-common-header-v95'))document.body.classList.remove('rafex-common-header-v95');return;
     }`);
     return original.replace(original.match(/>([\s\S]*?)<\/script>/)[1],text);
   });
