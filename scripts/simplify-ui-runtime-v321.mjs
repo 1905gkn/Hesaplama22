@@ -67,6 +67,8 @@ export function transform(html) {
     return original.replace(original.match(/>([\s\S]*?)<\/script>/)[1],text);
   });
   changeScript('data-rafex-common-layout-zoom-crisp',(text,original)=>{
+    text=replace(text,"var boundsKey='',observedNode=null;","var boundsKey='',observedNode=null,boundsSnapshotV321=null;");
+    text=replace(text,"function syncBounds(){var b=frameBounds(),key=[b.x,b.y,b.w,b.h].join('|');if(key!==boundsKey){boundsKey=key;view={...b};}return b;}","function syncBounds(){var b=frameBounds(),key=[b.x,b.y,b.w,b.h].join('|');if(!boundsSnapshotV321||['x','y','w','h'].some(k=>Math.abs(b[k]-boundsSnapshotV321[k])>.25)){boundsKey=key;boundsSnapshotV321={...b};view={...b};}return b;}");
     text=replace(text,'install();apply();return result','install();return result');
     text=text.replace(/\[50,180,500,1000\]\.forEach\(function\(ms\)\{setTimeout\(install,ms\)\}\)/,'requestAnimationFrame(install)');
     text=replace(text,'[0,80,240,700,1400].forEach(function(ms){setTimeout(install,ms)});','requestAnimationFrame(install);');
