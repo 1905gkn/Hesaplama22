@@ -1,5 +1,7 @@
 import fs from "node:fs";
 import crypto from "node:crypto";
+import {transform as simplifyUI} from "./simplify-ui-runtime-v321.mjs";
+import {execFileSync} from "node:child_process";
 
 const serverPath = "dist/server/index.js";
 const outputPath = "dist/index.html";
@@ -15,11 +17,14 @@ if (!html.startsWith("<!doctype html>")) {
   throw new Error("Cozulen ana sayfa beklenen HTML biciminde degil.");
 }
 
-
 const replacementRuntime=fs.readFileSync("client/replace-rack-type-v319.js","utf8");
+html=html.replace(/<script data-rafex-replace-type="v319">[\s\S]*?<\/script>/g,"");
 const bodyEnd=html.lastIndexOf("</body>");
 if(bodyEnd<0)throw Error("Ana sayfanın kapanış etiketi bulunamadı.");
-html=html.slice(0,bodyEnd)+'<script data-rafex-replace-type="v319">'+replacementRuntime+'</script>'+html.slice(bodyEnd);
+html=html.slice(0,bodyEnd)+'<script data-rafex-replace-type="v319">'+replacementRuntime+'\nwindow.rafexInstallLayoutBoundaryV321();\n</script>'+html.slice(bodyEnd);
+html=simplifyUI(html);
+// Both the static entry and API fallback must serve the same optimized runtime.
+fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
 
 const assetDirectory = "dist/inline-assets";
 fs.mkdirSync(assetDirectory, { recursive: true });
@@ -40,4 +45,5 @@ html = html.replace(
 );
 
 fs.writeFileSync(outputPath, html);
+execFileSync(process.execPath,["scripts/verify-ui-runtime-v321.mjs",outputPath],{stdio:"inherit"});
 console.log(`Static entry v2: ${html.length} baytlik ana sayfa ve ${emittedAssets.size} tekil gorsel ayrildi.`);
