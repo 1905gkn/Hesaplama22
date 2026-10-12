@@ -178,6 +178,17 @@
 
   function viewerOptions(drawing) {
     try {
+      // A type section uses its saved calculation, independent of joined neighbours.
+      if (drawing?.b2b && !drawing.b2b.mr && typeof window.rafexB2BDetailOptionsV117 === "function") {
+        const source = { ...drawing };
+        delete source.id;
+        delete source.sharedFootWith;
+        delete source.sharedFootSide;
+        delete source.joinGroup;
+        const options = { ...window.rafexB2BDetailOptionsV117(source), moduleCount: 1, moduleOptions: null, frameHeights: null };
+        delete options.__rafexCalculationOptions;
+        return options;
+      }
       if (typeof m2Rack3DOptions === "function") return { ...fallbackViewerOptions(drawing), ...(m2Rack3DOptions(drawing) || {}), moduleCount: 1 };
     } catch (error) {
       console.warn("Kesit Yer Belirleme 3D seçenekleri okunamadı", error);
