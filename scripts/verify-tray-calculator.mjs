@@ -69,3 +69,27 @@ for(const kind of ['MR','HR'])for(const custom of [false,true]){
  item.load=100000;control=product();assert.match(control,/Tabloda öneri yok/);assert.equal((control.match(/<option/g)||[]).length,1);
 }
 console.log('PASS: automatic shows one locked recommendation; manual opens alternatives; automatic restores recommendation.');
+
+for(const kind of ['MR','HR']){
+ const result=calculateTray(data,kind,200,1050,1000,2700);
+ const manual={trayWidth:200,load:1000,traySelectionMode:'manual'};
+ for(const trayThickness of [0,undefined,.6,.7,NaN])assert.equal(context.window.RafexRackTray.canSave({...manual,trayThickness},2700,1050,kind),false);
+ assert.equal(context.window.RafexRackTray.canSave({...manual,trayThickness:result.recommended.thickness},2700,1050,kind),true);
+ assert.equal(context.window.RafexRackTray.canSave({...manual,trayThickness:2},2700,1050,kind),true);
+}
+const initialSaves=saves;
+for(const thickness of [0,.6]){
+ guardContext.b2bReadInputState=()=>({accessories:[{type:'tray',width:200,load:1000,thickness,traySelectionMode:'manual'}]});
+ guardContext.m2SaveRackType();assert.equal(saves,initialSaves);
+}
+guardContext.b2bReadInputState=()=>({accessories:[],collectionLevels:{enabled:true,floors:[{trayWidth:200,load:500,trayThickness:.6,traySelectionMode:'manual'}]}});
+guardContext.m2SaveRackType();assert.equal(saves,initialSaves);
+guardContext.b2bReadInputState=()=>({accessories:[{type:'tray',width:200,load:1000,thickness:2,traySelectionMode:'manual'}]});
+guardContext.m2SaveRackType();assert.equal(saves,initialSaves+1);
+let mrSaves=0;
+const mrContext={window:{RafexRackTray:context.window.RafexRackTray,mrSaveRackV6:()=>mrSaves++},document:{getElementById:id=>({value:id==='mrDepth'?1050:2700})},mrAccessoryStateV5:()=>[{type:'tray',width:200,load:500,thickness:.6,traySelectionMode:'manual'}],alert:()=>{}};
+vm.runInNewContext(fs.readFileSync('client/tray-save-guard.js','utf8'),mrContext);
+mrContext.window.mrSaveRackV6();assert.equal(mrSaves,0);
+mrContext.mrAccessoryStateV5=()=>[{type:'tray',width:200,load:500,thickness:.8,traySelectionMode:'manual'}];
+mrContext.window.mrSaveRackV6();assert.equal(mrSaves,1);
+console.log('PASS: manual empty/insufficient/unknown thickness rejected; adequate selection accepted in B2B, collection floors and MR save paths.');

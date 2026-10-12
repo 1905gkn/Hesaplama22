@@ -32,6 +32,53 @@
     result.h = Math.max(.5, result.depthMm * scale);
     return result;
   }
+  // Validate detached area copies before committing any catalog or layout changes.
+  function validateReplacementArea(area, previous, changedIds) {
+    if (!changedIds.size) return;
+    const savedLayout = m2LayoutState, savedSymbols = m2LayoutSymbols;
+    const fail = (rack, reason) => { throw Error((area.name || 'Alan') + ' · ' + (rack.typeName || 'Raf') + ' (' + rack.id + '): ' + reason); };
+    const overlap = (a,b) => Math.min(a.right,b.right)-Math.max(a.left,b.left)>.001 && Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>.001;
+    try {
+      m2LayoutState = {...area.layout, drag:null};
+      m2LayoutSymbols = area.layout.symbols || [];
+      const racks = area.layout.racks || [];
+      for (const rack of racks) {
+        if (!changedIds.has(rack.id)) continue;
+        const old = previous.racks.find(item => item.id === rack.id);
+        const linked = old.joinGroup || old.sharedFootWith != null || racks.some(item => item.sharedFootWith === rack.id);
+        const dimensionsChanged = Math.abs(Number(old.w)-rack.w)>.001 || Math.abs(Number(old.h)-rack.h)>.001;
+        const upright = item => Number(item.sideUprightHeight || item.totalRackHeight || item.footLy || item.footHeight || item.b2b?.footHeight || 0);
+        const calculatedHeightChanged = system(rack)==='b2b' && typeof m2B2BCalculatedFootHeight==='function' && m2B2BCalculatedFootHeight(old)!==m2B2BCalculatedFootHeight(rack);
+        const footChanged = calculatedHeightChanged || upright(old)!==upright(rack) || ['footType','footProfile'].some(field => JSON.stringify(old[field]) !== JSON.stringify(rack[field]));
+        if (linked && (dimensionsChanged || footChanged)) fail(rack,'Birleşik rafın ölçüleri veya ayağı değişiyor. Önce birleşimi ayırın, ardından kesiti değiştirip rafları yeniden birleştirin.');
+        if (rack.staged) continue;
+        if (!m2RackInsideArea(rack)) fail(rack,'Yeni kesit alan sınırını aşıyor veya duvarla çakışıyor.');
+        // Corner containment alone misses a rack spanning a recess in a concave area.
+        if (area.layout.closed) {
+          const inset = m2WallMeasurementInset, side = m2RackVisualSideOverhang(rack) + inset;
+          const corners = [[-rack.w/2-side,-rack.h/2-inset],[rack.w/2+side,-rack.h/2-inset],[rack.w/2+side,rack.h/2+inset],[-rack.w/2-side,rack.h/2+inset]].map(([dx,dy])=>m2RackLocalPoint(rack,dx,dy));
+          const points = area.layout.points || [];
+          for (let i=0;i<points.length;i++) {
+            if (m2WallCrossesRack(points[i],points[(i+1)%points.length],corners)) fail(rack,'Yeni kesit duvarla çakışıyor.');
+          }
+        }
+        const bounds = m2RackBounds(rack);
+        for (const other of racks) {
+          if (other.id === rack.id || other.staged) continue;
+          if (rack.joinGroup && rack.joinGroup === other.joinGroup) continue;
+          // Existing shared-foot intersections remain valid only when the joined geometry is unchanged.
+          if (rack.sharedFootWith === other.id || other.sharedFootWith === rack.id) continue;
+          if (overlap(bounds,m2RackBounds(other))) fail(rack,'Yeni kesit ' + (other.typeName || 'raf') + ' (' + other.id + ') ile çakışıyor.');
+        }
+        for (const symbol of m2LayoutSymbols) {
+          if (symbol.blocking && overlap(bounds,m2SymbolBounds(symbol))) fail(rack,'Yeni kesit kolon veya engelle çakışıyor.');
+        }
+      }
+    } finally {
+      m2LayoutState = savedLayout;
+      m2LayoutSymbols = savedSymbols;
+    }
+  }
   function applyReplacement(target, source) {
     if (key(target) === key(source) || !compatible(target, source)) throw Error('Aynı sistemde ve aynı sıra tipinde farklı bir kesit seçin. Tek sıra çift sıraya, çift sıra tek sıraya dönüştürülemez.');
     if (window.rafexCanEditProjectV134?.() === false) throw Error('Bu proje değiştirilemiyor.');
@@ -49,13 +96,17 @@
     let count = 0;
     for (const area of nextAreas.areas) {
       const scale = Number(area.layout.scale) || .04;
+      const previous = oldAreas.areas.find(item => item.id === area.id).layout;
+      const changedIds = new Set();
       area.layout.racks = (area.layout.racks || []).map(rack => {
         const matches = system(rack) === system(target) && (rack.rafexCatalogKey ? rack.rafexCatalogKey === key(target) : rack.typeName === target.name);
         if (!matches) return rack;
         if (!compatible(rack, source)) throw Error(target.name + ' içinde farklı sıra tipinde blok var; sıra tipi değiştirilmedi.');
         count++;
+        changedIds.add(rack.id);
         return replaceRack(rack, drawing, target, scale);
       });
+      validateReplacementArea(area, previous, changedIds);
     }
     const nextTypes = types.map((entry,i) => i === index ? {...entry,drawing:clone(drawing),__rafexSnapshot:clone(drawing)} : entry);
     const identity = window.rafexProjectIdentityV133;

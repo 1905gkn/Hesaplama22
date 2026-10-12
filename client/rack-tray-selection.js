@@ -15,7 +15,10 @@
  }
  function depth(){try{const o=b2b3DOptions();return Number(o.palletDepth)-Number(o.frontPalletGap||0)-Number(o.rearPalletGap||0);}catch{return 0;}}
  function canSave(f,width,depth,kind='MR'){
-   return !!calculate(data,kind,Number(f.trayWidth),Number(depth),Number(f.load),Number(width)).recommended;
+   const result=calculate(data,kind,Number(f.trayWidth),Number(depth),Number(f.load),Number(width));
+   if(result.error||!result.recommended)return false;
+   if(f.traySelectionMode!=='manual')return true;
+   return !!result.options.find(option=>option.thickness===Number(f.trayThickness)&&option.suitable);
  }
  window.RafexRackTray={update,fields,depth,canSave};
 })();
