@@ -15,6 +15,10 @@ if (!html.startsWith("<!doctype html>")) {
   throw new Error("Cozulen ana sayfa beklenen HTML biciminde degil.");
 }
 
+
+const replacementRuntime=fs.readFileSync("client/replace-rack-type-v319.js","utf8");
+html=html.replace("</body>",'<script data-rafex-replace-type="v319">'+replacementRuntime+'</script></body>');
+
 const assetDirectory = "dist/inline-assets";
 fs.mkdirSync(assetDirectory, { recursive: true });
 const emittedAssets = new Set();
