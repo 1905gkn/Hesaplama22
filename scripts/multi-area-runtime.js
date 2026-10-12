@@ -62,6 +62,13 @@
     if(heading)heading.textContent='Serbest Yerleşim Alanı · '+current().name;
   }
   window.rafexAreaDocument=()=>{ensure();remember();return documentState?clone(documentState):null;};
+  window.rafexReplaceAreaDocumentV319=(next,expectedOwner)=>{
+    ensure();
+    if(output||restoring||owner!==expectedOwner||!next?.areas?.length)throw Error('Proje alanları değiştirilemiyor.');
+    const replacement=clone(next);
+    if(!replacement.areas.some(a=>a.id===replacement.activeAreaId))throw Error('Aktif alan bulunamadı.');
+    documentState=replacement;sessions.set(owner,documentState);restore(current().layout);draw();invalidate();
+  };
   window.rafexAttachAreas=record=>{if(!common())return record;const state=window.rafexAreaDocument();record.payload.areas=state.areas;record.payload.activeAreaId=state.activeAreaId;record.payload.layout=clone(current().layout);record.payload.drawing=state.areas.flatMap(a=>a.layout.racks||[])[0]||record.payload.drawing;return record;};
   window.rafexRenderAreaOutput=async(target,render)=>{
     if(!common()){await render();return;}
