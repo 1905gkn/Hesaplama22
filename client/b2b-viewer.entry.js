@@ -253,9 +253,7 @@ class B2BViewer {
         const frame=this.models.module.clone(true);this.stripFrameSupports(frame);frame.scale.set(sectionScale,depthScale,verticalScale);this.preserveUprightThickness(frame,sectionScale);this.applyRackMaterials(frame);section.add(frame);
         const explicit=spec.frameHeights?.[rowIndex],special=Math.max(targetHeight,Number(spec.endFrameHeight)||targetHeight);
         const left=Math.max(targetHeight,Number(explicit?.left)||(moduleIndex===0?special:targetHeight)),right=Math.max(targetHeight,Number(explicit?.right)||(moduleIndex===moduleSpecs.length-1?special:targetHeight));
-        // A frame pair must use one height, including a shared or extended end frame.
-        const pairHeight=Math.max(left,right);
-        this.resizeEndFrames(frame,targetHeight,pairHeight,pairHeight);
+        this.resizeEndFrames(frame,targetHeight,left,right);
         // Measure the structural uprights, never the pallet or base plates.
         frame.updateMatrixWorld(true);
         const bounds=new THREE.Box3();
@@ -636,7 +634,7 @@ class B2BViewer {
     const topPallet = this.loadBottom(this.options.levels - 1) + this.palletHeightAt(this.options.levels - 1);
     if (this.options.dimensions.markers) {
       this.addLevelMarker(markersLayer, markerX, frontY, topPallet, `ÜST PALET KOTU  ·  ${this.dimensionValue(topPallet)}`, 0);
-      const markerHeight=this.options.frameHeights?Math.max(this.uprightHeight(),...this.options.frameHeights.flatMap(r=>[Number(r.left)||0,Number(r.right)||0])):Math.max(this.uprightHeight(),Number(this.options.moduleOptions?.at(-1)?.endFrameHeight??this.options.endFrameHeight)||0);
+      const markerHeight=this.options.frameHeights?Math.max(this.uprightHeight(),...this.options.frameHeights.map(r=>Number(r.right)||0)):Math.max(this.uprightHeight(),Number(this.options.moduleOptions?.at(-1)?.endFrameHeight??this.options.endFrameHeight)||0);
       this.addLevelMarker(markersLayer, rackWidth + 1400, frontY, markerHeight, `AYAK BOYU  ·  ${this.dimensionValue(markerHeight)}`, rackWidth);
     }
 
