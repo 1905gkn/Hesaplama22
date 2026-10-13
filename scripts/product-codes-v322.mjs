@@ -10,6 +10,7 @@ export function transform(html){
       if(productCodeV322)spec=productCodeV322+' · '+spec;`);
   replace("add('Ayak pabucu',profileQty,'Kaynaklı');","add('Ayak pabucu',profileQty,'Kaynaklı · '+profile);");
   replace("add('Şim',profileQty,'');","add('Şim',profileQty,profile);");
+  replace("add('Kimyasal dübel',profileQty*2,'KIDM12120');","add('Kimyasal dübel',profileQty*2,'');");
   replace('<span>${labels.item}</span><span>${labels.spec}</span><span>${labels.qty}</span><span>${labels.unit}</span>', '<span>${labels.item}</span><span>KOD</span><span>${labels.spec.replace(/^KOD \\/ |^CODE \\/ /,"")}</span><span>${labels.qty}</span><span>${labels.unit}</span>');
   replace('<span>${esc(row.item)}</span><span>${esc(row.spec||"—")}</span><span>${fmt(row.qty)}</span><span>${esc(row.unit)}</span>', '<span>${esc(row.item)}</span><span class="rafex-product-code">${esc(window.rafexProductCodeRulesV322.split(row.spec).code||"—")}</span><span>${esc(window.rafexProductCodeRulesV322.split(row.spec).description||"—")}</span><span>${fmt(row.qty)}</span><span>${esc(row.unit)}</span>');
   const style=`<style data-rafex-product-codes="v322">
