@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import {transform as simplifyUI} from "./simplify-ui-runtime-v321.mjs";
 import {execFileSync} from "node:child_process";
 import {transform as productCodes} from "./product-codes-v322.mjs";
+import {transform as exportProducts} from "./export-products-v323.mjs";
 
 const serverPath = "dist/server/index.js";
 const outputPath = "dist/index.html";
@@ -25,6 +26,7 @@ if(bodyEnd<0)throw Error("Ana sayfanın kapanış etiketi bulunamadı.");
 html=html.slice(0,bodyEnd)+'<script data-rafex-replace-type="v319">'+replacementRuntime+'\nwindow.rafexInstallLayoutBoundaryV321();\n</script>'+html.slice(bodyEnd);
 html=simplifyUI(html);
 html=productCodes(html);
+html=exportProducts(html);
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
 
@@ -49,5 +51,6 @@ html = html.replace(
 fs.writeFileSync(outputPath, html);
 execFileSync(process.execPath,["scripts/verify-ui-runtime-v321.mjs",outputPath],{stdio:"inherit"});
 execFileSync(process.execPath,["scripts/verify-product-code-rules-v322.mjs",outputPath],{stdio:"inherit"});
+execFileSync(process.execPath,["scripts/verify-export-products-v323.mjs",outputPath],{stdio:"inherit"});
 console.log(`Static entry v2: ${html.length} baytlik ana sayfa ve ${emittedAssets.size} tekil gorsel ayrildi.`);
 
