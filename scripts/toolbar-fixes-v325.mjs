@@ -18,7 +18,7 @@ export function transform(html){
  rep("meta.textContent=entry.__rafexSystemLabel||entry.__rafexSystem||entry.system||'';","meta.textContent=window.rafexToolbarMetaV325(entry);");
  html=html.replaceAll('RAF DERİNLİĞİ: ${fmt(m2B2BFootDepth(rack))} mm','${fmt(m2B2BFootDepth(rack))}').replaceAll('RAF DERİNLİĞİ: ${fmt(rack.depthMm)} mm','${fmt(rack.depthMm)}');
  const anchor='<script data-tool-menus="v216">';rep(anchor,'<script>'+runtime+'</script>'+anchor);
- const end=html.lastIndexOf('</body>');html=html.slice(0,end)+'<style>.m2-total-depth-label{font-size:11px!important}</style>'+html.slice(end);
+ const bodyEnd=html.lastIndexOf('</body>');html=html.slice(0,bodyEnd)+'<style>.m2-total-depth-label{font-size:11px!important}</style>'+html.slice(bodyEnd);
  return html;
 }
 
