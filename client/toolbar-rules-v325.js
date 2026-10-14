@@ -11,6 +11,6 @@ window.rafexToolbarMetaV325=function(entry){
  const double=Number(d.b2bLayout?.rowCount)===2||d.b2b?.rowType==='double'||d.rowType==='double';
  const levels=Math.max(0,Number(d.levels||d.b2b?.levels)||0),ground=!!d.b2bLayout&&(d.b2b?.firstPalletPosition||d.firstPalletPosition||'ground')==='ground';
  const name=({b2b:'B2B',mr:'MR',mekik2:'Mekik',drive:'Drive-In',konsol:'Konsol'})[system]||entry.__rafexSystemLabel||system.toUpperCase();
- return [name,Math.round(height),Math.round(depth),double?'Çift':'Tek',ground?'Z+'+Math.max(0,levels-1):levels+' KAT'].join(' · ');
+ return [name,'H: '+Math.round(height),'D: '+Math.round(depth),double?'Çift':'Tek',ground?'Z+'+Math.max(0,levels-1):levels+' KAT'].join(' · ');
 };
 
