@@ -5,6 +5,7 @@ import {execFileSync} from "node:child_process";
 import {transform as productCodes} from "./product-codes-v322.mjs";
 import {transform as exportProducts} from "./export-products-v323.mjs";
 import {transform as reportMetadata} from "./report-metadata-v324.mjs";
+import {transform as toolbarFixes} from "./toolbar-fixes-v325.mjs";
 
 const serverPath = "dist/server/index.js";
 const outputPath = "dist/index.html";
@@ -29,6 +30,7 @@ html=simplifyUI(html);
 html=productCodes(html);
 html=exportProducts(html);
 html=reportMetadata(html);
+html=toolbarFixes(html);
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
 
@@ -54,5 +56,6 @@ fs.writeFileSync(outputPath, html);
 execFileSync(process.execPath,["scripts/verify-ui-runtime-v321.mjs",outputPath],{stdio:"inherit"});
 execFileSync(process.execPath,["scripts/verify-product-code-rules-v322.mjs",outputPath],{stdio:"inherit"});
 execFileSync(process.execPath,["scripts/verify-export-products-v323.mjs",outputPath],{stdio:"inherit"});
+execFileSync(process.execPath,["scripts/verify-toolbar-v325.mjs",outputPath],{stdio:"inherit"});
 console.log(`Static entry v2: ${html.length} baytlik ana sayfa ve ${emittedAssets.size} tekil gorsel ayrildi.`);
 
