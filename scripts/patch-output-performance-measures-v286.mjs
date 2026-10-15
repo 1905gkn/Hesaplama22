@@ -18,6 +18,13 @@ export function transform(html){
       for(const rack of racks){const a=axis(rack),key=Math.round(a.angle*1000)+':'+Math.round(a.cross*100);if(!rows.has(key))rows.set(key,[]);rows.get(key).push(rack);}
       const representatives=[...rows.values()].map(row=>{row.sort((a,b)=>axis(a).along-axis(b).along);return row[Math.floor(row.length/2)];});
       for(const rack of representatives){const a=axis(rack),near=[];for(const other of representatives){if(rack===other)continue;const b=axis(other);if(Math.abs(a.angle-b.angle)>.01||Math.abs(a.cross-b.cross)<.01)continue;const pair=pairCandidate(rack,other);if(pair&&pairMm(pair)>0)near.push(pair);}near.sort((a,b)=>a.distance-b.distance);const sides=new Set();for(const pair of near){const other=pair.a===rack?pair.b:pair.a,side=axis(other).cross<a.cross?'before':'after';if(sides.has(side))continue;sides.add(side);pairs.set(pairKey(pair),pair);}}
+      // A pinned distance must keep its own rack IDs (and saved font size).
+      // Replace the automatic representative for those rows with the user's pair.
+      const rowKey=r=>{const a=axis(r);return Math.round(a.angle*1000)+':'+Math.round(a.cross*100);};
+      const rowPair=p=>[rowKey(p.a),rowKey(p.b)].sort().join('|'),explicit=[],explicitRows=new Set();
+      pinnedPairGaps.forEach(key=>{const ids=String(key).split(':').map(Number),a=racks.find(r=>Number(r.id)===ids[0]),b=racks.find(r=>Number(r.id)===ids[1]);if(!a||!b)return;const pair=pairCandidate(a,b);if(pair){explicit.push(pair);explicitRows.add(rowPair(pair));}});
+      for(const [key,pair] of pairs)if(explicitRows.has(rowPair(pair)))pairs.delete(key);
+      for(const pair of explicit)pairs.set(pairKey(pair),pair);
       return [...pairs.values()];
     }
     if(activeId==null)return [];
