@@ -41,7 +41,15 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
   var pdfTimer=0;
   var modalTimer=0;
   var syncingPdf=false;
-  var pinnedPairGaps=new Set();
+  // Keep visible pair dimensions in the area document, including save/restore and undo.
+  // A closure-owned Set loses them when opening history and leaks between projects.
+  var pinnedPairGaps={
+    values:function(){return new Set(m2LayoutState.pinnedPairGaps||[]);},
+    has:function(key){return this.values().has(key);},
+    add:function(key){var values=this.values();values.add(key);m2LayoutState.pinnedPairGaps=Array.from(values);return this;},
+    delete:function(key){var values=this.values(),deleted=values.delete(key);m2LayoutState.pinnedPairGaps=Array.from(values);return deleted;},
+    forEach:function(callback){this.values().forEach(callback);}
+  };
 
   function isFree(){
     var page=document.getElementById('page');

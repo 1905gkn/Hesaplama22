@@ -62,7 +62,9 @@ export function independentProject(record, uuid, timestamp) {
   for (const layout of layouts) {
   for (const key of ['distanceRackId', 'pinnedRackId']) if (key in layout) layout[key] = mapped(rackIds, layout[key]);
   layout.pinnedDimensionsByRack = Object.fromEntries(Object.entries(layout.pinnedDimensionsByRack || {}).map(([id, value]) => [mapped(rackIds, id), value]));
+  if (layout.pinnedPairGaps) layout.pinnedPairGaps = layout.pinnedPairGaps.map(key => String(key).split(':').map(id => mapped(rackIds, id)).sort((a,b) => Number(a)-Number(b)).join(':'));
   const dimensionKey = key => String(key)
+    .replace(/^(pair-gap|gap):([0-9]+):([0-9]+)$/, (all, prefix, a, b) => prefix + ':' + mapped(rackIds, a) + ':' + mapped(rackIds, b))
     .replace(/^((?:total-)?(?:length|depth)-(?:top|bottom|left|right)|gap|column-gap):([0-9]+)$/, (all, prefix, id) => prefix + ':' + mapped(rackIds, id))
     .replace(/^wall:([0-9]+):/, (all, id) => 'wall:' + mapped(rackIds, id) + ':')
     .replace(/^symbol-gap:([0-9]+):/, (all, id) => 'symbol-gap:' + mapped(symbolIds, id) + ':');
