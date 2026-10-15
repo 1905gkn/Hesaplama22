@@ -7,7 +7,7 @@ export function tunnelPlan(options,bounds={}) {
   o.invalidTunnel=!visible.length;o.footHeight=bounds.footHeight||o.footHeight;
   o.collectionLevels={enabled:false,groundGap:0,floors:[]};o.collectionFloors=[];
   o.accessories=(o.accessories||[]).map(a=>({...a,levels:(a.levels||[]).filter(n=>o.visibleAccessoryLevels.includes(n))})).filter(a=>a.levels.length);
-  if(visible.length){let tray=o.accessories.find(a=>a.type==='tray');if(!tray){tray={type:'tray',width:300,levels:[]};o.accessories.push(tray)}if(!tray.levels.includes(visible[0].level))tray.levels.unshift(visible[0].level)}
+  if(visible.length){let tray=o.accessories.find(a=>a.type==='tray');if(!tray){tray={type:'tray',width:300,levels:[]};o.accessories.push(tray)}tray.levels=[visible[0].level]}
   return o;
 }
 export const tunnelRuntime=String.raw`
