@@ -278,7 +278,7 @@ if (takeStartIndex < 0 || takeEndIndex < 0) throw new Error('B2B rapor yakalama 
 const takeEnd = takeEndIndex + oldTakeEnd.length;
 const newTake = `    const capturePadding = clamp(Number(settings.cameraPadding)||1.16,.72,1.6);
     const take = (view, dimensions) => {
-      viewer.update({ ...options, dimensions }, false);
+      viewer.update({ ...options, dimensions: { traverseIncluded: options.dimensions?.traverseIncluded === true, ...dimensions } }, false);
       viewer.dimensionLabels.forEach((label) => {
         const baseScale = label?.userData?.baseScale;
         if (!baseScale || label.userData.rafexCaptureScaleApplied) return;
