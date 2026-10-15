@@ -124,7 +124,9 @@
 
   function defaultsFor(key) {
     const type = rackTypeCache.find((item) => item.key === safeKey(key)) || collectRackTypes().find((item) => item.key === safeKey(key));
-    return cloneView({ ...DEFAULT_VIEW, counts: type?.existingCounts?.length ? type.existingCounts : [3] });
+    const drawing = type?.entries?.values().next().value?.drawing;
+    const traverseIncluded = drawing?.b2b?.dimensionVisibility?.traverseIncluded ?? drawing?.b2bViewerOptions?.dimensions?.traverseIncluded ?? false;
+    return cloneView({ ...DEFAULT_VIEW, dimensions: { ...DIMENSION_DEFAULTS, traverseIncluded }, counts: type?.existingCounts?.length ? type.existingCounts : [3] });
   }
 
   function ensureSetting(key) {
@@ -172,7 +174,7 @@
       footColor: state.footColor || "ral5010",
       traverseColor: state.traverseColor || "ral1007",
       dimensionLabelScale: Math.max(.7, Math.min(1.5, number(state.dimensionTextScale, 1))),
-      dimensions: { ...DIMENSION_DEFAULTS },
+      dimensions: { ...DIMENSION_DEFAULTS, traverseIncluded: state.dimensionVisibility?.traverseIncluded ?? drawing?.b2bViewerOptions?.dimensions?.traverseIncluded ?? false },
     };
   }
 
