@@ -4,7 +4,7 @@ export function transform(html){
   if(html.includes('/* RAFEX_LIVE_PLAN_SNAPSHOT */'))return html;
   const replace=(a,b)=>{if(!html.includes(a)||html.indexOf(a)!==html.lastIndexOf(a))throw Error('Snapshot anchor missing/ambiguous: '+a);html=html.replace(a,b)};
   replace('/* RAFEX_PDF_TIGHT_FIT_V141 */\n        const copy=source.cloneNode(true);',
-    '/* RAFEX_PDF_TIGHT_FIT_V141 */\n        /* RAFEX_LIVE_PLAN_SNAPSHOT */\n        window.rafexCommonSingleLineLetterV58?.decorate?.();\n        window.rafexVariantLabelSpacingV306?.paint?.();\n        const copy=('+freezePlanPaint.toString()+')(source,source.cloneNode(true));\n        if(document.querySelector(\'#nav button.active[data-page]\')?.dataset.page===\'free\')return ('+preservePlanFrame.toString()+')(source,copy);');
+    '/* RAFEX_PDF_TIGHT_FIT_V141 */\n        /* RAFEX_LIVE_PLAN_SNAPSHOT */\n        window.rafexCommonSingleLineLetterV58?.decorate?.();\n        window.rafexVariantLabelSpacingV306?.paint?.();\n        window.rafexCleanPdfPlan?.clean?.(source,false);\n        const copy=('+freezePlanPaint.toString()+')(source,source.cloneNode(true));\n        if(document.querySelector(\'#nav button.active[data-page]\')?.dataset.page===\'free\')return ('+preservePlanFrame.toString()+')(source,copy);');
   // A frozen export must not be repainted by the delayed live paint copier or
   // the upright overlay builder after HTML serialization.
   replace('host.querySelectorAll(".m2-corporate-floor svg").forEach(function(pdfSvg){',

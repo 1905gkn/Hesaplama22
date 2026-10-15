@@ -295,6 +295,7 @@ const runtime = String.raw`<style data-rafex-common-independent="v44">
       return '<g class="m2-distance-guide rafex-common-pair-gap" data-rack-gap="'+mm+'" data-gap-a="'+pair.a.id+'" data-gap-b="'+pair.b.id+'"><line x1="'+pair.ax+'" y1="'+pair.ay+'" x2="'+pair.bx+'" y2="'+pair.by+'" class="m2-rack-distance"/><circle cx="'+pair.ax+'" cy="'+pair.ay+'" r="4" fill="#e09b00"/><circle cx="'+pair.bx+'" cy="'+pair.by+'" r="4" fill="#e09b00"/><rect x="'+(label.x-52)+'" y="'+(label.y-14)+'" width="104" height="22" rx="5" class="m2-measure-hit" onpointerdown="event.preventDefault();event.stopPropagation();rafexPromptRackPairDistance('+pair.a.id+','+pair.b.id+','+mm+','+moveId+')"/><text x="'+label.x+'" y="'+label.y+'" text-anchor="middle" class="m2-rack-distance-label m2-dimension-movable" data-dimension-key="'+key+'" data-dimension-axis="'+(Math.abs(pair.ax-pair.bx)<Math.abs(pair.ay-pair.by)?'vertical':'horizontal')+'" onpointerdown="event.preventDefault();event.stopPropagation();rafexPromptRackPairDistance('+pair.a.id+','+pair.b.id+','+mm+','+moveId+')">RAF ARASI '+fmt(mm)+' mm</text></g>';
     }).join('');
     if(markup)layer.insertAdjacentHTML('beforeend',markup);
+    window.rafexCleanPdfPlan?.clean?.(layer,false);
   }
   function setPairDistance(aId,bId,value,moveId){
     var a=m2LayoutState.racks.find(function(rack){return Number(rack.id)===Number(aId);}),b=m2LayoutState.racks.find(function(rack){return Number(rack.id)===Number(bId);});

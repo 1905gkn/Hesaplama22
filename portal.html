@@ -3000,6 +3000,8 @@
         if (!m2SelectedDimensionKey) { $("m2FloorStatus").textContent = "Önce çizimde bir ölçü yazısına tıkla."; return; }
         const size = Math.max(6, Math.min(36, Number(rawValue) || 16));
         m2DimensionFontSizes[m2SelectedDimensionKey] = size;
+        const pairKey=/^pair-gap:([^:]+):([^:]+)$/.exec(m2SelectedDimensionKey);
+        if(pairKey)m2DimensionFontSizes['pair-gap:'+pairKey[2]+':'+pairKey[1]]=size;
         if ($("m2DimensionFontSize")) $("m2DimensionFontSize").value = size;
         m2RenderLayout();
       }
@@ -4867,7 +4869,7 @@
         });
         layer.querySelectorAll("[data-dimension-key]").forEach((node) => {
           const key = node.dataset.dimensionKey, size = m2DimensionFontSizes[key];
-          if (size) node.style.fontSize = `${size}px`;
+          if (size) node.style.setProperty("font-size",`${size}px`,"important");
           node.classList.toggle("m2-dimension-selected", m2LayoutTool === "dimension" && key === m2SelectedDimensionKey);
         });
         const areaDimsButton = $("m2AreaDimsButton");
