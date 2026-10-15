@@ -252,6 +252,7 @@ node scripts/patch-project-list-lazy-v315.mjs
 node scripts/patch-project-display-persistence-v325.mjs
 node scripts/patch-history-record-number-v326.mjs
 node scripts/patch-project-font-scope-v327.mjs
+node scripts/patch-measure-restore-v328.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
