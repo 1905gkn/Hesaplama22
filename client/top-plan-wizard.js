@@ -57,7 +57,14 @@
   const runs=el('join').checked?api.joinedRuns(draft,{gap:Math.max(0,Number(el('join-gap').value)||0),alignment:native?5:Math.max(5,4*wall.h/(region?.h||1)),compatible}):[];
   for(const run of runs){
    // Dimension-note outlines are physical boxes: keep their original centres.
-   if(run.indices.some(i=>types.find(t=>t.code===draft[i].type)?.widthKind==='outer'))continue;
+   if(run.indices.every(i=>types.find(t=>t.code===draft[i].type)?.widthKind==='outer')){
+    const racks=run.indices.map(i=>placed[i]),a=run.angle*Math.PI/180,ux=Math.cos(a),uy=Math.sin(a),first=racks[0],last=racks.at(-1);
+    const cx=(first.x+first.w/2+last.x+last.w/2)/2,cy=(first.y+first.h/2+last.y+last.h/2)/2;
+    const steps=racks.slice(1).map((r,i)=>(racks[i].w+r.w)/2+.1*scale),span=steps.reduce((sum,v)=>sum+v,0);let distance=-span/2;
+    // PDF coordinates are rounded: remove tiny overlaps without subtracting a frame per module.
+    racks.forEach((r,i)=>{r.x=cx+ux*distance-r.w/2;r.y=cy+uy*distance-r.h/2;if(i<steps.length)distance+=steps[i];});
+    continue;
+   }
    const racks=run.indices.map(i=>placed[i]),a=run.angle*Math.PI/180,ux=Math.cos(a),uy=Math.sin(a),first=racks[0],last=racks.at(-1);
    // Keep the row's centre fixed; close only the small inter-block gaps.
    const cx=(first.x+first.w/2+last.x+last.w/2)/2,cy=(first.y+first.h/2+last.y+last.h/2)/2;
