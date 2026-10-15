@@ -1,8 +1,9 @@
 // Project copies keep their own IDs; registry identity survives every import.
 export function catalogRecordFingerprint(e) {
   const ignored=new Set(['rafexCatalogKey','rafexOriginalTypeName','rafexGlobalTypeLetter','rafexSectionLetter','rafexSystemLabel','rafexSystem','typeName','typeColor','name','logId','createdAt','projectUuid']);
+  const placement=new Set(['id','x','y','angle','w','h','joinGroup','sharedFootWith','sharedFootSide','sharedFootId','independentBlockId','rackTypeId','savedTypeId','staged','freePlacement','locked','specLocked','individualSpec']);
   const canonical=value=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().filter(k=>!ignored.has(k)).map(k=>[k,canonical(value[k])])):value;
-  return JSON.stringify([e.__rafexSystem||e.system||e.drawing?.rafexSystem||e.drawing?.systemType||'b2b',canonical(e.__rafexSnapshot||e.drawing||{})]);
+  return JSON.stringify([e.__rafexSystem||e.system||e.drawing?.rafexSystem||e.drawing?.systemType||'b2b',canonical(Object.fromEntries(Object.entries(e.__rafexSnapshot||e.drawing||{}).filter(([key])=>!placement.has(key))))]);
 }
 export function mergeRackCatalog(current, incoming, excluded=[]) {
   const clone=value=>JSON.parse(JSON.stringify(value));

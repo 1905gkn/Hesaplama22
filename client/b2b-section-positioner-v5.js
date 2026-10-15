@@ -33,7 +33,8 @@
 
   function loadSettings() {
     try {
-      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      const identity = window.rafexProjectIdentityV133;
+      const raw = identity ? (identity.sectionViews || {}) : JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
       const sections = {};
       Object.entries(raw?.sections || {}).forEach(([key, value]) => { sections[safeKey(key)] = cloneView(value); });
       return { sections };
@@ -559,7 +560,8 @@
     if (!modal) return;
     if (saveChanges) {
       saved = JSON.parse(JSON.stringify(draft));
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch {}
+      if (window.rafexProjectIdentityV133) window.rafexProjectIdentityV133.sectionViews = JSON.parse(JSON.stringify(saved));
+      else try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch {}
       modal.hidden = true;
       window.__rafexFreeOutputDirty = true;
     } else {

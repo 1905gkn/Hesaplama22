@@ -73,6 +73,6 @@ export function independentProject(record, uuid, timestamp) {
   for (const key of ['length', 'depth']) if (layout.visibleRackDimensions?.[key]) layout.visibleRackDimensions[key] = layout.visibleRackDimensions[key].map(id => mapped(rackIds, id));
   for (const key of ['selected', 'drag', 'hover']) delete layout[key];
   }
-  payload.projectIdentity = { uuid, createdAt: new Date(timestamp).toISOString(), independent: true, schemaVersion: 1, excludedRackTypes: payload.projectIdentity?.excludedRackTypes || [] };
+  payload.projectIdentity = { uuid, createdAt: new Date(timestamp).toISOString(), independent: true, schemaVersion: 1, excludedRackTypes: payload.projectIdentity?.excludedRackTypes || [], ...(payload.projectIdentity?.sectionViews ? {sectionViews: payload.projectIdentity.sectionViews} : {}) };
   return copy;
 }
