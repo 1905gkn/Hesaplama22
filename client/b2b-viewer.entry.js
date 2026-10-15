@@ -918,7 +918,7 @@ async function captureB2BViews(options = {}, settings = {}) {
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
     const take = (view, dimensions) => {
-      viewer.update({ ...options, dimensions }, false);
+      viewer.update({ ...options, dimensions: { traverseIncluded: options.dimensions?.traverseIncluded === true, ...dimensions } }, false);
       viewer.dimensionLabels.forEach((label) => {
         const baseScale = label?.userData?.baseScale;
         if (!baseScale || label.userData.rafexCaptureScaleApplied) return;
