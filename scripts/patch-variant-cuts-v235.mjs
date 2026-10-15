@@ -4,8 +4,9 @@ const replace=(a,b)=>{if(!html.includes(a))throw Error('Missing '+a.slice(0,90))
 replace('      x: clamp(number(value.x, defaults.x), -80, 80),','      excluded: value.excluded === true,\n      x: clamp(number(value.x, defaults.x), -80, 80),');
 replace("const label=safeKey(entry.name||entry.typeName||`Raf Tipi ${index+1}`),key=system+'|'+label.toLocaleUpperCase('tr-TR');\n    if(!groups.has(key))groups.set(key,{key,label,system,entries:new Map(),cards:[]});\n    const count=palletCountOf(drawing);",`const baseLabel=safeKey(entry.name||entry.typeName||\`Raf Tipi \${index+1}\`),baseKey=system+'|'+baseLabel.toLocaleUpperCase('tr-TR');
     const count=palletCountOf(drawing),rows=Number(drawing.b2bLayout?.rowCount)||(drawing.b2b?.rowType==='double'?2:1),variant=system==='b2b';
-    const key=variant?baseKey+'|p'+count+'r'+rows:baseKey,label=variant?baseLabel+' · '+count+' paletli · '+(rows===2?'Çift sıra':'Tek sıra'):baseLabel;
-    if(!groups.has(key))groups.set(key,{key,label,baseLabel,baseKey,variant,rows,quantity:0,system,entries:new Map(),cards:[]}); groups.get(key).quantity++;`);
+    const tunnelHeight=variant?Math.max(0,Math.round(Number(drawing.b2b?.tunnelHeight??drawing.b2bViewerOptions?.tunnelHeight??0)||0)):0;
+    const key=variant?baseKey+'|p'+count+'r'+rows+(tunnelHeight?'|t'+tunnelHeight:''):baseKey,label=variant?baseLabel+' · '+count+' paletli · '+(rows===2?'Çift sıra':'Tek sıra')+(tunnelHeight?' · TÜNEL '+tunnelHeight.toLocaleString('tr-TR')+' mm':''):baseLabel;
+    if(!groups.has(key))groups.set(key,{key,label,baseLabel,baseKey,variant,rows,tunnelHeight,quantity:0,system,entries:new Map(),cards:[]}); groups.get(key).quantity++;`);
 replace("const key=system+'|'+label.toLocaleUpperCase('tr-TR'),group=groups.get(key);\n      if(group){group.cards.push(card);card.dataset.rafexSectionKey=key;}",`const baseKey=system+'|'+label.toLocaleUpperCase('tr-TR');
       for(const group of groups.values())if(group.baseKey===baseKey&&(!card.dataset.rafexVariantV235||card.dataset.rafexVariantV235===group.key)){group.cards.push(card);}`);
 replace('const value = cloneView(source.sections?.[normalized] || defaults, defaults);','const baseKey=rackTypeCache.find(item=>item.key===normalized)?.baseKey;\n    const value = cloneView(source.sections?.[normalized] || source.sections?.[baseKey] || defaults, defaults);');

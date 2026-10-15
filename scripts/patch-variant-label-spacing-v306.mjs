@@ -9,7 +9,7 @@ export function transform(html){
    const byId=new Map((m2LayoutState?.racks||[]).map(r=>[String(r.id),r]));
    document.querySelectorAll('#m2LayoutSvg [data-rack],.rafex-drag-scene-v248 [data-rack]').forEach(group=>{
     const rack=byId.get(group.getAttribute('data-rack')),mark=group.querySelector('.rafex-rack-label-v160'),name=mark?.querySelector('text');if(!rack||!mark||!name)return;
-    const detail=m2PalletVariantLabelV305(rack);group.querySelectorAll('.rafex-tunnel-label-v255').forEach(n=>{if(n.style.getPropertyValue('display')!=='none')n.style.setProperty('display','none','important');});
+    const detail=m2PalletVariantLabelV305(rack);group.querySelectorAll('.m2-rack-nameplate,.m2-rack-pallet-count,.m2-rack-name,.m2-b2b-plan-label,.rafex-single-line-letter-v58,.rafex-tunnel-label-v255').forEach(n=>{if(n.style.getPropertyValue('display')!=='none')n.style.setProperty('display','none','important');});
     let node=mark.querySelector('[data-variant-detail-v306]');if(!detail){node?.remove();const saved=originals.get(name);if(saved){for(const [k,v] of Object.entries(saved))v==null?name.removeAttribute(k):set(name,k,v);originals.delete(name);}return;}
     if(!originals.has(name))originals.set(name,Object.fromEntries(['x','y','font-size','dominant-baseline'].map(k=>[k,name.getAttribute(k)])));
     const frame=group.querySelector(':scope > .m2-layout-rack'),read=(k,v)=>Number(frame?.getAttribute(k)??v),x=read('x',rack.x)+read('width',rack.w)/2,y=read('y',rack.y)+read('height',rack.h)/2;
@@ -17,6 +17,7 @@ export function transform(html){
     const width=rack.w*scale*.82,height=rack.h*scale*.82;
     const main=Math.min(12*ratio,height*.32,width/Math.max(.65,name.textContent.length*.65)),small=Math.min(8*ratio,main*.7,width/Math.max(.65,detail.length*.65));
     const gap=(main+small)*.7+Math.min(3*ratio,height*.1),top=y-gap/2/scale,bottom=y+gap/2/scale;
+    name.removeAttribute('dy');
     for(const [k,v] of Object.entries({x,y:top,'dominant-baseline':'central','font-size':main/scale}))set(name,k,v);
     if(!node){node=document.createElementNS(ns,'text');node.dataset.variantDetailV306='1';mark.append(node);}
     if(node.textContent!==detail)node.textContent=detail;
