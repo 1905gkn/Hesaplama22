@@ -61,6 +61,7 @@
       sectionWidth: number(layout.sectionWidth ?? state.importedSectionWidth ?? drawing?.b2bViewerOptions?.sectionWidth),
       manualLevelSpecs: state.manualLevelSpecs || [],
       savedViewerOptions: drawing?.b2bViewerOptions || null,
+      traverseIncluded: state.dimensionVisibility?.traverseIncluded ?? drawing?.b2bViewerOptions?.dimensions?.traverseIncluded ?? false,
       palletCount: number(layout.palletCount ?? state.palletCount ?? drawing?.bays, 3),
       palletWidth: number(layout.palletWidth ?? state.palletWidth ?? drawing?.palW, 800),
       palletDepth: number(layout.palletDepth ?? state.palletDepth ?? drawing?.palD, 1200),
@@ -151,6 +152,7 @@
     const overhang = Math.max(0, number(state.palletOverhang ?? layout.palletOverhang, 50));
     return {
       moduleCount: 1,
+      dimensions: { traverseIncluded: state.dimensionVisibility?.traverseIncluded ?? drawing?.b2bViewerOptions?.dimensions?.traverseIncluded ?? false },
       palletCount: Math.max(1, Math.min(4, number(layout.palletCount ?? state.palletCount ?? drawing?.bays, 3))),
       palletWidth: Math.max(300, number(layout.palletWidth ?? state.palletWidth ?? drawing?.palW, 800)),
       palletDepth: Math.max(300, number(layout.palletDepth ?? state.palletDepth ?? drawing?.palD, 1200)),
