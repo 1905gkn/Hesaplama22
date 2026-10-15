@@ -41,8 +41,8 @@ export function transform(html){
  const end=html.lastIndexOf('</body>');if(end<0)throw Error('v325 body missing');
  return html.slice(0,end)+runtime+html.slice(end);
 }
-if(process.argv[1]?.replaceAll('\\\\','/').endsWith('/patch-project-display-persistence-v325.mjs')){
- const f='dist/server/index.js',s=fs.readFileSync(f,'utf8'),m=s.match(/HTML_BASE64\\s*=\\s*["']([A-Za-z0-9+/=]+)/);
+if(process.argv[1]?.replaceAll('\\','/').endsWith('/patch-project-display-persistence-v325.mjs')){
+ const f='dist/server/index.js',s=fs.readFileSync(f,'utf8'),m=s.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/);
  if(!m)throw Error('v325 HTML missing');fs.writeFileSync(f,s.replace(m[1],Buffer.from(transform(Buffer.from(m[1],'base64').toString())).toString('base64')));
  console.log('v325: centered painted layout bounds, unique catalog and project-owned section dimensions');
 }
