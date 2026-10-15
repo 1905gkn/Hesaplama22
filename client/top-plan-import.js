@@ -135,7 +135,7 @@
     }
     const labels=[];
     for(const t of textItems){const match=dimensionLabel(t.str),tunnel=/t[üu]nel/i.test(t.str);if(!match&&!tunnel)continue;const m=mul(viewport.transform,t.transform),font=Math.hypot(t.transform[0],t.transform[1])||1,cx=m[4]+m[0]*t.width/font/2+m[2]*.3,cy=m[5]+m[1]*t.width/font/2+m[3]*.3;labels.push({cx,cy,spanAxis:Math.abs(m[0])>=Math.abs(m[1])?'x':'y',nominalW:match?match.w:null,nominalD:match?match.d:null,label:tunnel?'Tünel':''});}
-    return {rects,labels,segments};
+    return {rects,labels,segments,notes:textItems.map(t=>{const m=mul(viewport.transform,t.transform);return {str:t.str,cx:m[4],cy:m[5],font:Math.hypot(m[0],m[1])};})};
   }
   function vectorBoundary(geometry,region){
     const columns=[];
@@ -179,7 +179,70 @@
     }
     return boxes;
   }
+
+  // Dimension notes may sit outside the rack, connected by a leader.
+  function noteRackCandidates(geometry,region) {
+    const notes=geometry.notes||[],specs=[];
+    for(const note of notes){
+      const depth=note.str.match(/(?:eni|derinlik|depth)\s*[:=]\s*(\d{3,5})\s*mm/i);
+      if(!depth)continue;
+      const length=notes.filter(n=>/uzunlu|length|geni[sş]lik/i.test(n.str)&&Math.hypot(n.cx-note.cx,n.cy-note.cy)<Math.max(40,n.font*12)).map(n=>({n,m:n.str.match(/[:=]\s*(\d{3,5})\s*mm/i)})).find(x=>x.m);
+      if(length)specs.push({w:+length.m[1],d:+depth[1]});
+    }
+    if(!specs.length)return null;
+    const rects=geometry.rects.filter(r=>r.cx>=region.x&&r.cx<=region.x+region.w&&r.cy>=region.y&&r.cy<=region.y+region.h);
+    const diagonal=r=>{
+      const x=r.cx-r.w/2,y=r.cy-r.h/2,tol=Math.max(.4,Math.min(r.w,r.h)*.05);
+      const near=(p,px,py)=>Math.hypot(p.x-px,p.y-py)<tol;
+      return [1,-1].every(sign=>(geometry.segments||[]).some(s=>{
+        const a={x,y:sign===1?y:y+r.h},b={x:x+r.w,y:sign===1?y+r.h:y};
+        return near(s.a,a.x,a.y)&&near(s.b,b.x,b.y)||near(s.b,a.x,a.y)&&near(s.a,b.x,b.y);
+      }));
+    };
+    const candidates=[];
+    for(const spec of specs){
+      const matching=rects.filter(r=>Math.abs(Math.max(r.w,r.h)/Math.min(r.w,r.h)/(spec.w/spec.d)-1)<.035);
+      for(const r of matching){
+        const peers=matching.filter(p=>p.color===r.color&&Math.abs(p.w-r.w)<=Math.max(.3,r.w*.025)&&Math.abs(p.h-r.h)<=Math.max(.3,r.h*.025));
+        if(peers.length<4||!diagonal(r))continue;
+        candidates.push({...r,spanAxis:r.h>r.w?'y':'x',nominalW:spec.w,nominalD:spec.d,widthKind:'outer',evidence:'PDF en/uzunluk notu, tekrarlanan kapalı raf ve iki çapraz'});
+      }
+    }
+    const seen=new Set(),result=candidates.filter(r=>{const k=[r.cx,r.cy,r.w,r.h].map(n=>n.toFixed(2)).join(':');if(seen.has(k))return false;seen.add(k);return true;});
+    if(!result.length)return null;
+    const scales=result.map(r=>Math.max(r.w,r.h)/r.nominalW).sort((a,b)=>a-b),scale=scales[Math.floor(scales.length/2)];
+    if(result.some(r=>Math.abs(Math.max(r.w,r.h)/r.nominalW/scale-1)>.035))return null;
+    result.vector=true;result.review=[];result.mmPerPixel=1/scale;
+    return result.sort((a,b)=>a.cy-b.cy||a.cx-b.cx);
+  }
+  function scaledVectorBoundary(geometry,region,racks) {
+    const regular=vectorBoundary(geometry,region);
+    if(regular)return regular;
+    if(!racks?.length)return null;
+    const left=Math.min(...racks.map(r=>r.cx-r.w/2)),right=Math.max(...racks.map(r=>r.cx+r.w/2));
+    const horizontal=[];
+    for(const {a,b,color} of geometry.segments||[]){
+      if(String(color).split(',').some(n=>Number(n)>70)||Math.abs(a.y-b.y)>.1)continue;
+      const lo=Math.min(a.x,b.x),hi=Math.max(a.x,b.x),y=(a.y+b.y)/2;
+      if(y<region.y-15||y>region.y+region.h+15||hi<region.x-15||lo>region.x+region.w+15)continue;
+      let line=horizontal.find(h=>Math.abs(h.y-y)<.2);
+      if(!line)horizontal.push(line={y,ranges:[]});
+      line.ranges.push([lo,hi]);
+    }
+    const walls=horizontal.map(line=>{
+      const merged=[];for(const range of line.ranges.sort((a,b)=>a[0]-b[0])){const last=merged.at(-1);if(last&&range[0]<=last[1]+1)last[1]=Math.max(last[1],range[1]);else merged.push(range.slice());}
+      return{y:line.y,left:merged[0][0],right:merged.at(-1)[1],length:merged.reduce((n,r)=>n+r[1]-r[0],0)};
+    }).filter(l=>l.left<=left&&l.right>=right&&l.length>(right-left)*.65).sort((a,b)=>a.y-b.y);
+    if(walls.length<2)return null;
+    const top=walls[0],bottom=walls.at(-1);
+    if(bottom.y-top.y<Math.max(...racks.map(r=>r.cy+r.h/2))-Math.min(...racks.map(r=>r.cy-r.h/2)))return null;
+    const x=Math.max(top.left,bottom.left),end=Math.min(top.right,bottom.right);
+    if(x>left||end<right)return null;
+    return{x,y:top.y,w:end-x,h:bottom.y-top.y};
+  }
+
   function detectVectors(geometry,region){
+    const noted=noteRackCandidates(geometry,region);if(noted)return noted;
     const inside=r=>r.cx>=region.x&&r.cx<=region.x+region.w&&r.cy>=region.y&&r.cy<=region.y+region.h;
     const allRects=[...geometry.rects,...strokedBoxes(geometry)],rects=allRects.filter(inside),anchors=[];
     for(const label of geometry.labels){
@@ -198,6 +261,6 @@
     }
     result.sort((a,b)=>a.cy-b.cy||a.cx-b.cx);result.review=[];result.vector=true;result.unmatchedLabels=geometry.labels.filter(l=>l.nominalW&&inside(l)&&!result.some(r=>Math.abs(l.cx-r.cx)<=r.w/2+.5&&Math.abs(l.cy-r.cy)<=r.h/2+.5)).length;return result.length?result:null;
   }
-  globalThis.RafexTopPlan={groups,pairBackToBack,dimensions,rectangle,cad,detect,joinedRuns,reviewCandidates,dimensionLabel,pdfGeometry,detectVectors,vectorBoundary};
+  globalThis.RafexTopPlan={groups,pairBackToBack,dimensions,rectangle,cad,detect,joinedRuns,reviewCandidates,dimensionLabel,pdfGeometry,detectVectors,vectorBoundary,scaledVectorBoundary,noteRackCandidates};
   if(typeof document==='undefined')return;
 })();
