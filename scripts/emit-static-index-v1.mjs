@@ -6,6 +6,7 @@ import {transform as productCodes} from "./product-codes-v322.mjs";
 import {transform as exportProducts} from "./export-products-v323.mjs";
 import {transform as reportMetadata} from "./report-metadata-v324.mjs";
 import {transform as toolbarFixes} from "./toolbar-fixes-v325.mjs";
+import {transform as reliableDashboard} from "./reliable-dashboard-v326.mjs";
 
 const serverPath = "dist/server/index.js";
 const outputPath = "dist/index.html";
@@ -31,6 +32,7 @@ html=productCodes(html);
 html=exportProducts(html);
 html=reportMetadata(html);
 html=toolbarFixes(html);
+html=reliableDashboard(html);
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
 

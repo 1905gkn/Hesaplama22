@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import {createRateService,tcmb,validate,ecb} from './exchange-rates-v326.mjs';
+import {transform} from './reliable-dashboard-v326.mjs';
+let now=Date.parse('2026-10-15T12:00:00Z'),calls=0,fail=false;
+const xml='<Tarih_Date Tarih="14.10.2026"><Currency Kod="USD"><Unit>1</Unit><ForexSelling>40</ForexSelling></Currency><Currency Kod="EUR"><Unit>1</Unit><ForexSelling>44</ForexSelling></Currency></Tarih_Date>';
+assert.equal(validate(tcmb(xml),now).eurUsd,1.1);
+assert.equal(ecb(`<Cube time='2026-10-14'><Cube currency='USD' rate='1.1'/><Cube currency='TRY' rate='44'/></Cube>`).usdTry,40);
+assert.throws(()=>validate({...tcmb(xml),date:'2027-01-01'},now));
+assert.throws(()=>validate({...tcmb(xml),usdTry:NaN},now));
+const service=createRateService(async()=>{calls++;if(fail)throw Error('Offline');return new Response(xml);},()=>now);
+const both=await Promise.all([service(),service()]);assert.equal(calls,1);assert.equal(both[0].date,'2026-10-14');
+await service();assert.equal(calls,1);now+=301000;fail=true;assert.equal((await service()).cached,true);assert.equal(calls,4);await service();assert.equal(calls,4);
+let fallbackCalls=0;const fallback=createRateService(async()=>{fallbackCalls++;if(fallbackCalls===1)return new Response('bad XML');return new Response(`<Cube time='2026-10-14'><Cube currency='USD' rate='1.1'/><Cube currency='TRY' rate='44'/></Cube>`);},()=>now);assert.equal((await fallback()).source,'ECB');
+await assert.rejects(createRateService(async()=>{throw Error('Offline')},()=>now)());
+const html=transform(fs.readFileSync('../tmp/live-v316-baseline.html','utf8'));assert(!html.includes('meta === currentRateDate && !data.stale'));assert(html.includes('await reliableDashboardV326()'));assert.equal(transform(html),html);
+const runtime=html.slice(html.indexOf('      async function reliableDashboardV326'),html.indexOf('      let homeDashboardData = null;'));
+let rendered=[];const rates=tcmb(xml);const context={Intl,Date,Number,JSON,AbortSignal,localStorage:{getItem:()=>JSON.stringify(rates),setItem:()=>{}},renderHomeDashboard:d=>rendered.push(d),req:async()=>{throw Error('Legacy offline')},fetch:async()=>{throw Error('All sources offline')},document:{getElementById:()=>true}};
+vm.createContext(context);vm.runInContext(runtime+'\nlet homeDashboardData=null;',context);const result=await vm.runInContext('reliableDashboardV326()',context);assert.equal(result.rates.cached,true);assert.equal(result.rates.eurTry,44);assert(rendered.length);
+console.log('v326 PASS: parsing, date validation, single-flight, cache, outage, fallback and browser persistence');
+

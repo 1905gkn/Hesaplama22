@@ -1,4 +1,5 @@
 import {decodeRequest,encodeResponse} from '../scripts/wire-gzip-v244.mjs';
+import {exchangeRatesResponse} from '../scripts/exchange-rates-v326.mjs';
 import worker from "../dist/server/index.js";
 import {validateCatalogWrite} from '../scripts/catalog-validation-v185.mjs';
 import {layoutAgent} from '../scripts/layout-agent-api-v188.mjs';
@@ -138,6 +139,7 @@ async function dailyDashboard(request) {
 const application = {
   async fetch(request) {
     const path = new URL(request.url).pathname;
+    if(path==='/api/exchange-rates' && request.method==='GET') return exchangeRatesResponse();
     if(path==='/api/layout-agent') return layoutAgent(request,{proxyApi});
     if((request.method==='PUT'&&/^\/api\/drawing-projects\/\d+\/types$/.test(path))||(request.method==='POST'&&path==='/api/projects')){
       let body;try{body=await request.clone().json()}catch{return Response.json({error:'Kayıt verisi okunamadı; kayıt değiştirilmedi.'},{status:400});}
@@ -157,3 +159,5 @@ export default {async fetch(request){
  try{request=await decodeRequest(request);}catch(error){return Response.json({error:error.message},{status:error.status||400});}
  return encodeResponse(await application.fetch(request),accepted);
 }};
+
+
