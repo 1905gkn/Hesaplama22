@@ -7,7 +7,7 @@ export function transform(html){
   rackTypeCache=[...groups.values()].sort((a,b)=>{
     const x=a.baseLabel.toUpperCase(),y=b.baseLabel.toUpperCase();
     const letters=/^[A-Z]+$/;
-    return (letters.test(x)&&letters.test(y)?x.length-y.length||blockOrder.compare(x,y):blockOrder.compare(x,y))||blockOrder.compare(a.system,b.system)||a.rows-b.rows||Number(a.entries.keys().next().value)-Number(b.entries.keys().next().value);
+    return Number(a.tunnelHeight>0)-Number(b.tunnelHeight>0)||(letters.test(x)&&letters.test(y)?x.length-y.length||blockOrder.compare(x,y):blockOrder.compare(x,y))||blockOrder.compare(a.system,b.system)||a.rows-b.rows||Number(a.entries.keys().next().value)-Number(b.entries.keys().next().value);
   }).map(group=>({...group,existingCounts:[...group.entries.keys()].sort((a,b)=>b-a)}));`);
  rep("      return await window.rafexCaptureTechnicalViews(seed.drawing,type.system);",`      const signature=JSON.stringify({system:type.system,drawing:seed.drawing});
       if(!force&&previewCache.get(key)?.signature===signature)return previewCache.get(key).src;
