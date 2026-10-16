@@ -11,7 +11,7 @@ export function transform(html){
        const dx=Number(offset.x)||0,dy=Number(offset.y)||0;
        if(!pdf){node.dataset.rafexDimensionOffsetX=String(dx);node.dataset.rafexDimensionOffsetY=String(dy);}
        const x=(Number(line.getAttribute('x1'))+Number(line.getAttribute('x2')))/2+dx,y=(Number(line.getAttribute('y1'))+Number(line.getAttribute('y2')))/2+dy;node.setAttribute('x',x);node.setAttribute('y',y);`;
- if(html.split(from).length!==2)throw Error('v330 label position anchor mismatch');return html.replace(from,to);
+ if(html.split(from).length!==2)throw Error('v330 label position anchor mismatch');return html.replace(from,to).replace("line=guide?.querySelector('line');","line=guide?.querySelector('.m2-rack-distance')||guide?.querySelector('[data-dimension-lines] > line:not(.rafex-dimension-hit)')||guide?.querySelector('line:not(.rafex-dimension-witness):not(.rafex-dimension-hit)');");
 }
 if(process.argv[1]?.replaceAll('\\','/').endsWith('/patch-independent-measure-position-v330.mjs')){
  const f='dist/server/index.js',s=fs.readFileSync(f,'utf8'),m=s.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/);if(!m)throw Error('v330 HTML missing');fs.writeFileSync(f,s.replace(m[1],Buffer.from(transform(Buffer.from(m[1],'base64').toString())).toString('base64')));console.log('v330: independent per-dimension offsets preserved through centering, font changes and PDF cleanup');
