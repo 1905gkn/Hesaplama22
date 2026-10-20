@@ -264,6 +264,7 @@ node scripts/patch-extension-smooth-v336.mjs
 node scripts/patch-foot-protection-ownership-v337.mjs
 node scripts/patch-protection-first-start-v338.mjs
 node scripts/patch-no-mr-foot-protection-v339.mjs
+node scripts/patch-wall-editor-toggle-v340.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
