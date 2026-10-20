@@ -1,3 +1,4 @@
+import {transform as rackHitPriority} from './rack-hit-priority-v348.mjs';
 import {transform as zoomMarks} from './zoom-marks-v347.mjs';
 import fs from "node:fs";
 import {transform as rackGapBasis} from "./rack-gap-basis-v346.mjs";
@@ -45,6 +46,7 @@ html=singleWall(html);
 html=dimensionClickThrough(html);
 html=rackGapBasis(html);
 html=zoomMarks(html);
+html=rackHitPriority(html);
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
 
