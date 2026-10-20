@@ -162,6 +162,8 @@
     if (system(source) === 'b2b' && typeof m2B2BRecordV108 === 'function') drawing = m2B2BRecordV108(drawing);
     drawing.rafexGlobalTypeLetter = target.name;
     drawing.typeName = target.name;
+    // Identical replacement geometry may intentionally retain distinct catalog letters.
+    drawing.rafexDistinctCatalogType = key(target);
     const oldAreas = window.rafexAreaDocument?.();
     if (!oldAreas || !window.rafexReplaceAreaDocumentV319) throw Error('Proje alanları hazır değil.');
     const owner = window.rafexProjectIdentityV133?.uuid;
@@ -257,6 +259,7 @@
   new MutationObserver(decorate).observe(document.body,{subtree:true,childList:true});
   decorate();
 })();
+
 
 
 
