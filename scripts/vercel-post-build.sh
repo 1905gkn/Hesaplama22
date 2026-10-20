@@ -259,6 +259,7 @@ node scripts/patch-free-area-length-input-v331.mjs
 node scripts/patch-autofill-preview-v332.mjs
 node scripts/patch-alignment-toggle-v333.mjs
 node scripts/patch-foot-center-offset-v334.mjs
+node scripts/patch-mr-geometry-join-v335.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
