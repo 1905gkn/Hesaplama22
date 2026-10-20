@@ -1,3 +1,4 @@
+import {transform as zoomMarks} from './zoom-marks-v347.mjs';
 import fs from "node:fs";
 import {transform as rackGapBasis} from "./rack-gap-basis-v346.mjs";
 import {transform as dimensionClickThrough} from "./dimension-click-through-v345.mjs";
@@ -43,6 +44,7 @@ html=fontMinimum(html);
 html=singleWall(html);
 html=dimensionClickThrough(html);
 html=rackGapBasis(html);
+html=zoomMarks(html);
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
 
