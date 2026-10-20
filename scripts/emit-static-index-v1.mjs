@@ -1,3 +1,4 @@
+import {transform as wallGapBasis} from './wall-gap-basis-v353.mjs';
 import {transform as arrayGapBasis} from './array-gap-basis-v352.mjs';
 import {transform as inlinePalletCount} from './inline-pallet-count-v351.mjs';
 import {transform as gapSide} from './gap-side-v350.mjs';
@@ -55,6 +56,7 @@ html=gapModePreserve(html);
 html=gapSide(html);
 html=inlinePalletCount(html);
 html=arrayGapBasis(html);
+html=wallGapBasis(html);
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
 
