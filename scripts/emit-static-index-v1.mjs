@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import {transform as rackGapBasis} from "./rack-gap-basis-v346.mjs";
 import {transform as dimensionClickThrough} from "./dimension-click-through-v345.mjs";
 import {transform as singleWall} from "./single-wall-v344.mjs";
 import {transform as fontMinimum} from "./font-minimum-v343.mjs";
@@ -41,6 +42,7 @@ html=palletTotalPosition(html);
 html=fontMinimum(html);
 html=singleWall(html);
 html=dimensionClickThrough(html);
+html=rackGapBasis(html);
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
 
