@@ -35,6 +35,7 @@
   // Keep the first rack's outer corner fixed and reconnect every shared frame
   // by its centre after a section changes, including neighbours of another type.
   function reflowJoinedArea(area, previous, changedIds) {
+    if (!changedIds.size) return;
     const racks=area.layout.racks||[], before=new Map((previous.racks||[]).map(r=>[r.id,r])), after=new Map(racks.map(r=>[r.id,r]));
     const scale=Number(area.layout.scale)||.04, edges=[], adjacency=new Map(racks.map(r=>[r.id,[]]));
     const foot=r=>typeof m2B2BFootWidth==='function'?m2B2BFootWidth(r):Number(r.footType)||100;
@@ -255,6 +256,7 @@
   new MutationObserver(decorate).observe(document.body,{subtree:true,childList:true});
   decorate();
 })();
+
 
 
 
