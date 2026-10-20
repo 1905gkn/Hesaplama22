@@ -94,8 +94,9 @@
       const oldParent=before.get(parent.id),oldChild=before.get(child.id);
       if(Number(oldParent.b2bLayout?.rowCount)===Number(oldChild.b2bLayout?.rowCount)){
         for(let row=0;row<(Number(child.b2bLayout?.rowCount)||1);row++){
-          const p=point(parent,edge.opposite,row),c=point(child,edge.side,row);
-          if(Math.hypot(p.x-c.x,p.y-c.y)>.01)throw Error('Birleşik rafların sıra aralıkları farklı; ortak ayaklar hizalanamıyor.');
+          const oldPoint=point(oldChild,edge.side,row);let match=null;
+          for(let p=0;p<(Number(oldParent.b2bLayout?.rowCount)||1);p++){const q=point(oldParent,edge.opposite,p),distance=Math.hypot(q.x-oldPoint.x,q.y-oldPoint.y);if(!match||distance<match.distance)match={row:p,distance};}
+          if(match&&match.distance<.02){const p=point(parent,edge.opposite,match.row),c=point(child,edge.side,row);if(Math.hypot(p.x-c.x,p.y-c.y)>.01)throw Error('Birleşik rafların sıra aralıkları farklı; ortak ayaklar hizalanamıyor.');}
         }
       }
     }
@@ -256,6 +257,7 @@
   new MutationObserver(decorate).observe(document.body,{subtree:true,childList:true});
   decorate();
 })();
+
 
 
 
