@@ -6,7 +6,7 @@
     if(!button){button=document.createElement('button');button.id='rafexRackGapBasisV346';button.type='button';button.textContent='Raftan Rafa Ölçü';button.onclick=toggle;pan.after(button);}
     button.classList.toggle('active',frame());button.setAttribute('aria-pressed',String(frame()));button.title='Arası mesafeler: '+(frame()?'raftan rafa':'paletten palete')+'. Ölçü türünü değiştirmek için tıkla.';
   }
-  function apply(areas,owner){window.rafexReplaceAreaDocumentV319(areas,owner);window.__rafexFreeOutputDirty=true;m2RenderLayout();}
+  function apply(areas,owner){window.rafexReplaceAreaDocumentV319(areas,owner);window.__rafexFreeOutputDirty=true;m2RenderLayout();const status=document.getElementById('m2FloorStatus');if(status)status.textContent='Arası mesafeler '+(frame()?'raftan rafa':'paletten palete')+' ölçülüyor.';}
   function toggle(){
     if(window.rafexCanEditProjectV134?.()===false)return;
     const owner=window.rafexProjectIdentityV133?.uuid,old=window.rafexAreaDocument?.(),next=frame()?'pallet':'frame';
