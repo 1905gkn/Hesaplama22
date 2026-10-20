@@ -1,3 +1,5 @@
+import {transform as inlinePalletCount} from './inline-pallet-count-v351.mjs';
+import {transform as gapSide} from './gap-side-v350.mjs';
 import {transform as gapModePreserve} from './gap-mode-preserve-v349.mjs';
 import {transform as rackHitPriority} from './rack-hit-priority-v348.mjs';
 import {transform as zoomMarks} from './zoom-marks-v347.mjs';
@@ -49,6 +51,8 @@ html=rackGapBasis(html);
 html=zoomMarks(html);
 html=rackHitPriority(html);
 html=gapModePreserve(html);
+html=gapSide(html);
+html=inlinePalletCount(html);
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
 
