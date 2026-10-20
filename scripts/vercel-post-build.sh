@@ -262,6 +262,7 @@ node scripts/patch-foot-center-offset-v334.mjs
 node scripts/patch-mr-geometry-join-v335.mjs
 node scripts/patch-extension-smooth-v336.mjs
 node scripts/patch-foot-protection-ownership-v337.mjs
+node scripts/patch-protection-first-start-v338.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
