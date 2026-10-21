@@ -167,16 +167,18 @@ class B2BViewer {
     const count = clamp(Math.round(Number(next.palletCount) || 3), 1, 4);
     const width = clamp(Number(next.palletWidth) || 800, 300, 3000);
     const depth = clamp(Number(next.palletDepth) || 1200, 300, 3000);
-    const calculated = count * width + (count + 1) * 75;
+    const palletSideGap = clamp(Number(next.palletSideGap ?? 75) || 0, 0, 500);
+    const calculated = count * width + (count + 1) * palletSideGap;
     const requestedWidth = Number(next.sectionWidth);
-    const sectionWidth = Number.isFinite(requestedWidth) && requestedWidth >= calculated
-      ? requestedWidth : count === 4 && width === 800 ? 3600 : calculated;
+    const sectionWidth = Number.isFinite(requestedWidth) && requestedWidth >= count * width
+      ? requestedWidth : count === 4 && width === 800 && palletSideGap === 75 ? 3600 : calculated;
     return {
       moduleCount: clamp(Math.round(Number(next.moduleCount) || 4), 1, 50),
       language: next.language || '',
       moduleOptions: Array.isArray(next.moduleOptions) ? next.moduleOptions.map((item) => ({ ...item })) : null,
       palletCount: count,
       palletWidth: width,
+      palletSideGap,
       palletDepth: depth,
       palletHeight: clamp(Number(next.palletHeight) || 800, 300, 3000),
       levels: clamp(Math.round(Number(next.levels) || 4), 1, 15),
