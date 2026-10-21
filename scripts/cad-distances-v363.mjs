@@ -4,7 +4,7 @@ export function transform(html){
  if(html.includes('data-cad-distances="v363"'))return html;
  const replace=(a,b,n=1)=>{if(html.split(a).length!==n+1)throw Error('v363 anchor '+a.slice(0,120));html=html.split(a).join(b);};
  const fn=(name,next,body)=>{const a=html.indexOf('function '+name+'('),b=html.indexOf('function '+next+'(',a+10);if(a<0||b<a)throw Error(name);html=html.slice(0,a)+body+'\n      '+html.slice(b);};
- replace('<script data-rafex-cad-import="v56">','<script data-cad-distances="v363">'+runtime+'</script><script data-rafex-cad-import="v56">');
+ const firstScript=html.indexOf('<script');if(firstScript<0)throw Error('v363 script anchor');html=html.slice(0,firstScript)+'<script data-cad-distances="v363">'+runtime+'</script>'+html.slice(firstScript);
  replace('const sx=Number(symbol.w)/Math.max(2,width),sy=Number(symbol.h)/Math.max(2,height);','const sx=Number(symbol.w)/(symbol.cadBoundsVersion363?width:Math.max(2,width)),sy=Number(symbol.h)/(symbol.cadBoundsVersion363?height:Math.max(2,height));');
  replace("(e?.type==='column'||e?.type==='obstacle')&&represented.has(key(e))","(e?.type==='column'||e?.type==='obstacle')&&window.rafexCadDistancesV363?.solid(e)");
  replace("node.setAttribute('class','rafex-cad-'+kind);layer.appendChild(node);","node.setAttribute('class','rafex-cad-'+kind);if(!element.closed)node.style.fill='none';layer.appendChild(node);");
