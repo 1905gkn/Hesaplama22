@@ -1,3 +1,4 @@
+import {transform as independentPalletGap} from './independent-pallet-gap-v359.mjs';
 import {transform as attributedQuotes} from './attributed-quotes-v358.mjs';
 import {transform as motivationCarousel} from './motivation-carousel-v356.mjs';
 import {transform as palletSideGap} from './pallet-side-gap-v357.mjs';
@@ -67,6 +68,7 @@ html=dailyMotivation(html);
 html=motivationCarousel(html);
 html=palletSideGap(html);
 html=attributedQuotes(html);
+html=independentPalletGap(html);
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
 
