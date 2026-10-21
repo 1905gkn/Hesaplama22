@@ -1,3 +1,4 @@
+import {transform as projectRoundtrip} from './project-roundtrip-v362.mjs';
 import {transform as livePalletSpan} from './live-pallet-span-v361.mjs';
 import {transform as stableQuotePanel} from './stable-quote-panel-v360.mjs';
 import {transform as independentPalletGap} from './independent-pallet-gap-v359.mjs';
@@ -73,6 +74,7 @@ html=attributedQuotes(html);
 html=independentPalletGap(html);
 html=stableQuotePanel(html);
 html=livePalletSpan(html);
+html=projectRoundtrip(html);
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
 
