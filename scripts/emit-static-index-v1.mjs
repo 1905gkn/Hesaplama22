@@ -1,3 +1,5 @@
+import {transform as motivationCarousel} from './motivation-carousel-v356.mjs';
+import {transform as palletSideGap} from './pallet-side-gap-v357.mjs';
 import {transform as dailyMotivation} from './daily-motivation-v355.mjs';
 import {transform as coverLayout} from './cover-layout-v354.mjs';
 import {transform as wallGapBasis} from './wall-gap-basis-v353.mjs';
@@ -61,6 +63,8 @@ html=arrayGapBasis(html);
 html=wallGapBasis(html);
 html=coverLayout(html);
 html=dailyMotivation(html);
+html=motivationCarousel(html);
+html=palletSideGap(html);
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
 
