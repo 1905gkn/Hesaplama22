@@ -1,3 +1,4 @@
+import {transform as bannerLanguage} from './banner-language-v371.mjs';
 import {transform as crmStart} from './crm-start-v370.mjs';
 import {transform as crmReport} from './crm-report-v369.mjs';
 import {transform as crmProject} from './crm-project-v368.mjs';
@@ -91,6 +92,7 @@ html=equalDistanceFont(html);
 html=crmProject(html);
 html=crmReport(html);
 html=crmStart(html);
+html=bannerLanguage(html);
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
 
