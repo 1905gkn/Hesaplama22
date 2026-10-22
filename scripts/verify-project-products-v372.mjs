@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
+const html=fs.readFileSync(process.argv[2]||'dist/index.html','utf8');
+assert(html.includes('documentV133=window.rafexProjectProductsV372.capture(documentV133);'));
+const save=html.indexOf('let documentV133=');assert(save>=0);
+const area=html.indexOf('documentV133=window.rafexAttachAreas?.',save),capture=html.indexOf('documentV133=window.rafexProjectProductsV372.capture',save),post=html.indexOf('const result = await req("/api/projects"',save);
+assert(area<capture&&capture<post,'Snapshot belongs to this history POST and includes attached areas');
+const context={window:{},m2LayoutState:{racks:[],untouched:true},m2LayoutSymbols:[{id:'original'}],console,Date};
+vm.createContext(context);
+const code=html.match(/<script[^>]*data-product-code-rules="v322"[^>]*>([\s\S]*?)<\/script>/)?.[1]||fs.readFileSync(new URL('../client/product-code-rules-v322.js',import.meta.url),'utf8');
+vm.runInContext(code,context);
+const run=html.match(/<script data-project-products="v372">([\s\S]*?)<\/script>/)?.[1];assert(run);vm.runInContext(run,context);
+const api=context.window.rafexProjectProductsV372,original=context.m2LayoutState,symbols=context.m2LayoutSymbols;
+let calls=0;
+context.window.rafexLayoutInventoryRowsV44=()=>{calls++;return context.m2LayoutState.racks.map(r=>({name:'Travers',spec:'CCT1402700140050200 · CC140',qty:r.quantity,unit:'adet'})).concat(context.m2LayoutSymbols.map(()=>({name:'Koruma',spec:'Özel',qty:1,unit:'adet'})));};
+const record={payload:{layout:{racks:[{quantity:999}]},areas:[{id:'a',layout:{racks:[{quantity:6}],symbols:[{type:'uaks'}]}},{id:'b',layout:{racks:[{quantity:12}],symbols:[]}}]}};
+api.capture(record);assert.equal(calls,2);assert.equal(record.payload.productSnapshotV372.products[0].quantity,18);assert.equal(record.payload.productSnapshotV372.products[1].quantity,1);assert.equal(record.payload.productSnapshotV372.products[1].code,null);assert.equal(context.m2LayoutState,original);assert.equal(context.m2LayoutSymbols,symbols);
+const clone=JSON.stringify(record);assert(!clone.includes('untouched'));
+context.window.rafexLayoutInventoryRowsV44=()=>{throw Error('calculation failed')};assert.throws(()=>api.capture(record));assert.equal(context.m2LayoutState,original);assert.equal(context.m2LayoutSymbols,symbols);
+for(const qty of [-1,NaN,Infinity])assert.throws(()=>api.snapshot([{name:'X',spec:'',qty}]));
+assert.equal(api.snapshot([{name:'X',spec:'',qty:0}]).products.length,0);
+const single={payload:{layout:{racks:[],symbols:[]}}};context.window.rafexLayoutInventoryRowsV44=()=>[];api.capture(single);assert.deepEqual(JSON.parse(JSON.stringify(single.payload.productSnapshotV372.products)),[]);
+// Run the actual inventory calculation (including its shared-foot and tunnel
+// quantity consumers), rather than deriving quantities a second way for export.
+const marker=html.indexOf('window.rafexLayoutInventoryRowsV44=rows;'),start=html.lastIndexOf('<script',marker),end=html.indexOf('</script>',marker);
+let inventory=html.slice(html.indexOf('>',start)+1,end),cut=inventory.indexOf('  function inventoryPdfPages');assert(cut>0);inventory=inventory.slice(0,cut)+'window.rafexLayoutInventoryRowsV44=rows;})();';
+context.window.rafexSharedFramesV255={stations:racks=>new Map(racks.map(r=>[Number(r.id),[{product:{profile:'HR90.80.2,0',height:4900,depth:1100}},{product:{profile:'HR90.80.2,0',height:4900,depth:1100}}]]))};
+context.sharedRows=()=>0;context.m2B2BVisibleTraverseLevels=r=>r.visibleLevels;
+vm.runInContext(inventory,context);
+const rack={id:1,b2b:{traverseType:'CC140x50x2'},b2bLayout:{rowCount:1,sectionWidth:2700,frameDepth:1100},levels:3,visibleLevels:2,footProfile:'HR90.80.2,0'};
+const actual={payload:{areas:[{layout:{racks:[rack]}},{layout:{racks:[{...rack,id:2}]}}]}};api.capture(actual);
+assert.equal(actual.payload.productSnapshotV372.products.find(p=>p.name==='Travers').quantity,8);
+assert.equal(actual.payload.productSnapshotV372.products.find(p=>p.name==='Ayak takımı').quantity,4);
+assert.equal(actual.payload.productSnapshotV372.products.find(p=>p.name==='Emniyet pimi').quantity,16);
+assert(actual.payload.productSnapshotV372.products.every(p=>p.code));
+console.log('PASS v372: actual save hook ordering + all areas without active-area duplication; shared inventory rows; tunnel-aware quantities; exception restores editor; code merging; uncoded products retained; invalid quantities rejected.');

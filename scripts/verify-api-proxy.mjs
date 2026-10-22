@@ -7,7 +7,7 @@ const received=[];
 let failCatalog=false;
 const server=http.createServer(async(req,res)=>{
   let body='';for await(const chunk of req)body+=chunk;
-  received.push({method:req.method,headers:req.headers,body});
+  received.push({url:req.url,method:req.method,headers:req.headers,body});
   if(req.url==='/api/b2b-types'||req.url==='/api/mekik2-types'){
     if(failCatalog&&req.url==='/api/mekik2-types'){res.writeHead(503);res.end('offline');return;}
     const types=req.url==='/api/b2b-types'?[{id:1,drawing:{b2b:{}}},{id:2,drawing:{plan:{mr:true}}}]:[{id:1,drawing:{rafexSystem:'konsol'}}];
@@ -43,6 +43,8 @@ try{
     assert.notEqual(sent.headers['content-length'],'999');
   }
   console.log('PASS: PATCH, POST and DELETE reach upstream with intact JSON/session and valid transport headers.');
+  const products=await proxy.fetch(new Request('https://example.test/api/projects/by-number/1234/products',{headers:{cookie:'rafex_session=test-only'}}));
+  assert.equal(products.status,200);assert.equal(received.at(-1).url,'/api/projects/by-number/1234/products');assert.equal(received.at(-1).method,'GET');assert.equal(received.at(-1).headers.cookie,'rafex_session=test-only');
   for(const [path,method,body]of [
     ['/api/drawing-projects/48/types','PUT',{revision:0,rackTypes:[{id:1,system:'b2b'},{id:1,system:'b2b'}]}],
     ['/api/projects','POST',{payload:{rackTypes:[{id:1,system:'b2b'},{id:'1',system:'b2b'}]}}],
@@ -65,3 +67,4 @@ try{
   assert.equal((await proxy.fetch(new Request('https://example.test/api/rack-types'))).status,503,'Do not present a partial catalog as complete');
   console.log('PASS: unified catalog reads deployed save stores, preserves system/deletion routes and rejects partial failure.');
 }finally{await new Promise(resolve=>server.close(resolve));}
+
