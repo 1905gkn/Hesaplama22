@@ -1,3 +1,4 @@
+import {transform as crmProject} from './crm-project-v368.mjs';
 import {transform as equalDistanceFont} from './equal-distance-font-v367.mjs';
 import {transform as stableGapLabel} from './stable-gap-label-v366.mjs';
 import {transform as hideColumnMeasures} from './hide-column-measures-v365.mjs';
@@ -85,6 +86,7 @@ html=preciseMeasures(html);
 html=hideColumnMeasures(html);
 html=stableGapLabel(html);
 html=equalDistanceFont(html);
+html=crmProject(html);
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
 
@@ -112,4 +114,5 @@ execFileSync(process.execPath,["scripts/verify-product-code-rules-v322.mjs",outp
 execFileSync(process.execPath,["scripts/verify-export-products-v323.mjs",outputPath],{stdio:"inherit"});
 execFileSync(process.execPath,["scripts/verify-toolbar-v325.mjs",outputPath],{stdio:"inherit"});
 console.log(`Static entry v2: ${html.length} baytlik ana sayfa ve ${emittedAssets.size} tekil gorsel ayrildi.`);
+
 
