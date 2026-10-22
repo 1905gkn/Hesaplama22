@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';import {randomUUID} from 'node:crypto';import {independentProject} from './independent-project-v133.mjs';
+const html=fs.readFileSync(process.argv[2]||'dist/index.html','utf8'),a=html.indexOf('window.rafexStartNewProjectV133=async function'),b=html.indexOf('\n  function installButton()',a);assert(a>=0&&b>a);const start=html.slice(a,b),gate=html.split('\n').find(line=>line.includes('const unlocked=()=>Boolean(active&&')&&line.includes('crmNumberV370'));assert(gate,'CRM project gate must await a persisted ID');
+const catalog=fs.readFileSync(new URL('./drawing-catalog-v158.js',import.meta.url),'utf8');
+function fixture(failOnce=false){
+ const fields=new Map([['rafexAuthorityProjectName',{value:'CRM Project',setCustomValidity(){},dispatchEvent(){}}],['m2ProjectName',{value:'CRM Project',dispatchEvent(){}}],['m2FloorStatus',{textContent:''}],['rafexProjectStartStatusV157',{textContent:'',dataset:{}}],['rafexNewProjectV133',{disabled:false}]]),records=new Map(),postUuids=[],locks=[];let fail=failOnce,crm={number:208,confirmed:true,projectNo:'CRM Project'};
+ const c={window:{},document:{getElementById:id=>fields.get(id)||null,querySelector:()=>null,addEventListener(){}},structuredClone,Event,Date,crypto:{randomUUID},setTimeout,clearTimeout,m2ReportRefreshTimer:null,m2SavedTypeClickTimer:null,m2LayoutState:{racks:[]},resetSession(){},m2ClearPinnedDimensions(){},m2SetAutoFillControlsActive(){},m2RenderReportImages(){},m2RenderSavedRackTypes(){},m2ZoomLayout(){},m2RenderLayout(){},active:null};
+ c.window.rafexIndependentProjectV133=independentProject;c.window.rafexProjectCrmV368={snapshot:()=>crm,isLocked:()=>true,prepareNew(){}};c.window.rafexDraftsV241={backup:async()=>null};
+ c.req=async(url,options)=>{if(url==='/api/drawing-projects'){const data=JSON.parse(options.body);postUuids.push(data.uuid);assert.equal(data.name,fields.get('rafexAuthorityProjectName').value);if(!records.has(data.uuid))records.set(data.uuid,{id:314+records.size,revision:0});if(fail){fail=false;throw Error('Lost acknowledgement');}return{project:records.get(data.uuid)}}return{revision:0};};
+ vm.createContext(c);vm.runInContext(gate+'\nwindow.rafexCanEditProjectV134=()=>unlocked();',c);c.window.rafexActivateProjectV134=id=>{c.active=id;locks.push(c.window.rafexCanEditProjectV134())};c.window.rafexSyncProjectGateV134=()=>locks.push(c.window.rafexCanEditProjectV134());vm.runInContext(catalog,c);vm.runInContext(start,c);
+ return{c,records,postUuids,locks,fields,setCrm(value){crm=value;fields.get('rafexAuthorityProjectName').value=value.projectNo}};
+}
+{
+ const {c,records,postUuids,locks}=fixture();assert.equal(c.window.rafexCanEditProjectV134(),false);assert.equal(await c.window.rafexStartNewProjectV133(),undefined);assert.equal(postUuids.length,0,'Manual new button cannot bypass CRM lock');
+ assert.deepEqual(await Promise.all([c.window.rafexStartNewProjectV133(true),c.window.rafexStartNewProjectV133(true)]),[true,true]);assert.equal(records.size,1);assert.equal(postUuids.length,1,'Overlapping starts share the existing persistence promise');assert.equal(c.window.rafexProjectIdentityV133.drawingCatalogId,314);assert.equal(c.window.rafexProjectIdentityV133.crmNumberV370,208);assert.equal(c.window.rafexCanEditProjectV134(),true);assert(locks.includes(false));
+ const uuid=c.window.rafexProjectIdentityV133.uuid;assert.equal(await c.window.rafexStartNewProjectV133(true),true);assert.equal(c.window.rafexProjectIdentityV133.uuid,uuid);assert.equal(postUuids.length,1,'Reconfirming current CRM reuses the existing project');
+}
+{
+ const {c,records,postUuids}=fixture(true);assert.equal(await c.window.rafexStartNewProjectV133(true),false);assert.equal(c.window.rafexCanEditProjectV134(),false);assert.equal(c.window.rafexProjectIdentityV133.drawingCatalogId,undefined);const uuid=c.window.rafexProjectIdentityV133.uuid;
+ assert.equal(await c.window.rafexStartNewProjectV133(true),true);assert.equal(c.window.rafexProjectIdentityV133.uuid,uuid);assert.equal(postUuids.length,2);assert.equal(new Set(postUuids).size,1,'A lost save response retries the same project UUID');assert.equal(records.size,1);assert.equal(c.window.rafexCanEditProjectV134(),true);
+}
+{
+ const f=fixture();await f.c.window.rafexStartNewProjectV133(true);const previous=f.c.window.rafexProjectIdentityV133.uuid;f.setCrm({number:209,confirmed:true,projectNo:'Other CRM'});assert.equal(await f.c.window.rafexStartNewProjectV133(true),true);assert.notEqual(f.c.window.rafexProjectIdentityV133.uuid,previous);assert.equal(f.records.size,2);assert.equal(f.c.window.rafexProjectIdentityV133.crmNumberV370,209);
+}
+console.log('CRM start v370 PASS: actual initializer + catalog + gate; persisted ID before editing; concurrent/repeated confirmation; stable UUID on failed acknowledgement; distinct CRM isolation.');
