@@ -1,3 +1,4 @@
+import {transform as projectProducts} from './project-products-v372.mjs';
 import {transform as bannerLanguage} from './banner-language-v371.mjs';
 import {transform as crmStart} from './crm-start-v370.mjs';
 import {transform as crmReport} from './crm-report-v369.mjs';
@@ -93,6 +94,7 @@ html=crmProject(html);
 html=crmReport(html);
 html=crmStart(html);
 html=bannerLanguage(html);
+html=projectProducts(html);
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
 
@@ -120,6 +122,7 @@ execFileSync(process.execPath,["scripts/verify-product-code-rules-v322.mjs",outp
 execFileSync(process.execPath,["scripts/verify-export-products-v323.mjs",outputPath],{stdio:"inherit"});
 execFileSync(process.execPath,["scripts/verify-toolbar-v325.mjs",outputPath],{stdio:"inherit"});
 execFileSync(process.execPath,["scripts/verify-crm-start-v370.mjs",outputPath],{stdio:"inherit"});
+execFileSync(process.execPath,["scripts/verify-project-products-v372.mjs",outputPath],{stdio:"inherit"});
 console.log(`Static entry v2: ${html.length} baytlik ana sayfa ve ${emittedAssets.size} tekil gorsel ayrildi.`);
 
 
