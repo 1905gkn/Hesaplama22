@@ -22,6 +22,7 @@ try{
     .replace('import worker from "../dist/server/index.js";','const worker = {};')
     .replace("'../scripts/wire-gzip-v244.mjs'",JSON.stringify(new URL('./wire-gzip-v244.mjs',import.meta.url).href))
     .replace("'../scripts/exchange-rates-v326.mjs'",JSON.stringify(new URL('./exchange-rates-v326.mjs',import.meta.url).href))
+    .replace("'../scripts/crm-api-v368.mjs'",JSON.stringify(new URL('./crm-api-v368.mjs',import.meta.url).href))
     .replace("'../scripts/layout-agent-api-v188.mjs'",JSON.stringify(new URL('./layout-agent-api-v188.mjs',import.meta.url).href))
     .replace("import {validateCatalogWrite} from '../scripts/catalog-validation-v185.mjs';",validateCatalogWrite.toString())
     .replace('https://rafex-configurator.rafex-3908.chatgpt.site',origin);
@@ -59,6 +60,7 @@ try{
   const data=await catalog.json();assert.deepEqual(data.types.map(e=>e.system),['b2b','mr','konsol']);
   assert.deepEqual(data.types.map(e=>e.__rafexApi),['/api/b2b-types','/api/b2b-types','/api/mekik2-types']);
   assert.equal(catalog.headers.get('cache-control'),'no-store');
+  const crm=await proxy.fetch(new Request('https://example.test/api/crm/208'));assert.equal(crm.status,401,'CRM requires the existing portal session before ERP access');
   failCatalog=true;
   assert.equal((await proxy.fetch(new Request('https://example.test/api/rack-types'))).status,503,'Do not present a partial catalog as complete');
   console.log('PASS: unified catalog reads deployed save stores, preserves system/deletion routes and rejects partial failure.');
