@@ -1,3 +1,4 @@
+import {transform as equalDistanceFont} from './equal-distance-font-v367.mjs';
 import {transform as stableGapLabel} from './stable-gap-label-v366.mjs';
 import {transform as hideColumnMeasures} from './hide-column-measures-v365.mjs';
 import {transform as preciseMeasures} from './precise-measures-v364.mjs';
@@ -83,6 +84,7 @@ html=cadDistances(html);
 html=preciseMeasures(html);
 html=hideColumnMeasures(html);
 html=stableGapLabel(html);
+html=equalDistanceFont(html);
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
 
