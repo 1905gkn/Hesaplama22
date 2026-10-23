@@ -6,6 +6,7 @@ const area=html.indexOf('documentV133=window.rafexAttachAreas?.',save),capture=h
 assert(area<capture&&capture<post,'Snapshot belongs to this history POST and includes attached areas');
 const context={window:{},m2LayoutState:{racks:[],untouched:true},m2LayoutSymbols:[{id:'original'}],console,Date};
 vm.createContext(context);
+const units=html.match(/<script data-product-units="v377">([\s\S]*?)<\/script>/)?.[1];if(units)vm.runInContext(units,context);
 const code=html.match(/<script[^>]*data-product-code-rules="v322"[^>]*>([\s\S]*?)<\/script>/)?.[1]||fs.readFileSync(new URL('../client/product-code-rules-v322.js',import.meta.url),'utf8');
 vm.runInContext(code,context);
 const run=html.match(/<script data-project-products="v372">([\s\S]*?)<\/script>/)?.[1];assert(run);vm.runInContext(run,context);
