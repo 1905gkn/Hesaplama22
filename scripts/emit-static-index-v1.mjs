@@ -123,6 +123,7 @@ execFileSync(process.execPath,["scripts/verify-export-products-v323.mjs",outputP
 execFileSync(process.execPath,["scripts/verify-toolbar-v325.mjs",outputPath],{stdio:"inherit"});
 execFileSync(process.execPath,["scripts/verify-crm-start-v370.mjs",outputPath],{stdio:"inherit"});
 execFileSync(process.execPath,["scripts/verify-project-products-v372.mjs",outputPath],{stdio:"inherit"});
+execFileSync(process.execPath,["scripts/verify-daily-quotes-v375.mjs"],{stdio:"inherit"});
 console.log(`Static entry v2: ${html.length} baytlik ana sayfa ve ${emittedAssets.size} tekil gorsel ayrildi.`);
 
 

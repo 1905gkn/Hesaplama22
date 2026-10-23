@@ -85,4 +85,4 @@ CRM yoksa `crmNo` yerine `projectName` gelir:
 | 409 | PRODUCT_SNAPSHOT_REQUIRED | Eski kayıtta ürün dökümü yok. Projeyi açıp **yeniden kaydedin**; dönen yeni kayıt numarasını kullanın. |
 | 409 | INVALID_PRODUCT_SNAPSHOT | Saklanan ürün dökümü geçersiz. Yeniden kayıt gerekir. |
 
-Eski kayıtlar otomatik değiştirilmez. Yeni sürüm yüklendikten sonra kaydedilen serbest yerleşim projeleri ürün dökümünü taşır. Eski açık sekmede yeni sürüm yüklenmemişse önce çalışmanızı koruyup sayfayı yenileyin.
+Eski kayıtlar otomatik değiştirilmez. Doğrulanmış yerel B2B raf detayını içeren eski kayıtlarda API, kayıtlı ölçülerden ürünleri hesaplar; yeniden kayıt gerekmez ve yanıtta `calculationSource: "saved-native-detail"` gelir. Bu hesap mevcut ürün kodu kurallarını kullanır. Detayı eksik/uyumsuz eski kayıtlar veya desteklenmeyen eski sistemler için 409 döner. Yeni sürüm yüklendikten sonra kaydedilen serbest yerleşim projeleri ürün dökümünü taşır. Eski açık sekmede yeni sürüm yüklenmemişse önce çalışmanızı koruyup sayfayı yenileyin.
