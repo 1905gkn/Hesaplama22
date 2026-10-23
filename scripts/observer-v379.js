@@ -46,4 +46,7 @@ async function render(){
 const history=openHistory;openHistory=window.openHistory=function(){if(me?.role==='observer')return render();return history.apply(this,arguments)};
 window.rafexObserverV379={render};
 const style=document.createElement('style');style.textContent='.rafex-observer-v379 #nav button:not([data-page="home"]),.rafex-observer-v379 #mobileTabs,.rafex-observer-v379 #rafexDraftsButtonV241{display:none!important}.rafex-observer-v379 #observerDetailV379{margin-top:18px}.rafex-observer-v379 #page table{width:100%}';document.head.appendChild(style);
+// A cached /api/me response can beat parsing of the final inline scripts.
+// Finish the observer entry here too, once the renderer is installed.
+if(typeof me!=='undefined'&&me?.role==='observer')render();
 })();

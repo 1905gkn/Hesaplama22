@@ -6,7 +6,7 @@ export function transform(html){
  replace('defaultLanguage: $("newUserLanguage").value,','defaultLanguage: $("newUserLanguage").value,\n                role: $("newUserRole").value,');
  html=html.replaceAll('x.role === "super" ? "Süper" : "Kullanıcı"','x.role === "super" ? "Süper" : x.role === "observer" ? "Gözlemci" : "Kullanıcı"');
  html=html.replaceAll('user.role === "super" ? "Süper Kullanıcı" : "Kullanıcı"','user.role === "super" ? "Süper Kullanıcı" : user.role === "observer" ? "Gözlemci · Salt okunur" : "Kullanıcı"');
- replace('      function showPage(name) {','      function showPage(name) {\n        if(me?.role === "observer")return window.rafexObserverV379.render();');
+ replace('      function showPage(name) {','      function showPage(name) {\n        if(me?.role === "observer")return window.rafexObserverV379?.render();');
  replace('      async function req(url, opt = {}) {',`      async function req(url, opt = {}) {
         if(typeof me !== 'undefined' && me?.role === 'observer' && !['GET','HEAD'].includes(String(opt.method||'GET').toUpperCase()) && url !== '/api/logout')throw new Error('Gözlemci hesabı yalnızca projeleri görüntüleyebilir.');`);
  const runtime=fs.readFileSync(new URL('./observer-v379.js',import.meta.url),'utf8');
