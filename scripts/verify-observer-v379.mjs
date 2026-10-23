@@ -1,0 +1,12 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';import {transform} from './observer-v379.mjs';
+const html=fs.readFileSync(process.argv[2]||'dist/index.html','utf8');
+assert(html.includes('data-observer="v379"'));assert.equal(transform(html),html);
+for(const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))if(match[1].trim())new vm.Script(match[1]);
+assert(html.includes('id="newUserRole"'));assert(html.includes('value="observer"'));assert(html.includes('role: $("newUserRole").value,'));assert(html.includes('x.role === "observer" ? "Gözlemci"'));
+const ctx={window:{rafexObserverV379:{render(){ctx.renders++}}},me:{role:'observer'},renders:0};vm.createContext(ctx);
+const start=html.indexOf('      function showPage(name) {'),end=html.indexOf('\n      function ',start+20);vm.runInContext(html.slice(start,end),ctx);ctx.showPage('admin');ctx.showPage('free');assert.equal(ctx.renders,2);
+const a=html.indexOf('      async function req(url, opt = {}) {'),b=html.indexOf('\nasync function requestJson',a);
+let writes=0;Object.assign(ctx,{requestJson:async()=>{writes++;return{}},pendingProjectList:null,projectListEpochV261:0});vm.runInContext(html.slice(a,b),ctx);
+await assert.rejects(ctx.req('/api/projects',{method:'POST'}),/Gözlemci/);await assert.rejects(ctx.req('/api/users/1',{method:'PATCH'}),/Gözlemci/);assert.equal(writes,0);
+await ctx.req('/api/projects/1');await ctx.req('/api/logout',{method:'POST'});assert.equal(writes,2);
+console.log('PASS observer UI: role creation and label, readonly navigation intercept, mutation requests denied before transmission, project GET and logout preserved, all inline script syntax.');
