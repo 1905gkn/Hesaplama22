@@ -1,3 +1,4 @@
+import {transform as b2bLevelLimit} from './b2b-level-limit-v378.mjs';
 import {transform as extensionPriority} from './extension-priority-v376.mjs';
 import {transform as productUnits} from './product-units-v377.mjs';
 import {transform as projectProducts} from './project-products-v372.mjs';
@@ -99,6 +100,7 @@ html=bannerLanguage(html);
 html=projectProducts(html);
 html=extensionPriority(html);
 html=productUnits(html);
+html=b2bLevelLimit(html);
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
 
@@ -129,6 +131,7 @@ execFileSync(process.execPath,["scripts/verify-crm-start-v370.mjs",outputPath],{
 execFileSync(process.execPath,["scripts/verify-project-products-v372.mjs",outputPath],{stdio:"inherit"});
 execFileSync(process.execPath,["scripts/verify-daily-quotes-v375.mjs"],{stdio:"inherit"});
 execFileSync(process.execPath,["scripts/verify-extension-units-v377.mjs",outputPath],{stdio:"inherit"});
+execFileSync(process.execPath,["scripts/verify-b2b-level-limit-v378.mjs",outputPath],{stdio:"inherit"});
 console.log(`Static entry v2: ${html.length} baytlik ana sayfa ve ${emittedAssets.size} tekil gorsel ayrildi.`);
 
 

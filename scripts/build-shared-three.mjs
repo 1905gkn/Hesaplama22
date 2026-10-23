@@ -1,3 +1,4 @@
+import {transformViewerSource} from './b2b-level-limit-v378.mjs';
 import fs from 'node:fs';
 import {build} from 'esbuild';
 import * as THREE from 'three';
@@ -16,6 +17,7 @@ for(const [entry,file,constant] of [
  ['client/konsol-viewer.entry.js','konsol-viewer.js','KONSOL_VIEWER_BASE64'],
  ['client/mekik-front-viewer.entry.js','mekik-front-viewer.js','RAFEX_MEKIK_FRONT_VIEWER_BASE64'],
  ['client/drive-in-viewer.entry.js','drive-in-viewer.js','DRIVE_IN_VIEWER_BASE64']]){
+  if(file==='b2b-viewer.js')fs.writeFileSync(entry,transformViewerSource(fs.readFileSync(entry,'utf8')));
   const result=await build({absWorkingDir:root,entryPoints:[entry],bundle:true,format:'iife',minify:true,target:'es2022',write:false,plugins:[plugin]});
   const code=result.outputFiles[0].text;new vm.Script(code);
   versionHash.update(code);
