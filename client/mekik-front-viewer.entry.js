@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
+const FRONT_DISPLAY_BAYS = 5; // Presentation only; config.bays retains the actual project count.
 const ASSET_VERSION = "mekik-front-glb-v42";
 const REFERENCE_BAY_PITCH = 1450;
 const REFERENCE_UPRIGHT_WIDTH = 100;
@@ -109,7 +110,7 @@ function readConfig() {
     sideClearance,
     uprightHeight,
     bayPitch,
-    totalWidth: bays * bayPitch + footType,
+    totalWidth: Number(drawing?.totalWidth || drawing?.widthMm) || bays * bayPitch + footType,
   };
 }
 
@@ -282,7 +283,7 @@ class MekikFrontViewer {
   }
 
   configKey(config = this.config) {
-    return [config.bays, config.levels, config.palletWidth, config.palletDepth, config.palletHeight, config.firstLevelHeight, config.levelSpacing, config.footType, config.footColor, config.traverseColor, config.traverseHeight, config.sideClearance, config.uprightHeight].join("|");
+    return [config.bays, config.levels, config.palletWidth, config.palletDepth, config.palletHeight, config.firstLevelHeight, config.levelSpacing, config.footType, config.footColor, config.traverseColor, config.traverseHeight, config.sideClearance, config.uprightHeight, config.totalWidth].join("|");
   }
 
   update() {
@@ -305,7 +306,7 @@ class MekikFrontViewer {
     const uprightMaterial = finishMaterial(config.footColor, "foot");
     const traverseMaterial = finishMaterial(config.traverseColor, "traverse");
 
-    for (let index = 0; index <= config.bays; index += 1) {
+    for (let index = 0; index <= FRONT_DISPLAY_BAYS; index += 1) {
       const upright = this.models.upright.root.clone(true);
       upright.name = `Mekik Ayak ${index + 1}`;
       upright.traverse((part) => { if (part.isMesh) part.material = uprightMaterial; });
@@ -331,7 +332,7 @@ class MekikFrontViewer {
     const bracketTopOffset = this.models.traverse.topOffset;
     for (let level = 0; level < config.levels; level += 1) {
       const supportZ = config.firstLevelHeight + level * config.levelSpacing;
-      for (let bay = 0; bay < config.bays; bay += 1) {
+      for (let bay = 0; bay < FRONT_DISPLAY_BAYS; bay += 1) {
         const bayCenterX = (bay + 0.5) * config.bayPitch;
         const traverse = this.models.traverse.root.clone(true);
         traverse.name = `Mekik Travers G${bay + 1} K${level + 1}`;
@@ -363,7 +364,7 @@ class MekikFrontViewer {
     const floor = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(-config.footType, 0, 0),
-        new THREE.Vector3(config.bays * config.bayPitch + config.footType, 0, 0),
+        new THREE.Vector3(FRONT_DISPLAY_BAYS * config.bayPitch + config.footType, 0, 0),
       ]),
       floorMaterial,
     );
@@ -471,7 +472,7 @@ class MekikFrontViewer {
     };
     const fmt = (value) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(Math.round(Number(value) || 0));
     const rackEdgeA = point(0, 0).x;
-    const rackEdgeB = point(config.bays * config.bayPitch, 0).x;
+    const rackEdgeB = point(FRONT_DISPLAY_BAYS * config.bayPitch, 0).x;
     const rackLeft = Math.min(rackEdgeA, rackEdgeB);
     const rackRight = Math.max(rackEdgeA, rackEdgeB);
     // Ölçü sıfırı GLB sınır kutusundan alınmaz. Gri zemin çizgisi ve
@@ -534,7 +535,7 @@ class MekikFrontViewer {
     // Kamera X eksenini ters çevirebildiği için "ilk göz"ü model sırasından değil,
     // ekranda görünen en soldaki iki kolon merkezinden belirle.
     const projectedColumnEdges = Array.from(
-      { length: config.bays + 1 },
+      { length: FRONT_DISPLAY_BAYS + 1 },
       (_, index) => point(index * config.bayPitch, groundZ).x,
     ).sort((a, b) => a - b);
     const firstBayEdgeA = projectedColumnEdges[0];
@@ -548,6 +549,9 @@ class MekikFrontViewer {
     const columnChipY = Math.max(8, point(0, topLoadZ).y - 40);
     verticalDimensionAtY(innerRightX, originY, topPalletBottomY, `SON PALET YÜKSEKLİĞİ · ${fmt(topPalletBottom - groundZ)} mm`, "inside");
     verticalDimensionAtY(rightX, originY, topY, `AYAK UZUNLUĞU · ${fmt(uprightTopZ - groundZ)} mm`, "outside");
+    const lengthY = Math.min(height - 46, originY + 30);
+    const metres = new Intl.NumberFormat('tr-TR',{maximumFractionDigits:3}).format(config.totalWidth / 1000);
+    lineParts.push(`<g class="rafex-front-total-v380" data-display-bays="5" data-total-mm="${config.totalWidth}"><line x1="${rackLeft}" y1="${lengthY}" x2="${rackRight}" y2="${lengthY}" class="dim-main"/><path d="M${rackLeft} ${lengthY-4}v8M${rackRight} ${lengthY-4}v8" class="dim-main"/><text x="${(rackLeft+rackRight)/2}" y="${lengthY+18}" text-anchor="middle" class="dim-text">TOPLAM UZUNLUK · ${metres} m</text><text x="${(rackLeft+rackRight)/2}" y="${lengthY+34}" text-anchor="middle" style="font:12px Arial;fill:#536158">5 temsili blok</text></g>`);
     dimensions.innerHTML = `
       <defs>
         <marker id="mekik-arrow" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto-start-reverse">
@@ -609,7 +613,7 @@ function updateZoomLabel(zoom) {
 function updateInfo(config) {
   if (!info) return;
   const formatter = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
-  const text = `${formatter.format(config.bays)} göz × ${formatter.format(config.levels)} kat · ${formatter.format(config.totalWidth)} × ${formatter.format(config.uprightHeight)} mm`;
+  const text = `5 temsili blok · TOPLAM UZUNLUK ${formatter.format(config.totalWidth / 1000)} m`;
   if (info.textContent !== text) info.textContent = text;
 }
 
@@ -1024,3 +1028,4 @@ window.rafexMekikFrontGlbV2 = {
 };
 
 scheduleMountBurst();
+

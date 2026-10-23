@@ -4,6 +4,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
+const FRONT_DISPLAY_BAYS = 5; // Presentation only; config.bays retains the actual project count.
 const ASSET_VERSION = "drive-in-front-v11";
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 let sharedModelsPromise = null;
@@ -124,6 +125,7 @@ class DriveInFrontViewer {
     const railLength = depthPallets * palletDepth + specialGapCount * firstPalletGap + (gapCount - specialGapCount) * palletGap;
     return {
       bays: clamp(Math.round(Number(next.bays) || 1), 1, 50),
+      totalWidth: Number(next.totalWidth) > 0 ? Number(next.totalWidth) : clamp(Math.round(Number(next.bays) || 1),1,50) * (clamp(Number(next.palletWidth)||1200,300,3000)+240)+90,
       levels: clamp(Math.round(Number(next.levels) || 4), 1, 15),
       palletWidth: clamp(Number(next.palletWidth) || 1200, 300, 3000),
       palletDepth,
@@ -139,7 +141,7 @@ class DriveInFrontViewer {
   }
 
   configKey(value = this.config) {
-    return [value.bays, value.levels, value.depthPallets, value.palletWidth, value.palletDepth, value.palletHeight, value.firstLevelHeight, value.levelSpacing, value.systemType, value.firstPalletGap, value.palletGap].join("|");
+    return [value.bays, value.levels, value.depthPallets, value.palletWidth, value.palletDepth, value.palletHeight, value.firstLevelHeight, value.levelSpacing, value.systemType, value.firstPalletGap, value.palletGap, value.totalWidth].join("|");
   }
 
   emit(name, detail = {}) { this.canvas.dispatchEvent(new CustomEvent(name, { detail })); }
@@ -206,7 +208,7 @@ class DriveInFrontViewer {
     const uprightWidth = 90;
     const bayClear = c.palletWidth + 150;
     const bayPitch = bayClear + uprightWidth;
-    const rackWidth = c.bays * bayClear + (c.bays + 1) * uprightWidth;
+    const rackWidth = FRONT_DISPLAY_BAYS * bayClear + (FRONT_DISPLAY_BAYS + 1) * uprightWidth;
     const rackHeight = c.firstLevelHeight + Math.max(0, c.levels - 1) * c.levelSpacing + c.palletHeight + 220;
     const depth = Math.max(c.palletDepth, c.railLength);
     const ayakSize = metricsOf(this.models.ayak).size;
@@ -229,7 +231,7 @@ class DriveInFrontViewer {
     const paletScale = new THREE.Vector3(paletDepthScale, paletWidthScale, paletThicknessScale);
     const frontY = depth / 2;
 
-    for (let i = 0; i <= c.bays; i += 1) {
+    for (let i = 0; i <= FRONT_DISPLAY_BAYS; i += 1) {
       const x = uprightWidth / 2 + i * bayPitch;
       this.addPart(this.models.ayak, ayakScale, new THREE.Vector3(x, frontY - ayakSize.y / 2, rackHeight / 2), technicalMaterials.ayak);
     }
@@ -238,7 +240,7 @@ class DriveInFrontViewer {
       const supportZ = c.firstLevelHeight + level * c.levelSpacing;
       // Formdaki ilk kat ve kat aralığı değerleri taşıma üst kotunu belirtir.
       const supportTopZ = supportZ;
-      for (let bay = 0; bay < c.bays; bay += 1) {
+      for (let bay = 0; bay < FRONT_DISPLAY_BAYS; bay += 1) {
         const left = uprightWidth + bay * bayPitch;
         const right = left + bayClear;
         const centerX = (left + right) / 2;
@@ -257,7 +259,7 @@ class DriveInFrontViewer {
           new THREE.Vector3(centerX, frontY - c.palletDepth / 2 - 40, palletSeatZ + palletThickness + (c.palletHeight - palletThickness) / 2),
         );
       }
-      for (let i = 0; i <= c.bays; i += 1) {
+      for (let i = 0; i <= FRONT_DISPLAY_BAYS; i += 1) {
         const x = uprightWidth / 2 + i * bayPitch;
         this.addPart(this.models.arabag, arabagScale, new THREE.Vector3(x, frontY - ayakSize.y - arabagSize.y / 2, supportZ + arabagSize.z / 2), technicalMaterials.arabag);
       }
@@ -313,7 +315,7 @@ class DriveInFrontViewer {
     };
     const lowerLeft = project(bounds.min.x, bounds.min.z);
     const upperRight = project(bounds.max.x, bounds.max.z);
-    const rackWidth = this.config.bays * (this.config.palletWidth + 150) + (this.config.bays + 1) * 90;
+    const rackWidth = FRONT_DISPLAY_BAYS * (this.config.palletWidth + 150) + (FRONT_DISPLAY_BAYS + 1) * 90;
     const rackEdgeA = project(0, 0).x;
     const rackEdgeB = project(rackWidth, 0).x;
     const palletPoints = this.palletBounds.map(box => {
@@ -331,8 +333,10 @@ class DriveInFrontViewer {
       )),
       palletPoints,
       uprightTopY: project(0, this.config.firstLevelHeight + (this.config.levels - 1) * this.config.levelSpacing + this.config.palletHeight + 220).y,
-      columnXs: Array.from({length:this.config.bays+1},(_,i)=>project(45+i*(this.config.palletWidth+240),0).x).sort((a,b)=>a-b),
+      columnXs: Array.from({length:FRONT_DISPLAY_BAYS+1},(_,i)=>project(45+i*(this.config.palletWidth+240),0).x).sort((a,b)=>a-b),
       bayPitch: this.config.palletWidth + 240,
+      totalWidth: this.config.totalWidth,
+      displayBays: FRONT_DISPLAY_BAYS,
       loadTopY: project(0, this.config.firstLevelHeight + (this.config.levels-1)*this.config.levelSpacing + this.config.palletHeight).y,
       width,
       height,
@@ -397,4 +401,5 @@ window.RafexDriveInViewer = {
   destroy() { active?.destroy?.(); active = null; },
 };
 window.dispatchEvent(new Event("rafex-drive-in-viewer-ready"));
+
 
