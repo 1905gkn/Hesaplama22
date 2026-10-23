@@ -1,6 +1,7 @@
 export function transform(html){
  if(html.includes('data-representative-front="v380"'))return html;
  const replace=(a,b)=>{if(html.split(a).length!==2)throw Error('v380 HTML anchor '+a.slice(0,95));html=html.replace(a,b)};
+ replace('function m2ReportElevationSvg(drawing, mode) {const storedV135=window.rafexReadRackDetailV135?.(drawing,mode);if(storedV135)return storedV135;',`function m2ReportElevationSvg(drawing, mode) {const storedV135=window.rafexReadRackDetailV135?.(drawing,mode);const representativeFront=mode==='front'&&!drawing?.b2b&&!drawing?.b2bLayout&&!drawing?.plan?.mr&&!drawing?.konsol&&drawing?.spec?.system!=='konsol'&&!['mr','b2b','konsol','cantilever'].includes(drawing?.rafexSystem);if(storedV135&&!representativeFront)return storedV135;`);
  replace('const bays = Math.max(1, Number(drawing?.bays) || 1),','const bays = 5, /* five representative bays; actual dimensions remain on drawing */');
  replace('${fmt(front ? drawing.totalWidth : drawing.railLength)} mm','${front ? `TOPLAM UZUNLUK · ${new Intl.NumberFormat("tr-TR",{maximumFractionDigits:3}).format(Number(drawing.totalWidth||drawing.widthMm||0)/1000)} m · 5 temsili blok` : `${fmt(drawing.railLength)} mm`}');
  const oldWidth='${fmt(fullWidth)} mm · ${fmt(fullColumns)} göz';if(html.split(oldWidth).length!==3)throw Error('v380 two native front labels');
