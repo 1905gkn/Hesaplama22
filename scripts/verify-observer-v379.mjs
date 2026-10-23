@@ -1,3 +1,4 @@
+import {crmLookup} from './crm-api-v368.mjs';
 import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';import {transform} from './observer-v379.mjs';
 const html=fs.readFileSync(process.argv[2]||'dist/index.html','utf8');
 assert(html.includes('data-observer="v379"'));assert.equal(transform(html),html);
@@ -12,3 +13,9 @@ let writes=0;Object.assign(ctx,{requestJson:async()=>{writes++;return{}},pending
 await assert.rejects(ctx.req('/api/projects',{method:'POST'}),/Gözlemci/);await assert.rejects(ctx.req('/api/users/1',{method:'PATCH'}),/Gözlemci/);assert.equal(writes,0);
 await ctx.req('/api/projects/1');await ctx.req('/api/logout',{method:'POST'});assert.equal(writes,2);
 console.log('PASS observer UI: role creation and label, readonly navigation intercept, mutation requests denied before transmission, project GET and logout preserved, all inline script syntax.');
+
+let crmCalls=0;const crmFetch=async()=>{crmCalls++;return Response.json([])};
+const crmRequest=new Request('https://fixture.test/api/crm/208');
+const observerCrm=await crmLookup(crmRequest,{proxyApi:async()=>Response.json({user:{id:8,role:'observer'}}),fetchImpl:crmFetch});assert.equal(observerCrm.status,403);assert.equal(crmCalls,0,'Observer cannot call external ERP');
+const ordinaryCrm=await crmLookup(crmRequest,{proxyApi:async()=>Response.json({user:{id:9,role:'user'}}),fetchImpl:crmFetch});assert.equal(ordinaryCrm.status,404);assert.equal(crmCalls,1,'Existing CRM lookup remains available to normal users');
+console.log('PASS observer CRM: external ERP read denied before provider call; ordinary user unchanged.');

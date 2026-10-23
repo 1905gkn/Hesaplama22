@@ -16,6 +16,7 @@ export async function crmLookup(request,{proxyApi,fetchImpl=fetch}={}){
  const sessionUrl=new URL('/api/me',request.url);let session;
  try{const response=await proxyApi(new Request(sessionUrl,{headers:request.headers}));if(!response.ok)return reply({error:response.status===401?'CRM bilgileri için tekrar giriş yapın.':'Oturum doğrulanamadı.'},response.status===401?401:503);session=await response.json();}catch{return reply({error:'Oturum doğrulanamadı.'},503);}
  if(!session?.user?.id)return reply({error:'CRM bilgileri için giriş yapın.'},401);
+ if(session.user.role==='observer')return reply({error:'Gözlemci hesabı yalnızca kayıtlı projeleri görüntüleyebilir.',code:'OBSERVER_READ_ONLY'},403);
  try{
   const response=await fetchImpl(ERP_URL,{headers:{accept:'application/json'},signal:AbortSignal.timeout(10000)});
   if(!response.ok)return reply({error:'ERP bağlantısı yanıt vermedi. Tekrar deneyin.'},502);
