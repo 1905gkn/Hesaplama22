@@ -1,3 +1,4 @@
+import {transform as accessoryFloors} from './accessory-floors-v385.mjs';
 import {transform as accessoryLabels} from './accessory-labels-v384.mjs';
 import {transform as initialFootFinish} from './initial-foot-finish-v383.mjs';
 import {transform as topFinishesUnits} from './top-finishes-units-v382.mjs';
@@ -110,6 +111,7 @@ html=representativeFront(html);
 html=topFinishesUnits(html);
 html=initialFootFinish(html);
 html=accessoryLabels(html);
+html=accessoryFloors(html);
 html=b2bLevelLimit(html);
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
@@ -147,6 +149,7 @@ execFileSync(process.execPath,["scripts/verify-representative-front-v380.mjs",ou
 execFileSync(process.execPath,["scripts/verify-top-finishes-units-v382.mjs",outputPath],{stdio:"inherit"});
 execFileSync(process.execPath,["scripts/verify-initial-foot-finish-v383.mjs",outputPath],{stdio:"inherit"});
 execFileSync(process.execPath,["scripts/verify-accessory-labels-v384.mjs",outputPath,"dist/b2b-viewer.patched.entry.js"],{stdio:"inherit"});
+execFileSync(process.execPath,["scripts/verify-accessory-floors-v385.mjs","dist/b2b-viewer.patched.entry.js"],{stdio:"inherit"});
 console.log(`Static entry v2: ${html.length} baytlik ana sayfa ve ${emittedAssets.size} tekil gorsel ayrildi.`);
 
 
