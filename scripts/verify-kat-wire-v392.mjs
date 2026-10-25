@@ -3,6 +3,9 @@ import {katWirePlan,transform,transformViewerSource} from './kat-wire-v392.mjs';
 import {nodeDraco} from './kat-wire-test-decoder-v392.mjs';
 const html=fs.readFileSync(process.argv[2]||'dist/index.html','utf8'),source=fs.readFileSync(process.argv[3]||'dist/b2b-viewer.patched.entry.js','utf8'),asset=process.argv[4]||'assets/kat-teli.glb';
 assert.equal(transform(html),html);assert.equal(transformViewerSource(source),source);
+const rulesMarker=html.indexOf('root.rafexProductCodeRulesV322=Object.freeze'),rulesStart=html.lastIndexOf('(function(root){',rulesMarker),rulesEnd=html.indexOf('})(typeof window===',rulesMarker),rulesEnv={};vm.createContext(rulesEnv);vm.runInContext(html.slice(rulesStart,rulesEnd)+'})(globalThis);',rulesEnv);
+const rules=rulesEnv.rafexProductCodeRulesV322;
+for(const [spec,code] of [['890 × 1.100 mm','KT1100089030D'],['1.100 × 1.100 mm','KT1100110030D'],['1.133 × 1.100 mm · Özel ölçü','KT1100113330D'],['890 × 900 mm','KT0900089030D']]){assert.equal(rules.codeFor('Kat Teli',spec),code);assert.equal(rules.split(code+' · '+spec).code,code);assert.equal(rules.split(code+' · '+spec).description,spec);}
 for(const [span,width,count,gap] of [[2700,890,3,30],[2200,1100,2,0],[1800,890,2,20],[3600,890,4,40],[2720,890,3,50]]){const p=katWirePlan(span);assert(p.valid);assert.equal(p.width,width);assert.equal(p.count,count);assert.equal(p.gap,gap);}
 for(const span of [3400,2000,2721,500])assert(!katWirePlan(span).valid);
 assert.equal(katWirePlan(3400).covered,3300);assert.equal(katWirePlan(3400).gap,100);

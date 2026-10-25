@@ -38,6 +38,15 @@ function runtime(){
 export function transform(html){
  if(html.includes('data-kat-wire="v392"'))return html;
  const replace=(a,b)=>{if(html.split(a).length!==2)throw Error('v392 HTML anchor '+a.slice(0,100));html=html.replace(a,b)};
+ replace("    const p=profileData(text);",`    if(name==='kat teli'){
+      const size=text.match(/^([\\d.,]+)\\s*×\\s*([\\d.,]+)\\s*mm/);
+      const mm=value=>Number(value.replaceAll('.','').replace(',','.'));
+      if(!size)return '';
+      const width=mm(size[1]),depth=mm(size[2]);
+      return width>0&&depth>0?'KT'+String(depth).padStart(4,'0')+String(width).padStart(4,'0')+'30D':'';
+    }
+    const p=profileData(text);`);
+ replace('|DAB90\\d+))','|DAB90\\d+|KT\\d{8}30D))');
  replace("const TYPES={palletStop:'Palet Dayama',hTraverse:'H Travers',tray:'Tava'};","const TYPES={palletStop:'Palet Dayama',hTraverse:'H Travers',tray:'Tava',katWire:'Kat Teli'};");
  replace("    tray: { label: 'Tava' },","    tray: { label: 'Tava' },\n    katWire: { label: 'Kat Teli' },");
  replace("    levels: [...new Set((item.levels || []).map(Number).filter(Number.isFinite))].sort((a,b) => a-b),","    levels: [...new Set((item.levels || []).map(Number).filter(Number.isFinite))].sort((a,b) => a-b),\n    ...(item.type==='katWire'?{customWidth:item.customWidth??null}:{}),");
