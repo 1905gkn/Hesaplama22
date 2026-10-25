@@ -1,3 +1,4 @@
+import {transform as katWire} from './kat-wire-v392.mjs';
 import {transform as collectionAccessoryIsolation} from './collection-accessory-isolation-v387.mjs';
 import {transform as accessoryFloors} from './accessory-floors-v385.mjs';
 import {transform as accessoryLabels} from './accessory-labels-v384.mjs';
@@ -114,6 +115,7 @@ html=initialFootFinish(html);
 html=accessoryLabels(html);
 html=accessoryFloors(html);
 html=collectionAccessoryIsolation(html);
+html=katWire(html);
 html=b2bLevelLimit(html);
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
@@ -155,6 +157,7 @@ execFileSync(process.execPath,["scripts/verify-accessory-floors-v385.mjs","dist/
 execFileSync(process.execPath,["scripts/verify-collection-accessory-isolation-v387.mjs",outputPath,"dist/b2b-viewer.patched.entry.js"],{stdio:"inherit"});
 execFileSync(process.execPath,["scripts/verify-accessory-label-position-v389.mjs","dist/b2b-viewer.patched.entry.js"],{stdio:"inherit"});
 execFileSync(process.execPath,["scripts/verify-elevated-accessory-labels-v390.mjs","dist/b2b-viewer.patched.entry.js"],{stdio:"inherit"});
+execFileSync(process.execPath,["scripts/verify-kat-wire-v392.mjs",outputPath,"dist/b2b-viewer.patched.entry.js","assets/kat-teli.glb"],{stdio:"inherit"});
 console.log(`Static entry v2: ${html.length} baytlik ana sayfa ve ${emittedAssets.size} tekil gorsel ayrildi.`);
 
 

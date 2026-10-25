@@ -1,3 +1,4 @@
+import {transformViewerSource as katWireSource} from './kat-wire-v392.mjs';
 import {transformViewerSource as elevatedAccessoryLabels} from './elevated-accessory-labels-v390.mjs';
 import {transformViewerSource as accessoryLabelPosition} from './accessory-label-position-v389.mjs';
 import {transformViewerSource as collectionAccessorySource} from './collection-accessory-isolation-v387.mjs';
@@ -10,6 +11,7 @@ import * as THREE from 'three';
 import vm from 'node:vm';
 import {createHash} from 'node:crypto';
 const root=process.cwd();
+fs.copyFileSync('assets/kat-teli.glb','dist/kat-teli.glb');
 const vendor=await build({stdin:{contents:"export * from 'three';",resolveDir:root},bundle:true,format:'iife',globalName:'RafexThree',minify:true,target:'es2022',write:false});
 fs.writeFileSync('dist/rafex-three.js',vendor.outputFiles[0].contents);
 const versionHash=createHash('sha256').update(vendor.outputFiles[0].contents);
@@ -22,7 +24,7 @@ for(const [entry,file,constant] of [
  ['client/konsol-viewer.entry.js','konsol-viewer.js','KONSOL_VIEWER_BASE64'],
  ['client/mekik-front-viewer.entry.js','mekik-front-viewer.js','RAFEX_MEKIK_FRONT_VIEWER_BASE64'],
  ['client/drive-in-viewer.entry.js','drive-in-viewer.js','DRIVE_IN_VIEWER_BASE64']]){
-  if(file==='b2b-viewer.js')fs.writeFileSync(entry,elevatedAccessoryLabels(accessoryLabelPosition(collectionAccessorySource(accessoryFloorsSource(accessoryLabelsSource(transformViewerSource(fs.readFileSync(entry,'utf8'))))))));
+  if(file==='b2b-viewer.js')fs.writeFileSync(entry,katWireSource(elevatedAccessoryLabels(accessoryLabelPosition(collectionAccessorySource(accessoryFloorsSource(accessoryLabelsSource(transformViewerSource(fs.readFileSync(entry,'utf8')))))))));
   const result=await build({absWorkingDir:root,entryPoints:[entry],bundle:true,format:'iife',minify:true,target:'es2022',write:false,plugins:[plugin]});
   const code=result.outputFiles[0].text;new vm.Script(code);
   versionHash.update(code);
