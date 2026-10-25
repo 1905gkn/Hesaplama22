@@ -11,7 +11,7 @@ export function transformViewerSource(source){
 export function transform(html){
  if(html.includes('data-collection-accessory-isolation="v387"'))return html;
  const replace=(a,b)=>{if(html.split(a).length!==2)throw Error('v387 UI '+a.slice(0,95));html=html.replace(a,b)};
- replace("const groundV151=()=>document.getElementById('b2bFirstPalletPosition')?.value!=='traverse';","const groundV151=()=>appliedCollection.enabled!==true&&document.getElementById('b2bFirstPalletPosition')?.value!=='traverse';");
+ replace("const groundV151=()=>document.getElementById('b2bFirstPalletPosition')?.value!=='traverse';","const groundV151=()=>(typeof appliedCollection==='undefined'||appliedCollection.enabled!==true)&&document.getElementById('b2bFirstPalletPosition')?.value!=='traverse';");
  replace("const validLevels=()=>window.rafexAccessoryLevelsV121?.()||Array.from({length:levelCount()},(_,i)=>i+1);","const validLevels=()=>(window.rafexAccessoryLevelsV121?.()||Array.from({length:levelCount()},(_,i)=>i+1)).filter(level=>Number.isInteger(Number(level))&&Number(level)>=1&&Number(level)<=levelCount());");
  replace("return String(rack?.b2b?.firstPalletPosition||'ground')!=='traverse'","return rack?.b2b?.collectionLevels?.enabled!==true&&String(rack?.b2b?.firstPalletPosition||'ground')!=='traverse'");
  const end=html.lastIndexOf('</body>');return html.slice(0,end)+'<script data-collection-accessory-isolation="v387">window.rafexCollectionAccessoryIsolation="v387";</script>'+html.slice(end);
