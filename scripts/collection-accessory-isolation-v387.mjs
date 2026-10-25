@@ -5,7 +5,7 @@ export function transformViewerSource(source){
  if(collection)return ['Toplama katı'];
  const count=options.firstPalletPosition==='traverse'?options.levels:Math.max(0,options.levels-1);`);
  replace("const support=from===0&&this.options.firstPalletPosition==='traverse'&&!(this.options.tunnelHeight>0)?this.traverseTop(0):from;","const support=from===0&&this.options.firstPalletPosition==='traverse'&&!(this.options.tunnelHeight>0)&&!this.options.collectionFloors?.length?this.traverseTop(0):from;");
- replace('const notes=seen?[]:b2bAccessoryNotesV384(this.options,support,index=>this.traverseTop(index));',"const notes=seen?[]:/TOPLAMA/.test(label)&&this.options.dimensions?.accessories!==false?['Toplama katı']:b2bAccessoryNotesV384(this.options,support,index=>this.traverseTop(index));");
+ replace('const notes=seen?[]:b2bAccessoryNotesV384(this.options,support,index=>this.traverseTop(index));',"const notes=seen||(from===0&&/TOPLAMA/.test(label))?[]:/TOPLAMA/.test(label)&&this.options.dimensions?.accessories!==false?['Toplama katı']:b2bAccessoryNotesV384(this.options,support,index=>this.traverseTop(index));");
  return '/* collection-accessory-isolation-v387 */\n'+source;
 }
 export function transform(html){
