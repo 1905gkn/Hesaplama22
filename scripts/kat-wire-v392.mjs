@@ -90,7 +90,7 @@ export function transformViewerSource(source){
     raw.traverse(part=>{if(part.isMesh){part.castShadow=true;part.receiveShadow=true;}});
     oriented.add(raw);oriented.rotation.z=-Math.PI/2;normalized.add(oriented);normalized.updateMatrixWorld(true);
     const bounds=new THREE.Box3().setFromObject(normalized),size=bounds.getSize(new THREE.Vector3());oriented.position.sub(bounds.min);
-    normalized.scale.set(width/size.x,depth/size.y,-48.2/size.z);normalized.updateMatrixWorld(true);
+    normalized.scale.set(width/size.x,depth/size.y,48.2/size.z);normalized.updateMatrixWorld(true);
     const finalBounds=new THREE.Box3().setFromObject(normalized);normalized.position.x-=finalBounds.min.x;normalized.position.y-=finalBounds.min.y;normalized.position.z-=finalBounds.max.z;
     root.add(normalized);return root;
   }
@@ -98,10 +98,15 @@ export function transformViewerSource(source){
  const anchor='        if (accessory.type === "palletStop" && this.models.palletStop) {';
  replace(anchor,`        if(accessory.type==='katWire'&&this.models.katWire){
           const plan=katWirePlanV392(clearWidth,accessory.customWidth);if(!plan.valid||this.options.tunnelHeight>0&&this.traverseBottom(level)<this.options.tunnelHeight)return;
+          section.updateMatrixWorld(true);
+          const uprightBounds=new THREE.Box3(),inverse=new THREE.Matrix4().copy(section.matrixWorld).invert();
+          section.traverse(part=>{if(!part.isMesh||!/AYAK|HRTD|UPRIGHT/i.test(part.name||''))return;const box=new THREE.Box3().setFromObject(part).applyMatrix4(inverse);if(box.max.z-box.min.z>this.uprightHeight()*.5)uprightBounds.union(box);});
+          const front=uprightBounds.isEmpty()?116.41129302978516*depthScale:uprightBounds.min.y;
+          const rear=uprightBounds.isEmpty()?1167.1944580078125*depthScale:uprightBounds.max.y;
           for(let i=0;i<plan.count;i++){
-            const wire=this.makeKatWireV392(plan.width,frameDepth);
+            const wire=this.makeKatWireV392(plan.width,rear-front);
             wire.name='Kat Teli K'+humanLevel+'-'+(i+1)+' · '+plan.width+' × '+frameDepth+' mm';
-            wire.position.set(clearLeft+plan.gap/2+i*plan.width,0,-this.traverseTop(level));section.add(wire);
+            wire.position.set(clearLeft+plan.gap/2+i*plan.width,front,-this.traverseTop(level));section.add(wire);
           }return;
         }
 `+anchor);
