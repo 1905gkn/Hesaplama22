@@ -153,6 +153,7 @@ execFileSync(process.execPath,["scripts/verify-initial-foot-finish-v383.mjs",out
 execFileSync(process.execPath,["scripts/verify-accessory-labels-v384.mjs",outputPath,"dist/b2b-viewer.patched.entry.js"],{stdio:"inherit"});
 execFileSync(process.execPath,["scripts/verify-accessory-floors-v385.mjs","dist/b2b-viewer.patched.entry.js"],{stdio:"inherit"});
 execFileSync(process.execPath,["scripts/verify-collection-accessory-isolation-v387.mjs",outputPath,"dist/b2b-viewer.patched.entry.js"],{stdio:"inherit"});
+execFileSync(process.execPath,["scripts/verify-accessory-label-position-v389.mjs","dist/b2b-viewer.patched.entry.js"],{stdio:"inherit"});
 console.log(`Static entry v2: ${html.length} baytlik ana sayfa ve ${emittedAssets.size} tekil gorsel ayrildi.`);
 
 
