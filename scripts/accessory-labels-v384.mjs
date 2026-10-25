@@ -28,9 +28,9 @@ export function transformViewerSource(source){
     const context=canvas.getContext('2d');context.scale(scale,scale);
     const language=()=>this.reportLanguage||this.options.language||document.documentElement.lang;
     const paint=()=>{
-      context.clearRect(0,0,labelWidth,labelHeight);context.fillStyle='rgba(5,40,72,.98)';context.beginPath();context.roundRect(0,0,labelWidth,labelHeight,18);context.fill();context.strokeStyle='#3e8fb2';context.lineWidth=4;context.stroke();
+      context.clearRect(0,0,labelWidth,labelHeight);context.fillStyle='rgba(173,216,245,.58)';context.beginPath();context.roundRect(0,0,labelWidth,labelHeight,18);context.fill();context.strokeStyle='rgba(90,155,195,.55)';context.lineWidth=4;context.stroke();
       context.textAlign='center';context.textBaseline='middle';
-      lines.forEach((line,index)=>{context.font=(index?'600 62':'900 84')+'px Arial';context.fillStyle=index?'#d8edf7':'#fff';context.fillText(window.rafexDimensionText?.(line,language())||line,labelWidth/2,index?157.5+(index-.5)*76:78.75,labelWidth-36);});
+      lines.forEach((line,index)=>{context.font=(index?'600 62':'900 84')+'px Arial';context.fillStyle=index?'#28516d':'#123e5a';context.fillText(window.rafexDimensionText?.(line,language())||line,labelWidth/2,index?157.5+(index-.5)*76:78.75,labelWidth-36);});
     };paint();
     const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=Math.min(16,this.renderer.capabilities.getMaxAnisotropy());
     const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,depthTest:false,transparent:true}));
@@ -40,6 +40,8 @@ export function transformViewerSource(source){
   }
 `+source.slice(end);
  replace('dimensions: { traverseIncluded: options.dimensions?.traverseIncluded === true, ...dimensions }','dimensions: { traverseIncluded: options.dimensions?.traverseIncluded === true, ...dimensions, accessories: options.dimensions?.accessories !== false }');
+ // Keep the PDF depth card consistent with the other measurement captions.
+ source=source.replaceAll('rgba(5,40,72,.98)','rgba(173,216,245,.58)').replaceAll('context.strokeStyle = "#3e8fb2"','context.strokeStyle = "rgba(90,155,195,.55)"').replaceAll('context.fillStyle = "#d8edf7"','context.fillStyle = "#28516d"').replaceAll('context.font = "700 82px Arial"; context.fillStyle = "#fff"','context.font = "700 82px Arial"; context.fillStyle = "#123e5a"');
  return '/* accessory-labels-v384 */\n'+source;
 }
 
