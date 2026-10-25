@@ -27,9 +27,11 @@ function runtime(){
  const accessoriesSignature=items=>JSON.stringify((items||[]).filter(item=>!item.tunnelCover&&item.levels?.length).map(item=>({...item,levels:[...new Set(item.levels.map(Number))].sort((a,b)=>a-b)})).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))));
  const manual=()=>window.rafexManualCustomizeRowsV178?.()||[];
  const collectionSignature=value=>value?.enabled?JSON.stringify(value):'';
- api.begin=rack=>{wireOriginal={id:rack.id,signature:accessoriesSignature(api.editable(rack.b2b?.accessories)),fields:JSON.stringify(normalFields()),manual:JSON.stringify(manual()),pallets:window.m2CustomizePalletsVisible?.(),collection:collectionSignature(rack.b2b?.collectionLevels)};};
+ api.noteNormal=()=>{api.normalEdited=true;};
+ api.begin=rack=>{api.normalEdited=false;wireOriginal={id:rack.id,signature:accessoriesSignature(api.editable(rack.b2b?.accessories)),fields:JSON.stringify(normalFields()),manual:JSON.stringify(manual()),pallets:window.m2CustomizePalletsVisible?.(),collection:collectionSignature(rack.b2b?.collectionLevels)};};
  api.requiresNewType=rack=>{
   if(wireOriginal?.id!==rack.id)return false;
+  if(document.getElementById('m2CustomizeModal')?.dataset.tunnelManualNameV237&&!api.normalEdited)return wireOriginal.signature!==accessoriesSignature(window.m2CollectCustomizeRackAccessories?.()||rack.b2b?.accessories)||wireOriginal.pallets!==window.m2CustomizePalletsVisible?.();
   const collection=window.rafexCollectCustomizeCollectionV119?.(rack.id)||rack.b2b?.collectionLevels||{enabled:false,groundGap:500,floors:[]};
   return wireOriginal.signature!==accessoriesSignature(window.m2CollectCustomizeRackAccessories?.()||rack.b2b?.accessories)||wireOriginal.fields!==JSON.stringify(normalFields())||wireOriginal.manual!==JSON.stringify(manual())||wireOriginal.pallets!==window.m2CustomizePalletsVisible?.()||(!document.getElementById('m2CustomizeTunnel')?.checked&&wireOriginal.collection!==collectionSignature(collection));
  };
@@ -66,6 +68,8 @@ export function transform(html){
  const replace=(a,b)=>{if(html.split(a).length!==2)throw Error('v392 HTML anchor '+a.slice(0,100));html=html.replace(a,b)};
  replace("if(sys==='b2b'){window.rafexLoadCustomizeCollectionV119?.(rack);", "if(sys==='b2b'){window.rafexLoadCustomizeCollectionV119?.(rack);window.rafexKatWireV392.begin(rack);");
  replace('if(session?.rackId===r.id&&!session.nonTunnelEdited&&','if(session?.rackId===r.id&&!window.rafexKatWireV392.requiresNewType(r)&&!session.nonTunnelEdited&&');
+ replace('  else session.nonTunnelEdited=true;', '  else {session.nonTunnelEdited=true;window.rafexKatWireV392.noteNormal();}');
+ replace('  session.nonTunnelEdited=true;\n },true);', '  session.nonTunnelEdited=true;window.rafexKatWireV392.noteNormal();\n },true);');
  replace('  if(old&&entry.name===previous.typeName&&unchanged){entry=old;reused=true;}',`  const wireTypeChanged=window.rafexKatWireV392.requiresNewType(rack);
   if(wireTypeChanged){
    const used=new Set([...catalog,...m2SavedRackTypes].map(t=>String(t.name||'').trim().toLocaleUpperCase('tr-TR')));
