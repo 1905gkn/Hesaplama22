@@ -106,7 +106,7 @@ export function transformViewerSource(source){
           for(let i=0;i<plan.count;i++){
             const wire=this.makeKatWireV392(plan.width,rear-front);
             wire.name='Kat Teli K'+humanLevel+'-'+(i+1)+' · '+plan.width+' × '+frameDepth+' mm';
-            wire.position.set(clearLeft+plan.gap/2+i*plan.width,front,-this.traverseTop(level));section.add(wire);
+            wire.position.set(clearLeft+plan.gap/2+i*plan.width,front,-this.traverseTop(level)+50);section.add(wire);
           }return;
         }
 `+anchor);
