@@ -22,6 +22,17 @@ export function tunnelCoverItems(items,cover,first){
 
 function runtime(){
  const api=window.rafexKatWireV392;
+ let wireOriginal=null;
+ const normalFields=()=>['m2CustomizeBlockName','m2CustomizeName','m2CustomizePalletCount','m2CustomizeLevels','m2CustomizePalletHeight','m2CustomizeRowType','m2CustomizeRowGap','m2CustomizeManualLevels'].map(id=>{const field=document.getElementById(id);return [id,field?.type==='checkbox'?field.checked:field?.value];});
+ const accessoriesSignature=items=>JSON.stringify((items||[]).filter(item=>!item.tunnelCover&&item.levels?.length).map(item=>({...item,levels:[...new Set(item.levels.map(Number))].sort((a,b)=>a-b)})).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))));
+ const manual=()=>window.rafexManualCustomizeRowsV178?.()||[];
+ const collectionSignature=value=>value?.enabled?JSON.stringify(value):'';
+ api.begin=rack=>{wireOriginal={id:rack.id,signature:accessoriesSignature(api.editable(rack.b2b?.accessories)),fields:JSON.stringify(normalFields()),manual:JSON.stringify(manual()),pallets:window.m2CustomizePalletsVisible?.(),collection:collectionSignature(rack.b2b?.collectionLevels)};};
+ api.requiresNewType=rack=>{
+  if(wireOriginal?.id!==rack.id)return false;
+  const collection=window.rafexCollectCustomizeCollectionV119?.(rack.id)||rack.b2b?.collectionLevels||{enabled:false,groundGap:500,floors:[]};
+  return wireOriginal.signature!==accessoriesSignature(window.m2CollectCustomizeRackAccessories?.()||rack.b2b?.accessories)||wireOriginal.fields!==JSON.stringify(normalFields())||wireOriginal.manual!==JSON.stringify(manual())||wireOriginal.pallets!==window.m2CustomizePalletsVisible?.()||(!document.getElementById('m2CustomizeTunnel')?.checked&&wireOriginal.collection!==collectionSignature(collection));
+ };
  api.cover=()=>({type:document.getElementById('m2CustomizeTunnelCover')?.value==='katWire'?'katWire':'tray',customWidth:document.getElementById('m2CustomizeTunnelWireWidth')?.value?Number(document.getElementById('m2CustomizeTunnelWireWidth').value):null});
  api.renderCover=()=>{const host=document.getElementById('m2CustomizeTunnelWireControls');if(!host)return;const active=document.getElementById('m2CustomizeTunnel')?.checked===true;document.getElementById('m2CustomizeTunnelCover').disabled=!active;host.innerHTML=active&&api.cover().type==='katWire'?api.controls(api.customSpan(),api.cover(),'event.stopPropagation();document.getElementById(\'m2CustomizeTunnelWireWidth\').value=this.value;m2PreviewRackCustomization();rafexKatWireV392.renderCover();'):'';};
  api.editable=items=>{
@@ -53,6 +64,17 @@ function runtime(){
 export function transform(html){
  if(html.includes('data-kat-wire="v392"'))return html;
  const replace=(a,b)=>{if(html.split(a).length!==2)throw Error('v392 HTML anchor '+a.slice(0,100));html=html.replace(a,b)};
+ replace("if(sys==='b2b'){window.rafexLoadCustomizeCollectionV119?.(rack);", "if(sys==='b2b'){window.rafexLoadCustomizeCollectionV119?.(rack);window.rafexKatWireV392.begin(rack);");
+ replace('if(session?.rackId===r.id&&!session.nonTunnelEdited&&','if(session?.rackId===r.id&&!window.rafexKatWireV392.requiresNewType(r)&&!session.nonTunnelEdited&&');
+ replace('  if(old&&entry.name===previous.typeName&&unchanged){entry=old;reused=true;}',`  const wireTypeChanged=window.rafexKatWireV392.requiresNewType(rack);
+  if(wireTypeChanged){
+   const used=new Set([...catalog,...m2SavedRackTypes].map(t=>String(t.name||'').trim().toLocaleUpperCase('tr-TR')));
+   let n=0,name;const letter=value=>{let out='';for(;value;value=Math.floor((value-1)/26))out=String.fromCharCode(65+(value-1)%26)+out;return out;};
+   do{name=letter(++n)}while(used.has(name));
+   entry={...entry,id:-Math.max(Date.now(),...catalog.map(t=>Math.abs(Number(t.id)||0)+1)),name};
+  }
+  else if(old&&entry.name===previous.typeName&&unchanged){entry=old;reused=true;}`);
+ replace("  const key=system+':'+entry.id,name=entry.name;", "  const key=system+':'+entry.id,name=entry.name;\n  if(wireTypeChanged){entry.rafexCustomNameV203=name;rack.rafexCustomNameV203=name;entry.drawing.rafexCustomNameV203=name;}");
  replace('</span></label></div><div class="m2-customize-actions">','</span></label><label style="grid-column:1/-1">Tünel kaplaması<select id="m2CustomizeTunnelCover" onchange="rafexKatWireV392.renderCover();m2PreviewRackCustomization()"><option value="tray">Tava</option><option value="katWire">Kat Teli</option></select></label><input id="m2CustomizeTunnelWireWidth" type="hidden"><div id="m2CustomizeTunnelWireControls" style="grid-column:1/-1"></div></div><div class="m2-customize-actions">');
  replace('m2ToggleCustomizeTunnel();m2RenderCustomizeLevelRows();',`$("m2CustomizeTunnelCover").value=rack.b2b?.tunnelCover?.type==='katWire'?'katWire':'tray';$("m2CustomizeTunnelWireWidth").value=rack.b2b?.tunnelCover?.customWidth??'';m2ToggleCustomizeTunnel();m2RenderCustomizeLevelRows();window.rafexKatWireV392.renderCover();`);
  replace('function m2ToggleCustomizeTunnel(){const active=',`function m2ToggleCustomizeTunnel(){window.rafexKatWireV392.renderCover();const active=`);
