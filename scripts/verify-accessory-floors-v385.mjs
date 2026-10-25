@@ -19,5 +19,7 @@ model.options=model.normalizeOptions({levels:2,firstPalletPosition:'traverse',ac
 // New captions use the same native sprite and user scaling as level labels.
 assert(source.includes("this.addDimensionLabel(layer,x-380,y,floor.height"));assert(source.includes('const userScale=this.options.dimensionLabelScale||1'));
 assert(source.includes('accessories: options.dimensions?.accessories !== false'));
+model.options=model.normalizeOptions({levels:4,firstPalletPosition:'ground',accessories:[],collectionFloors:[]});model.accessoryLabelledV385=new Set();labels.length=0;model.addUnmeasuredAccessoryLabelsV385({},0,0);assert.equal(labels.length,0,'No accessory means no extra floor caption');
+assert(!source.includes('Aksesuar yok'),'Empty captions are absent from the screen/PDF renderer');
 console.log('v385: real normalized ground stop, Z+TRAVERS caption, missing last-floor captions without mm, no duplicate ground label, hide toggle, tunnel filtering and shared text scaling passed');
 

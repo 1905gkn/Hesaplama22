@@ -23,7 +23,8 @@ export function transformViewerSource(source){
       const key=Math.round(floor.height);if(this.accessoryLabelledV385?.has(key))continue;
       this.accessoryLabelledV385?.add(key);
       const notes=b2bAccessoryNotesV384(this.options,floor.height,index=>this.traverseTop(index));
-      this.addDimensionLabel(layer,x-380,y,floor.height,floor.title+'\n'+(notes.length?notes.join('\n'):'Aksesuar yok'),700);
+      if(!notes.length)continue;
+      this.addDimensionLabel(layer,x-380,y,floor.height,floor.title+'\n'+notes.join('\n'),700);
     }
   }
 
