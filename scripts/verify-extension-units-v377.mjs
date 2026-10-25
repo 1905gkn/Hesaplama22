@@ -32,6 +32,8 @@ for(const row of rows)assert.equal(row.unit,context.window.rafexProductUnitV377(
 assert.equal(rows.find(r=>r.name==='H Travers').unit,'takım');assert.equal(rows.find(r=>r.name==='H Travers').qty,3);
 context.window.rafexMrQuantitySummaryV42=()=>[{item:'Ayak Profili',qty:4,unit:'takım',spec:'HR60'},{item:'Düz arabağ',qty:3,unit:'set',spec:'1000 mm'}];context.m2LayoutState.racks=[{id:2,b2b:{mr:true}}];rows=context.window.rafexLayoutInventoryRowsV44();assert(rows.every(r=>r.unit==='adet'));assert.equal(rows.find(r=>r.name==='Ayak Profili').qty,4);
 const rowStart=html.indexOf('  function renderRow(row)'),rowEnd=html.indexOf('\n  function renderSection',rowStart);vm.runInContext(html.slice(rowStart,rowEnd),Object.assign(context,{esc:x=>String(x),textNumber:x=>String(x)}));
-assert(context.renderRow({name:'Ayak takımı',qty:2,unit:'takım'}).includes('>2 takım</strong>'));
-assert(context.renderRow({name:'Ayak profili',qty:4,unit:'adet'}).includes('>4 adet</strong>'));
+if(html.includes('data-top-finishes-units="v382"'))vm.runInContext(script('data-top-finishes-units="v382"'),Object.assign(context,{document:{addEventListener(){}}}));
+assert(context.renderRow({name:'Ayak takımı',qty:2,unit:'takım'}).includes(html.includes('data-top-finishes-units="v382"')?'>2 TK</strong>':'>2 takım</strong>'));
+assert(context.renderRow({name:'Ayak profili',qty:4,unit:'adet'}).includes(html.includes('data-top-finishes-units="v382"')?'>4 AD</strong>':'>4 adet</strong>'));
 console.log('PASS: '+parsed+' scripts parse; extension wins before all measurement captures for B2B/MR; one commit per gesture; normal editing, manual controls and drawing preserved; team/piece units before grouping; real native inventory quantities unchanged; number then unit.');
+
