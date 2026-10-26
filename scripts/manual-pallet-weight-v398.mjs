@@ -27,6 +27,7 @@ export function transform(html){
   replace('if(stored)return window.rafexEndFrameOptions?window.rafexEndFrameOptions(rack,stored):stored;','if(stored){stored.palletWeights=window.rafexManualPalletWeightsV398(rack.b2b?.manualLevelSpecs?.length?rack.b2b.manualLevelSpecs:rack.b2b?.customLevels||[],stored.palletCount);return window.rafexEndFrameOptions?window.rafexEndFrameOptions(rack,stored):stored;}');
   replace('const o = {...options};\n  o.dimensionLabelScale','const o = {...options,palletWeights:window.rafexManualPalletWeightsV398(state.manualLevelSpecs?.length?state.manualLevelSpecs:state.customLevels||[],options.palletCount)};\n  o.dimensionLabelScale');
   replace('types=window.rafexPalletRowsV395(types);','types=window.rafexNamePalletVariantsV398(window.rafexPalletRowsV395(types));');
+  replace("const storedV135=window.rafexCopiedDetailV135?.('b2b');if(storedV135)return storedV135;", "const storedV135=window.rafexCopiedDetailV135?.('b2b');if(storedV135){const state=window.b2bReadInputState();return {...storedV135,palletWeights:window.rafexManualPalletWeightsV398(state.manualLevelSpecs?.length?state.manualLevelSpecs:state.customLevels||[],storedV135.palletCount)};}");
   return html;
 }
 
