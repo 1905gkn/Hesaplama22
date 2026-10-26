@@ -1,3 +1,4 @@
+import {transformFinalReport} from './report-final-pallet-v393.mjs';
 export function katWirePlan(length,customWidth){
  const span=Number(length),custom=Number(customWidth),tolerance=50;
  const fit=width=>{const count=Math.floor((span+1e-7)/width),covered=count*width,gap=span-covered;return {width,count,covered,gap,valid:count>0&&gap>=-1e-6&&gap<=tolerance+1e-6};};
@@ -73,6 +74,7 @@ function runtime(){
 
 export function transform(html){
  if(html.includes('data-kat-wire="v392"'))return html;
+ html=transformFinalReport(html);
  const replace=(a,b)=>{if(html.split(a).length!==2)throw Error('v392 HTML anchor '+a.slice(0,100));html=html.replace(a,b)};
  replace('  session={rackId:rack.id,original:structuredClone(rack),saved:structuredClone(m2SavedRackTypes),nonTunnelEdited:false,tunnelEdited:false};','  window.rafexKatWireV392.begin(rack);session={rackId:rack.id,original:structuredClone(rack),saved:structuredClone(m2SavedRackTypes),nonTunnelEdited:false,tunnelEdited:false};');
  replace("      add('Palet yastığı',railQty,'');\n      add('Arka stoper',railQty,'');\n      add('Forklift stoperi',columnCount,'');\n      add('Giriş konsolu',columnCount*levels,'');", "      var accessoryCounts=window.rafexKatWireV392.channelCounts(system,systemType,railQty,columnCount,levels);\n      add('Palet yastığı',accessoryCounts.pad,'');\n      add('Arka stoper',accessoryCounts.rearStop,'');\n      add('Forklift stoperi',accessoryCounts.forkStop,'');\n      add('Giriş konsolu',accessoryCounts.entryConsole,'');");

@@ -12,6 +12,7 @@ import vm from 'node:vm';
 import {createHash} from 'node:crypto';
 const root=process.cwd();
 fs.copyFileSync('assets/kat-teli.glb','dist/kat-teli.glb');
+fs.copyFileSync('assets/report-pallet.png','dist/report-pallet.png');
 const vendor=await build({stdin:{contents:"export * from 'three';",resolveDir:root},bundle:true,format:'iife',globalName:'RafexThree',minify:true,target:'es2022',write:false});
 fs.writeFileSync('dist/rafex-three.js',vendor.outputFiles[0].contents);
 const versionHash=createHash('sha256').update(vendor.outputFiles[0].contents);
