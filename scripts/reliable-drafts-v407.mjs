@@ -61,9 +61,9 @@ export function transform(html){
     importFile.onchange=async()=>{try{const file=importFile.files[0];if(!file)return;if(file.size>30*1024*1024)throw Error('Taslak dosyası en fazla 30 MB olabilir.');const record=JSON.parse(await file.text());if(record.kind!=='DRAFT'||record.schema!=='rafex-local-draft-v1'||!record.document?.payload?.layout)throw Error('Geçerli RAFEX taslak dosyası seçin.');record.owner=owner();record.code='TASLAK-IMPORT-'+crypto.randomUUID().slice(0,12);record.key=owner()+'|'+record.code;record.updatedAt=new Date().toISOString();await write(record);dialog.close();await open();}catch(e){error.textContent=e.message;}};`);
  html=html.slice(0,start)+script+html.slice(end);
  const runtime=`(()=>{
- function install(){const save=document.getElementById('m2ProjectSaveButton');if(!save||document.getElementById('rafexDraftSaveV407'))return;
- const button=document.createElement('button');button.id='rafexDraftSaveV407';button.type='button';button.textContent='Taslak kaydet';button.title='Hatalı veya eksik çizimi de bu tarayıcıda saklar';
- button.onclick=async()=>{if(window.rafexCanEditProjectV134?.()===false)return;button.disabled=true;try{await window.rafexDraftsV241.save();}finally{button.disabled=false;}};save.after(button);}
+ function install(){for(const [source,id] of [['m2ProjectSaveButton','rafexDraftSaveV407'],['rafexNewProjectV133','rafexDraftSaveTopV407']]){const save=document.getElementById(source);if(!save||document.getElementById(id))continue;
+ const button=document.createElement('button');button.id=id;button.type='button';button.textContent='Taslak kaydet';button.title='Hatalı veya eksik çizimi de bu tarayıcıda saklar';
+ button.onclick=async()=>{if(typeof me!=='undefined'&&(me?.role==='observer'||me?.read_only))return;button.disabled=true;try{await window.rafexDraftsV241.save();}finally{button.disabled=false;}};save.after(button);}}
  const observer=new MutationObserver(install);observer.observe(document.getElementById('page')||document.body,{childList:true,subtree:true});install();
  })();`;
  const bodyEnd=html.lastIndexOf('</body>');if(bodyEnd<0)throw Error('Draft page body missing');
