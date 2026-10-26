@@ -70,7 +70,7 @@ export function transformViewerSource(source){
     const canvas=document.createElement('canvas');canvas.width=512;canvas.height=128;
     const ctx=canvas.getContext('2d');
     ctx.fillStyle='rgba(255,255,255,.84)';ctx.beginPath();ctx.roundRect(8,8,496,112,14);ctx.fill();
-    ctx.font='700 70px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#123e5a';
+    ctx.font='700 84px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#123e5a';
     ctx.fillText(text,256,64,470);
     map=new THREE.CanvasTexture(canvas);map.colorSpace=THREE.SRGBColorSpace;this.palletWeightTexturesV398.set(kg,map);
     }
