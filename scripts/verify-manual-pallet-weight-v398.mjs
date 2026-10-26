@@ -31,5 +31,8 @@ const model=Object.create(env.window.TestViewer.prototype);model.options=model.n
 const labels=[];model.addPalletWeightV398=(layer,x,y,z,kg)=>labels.push({x,y,z,kg});const group=new env.THREE.Group();model.addLoads(group,1);
 assert.equal(labels.length,12);assert.deepEqual(labels.map(l=>l.kg),[1000,1000,1000,800,800,800,1000,1000,1000,600,600,600]);assert(labels.every(l=>Number.isFinite(l.z)));
 model.options=model.normalizeOptions({levels:2});labels.length=0;model.addLoads(new env.THREE.Group(),1);assert.equal(labels.length,0,'Automatic mode must not show stale manual weights');
+model.options=model.normalizeOptions({levels:2,palletCount:3,palletWeight:900});labels.length=0;model.addLoads(new env.THREE.Group(),1);assert.equal(labels.length,6);assert(labels.every(label=>label.kg===900),'Initial calculation displays its per-pallet weight on every pallet');
+const labelGroup=new env.THREE.Group();env.window.TestViewer.prototype.addPalletWeightV398.call(model,labelGroup,400,550,-600,900,800);const sprite=labelGroup.children[0];assert.equal(sprite.material.depthTest,false);assert.equal(sprite.renderOrder,90);assert.equal(sprite.userData.palletWeight,900);assert.equal(sprite.position.y,550);
+assert(html.includes('data-visible-pallet-weight="v400"'));
 for(const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))if(match[1].trim())new vm.Script(match[1]);
 console.log('PASS: manual per-pallet kg labels, three variants A1/A2/A3, duplicate suppression, automatic-mode reset and runtime syntax.');

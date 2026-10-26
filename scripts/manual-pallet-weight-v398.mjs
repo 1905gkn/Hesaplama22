@@ -17,7 +17,7 @@ export function namePalletVariantsV398(rows){
 }
 
 export function transform(html){
-  if(html.includes('data-manual-pallet-weight="v398"'))return transformPerPalletInputV399(html);
+  if(html.includes('data-manual-pallet-weight="v398"'))return transformVisibleWeightsV400(transformPerPalletInputV399(html));
   const replace=(a,b)=>{if(html.split(a).length!==2)throw Error('v398 HTML anchor '+a.slice(0,100));html=html.replace(a,b);};
   const helper='<script data-manual-pallet-weight="v398">window.rafexManualPalletWeightsV398='+manualPalletWeightsV398.toString()+';window.rafexNamePalletVariantsV398='+namePalletVariantsV398.toString()+';</script>';
   html=html.replace('</head>',helper+'</head>');
@@ -28,7 +28,18 @@ export function transform(html){
   replace('const o = {...options};\n  o.dimensionLabelScale','const o = {...options,palletWeights:window.rafexManualPalletWeightsV398(state.manualLevelSpecs?.length?state.manualLevelSpecs:state.customLevels||[],options.palletCount)};\n  o.dimensionLabelScale');
   replace('types=window.rafexPalletRowsV395(types);','types=window.rafexNamePalletVariantsV398(window.rafexPalletRowsV395(types));');
   replace("const storedV135=window.rafexCopiedDetailV135?.('b2b');if(storedV135)return storedV135;", "const storedV135=window.rafexCopiedDetailV135?.('b2b');if(storedV135){const state=window.b2bReadInputState();return {...storedV135,palletWeights:window.rafexManualPalletWeightsV398(state.manualLevelSpecs?.length?state.manualLevelSpecs:state.customLevels||[],storedV135.palletCount)};}");
-  return transformPerPalletInputV399(html);
+  return transformVisibleWeightsV400(transformPerPalletInputV399(html));
+}
+
+export function transformVisibleWeightsV400(html){
+  if(html.includes('data-visible-pallet-weight="v400"'))return html;
+  const replace=(a,b)=>{if(html.split(a).length!==2)throw Error('v400 weight anchor '+a.slice(0,90));html=html.replace(a,b);};
+  replace('moduleCount:1,moduleOptions:null,sectionWidth:Number(l.sectionWidth||saved.sectionWidth)', 'moduleCount:1,moduleOptions:null,palletWeight:Number(d.palletWeight??b.palletWeight??saved.palletWeight??0),sectionWidth:Number(l.sectionWidth||saved.sectionWidth)');
+  replace('options={...options,palletWeights:', 'options={...options,palletWeight:Number(d.palletWeight??d.b2b?.palletWeight??options.palletWeight??0),palletWeights:');
+  replace('const o = {...options,palletWeights:', 'const o = {...options,palletWeight:Number(state.palletWeight??options.palletWeight??0),palletWeights:');
+  replace('if(stored){stored.palletWeights=', 'if(stored){stored.palletWeight=Number(rack.palletWeight??rack.b2b?.palletWeight??stored.palletWeight??0);stored.palletWeights=');
+  replace('return {...storedV135,palletWeights:', 'return {...storedV135,palletWeight:Number(state.palletWeight??storedV135.palletWeight??0),palletWeights:');
+  return html.replace('</head>','<meta data-visible-pallet-weight="v400" name="rafex-pallet-weight-labels" content="all-previews"></head>');
 }
 
 export function transformPerPalletInputV399(html){
@@ -47,7 +58,7 @@ export function transformPerPalletInputV399(html){
 }
 
 export function transformViewerSource(source){
-  if(source.includes('/* manual-pallet-weight-v398 */'))return source;
+  if(source.includes('/* manual-pallet-weight-v398 */'))return visibleViewerWeightsV400(source);
   const replace=(a,b)=>{if(source.split(a).length!==2)throw Error('v398 viewer anchor '+a.slice(0,100));source=source.replace(a,b);};
   replace('      palletCount: count,','      palletCount: count,\n      palletWeights:Array.isArray(next.palletWeights)?next.palletWeights.slice(0,25).map(value=>value!==null&&Number.isFinite(Number(value))&&Number(value)>=0?Number(value):null):[],');
   replace('        section.add(load);','        section.add(load);\n        const kg=this.options.palletWeights[level];\n        if(kg!=null)this.addPalletWeightV398(section,x+palletWidth/2,-this.options.frontPalletGap-8,-loadBottom-levelPalletHeight/2,kg,palletWidth);');
@@ -72,5 +83,16 @@ export function transformViewerSource(source){
  B2BViewer.prototype.destroy=function(){this.palletWeightTexturesV398?.forEach(texture=>texture.dispose());this.palletWeightTexturesV398?.clear();return destroyPalletWeightsV398.apply(this,arguments);};
  let active = null;`);
   replace('    while(this.content.children.length)this.content.remove(this.content.children[0]);','    this.content.traverse(object=>{if(object.userData.palletWeight!=null)object.material?.dispose();});\n    while(this.content.children.length)this.content.remove(this.content.children[0]);');
-  return '/* manual-pallet-weight-v398 */\n'+source;
+  return visibleViewerWeightsV400('/* manual-pallet-weight-v398 */\n'+source);
+}
+
+export function visibleViewerWeightsV400(source){
+ if(source.includes('/* visible-pallet-weight-v400 */'))return source;
+ const replace=(a,b)=>{if(source.split(a).length!==2)throw Error('v400 viewer '+a.slice(0,90));source=source.replace(a,b);};
+ replace('      palletCount: count,','      palletCount: count,\n      palletWeight:next.palletWeight!=null&&Number.isFinite(Number(next.palletWeight))?Math.max(0,Number(next.palletWeight)):null,');
+ replace('const kg=this.options.palletWeights[level];','const kg=this.options.palletWeights[level]??this.options.palletWeight;');
+ replace('-this.options.frontPalletGap-8,-loadBottom-levelPalletHeight/2,kg,palletWidth','palletDepth/2-this.options.frontPalletGap,-loadBottom-levelPalletHeight/2,kg,palletWidth');
+ replace('map,transparent:true,depthTest:true,depthWrite:false','map,transparent:true,depthTest:false,depthWrite:false');
+ replace("label.name='Palet ağırlığı · '+text;","label.renderOrder=90;label.name='Palet ağırlığı · '+text;");
+ return '/* visible-pallet-weight-v400 */\n'+source;
 }
