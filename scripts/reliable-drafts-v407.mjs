@@ -4,7 +4,8 @@ export function transform(html){
  replace('ayak(?: takimi)?|konsol ayak|h[ -]?travers','ayak(?: takimi)?|mr ayak toplama|konsol ayak|h[ -]?travers');
  // Read the area session without remember()/undo, which normalizes imported CAD.
  replace('  window.rafexAreaDocument=()=>{ensure();remember();return documentState?clone(documentState):null;};',`  window.rafexRawDraftAreasV407=layout=>{
-    const state=documentState?clone(documentState):{activeAreaId:'draft-area',areas:[{id:'draft-area',name:'1. Alan',layout:{}}]};
+    const key=window.rafexProjectIdentityV133?.uuid||'unopened',source=owner===key?documentState:sessions.get(key);
+    const state=source?clone(source):{activeAreaId:'draft-area',areas:[{id:'draft-area',name:'1. Alan',layout:{}}]};
     const active=state.areas.find(a=>a.id===state.activeAreaId);if(active)active.layout=clone(layout);return state;
   };
   window.rafexRestoreDraftAreasV407=state=>{
@@ -22,6 +23,7 @@ export function transform(html){
  script=script.replace('  function backup(){','  function backup(manual=false){');
  script=script.replace('let code=codes.get(scope);','let code=manual?null:codes.get(scope);');
  script=script.replace('codes.set(scope,code);','if(!manual)codes.set(scope,code);');
+ script=script.replace('if(existing&&!await backup())','if(existing&&!await backup(true))');
  script=script.replace("return task.catch(error=>{notice('TASLAK YEDEĞİ OLUŞTURULAMADI:","return task.catch(error=>{if(manual){download(record);notice('Tarayıcı taslağı saklayamadı; çalışma JSON dosyası olarak indirildi. Yerel Taslaklar içinden dosyayı içe aktarabilirsiniz.');return record;}notice('TASLAK YEDEĞİ OLUŞTURULAMADI:");
  script=script.replace('snapshotDocument=window.rafexAttachAreas?.(snapshotDocument)||snapshotDocument;',`const areas=window.rafexRawDraftAreasV407(layout);
     snapshotDocument.payload.areas=areas.areas;snapshotDocument.payload.activeAreaId=areas.activeAreaId;
