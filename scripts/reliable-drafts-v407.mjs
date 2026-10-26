@@ -64,6 +64,7 @@ export function transform(html){
  button.onclick=async()=>{if(window.rafexCanEditProjectV134?.()===false)return;button.disabled=true;try{await window.rafexDraftsV241.save();}finally{button.disabled=false;}};save.after(button);}
  const observer=new MutationObserver(install);observer.observe(document.getElementById('page')||document.body,{childList:true,subtree:true});install();
  })();`;
- return html.replace('</body>','<script data-reliable-drafts="v407">'+runtime+'</script></body>');
+ const bodyEnd=html.lastIndexOf('</body>');if(bodyEnd<0)throw Error('Draft page body missing');
+ return html.slice(0,bodyEnd)+'<script data-reliable-drafts="v407">'+runtime+'</script>'+html.slice(bodyEnd);
 }
 
