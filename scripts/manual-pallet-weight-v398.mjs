@@ -98,7 +98,7 @@ export function visibleViewerWeightsV400(source){
 }
 
 export function surfaceWeightsV401(source){
- if(source.includes('/* surface-pallet-weight-v401 */'))return source;
+ if(source.includes('/* surface-pallet-weight-v401 */'))return doubleFaceWeightsV404(source);
  const replace=(a,b)=>{if(source.split(a).length!==2)throw Error('v401 surface '+a.slice(0,90));source=source.replace(a,b);};
  replace('kg,palletWidth);','kg,palletWidth,load);');
  replace('addPalletWeightV398(section,x,y,z,kg,width){','addPalletWeightV398(section,x,y,z,kg,width,load){');
@@ -108,5 +108,16 @@ export function surfaceWeightsV401(source){
     label.rotation.x=-Math.PI/2;
     if(load){load.updateMatrixWorld(true);const box=new THREE.Box3().setFromObject(load);if(!box.isEmpty()){x=(box.min.x+box.max.x)/2;y=box.max.y+1;z=(box.min.z+box.max.z)/2;}}`);
  replace('this.palletWeightTexturesV398?.clear();return destroyPalletWeightsV398.apply(this,arguments);','this.palletWeightTexturesV398?.clear();this.palletWeightGeometryV401?.dispose();return destroyPalletWeightsV398.apply(this,arguments);');
- return '/* surface-pallet-weight-v401 */\n'+source;
+ return doubleFaceWeightsV404('/* surface-pallet-weight-v401 */\n'+source);
+}
+
+export function doubleFaceWeightsV404(source){
+ if(source.includes('/* double-face-pallet-weight-v404 */'))return source;
+ const from='label.scale.set(span,span/4,1);section.add(label);';
+ if(source.split(from).length!==2)throw Error('v404 pallet face anchor');
+ source=source.replace(from,`label.scale.set(span,span/4,1);section.add(label);
+    if(load){const box=new THREE.Box3().setFromObject(load);if(!box.isEmpty()){
+      const outside=label.clone();outside.material=label.material.clone();outside.name=label.name+' · Karşı yüz';outside.position.y=box.min.y-1;outside.rotation.set(Math.PI/2,0,Math.PI);section.add(outside);
+    }}`);
+ return '/* double-face-pallet-weight-v404 */\n'+source;
 }
