@@ -53,7 +53,9 @@ export function transformViewerSource(source){
     label.position.set(x,y,z);const span=Math.min(width*.78,650);label.scale.set(span,span/4,1);section.add(label);
   }
   applyUserPalletMaterials(root) {`);
-  replace('    this.controls.dispose();','    this.palletWeightTexturesV398?.forEach(texture=>texture.dispose());\n    this.palletWeightTexturesV398?.clear();\n    this.controls.dispose();');
+  replace('let active = null;',`const destroyPalletWeightsV398=B2BViewer.prototype.destroy;
+ B2BViewer.prototype.destroy=function(){this.palletWeightTexturesV398?.forEach(texture=>texture.dispose());this.palletWeightTexturesV398?.clear();return destroyPalletWeightsV398.apply(this,arguments);};
+ let active = null;`);
   replace('    while(this.content.children.length)this.content.remove(this.content.children[0]);','    this.content.traverse(object=>{if(object.userData.palletWeight!=null)object.material?.dispose();});\n    while(this.content.children.length)this.content.remove(this.content.children[0]);');
   return '/* manual-pallet-weight-v398 */\n'+source;
 }
