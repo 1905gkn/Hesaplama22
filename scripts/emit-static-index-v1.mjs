@@ -1,3 +1,4 @@
+import {transform as manualPalletWeight} from './manual-pallet-weight-v398.mjs';
 import {transform as katWire} from './kat-wire-v392.mjs';
 import {transform as collectionAccessoryIsolation} from './collection-accessory-isolation-v387.mjs';
 import {transform as accessoryFloors} from './accessory-floors-v385.mjs';
@@ -117,6 +118,7 @@ html=accessoryFloors(html);
 html=collectionAccessoryIsolation(html);
 html=katWire(html);
 html=b2bLevelLimit(html);
+html=manualPalletWeight(html);
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
 
@@ -158,6 +160,5 @@ execFileSync(process.execPath,["scripts/verify-collection-accessory-isolation-v3
 execFileSync(process.execPath,["scripts/verify-accessory-label-position-v389.mjs","dist/b2b-viewer.patched.entry.js"],{stdio:"inherit"});
 execFileSync(process.execPath,["scripts/verify-elevated-accessory-labels-v390.mjs","dist/b2b-viewer.patched.entry.js"],{stdio:"inherit"});
 execFileSync(process.execPath,["scripts/verify-kat-wire-v392.mjs",outputPath,"dist/b2b-viewer.patched.entry.js","assets/kat-teli.glb"],{stdio:"inherit"});
+execFileSync(process.execPath,["scripts/verify-manual-pallet-weight-v398.mjs",outputPath,"dist/b2b-viewer.patched.entry.js"],{stdio:"inherit"});
 console.log(`Static entry v2: ${html.length} baytlik ana sayfa ve ${emittedAssets.size} tekil gorsel ayrildi.`);
-
-
