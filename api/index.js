@@ -23,6 +23,7 @@ function normalizedResponseHeaders(upstream) {
   if (contentType) headers.set("content-type", contentType);
   if (cacheControl) headers.set("cache-control", cacheControl);
   if (location) headers.set("location", location);
+  for(const key of ["content-disposition","x-content-type-options","content-security-policy"]){const value=upstream.headers.get(key);if(value)headers.set(key,value);}
 
   // Only the app session belongs on the Vercel host. Cloudflare cookies from
   // the legacy chatgpt.site origin have a different Domain and must not leak

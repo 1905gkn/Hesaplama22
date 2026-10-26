@@ -1,3 +1,4 @@
+import {transform as sharedNotesUI} from './shared-notes-v405.mjs';
 import {transform as manualPalletWeight} from './manual-pallet-weight-v398.mjs';
 import {transform as katWire} from './kat-wire-v392.mjs';
 import {transform as collectionAccessoryIsolation} from './collection-accessory-isolation-v387.mjs';
@@ -119,6 +120,7 @@ html=collectionAccessoryIsolation(html);
 html=katWire(html);
 html=b2bLevelLimit(html);
 html=manualPalletWeight(html);
+html=sharedNotesUI(html);
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
 
