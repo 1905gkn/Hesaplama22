@@ -87,12 +87,26 @@ export function transformViewerSource(source){
 }
 
 export function visibleViewerWeightsV400(source){
- if(source.includes('/* visible-pallet-weight-v400 */'))return source;
+ if(source.includes('/* visible-pallet-weight-v400 */'))return surfaceWeightsV401(source);
  const replace=(a,b)=>{if(source.split(a).length!==2)throw Error('v400 viewer '+a.slice(0,90));source=source.replace(a,b);};
  replace('      palletCount: count,','      palletCount: count,\n      palletWeight:next.palletWeight!=null&&Number.isFinite(Number(next.palletWeight))?Math.max(0,Number(next.palletWeight)):null,');
  replace('const kg=this.options.palletWeights[level];','const kg=this.options.palletWeights[level]??this.options.palletWeight;');
  replace('-this.options.frontPalletGap-8,-loadBottom-levelPalletHeight/2,kg,palletWidth','palletDepth/2-this.options.frontPalletGap,-loadBottom-levelPalletHeight/2,kg,palletWidth');
  replace('map,transparent:true,depthTest:true,depthWrite:false','map,transparent:true,depthTest:false,depthWrite:false');
  replace("label.name='Palet ağırlığı · '+text;","label.renderOrder=90;label.name='Palet ağırlığı · '+text;");
- return '/* visible-pallet-weight-v400 */\n'+source;
+ return surfaceWeightsV401('/* visible-pallet-weight-v400 */\n'+source);
+}
+
+export function surfaceWeightsV401(source){
+ if(source.includes('/* surface-pallet-weight-v401 */'))return source;
+ const replace=(a,b)=>{if(source.split(a).length!==2)throw Error('v401 surface '+a.slice(0,90));source=source.replace(a,b);};
+ replace('kg,palletWidth);','kg,palletWidth,load);');
+ replace('addPalletWeightV398(section,x,y,z,kg,width){','addPalletWeightV398(section,x,y,z,kg,width,load){');
+ replace("    ctx.fillStyle='rgba(255,255,255,.84)';ctx.beginPath();ctx.roundRect(8,8,496,112,14);ctx.fill();",'    ctx.clearRect(0,0,512,128);');
+ replace('const label=new THREE.Sprite(new THREE.SpriteMaterial({map,transparent:true,depthTest:false,depthWrite:false}));',`this.palletWeightGeometryV401??=new THREE.PlaneGeometry(1,1);
+    const label=new THREE.Mesh(this.palletWeightGeometryV401,new THREE.MeshBasicMaterial({map,transparent:true,depthTest:true,depthWrite:false,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));
+    label.rotation.x=-Math.PI/2;
+    if(load){load.updateMatrixWorld(true);const box=new THREE.Box3().setFromObject(load);if(!box.isEmpty()){x=(box.min.x+box.max.x)/2;y=box.max.y+1;z=(box.min.z+box.max.z)/2;}}`);
+ replace('this.palletWeightTexturesV398?.clear();return destroyPalletWeightsV398.apply(this,arguments);','this.palletWeightTexturesV398?.clear();this.palletWeightGeometryV401?.dispose();return destroyPalletWeightsV398.apply(this,arguments);');
+ return '/* surface-pallet-weight-v401 */\n'+source;
 }
