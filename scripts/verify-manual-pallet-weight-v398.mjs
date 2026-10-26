@@ -9,6 +9,14 @@ const input=process.argv[2]||'dist/index.html',viewerPath=process.argv[3]||'dist
 let html=fs.readFileSync(input,'utf8'),viewer=fs.readFileSync(viewerPath,'utf8');
 html=transform(html);viewer=transformViewerSource(viewer);
 assert.equal(transform(html),html);assert.equal(transformViewerSource(viewer),viewer);
+assert(html.includes('Her kata palet başına ağırlık girin (kg/palet).'));
+assert(html.includes("setLabel(weight,level(i)+' palet ağırlığı (kg/palet)')"));
+const collector=html.match(/const rows=\[\.\.\.dialog\.querySelectorAll\('\.level-row'\)\]\.map\(row=>\(\{distance:Number\(row\.querySelector\('\[data-distance\]'\)\.value\),weight:[^\n]+/)[0];
+const fields={'[data-distance]':{value:'1500'},'[data-weight]':{value:'800'},'[data-pallet]':{value:'1200'},'[data-traverse]':{value:'CC140',dataset:{}}};
+const savedRow=vm.runInNewContext(collector+'\nrows[0]',{o:{palletCount:3},dialog:{querySelectorAll:()=>[{querySelector:key=>fields[key]}]}});
+assert.equal(savedRow.weight,2400,'800 kg per pallet × 3 must retain 2400 kg structural load');
+assert.deepEqual(manualPalletWeightsV398([savedRow],3),[800],'Saved/reopened label stays 800 kg');
+assert(html.includes("load=(Number(loadRow?.querySelector('[data-weight]')?.value)||0)*Math.max(1,Number(dialog.dataset.palletCount)||1)"));
 assert.deepEqual(manualPalletWeightsV398([{weight:3000},{weight:2400},{weight:0},{palletWeight:650}],3),[1000,800,0,650]);
 const script=html.match(/<script data-manual-pallet-weight="v398">([\s\S]*?)<\/script>/)[1];
 const env={window:{dispatchEvent(){}},CustomEvent:class{},Intl,console,document:{documentElement:{lang:'tr'},createElement(){return {getContext(){return {fillText(){},beginPath(){},roundRect(){},fill(){}};}};}}};vm.createContext(env);vm.runInContext(script,env);

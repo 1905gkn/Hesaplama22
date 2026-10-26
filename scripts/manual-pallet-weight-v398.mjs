@@ -17,7 +17,7 @@ export function namePalletVariantsV398(rows){
 }
 
 export function transform(html){
-  if(html.includes('data-manual-pallet-weight="v398"'))return html;
+  if(html.includes('data-manual-pallet-weight="v398"'))return transformPerPalletInputV399(html);
   const replace=(a,b)=>{if(html.split(a).length!==2)throw Error('v398 HTML anchor '+a.slice(0,100));html=html.replace(a,b);};
   const helper='<script data-manual-pallet-weight="v398">window.rafexManualPalletWeightsV398='+manualPalletWeightsV398.toString()+';window.rafexNamePalletVariantsV398='+namePalletVariantsV398.toString()+';</script>';
   html=html.replace('</head>',helper+'</head>');
@@ -28,7 +28,22 @@ export function transform(html){
   replace('const o = {...options};\n  o.dimensionLabelScale','const o = {...options,palletWeights:window.rafexManualPalletWeightsV398(state.manualLevelSpecs?.length?state.manualLevelSpecs:state.customLevels||[],options.palletCount)};\n  o.dimensionLabelScale');
   replace('types=window.rafexPalletRowsV395(types);','types=window.rafexNamePalletVariantsV398(window.rafexPalletRowsV395(types));');
   replace("const storedV135=window.rafexCopiedDetailV135?.('b2b');if(storedV135)return storedV135;", "const storedV135=window.rafexCopiedDetailV135?.('b2b');if(storedV135){const state=window.b2bReadInputState();return {...storedV135,palletWeights:window.rafexManualPalletWeightsV398(state.manualLevelSpecs?.length?state.manualLevelSpecs:state.customLevels||[],storedV135.palletCount)};}");
-  return html;
+  return transformPerPalletInputV399(html);
+}
+
+export function transformPerPalletInputV399(html){
+  if(html.includes('data-per-pallet-input="v399"'))return html;
+  const replace=(a,b)=>{if(html.split(a).length!==2)throw Error('v399 input anchor '+a.slice(0,100));html=html.replace(a,b);};
+  replace("setLabel(weight,level(i)+' ağırlığı (kg)')","setLabel(weight,level(i)+' palet ağırlığı (kg/palet)')");
+  replace("(rack?.palletWeight||rack?.b2b?.palletWeight||1000)*o.palletCount:value('b2bPalletWeight',1000)*o.palletCount", "(rack?.palletWeight??rack?.b2b?.palletWeight??1000):value('b2bPalletWeight',1000)");
+  replace(" dialog.innerHTML='<h3>'+ (kind==='tunnel'", " dialog.dataset.palletCount=String(o.palletCount);\n dialog.innerHTML='<h3>'+ (kind==='tunnel'");
+  replace('Kat ağırlığı bir sıradaki katın toplam yüküdür.','Her kata palet başına ağırlık girin (kg/palet).');
+  replace("+levelName+' ağırlığı (kg)<input data-weight", "+levelName+' palet ağırlığı (kg/palet)<input data-weight");
+  replace("(r.weight??weight)","(r.palletWeight??(r.weight!=null?Number(r.weight)/Math.max(1,Number(o.palletCount)||1):weight))");
+  const from="weight:Number(row.querySelector('[data-weight]').value),palletHeight:",to="weight:Number(row.querySelector('[data-weight]').value)*Math.max(1,Number(o.palletCount)||1),palletHeight:";
+  if(html.split(from).length!==3)throw Error('v399 manual collectors must include save and height preview');html=html.replaceAll(from,to);
+  replace("load=Number(loadRow?.querySelector('[data-weight]')?.value)||0;const found=choices('normal',width,load)","load=(Number(loadRow?.querySelector('[data-weight]')?.value)||0)*Math.max(1,Number(dialog.dataset.palletCount)||1);const found=choices('normal',width,load)");
+  return html.replace('</head>','<meta data-per-pallet-input="v399" name="rafex-manual-weight-unit" content="kg/palet"></head>');
 }
 
 export function transformViewerSource(source){
