@@ -76,7 +76,7 @@ export function transformViewerSource(source){
     }
     const label=new THREE.Sprite(new THREE.SpriteMaterial({map,transparent:true,depthTest:true,depthWrite:false}));
     label.name='Palet ağırlığı · '+text;label.userData.palletWeight=kg;
-    label.position.set(x,y,z);const span=Math.min(width*.78,650);label.scale.set(span,span/4,1);section.add(label);
+    label.position.set(x,y,z);const span=Math.min(width*.78,650)*1.3;label.scale.set(span,span/4,1);section.add(label);
   }
   applyUserPalletMaterials(root) {`);
   replace('let active = null;',`const destroyPalletWeightsV398=B2BViewer.prototype.destroy;
