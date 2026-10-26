@@ -20,6 +20,11 @@ export function tunnelCoverItems(items,cover,first){
  return out;
 }
 
+export function channelAccessoryCounts(system,flow,rail,columns,levels){
+ const fifo=['mekik2','mekik','shuttle'].includes(String(system).toLowerCase())&&String(flow).toLowerCase()==='fifo';
+ return {pad:fifo?rail*2:rail,rearStop:fifo?0:rail,forkStop:fifo?rail*2:columns,entryConsole:fifo?rail*2:columns*levels};
+}
+
 function runtime(){
  const api=window.rafexKatWireV392;
  let wireOriginal=null;
@@ -69,6 +74,10 @@ function runtime(){
 export function transform(html){
  if(html.includes('data-kat-wire="v392"'))return html;
  const replace=(a,b)=>{if(html.split(a).length!==2)throw Error('v392 HTML anchor '+a.slice(0,100));html=html.replace(a,b)};
+ replace('  session={rackId:rack.id,original:structuredClone(rack),saved:structuredClone(m2SavedRackTypes),nonTunnelEdited:false,tunnelEdited:false};','  window.rafexKatWireV392.begin(rack);session={rackId:rack.id,original:structuredClone(rack),saved:structuredClone(m2SavedRackTypes),nonTunnelEdited:false,tunnelEdited:false};');
+ replace("      add('Palet yastığı',railQty,'');\n      add('Arka stoper',railQty,'');\n      add('Forklift stoperi',columnCount,'');\n      add('Giriş konsolu',columnCount*levels,'');", "      var accessoryCounts=window.rafexKatWireV392.channelCounts(system,systemType,railQty,columnCount,levels);\n      add('Palet yastığı',accessoryCounts.pad,'');\n      add('Arka stoper',accessoryCounts.rearStop,'');\n      add('Forklift stoperi',accessoryCounts.forkStop,'');\n      add('Giriş konsolu',accessoryCounts.entryConsole,'');");
+ replace('          add(labels.items.pad,railCount);add(labels.items.rearStop,railCount);add(labels.items.forkStop,rows);add(labels.items.entryConsole,rows*levels);',"          const ac=window.rafexKatWireV392.channelCounts(rack.rafexSystem||'mekik2',rack.systemType||'fifo',railCount,rows,levels);add(labels.items.pad,ac.pad);add(labels.items.rearStop,ac.rearStop);add(labels.items.forkStop,ac.forkStop);add(labels.items.entryConsole,ac.entryConsole);");
+ replace('        add(labels.items.pad,"",railCount);\n        add(labels.items.rearStop,"",railCount);\n        add(labels.items.forkStop,"",rows*multiplier);\n        add(labels.items.entryConsole,"",rows*levels*multiplier);',"        const ac=window.rafexKatWireV392.channelCounts(drawing.rafexSystem||'mekik2',drawing.systemType||'fifo',railCount,rows*multiplier,levels);\n        add(labels.items.pad,\"\",ac.pad);\n        add(labels.items.rearStop,\"\",ac.rearStop);\n        add(labels.items.forkStop,\"\",ac.forkStop);\n        add(labels.items.entryConsole,\"\",ac.entryConsole);");
  replace("if(sys==='b2b'){window.rafexLoadCustomizeCollectionV119?.(rack);", "if(sys==='b2b'){window.rafexLoadCustomizeCollectionV119?.(rack);window.rafexKatWireV392.begin(rack);");
  replace('if(session?.rackId===r.id&&!session.nonTunnelEdited&&','if(session?.rackId===r.id&&!window.rafexKatWireV392.requiresNewType(r)&&!session.nonTunnelEdited&&');
  replace('  else session.nonTunnelEdited=true;', '  else {session.nonTunnelEdited=true;window.rafexKatWireV392.noteNormal();}');
@@ -132,7 +141,7 @@ export function transform(html){
         if(isB2B&&(window.rafexAccessoryState?.()||[]).some(item=>item.type==='katWire'&&item.levels?.length&&!window.rafexKatWireV392.plan(b2bPalletGeometry().sectionWidth,item.customWidth).valid)){alert('Kat teli ölçüsü uygun değil. Uyarının altından toleransa uygun özel genişlik girin.');return;}`);
  replace('function m2ApplyRackCustomization() {',`function m2ApplyRackCustomization() {
         if((window.m2CollectCustomizeRackAccessories?.()||[]).some(item=>item.type==='katWire'&&item.levels?.length&&!window.rafexKatWireV392.plan(window.rafexKatWireV392.customSpan(),item.customWidth).valid)){alert('Kat teli ölçüsü uygun değil. Uyarının altından toleransa uygun özel genişlik girin.');return;}`);
- const first=html.indexOf('<script'),early='<script data-kat-wire="v392">window.rafexKatWireV392={plan:'+katWirePlan.toString()+',tunnelItems:'+tunnelCoverItems.toString()+'};('+runtime.toString()+')();</script>';
+ const first=html.indexOf('<script'),early='<script data-kat-wire="v392">window.rafexKatWireV392={plan:'+katWirePlan.toString()+',tunnelItems:'+tunnelCoverItems.toString()+',channelCounts:'+channelAccessoryCounts.toString()+'};('+runtime.toString()+')();</script>';
  return html.slice(0,first)+early+html.slice(first);
 }
 
