@@ -148,7 +148,8 @@ export function regionsRuntimeV179(){
     const key='region:'+id,offset=m2DimensionOffsets[key]||{},label=document.createElementNS(ns,'text');label.textContent=name;
     for(const [k,v] of Object.entries({x:(box.left+box.right)/2+(Number(offset.x)||0),y:(box.top+box.bottom)/2+(Number(offset.y)||0),fill:color,'font-size':m2DimensionFontSizes[key]||18,'font-weight':800,'text-anchor':'middle','dominant-baseline':'middle','paint-order':'stroke',stroke:'#fff','stroke-width':3}))label.setAttribute(k,v);
     if(!preview){label.setAttribute('data-dimension-key',key);label.setAttribute('data-dimension-axis','free');label.classList.add('m2-dimension-movable');label.style.pointerEvents=m2LayoutTool==='dimension'?'all':'none';label.style.cursor='move';}
-    (preview?layer:ground).appendChild(label);
+    if(!preview){label.setAttribute('opacity','.35');label.setAttribute('data-region-label-v430','');}
+    layer.appendChild(label);
    }
   }
   for(const g of painted){
@@ -265,7 +266,31 @@ export function regionsRuntimeV179(){
  window.addEventListener('pointercancel',scheduleV428,true);
  document.addEventListener('change',scheduleV428,true);
  document.addEventListener('keydown',event=>{if(['Delete','Backspace','Enter'].includes(event.key)||((event.ctrlKey||event.metaKey)&&['z','y','v'].includes(event.key.toLowerCase())))scheduleV428();},true);
- window.rafexRegionsV179={begin,choose,cancel,repeat,groups,sync:syncV428,refresh:scheduleV428};install();
+ function deleteRegionV430(id){
+  const region=groups().find(g=>g.id===id);if(!region)return false;
+  m2PushUndo('Ayraç bölgesini silme');
+  m2LayoutState.rafexRegionsV426=(m2LayoutState.rafexRegionsV426||[]).filter(r=>r.id!==id);
+  for(const item of [...racks(),...symbols()])if(item.rafexRegionV179?.id===id)delete item.rafexRegionV179;
+  delete m2DimensionOffsets['region:'+id];delete m2DimensionFontSizes['region:'+id];
+  if(m2SelectedDimensionKey==='region:'+id)m2SelectedDimensionKey=null;
+  m2RenderLayout();m2RenderLayoutProductList();m2RefreshActiveReport();status(region.name+' ayraç bölgesi silindi. Raflar ve aksesuarlar korundu.');return true;
+ }
+ window.addEventListener('dblclick',event=>{
+  const target=event.target,svg=target?.closest?.('#m2LayoutSvg');
+  if(!svg||event.button!==0||selecting||draft||m2AutoFillDraft||m2LayoutTool||m2LayoutState.drag||m2LayoutState.mode==='draw'||m2LayoutState.areaEditMode||m2MultiSelect.active||window.rafexIndividualSelectionV184?.active?.())return;
+  if(target.closest?.('[data-rack],.m2-layout-symbol,[data-dimension-key],.m2-user-note,.m2-free-measure'))return;
+  const p=svg.createSVGPoint();p.x=event.clientX;p.y=event.clientY;const matrix=svg.getScreenCTM();if(!matrix)return;const hit=p.matrixTransform(matrix.inverse());
+  const inside=b=>b&&hit.x>=b.left&&hit.x<=b.right&&hit.y>=b.top&&hit.y<=b.bottom;
+  if(racks().some(r=>inside(m2RackBounds(r)))||symbols().some(s=>inside({left:s.x,top:s.y,right:s.x+s.w,bottom:s.y+s.h})))return;
+  const region=groups().findLast(g=>g.id&&g.paint&&inside(g.box));if(!region)return;
+  event.preventDefault();event.stopImmediatePropagation();
+  let dialog=$('rafexDeleteRegionV430');if(!dialog){dialog=document.createElement('dialog');dialog.id='rafexDeleteRegionV430';dialog.style.cssText='border:1px solid #abc4b5;border-radius:12px;padding:24px;max-width:90vw;color:#173c2d';document.body.appendChild(dialog);}
+  dialog.innerHTML='<h3>Ayraç bölgesi silinsin mi?</h3><p>“'+escape(region.name)+'” bölgesi kaldırılacak.</p><p>İçindeki raflar ve aksesuarlar korunur.</p><div style="display:flex;gap:10px;justify-content:flex-end"><button type="button" data-cancel>Vazgeç</button><button type="button" data-delete>Sil</button></div>';
+  dialog.querySelector('[data-cancel]').onclick=()=>dialog.close();
+  dialog.querySelector('[data-delete]').onclick=()=>{dialog.close();deleteRegionV430(region.id);};
+  dialog.showModal();dialog.querySelector('[data-cancel]').focus();
+ },true);
+ window.rafexRegionsV179={begin,choose,cancel,repeat,groups,sync:syncV428,refresh:scheduleV428,remove:deleteRegionV430};install();
 }
 
 export function transform(html){
