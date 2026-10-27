@@ -14,6 +14,15 @@ export function pinMovedDimension(key){
   if(gap){const state={...m2PinnedForRack(gap[1]),gap:true};m2PinnedDimensionsByRack[gap[1]]=state;m2PinnedDimensions=state;}
 }
 
+export function snapRegionPointV423(point, targets, tolerance) {
+ const result={...point};
+ for(const axis of ['x','y']){
+  let distance=tolerance;
+  for(const target of targets){const delta=Math.abs(target[axis]-point[axis]);if(Number.isFinite(delta)&&delta<=distance){distance=delta;result[axis]=target[axis];}}
+ }
+ return result;
+}
+
 function installDimensionDrag(){
   const ns='http://www.w3.org/2000/svg';
   let drag=null,frame=0,observerFrame=0,observer=null,observed=null;
@@ -60,7 +69,18 @@ function installDimensionDrag(){
     event.preventDefault();event.stopImmediatePropagation();const p=m2SvgPoint(event),dx=p.x-drag.start.x,dy=p.y-drag.start.y;
     if(!drag.moved&&Math.hypot(dx,dy)<1)return;
     if(!drag.moved){m2PushUndo('Ölçü yerini taşı');drag.moved=true;}
-    m2DimensionOffsets[drag.key]={x:(Number(drag.base.x)||0)+dx,y:(Number(drag.base.y)||0)+dy};
+    let next={x:(Number(drag.base.x)||0)+dx,y:(Number(drag.base.y)||0)+dy};
+    if(drag.key.startsWith('region:')&&!event.altKey){
+      const nodes=[...drag.svg.querySelectorAll('text[data-dimension-key^="region:"]')],own=nodes.find(n=>n.dataset.dimensionKey===drag.key);
+      if(own){
+        const current=m2DimensionOffsets[drag.key]||{},origin={x:Number(own.getAttribute('x'))-(Number(current.x)||0),y:Number(own.getAttribute('y'))-(Number(current.y)||0)};
+        const matrix=drag.svg.getScreenCTM(),tolerance=8/Math.max(.0001,Math.hypot(matrix?.a||1,matrix?.b||0));
+        const targets=nodes.filter(n=>n!==own).map(n=>({x:Number(n.getAttribute('x')),y:Number(n.getAttribute('y'))}));
+        const snapped=snapRegionPointV423({x:origin.x+next.x,y:origin.y+next.y},targets,tolerance);
+        next={x:snapped.x-origin.x,y:snapped.y-origin.y};
+      }
+    }
+    m2DimensionOffsets[drag.key]=next;
     if(!frame)frame=requestAnimationFrame(()=>{frame=0;m2RenderLayout();});
   },true);
   function finish(event){if(!drag||event.pointerId!==drag.id)return;event.preventDefault();event.stopImmediatePropagation();const old=drag;drag=null;if(frame){cancelAnimationFrame(frame);frame=0;}old.svg.releasePointerCapture?.(old.id);if(old.moved&&event.type==='pointerup')pinMovedDimension(old.key);m2RenderLayout();}
@@ -75,7 +95,7 @@ export function transform(html){
 #m2LayoutSvg .rafex-dimension-witness{pointer-events:none}
 #page #m2LayoutSvg.m2-dimension-editing [data-dimension-key],#page #m2LayoutSvg.m2-dimension-editing .m2-measure-hit[data-dimension-key^="wall:"]{pointer-events:all!important;cursor:move!important}
 #page #m2LayoutSvg.m2-dimension-editing .rafex-dimension-hit{pointer-events:stroke!important;cursor:move!important}
-</style><script>${pinMovedDimension.toString()};(${installDimensionDrag.toString()})();</script>`;
+</style><script>${snapRegionPointV423.toString()};${pinMovedDimension.toString()};(${installDimensionDrag.toString()})();</script>`;
   const end=html.lastIndexOf('</body>');if(end<0)throw Error('Missing document body');
   return html.slice(0,end)+payload+html.slice(end);
 }
