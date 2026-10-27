@@ -52,6 +52,14 @@ export function regionColorV426(regions){
 export function syncRegionsV426(state,racks,symbols,bounds){
  const regions=new Map((state.rafexRegionsV426||[]).map(r=>[r.id,r]));
  for(const item of [...racks,...symbols]){const region=item.rafexRegionV179;if(region?.id)regions.set(region.id,{...region,box:region.box?{...region.box}:undefined});}
+ const reserved=[...regions.values()].filter(r=>r.colorManual===true||(r.colorManual==null&&r.color&&r.color.toLowerCase()!=='#267952')).map(r=>r.color.toLowerCase());
+ const used=new Set(reserved);
+ for(const region of regions.values()){
+  const explicit=region.colorManual===true||(region.colorManual==null&&region.color&&region.color.toLowerCase()!=='#267952');
+  if(!explicit){if(!/^#[0-9a-f]{6}$/i.test(region.color||'')||used.has(region.color.toLowerCase()))region.color=regionColorV426([...regions.values(),...[...used].map(color=>({color}))]);region.colorManual=false;}
+  else region.colorManual=true;
+  used.add(region.color.toLowerCase());
+ }
  const valid=[...regions.values()].filter(r=>r.id&&r.box&&['left','right','top','bottom'].every(k=>Number.isFinite(r.box[k]))&&r.box.right>r.box.left&&r.box.bottom>r.box.top);
  state.rafexRegionsV426=[...regions.values()];
  const inside=(r,x,y)=>x>=r.box.left&&x<=r.box.right&&y>=r.box.top&&y<=r.box.bottom;
