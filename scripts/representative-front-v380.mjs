@@ -49,6 +49,16 @@ export function arrangeMekikInputsV422(){
   };
   pair(field('m2RailThickness'),field('m2RailHeight'),'m2RailPairV422');
   pair(field('m2PalletWeight'),field('m2LevelH'),'m2PalletPairV422');
+  pair(field('m2PalW'),field('m2PalD'),'m2PalletSizePairV423');
+  const count=field('m2Depth'),sizes=get('m2PalletSizePairV423'),loads=get('m2PalletPairV422'),other=get('m2OtherDepthWrap');
+  let countRow=get('m2DepthRowV423');
+  if(count&&!countRow){countRow=document.createElement('div');countRow.id='m2DepthRowV423';countRow.style.cssText='display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;grid-column:1/-1';count.before(countRow);countRow.appendChild(count);}
+  if(count&&count.style.getPropertyValue('grid-column')!=='auto')count.style.setProperty('grid-column','auto','important');
+  if(countRow&&sizes&&countRow.nextElementSibling!==sizes)countRow.after(sizes);
+  if(sizes&&loads&&sizes.nextElementSibling!==loads)sizes.after(loads);
+  if(sizes&&other&&other.parentElement!==sizes)sizes.appendChild(other);
+  if(other&&other.style.getPropertyValue('grid-column')!=='2')other.style.setProperty('grid-column','2','important');
+
   if(foot&&height&&height.previousElementSibling!==foot)foot.after(height);
   if(height&&extra&&extra.previousElementSibling!==height)height.after(extra);
   if(extra&&extra.style.getPropertyValue('grid-column')!=='1 / -1')extra.style.setProperty('grid-column','1 / -1');
