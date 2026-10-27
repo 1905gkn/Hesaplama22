@@ -35,6 +35,30 @@ model.options=model.normalizeOptions({levels:2,palletCount:3,palletWeight:900});
 const labelGroup=new env.THREE.Group(),load=new env.THREE.Mesh(new env.THREE.BoxGeometry(800,1200,1200));load.position.set(400,550,-600);labelGroup.add(load);env.window.TestViewer.prototype.addPalletWeightV398.call(model,labelGroup,400,550,-600,900,800,load);const sprite=labelGroup.children[1];assert(sprite.isMesh&&!sprite.isSprite,'Weight is fixed to pallet face, never camera-facing');assert.equal(sprite.material.depthTest,true);assert.equal(sprite.userData.palletWeight,900);assert.equal(sprite.position.y,1151);assert.equal(sprite.rotation.x,-Math.PI/2);assert.deepEqual(paintCalls,['clear','text'],'No panel, watermark or white background behind kg');
 assert(html.includes('data-visible-pallet-weight="v400"'));
 assert.equal(labelGroup.children.length,3,'Both exposed pallet faces carry kg text');const opposite=labelGroup.children[2];assert.equal(opposite.position.y,-51);assert.equal(opposite.rotation.x,Math.PI/2);assert.equal(opposite.rotation.z,Math.PI);assert.equal(opposite.material.depthTest,true);
-for(const mirrored of [false,true]){const row=new env.THREE.Group();row.scale.y=mirrored?-1:1;row.add(labelGroup);row.updateMatrixWorld(true);const y=mirrored?200:-200,direction=mirrored?-1:1;const ray=new env.THREE.Raycaster(new env.THREE.Vector3(400,y,-600),new env.THREE.Vector3(0,direction,0));const hit=ray.intersectObject(labelGroup,true)[0];assert.equal(hit.object.userData.palletWeight,900,'Kg is visible from the outside in both normal and mirrored double rows');row.remove(labelGroup);}
+
+const oriented=Object.create(env.window.TestViewer.prototype);
+oriented.content=new env.THREE.Group();
+oriented.models={module:new env.THREE.Group(),pallet:new env.THREE.Mesh(new env.THREE.BoxGeometry(800,1200,1200))};
+for(const name of ['stripFrameSupports','preserveUprightThickness','applyRackMaterials','resizeEndFrames','addTraverses','addAccessories','addStraightTies','addDimensions','addGround','fitCamera','applyUserPalletMaterials'])oriented[name]=()=>{};
+let checkedLabels=0;
+for(const rowType of ['single','double'])for(const manual of [false,true]){
+ oriented.options=oriented.normalizeOptions({rowType,moduleCount:1,levels:4,palletCount:3,palletWeight:1000,palletWeights:manual?[600,800,1000,1200]:[],showPallets:true,sectionWidth:2700,palletWidth:800,palletDepth:1200,palletHeight:1200});
+ oriented.update(oriented.options,true);
+ const labels=[];oriented.content.traverse(label=>{if(label.userData.palletWeight!=null)labels.push(label);});
+ assert.equal(labels.length,4*3*2*(rowType==='double'?2:1));
+ for(const label of labels){
+  const right=new env.THREE.Vector3(1,0,0).transformDirection(label.matrixWorld);
+  const normal=new env.THREE.Vector3(0,0,1).transformDirection(label.matrixWorld);
+  const screenRight=new env.THREE.Vector3(0,1,0).cross(normal).normalize();
+  assert(right.dot(screenRight)>.99,'Text reads left-to-right on both faces of both rows');
+  assert.equal(label.material.side,env.THREE.FrontSide,'Mirrored reverse of a text face must not render');
+  checkedLabels++;
+ }
+}
+assert.equal(checkedLabels,144);
+console.log('PASS: 144 actual labels across single/double rows and manual/default kg are upright and read left-to-right on both faces.');
+
 for(const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))if(match[1].trim())new vm.Script(match[1]);
 console.log('PASS: manual per-pallet kg labels, three variants A1/A2/A3, duplicate suppression, automatic-mode reset and runtime syntax.');
+
+
