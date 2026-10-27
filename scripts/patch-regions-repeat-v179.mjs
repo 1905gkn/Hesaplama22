@@ -37,6 +37,39 @@ export function renameRegionGroupV196(group,racks,symbols,value){
  return name;
 }
 
+export function regionColorV426(regions){
+ const used=new Set(regions.map(r=>String(r.color||'').toLowerCase()));
+ const palette=['#267952','#246aa0','#bd661b','#8957a4','#b44868','#24898d','#8b7726','#5363ad'];
+ for(const color of palette)if(!used.has(color))return color;
+ for(let i=0;i<4096;i++){
+  const h=(i*137.508)%360,s=.58,l=.44,c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2;
+  const rgb=h<60?[c,x,0]:h<120?[x,c,0]:h<180?[0,c,x]:h<240?[0,x,c]:h<300?[x,0,c]:[c,0,x];
+  const color='#'+rgb.map(v=>Math.round((v+m)*255).toString(16).padStart(2,'0')).join('');
+  if(!used.has(color))return color;
+ }
+ throw Error('Bölge renkleri oluşturulamadı.');
+}
+export function syncRegionsV426(state,racks,symbols,bounds){
+ const regions=new Map((state.rafexRegionsV426||[]).map(r=>[r.id,r]));
+ for(const item of [...racks,...symbols]){const region=item.rafexRegionV179;if(region?.id)regions.set(region.id,{...region,box:region.box?{...region.box}:undefined});}
+ const valid=[...regions.values()].filter(r=>r.id&&r.box&&['left','right','top','bottom'].every(k=>Number.isFinite(r.box[k]))&&r.box.right>r.box.left&&r.box.bottom>r.box.top);
+ state.rafexRegionsV426=[...regions.values()];
+ const inside=(r,x,y)=>x>=r.box.left&&x<=r.box.right&&y>=r.box.top&&y<=r.box.bottom;
+ const assign=(item,region)=>{if(region){if(JSON.stringify(item.rafexRegionV179)!==JSON.stringify(region))item.rafexRegionV179={...region,box:region.box?{...region.box}:undefined};}else delete item.rafexRegionV179;};
+ const choose=(item,x,y)=>valid.find(r=>r.id===item.rafexRegionV179?.id&&inside(r,x,y))||valid.findLast(r=>inside(r,x,y));
+ for(const rack of racks){
+  const b=bounds(rack),region=choose(rack,(b.left+b.right)/2,(b.top+b.bottom)/2);
+  if(valid.length||rack.rafexRegionV179?.box)assign(rack,region);
+ }
+ const byId=new Map(racks.map(r=>[String(r.id),r]));
+ for(const symbol of symbols){
+  const owner=symbol.rackId!=null?byId.get(String(symbol.rackId)):null;
+  if(owner)assign(symbol,owner.rafexRegionV179);
+  else if(valid.length||symbol.rafexRegionV179?.box)assign(symbol,choose(symbol,Number(symbol.x)+Number(symbol.w||0)/2,Number(symbol.y)+Number(symbol.h||0)/2));
+ }
+ return state.rafexRegionsV426;
+}
+
 export function regionsRuntimeV179(){
  'use strict';
  const $=id=>document.getElementById(id),clone=v=>JSON.parse(JSON.stringify(v));
@@ -46,7 +79,8 @@ export function regionsRuntimeV179(){
  const overlap=(a,b)=>a.left<b.right-.01&&a.right>b.left+.01&&a.top<b.bottom-.01&&a.bottom>b.top+.01;
  let selecting=false,start=null,end=null,draft=null,frame=0;
  function groups(){
-  const map=new Map();
+  const known=syncRegionsV426(m2LayoutState,racks(),symbols(),m2RackBounds);
+  const map=new Map(known.map(region=>[region.id,{...region,racks:[],symbols:[]}]));
   for(const [kind,items] of [['racks',racks()],['symbols',symbols()]])for(const item of items){
    const region=item.rafexRegionV179,key=region?.id||'';
    if(!map.has(key))map.set(key,{id:key,name:region?.name||'Ayrılmamış bölge',color:region?.color||'#267952',paint:!!region?.paint,box:region?.box,racks:[],symbols:[]});
@@ -73,7 +107,7 @@ export function regionsRuntimeV179(){
   const input=dialog.querySelector('input');input.value=group.name;
   dialog.querySelector('[data-cancel]').onclick=()=>dialog.close();
   dialog.querySelector('form').onsubmit=e=>{e.preventDefault();const name=input.value.trim(),current=find();if(!name||name.length>80||!current){dialog.querySelector('[role=alert]').textContent=!current?'Bölüm artık bulunamıyor.':'Bölüm adı 1–80 karakter olmalıdır.';return;}
-   m2PushUndo('Bölüm adını değiştirme');renameRegionGroupV196(current,racks(),symbols(),name);dialog.close();m2RenderLayout();m2RenderLayoutProductList();m2RefreshActiveReport();status('Bölüm adı “'+name+'” olarak değiştirildi. Projeyi Kaydet ile saklayabilirsin.');
+   m2PushUndo('Bölüm adını değiştirme');renameRegionGroupV196(current,racks(),symbols(),name);const stored=m2LayoutState.rafexRegionsV426?.find(r=>r.id===current.id);if(stored)stored.name=name;dialog.close();m2RenderLayout();m2RenderLayoutProductList();m2RefreshActiveReport();status('Bölüm adı “'+name+'” olarak değiştirildi. Projeyi Kaydet ile saklayabilirsin.');
   };
   dialog.showModal();input.focus();input.select();
  });
@@ -136,14 +170,15 @@ export function regionsRuntimeV179(){
   const counts=new Map();rr.forEach(r=>{const key=r.typeName||r.blockName||'Raf';counts.set(key,(counts.get(key)||0)+1)});
   const rows=window.rafexRegionInventoryV179(draft.racks,draft.symbols);
   let dialog=$('rafexRegionDialogV179');if(!dialog){dialog=document.createElement('dialog');dialog.id='rafexRegionDialogV179';document.body.appendChild(dialog);dialog.addEventListener('cancel',e=>{e.preventDefault();cancel();});}
-  dialog.innerHTML='<h3>Ayraç · Bölge sayımı</h3><p>'+rr.length+' blok · '+ss.length+' aksesuar</p><p>'+[...counts].map(([n,q])=>escape(n)+' × '+q).join(' · ')+'</p><div class="region-counts">'+rows.map(r=>'<div><span>'+escape(r.name)+' <small>'+escape(r.spec)+'</small></span><b>'+r.qty+' '+escape(r.unit)+'</b></div>').join('')+'</div><button type="button" data-edit>Renklendir ve isimlendir</button><div data-fields hidden><label>Alan adı<input data-name maxlength="80" placeholder="Örn. Sevkiyat Alanı"></label><label>Renk<input data-color type="color" value="#267952"></label></div><p>Ayır: çizimi renklendir ve ürün listesini ayır. Tamam: yalnızca ürün listesini ayır.</p><div class="region-actions"><button type="button" data-paint>Ayır</button><button type="button" data-list>Tamam</button><button type="button" data-cancel>Vazgeç</button></div>';
+  dialog.innerHTML='<h3>Ayraç · Bölge sayımı</h3><p>'+rr.length+' blok · '+ss.length+' aksesuar</p><p>'+[...counts].map(([n,q])=>escape(n)+' × '+q).join(' · ')+'</p><div class="region-counts">'+rows.map(r=>'<div><span>'+escape(r.name)+' <small>'+escape(r.spec)+'</small></span><b>'+r.qty+' '+escape(r.unit)+'</b></div>').join('')+'</div><button type="button" data-edit>Renklendir ve isimlendir</button><div data-fields hidden><label>Alan adı<input data-name maxlength="80" placeholder="Örn. Sevkiyat Alanı"></label><label>Renk<input data-color type="color" value="'+regionColorV426(groups().filter(g=>g.id))+'"></label></div><p>Ayır: çizimi renklendir ve ürün listesini ayır. Tamam: yalnızca ürün listesini ayır.</p><div class="region-actions"><button type="button" data-paint>Ayır</button><button type="button" data-list>Tamam</button><button type="button" data-cancel>Vazgeç</button></div>';
+  const colorInput=dialog.querySelector('[data-color]');colorInput.dataset.manualColor='0';colorInput.oninput=()=>{colorInput.dataset.manualColor='1';};
   dialog.querySelector('[data-edit]').onclick=()=>{dialog.querySelector('[data-fields]').hidden=false;dialog.querySelector('[data-name]').focus();};
   dialog.querySelector('[data-paint]').onclick=()=>commit(true);dialog.querySelector('[data-list]').onclick=()=>commit(false);dialog.querySelector('[data-cancel]').onclick=cancel;dialog.showModal();
  }
  function commit(paint){
   if(!draft)return;const dialog=$('rafexRegionDialogV179');
-  const region={id:crypto.randomUUID(),name:dialog.querySelector('[data-name]').value.trim()||'Bölge '+(groups().filter(g=>g.id).length+1),color:dialog.querySelector('[data-color]').value,paint,box:{...draft.box}};
-  m2PushUndo('Ayraç oluşturma');const rr=new Set(draft.racks),ss=new Set(draft.symbols);
+  const region={id:crypto.randomUUID(),name:dialog.querySelector('[data-name]').value.trim()||'Bölge '+(groups().filter(g=>g.id).length+1),color:dialog.querySelector('[data-color]').value,colorManual:dialog.querySelector('[data-color]').dataset.manualColor==='1',paint,box:{...draft.box}};
+  m2PushUndo('Ayraç oluşturma');m2LayoutState.rafexRegionsV426=[...(m2LayoutState.rafexRegionsV426||[]),region];const rr=new Set(draft.racks),ss=new Set(draft.symbols);
   racks().filter(r=>rr.has(r.id)).forEach(r=>r.rafexRegionV179={...region});symbols().filter(s=>ss.has(s.id)).forEach(s=>s.rafexRegionV179={...region});
   cancel();m2RenderLayout();m2RenderLayoutProductList();status(region.name+(paint?' renklendirildi ve ayrı hesaplandı.':' yalnızca ürün listesinde ayrı hesaplandı.'));
  }
@@ -208,7 +243,7 @@ export function regionsRuntimeV179(){
  window.addEventListener('pointerup',e=>{if(!selecting||!start)return;stop(e);end=point(e);$('m2LayoutSvg').releasePointerCapture?.(e.pointerId);choose({left:Math.min(start.x,end.x),right:Math.max(start.x,end.x),top:Math.min(start.y,end.y),bottom:Math.max(start.y,end.y)});},true);
  window.addEventListener('keydown',e=>{if(e.key==='Escape'&&(selecting||draft)){stop(e);cancel();}},true);
  window.addEventListener('pointercancel',()=>{if(selecting)cancel();},true);
- const base=m2RenderLayout;m2RenderLayout=window.m2RenderLayout=function(){const result=base.apply(this,arguments);install();draw();return result;};
+ const base=m2RenderLayout;m2RenderLayout=window.m2RenderLayout=function(){syncRegionsV426(m2LayoutState,racks(),symbols(),m2RackBounds);const result=base.apply(this,arguments);install();draw();return result;};
  let scheduled=false;new MutationObserver(()=>{if(scheduled)return;const host=$('m2AutoFillControls');if(($('m2ReportProductTotal')&&!$('rafexReportRegionsV181'))||(host&&(!$('rafexRepeatV179')||$('rafexRepeatV179').parentElement!==(host.querySelector('.rafex-repeat-head')||host)))||($('rafexPickBlocksV145')&&!$('rafexRegionV179'))){scheduled=true;requestAnimationFrame(()=>{scheduled=false;install();});}}).observe(document.body,{childList:true,subtree:true});
  document.addEventListener('click',()=>queueMicrotask(install));
  window.rafexRegionsV179={begin,choose,cancel,repeat,groups};install();
@@ -225,7 +260,7 @@ export function transform(html){
   function symbols(){const all=allSymbolsV179();return regionScopeV179?all.filter(r=>regionScopeV179.symbols.has(r.id)):all;}
   window.rafexRegionInventoryV179=function(rackIds,symbolIds){const previous=regionScopeV179;try{regionScopeV179={racks:new Set(rackIds),symbols:new Set(symbolIds)};return rows();}finally{regionScopeV179=previous;}};
   function accessories(){`);
- replace('var signature=inventorySignature();',"var signature=inventorySignature()+'#'+JSON.stringify([...racks(),...symbols()].map(r=>[r.rafexRegionV179||null,r.rafexUnassignedGroupNameV196||null,r.typeName,r.rafexCatalogKey]));");
+ replace('var signature=inventorySignature();',"var signature=inventorySignature()+'#'+JSON.stringify([...racks(),...symbols()].map(r=>[r.rafexRegionV179||null,r.rafexUnassignedGroupNameV196||null,r.typeName,r.rafexCatalogKey]))+'#'+JSON.stringify(m2LayoutState.rafexRegionsV426||[]);");
  replace("    host.classList.remove('rafex-system-product-lists');","    sections=window.rafexRegionSectionsV179?.()||sections;\n    host.classList.remove('rafex-system-product-lists');");
  html=html.slice(0,start)+s+html.slice(end);
  const at=html.lastIndexOf('</body>');if(at<0)throw Error('Missing body');
@@ -238,7 +273,7 @@ export function transform(html){
  #rafexRegionV179{display:block;flex-basis:100%;grid-column:1/-1}#m2LayoutSvg.rafex-region-selecting,#m2LayoutSvg.rafex-region-selecting *{cursor:crosshair!important}
  #rafexRegionDialogV179{width:min(620px,90vw);max-height:85vh;overflow:auto;border:1px solid #abc4b5;border-radius:14px;padding:22px;color:#173c2d}#rafexRegionDialogV179::backdrop{background:#102e25aa}
  #rafexRegionDialogV179 .region-counts{max-height:35vh;overflow:auto;margin:12px 0}#rafexRegionDialogV179 .region-counts>div{display:flex;justify-content:space-between;gap:16px;padding:8px;border-bottom:1px solid #e2eae5}#rafexRegionDialogV179 small{display:block;color:#66796d}#rafexRegionDialogV179 label{display:inline-grid;gap:6px;margin:12px 12px 0 0}#rafexRegionDialogV179 .region-actions{display:flex;gap:8px;justify-content:flex-end}#rafexRegionDialogV179 [data-paint],#rafexRegionDialogV179 [data-list]{background:#174a35;color:white}.rafex-region-products .rafex-product-system-title{flex-direction:column!important;align-items:flex-start!important;gap:6px}.rafex-region-products .rafex-product-system-title small{display:block}
- </style><script>${splitUnassignedTypesV182.toString()}\n${renameRegionGroupV196.toString()}\n${regionsRuntimeV179.toString()}\nregionsRuntimeV179();</script>`+html.slice(at);
+ </style><script>${regionColorV426.toString()}\n${syncRegionsV426.toString()}\n${splitUnassignedTypesV182.toString()}\n${renameRegionGroupV196.toString()}\n${regionsRuntimeV179.toString()}\nregionsRuntimeV179();</script>`+html.slice(at);
 }
 if(process.argv[1]?.replaceAll('\\','/').endsWith('/patch-regions-repeat-v179.mjs')){
  const file='dist/server/index.js',s=fs.readFileSync(file,'utf8'),m=s.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/);if(!m)throw Error('Missing HTML');
