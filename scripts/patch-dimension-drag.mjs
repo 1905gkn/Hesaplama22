@@ -15,7 +15,7 @@ export function pinMovedDimension(key){
 }
 
 export function snapRegionPointV423(point, targets, tolerance) {
- const result={...point};
+ const result={x:point.x,y:point.y};
  for(const axis of ['x','y']){
   let distance=tolerance;
   for(const target of targets){const delta=Math.abs(target[axis]-point[axis]);if(Number.isFinite(delta)&&delta<=distance){distance=delta;result[axis]=target[axis];}}
