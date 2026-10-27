@@ -58,6 +58,7 @@ export function arrangeMekikInputsV422(){
   if(sizes&&loads&&sizes.nextElementSibling!==loads)sizes.after(loads);
   if(sizes&&other&&other.parentElement!==sizes)sizes.appendChild(other);
   if(other&&other.style.getPropertyValue('grid-column')!=='2')other.style.setProperty('grid-column','2','important');
+  if(other&&(other.style.getPropertyValue('display')!=='none'||other.style.getPropertyPriority('display')!=='important'))other.style.setProperty('display','none','important');
 
   if(foot&&height&&height.previousElementSibling!==foot)foot.after(height);
   if(height&&extra&&extra.previousElementSibling!==height)height.after(extra);
