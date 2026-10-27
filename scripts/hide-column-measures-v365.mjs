@@ -23,6 +23,9 @@ export function alignedClearancesV417(box,state,symbols){
    points=[{x:b.left,y:b.top},{x:b.right,y:b.top},{x:b.right,y:b.bottom},{x:b.left,y:b.bottom}];
   }
   if(points.length<3||points.some(p=>!Number.isFinite(p.x)||!Number.isFinite(p.y)))continue;
+  // A selected column's own outline is not an external clearance target.
+  const xs=points.map(p=>p.x),ys=points.map(p=>p.y);
+  if(Math.min(...xs)<box.right&&Math.max(...xs)>box.left&&Math.min(...ys)<box.bottom&&Math.max(...ys)>box.top)continue;
   for(let i=0;i<points.length;i++)edges.push({a:points[i],b:points[(i+1)%points.length]});
  }
  const xs=[],ys=[];
