@@ -112,12 +112,27 @@ export function surfaceWeightsV401(source){
 }
 
 export function doubleFaceWeightsV404(source){
- if(source.includes('/* double-face-pallet-weight-v404 */'))return source;
+ if(source.includes('/* double-face-pallet-weight-v404 */'))return readableWeightFacesV420(source);
  const from='label.scale.set(span,span/4,1);section.add(label);';
  if(source.split(from).length!==2)throw Error('v404 pallet face anchor');
  source=source.replace(from,`label.scale.set(span,span/4,1);section.add(label);
     if(load){const box=new THREE.Box3().setFromObject(load);if(!box.isEmpty()){
       const outside=label.clone();outside.material=label.material.clone();outside.name=label.name+' · Karşı yüz';outside.position.y=box.min.y-1;outside.rotation.set(Math.PI/2,0,Math.PI);section.add(outside);
     }}`);
- return '/* double-face-pallet-weight-v404 */\n'+source;
+ return readableWeightFacesV420('/* double-face-pallet-weight-v404 */\n'+source);
+}
+
+export function readableWeightFacesV420(source){
+ if(source.includes('/* readable-pallet-weight-v420 */'))return source;
+ const anchor='section.position.x=positions[moduleIndex];row.add(section);';
+ if(source.split(anchor).length!==2)throw Error('v420 row attachment anchor');
+ source=source.replace(anchor,anchor+`
+        // The second row reflects Y. Compensate the text's horizontal axis
+        // once, without mirroring the pallet mesh or its weight texture.
+        section.traverse(part=>{
+          if(part.userData.palletWeight==null)return;
+          if(rowIndex===1)part.scale.x=-Math.abs(part.scale.x);
+          part.material.side=THREE.FrontSide;
+        });`);
+ return '/* readable-pallet-weight-v420 */\n'+source;
 }
