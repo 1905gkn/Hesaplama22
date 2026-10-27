@@ -195,7 +195,13 @@ export function regionsRuntimeV179(){
   if(pick&&!$('rafexRegionV179')){const b=document.createElement('button');b.type='button';b.id='rafexRegionV179';b.textContent='Ayraç';b.onclick=begin;pick.after(b);}
   $('rafexRepeatV179')?.querySelectorAll('input,select,button').forEach(n=>{if(n.disabled)n.disabled=false;});
  }
- function point(e){const svg=$('m2LayoutSvg'),p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+ function point(e){
+  const svg=$('m2LayoutSvg'),p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;
+  const matrix=svg.getScreenCTM(),raw=p.matrixTransform(matrix.inverse());
+  if(e.altKey)return raw;
+  const targets=groups().filter(g=>g.id&&g.paint&&g.box).flatMap(g=>[{x:g.box.left,y:g.box.top},{x:g.box.right,y:g.box.bottom}]);
+  return snapRegionPointV423(raw,targets,8/Math.max(.0001,Math.hypot(matrix.a,matrix.b)));
+ }
  const stop=e=>{e.preventDefault();e.stopImmediatePropagation();};
  window.addEventListener('pointerdown',e=>{if(!selecting||!$('m2LayoutSvg')?.contains(e.target)||e.button!==0)return;stop(e);start=end=point(e);$('m2LayoutSvg').setPointerCapture(e.pointerId);draw();},true);
  window.addEventListener('pointermove',e=>{if(!selecting||!start)return;stop(e);end=point(e);if(!frame)frame=requestAnimationFrame(()=>{frame=0;draw();});},true);
