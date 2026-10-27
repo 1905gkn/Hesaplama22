@@ -148,7 +148,7 @@ export function regionsRuntimeV179(){
     const key='region:'+id,offset=m2DimensionOffsets[key]||{},label=document.createElementNS(ns,'text');label.textContent=name;
     for(const [k,v] of Object.entries({x:(box.left+box.right)/2+(Number(offset.x)||0),y:(box.top+box.bottom)/2+(Number(offset.y)||0),fill:color,'font-size':m2DimensionFontSizes[key]||18,'font-weight':800,'text-anchor':'middle','dominant-baseline':'middle','paint-order':'stroke',stroke:'#fff','stroke-width':3}))label.setAttribute(k,v);
     if(!preview){label.setAttribute('data-dimension-key',key);label.setAttribute('data-dimension-axis','free');label.classList.add('m2-dimension-movable');label.style.pointerEvents=m2LayoutTool==='dimension'?'all':'none';label.style.cursor='move';}
-    layer.appendChild(label);
+    (preview?layer:ground).appendChild(label);
    }
   }
   for(const g of painted){
@@ -254,7 +254,18 @@ export function regionsRuntimeV179(){
  const base=m2RenderLayout;m2RenderLayout=window.m2RenderLayout=function(){syncRegionsV426(m2LayoutState,racks(),symbols(),m2RackBounds);const result=base.apply(this,arguments);install();draw();return result;};
  let scheduled=false;new MutationObserver(()=>{if(scheduled)return;const host=$('m2AutoFillControls');if(($('m2ReportProductTotal')&&!$('rafexReportRegionsV181'))||(host&&(!$('rafexRepeatV179')||$('rafexRepeatV179').parentElement!==(host.querySelector('.rafex-repeat-head')||host)))||($('rafexPickBlocksV145')&&!$('rafexRegionV179'))){scheduled=true;requestAnimationFrame(()=>{scheduled=false;install();});}}).observe(document.body,{childList:true,subtree:true});
  document.addEventListener('click',()=>queueMicrotask(install));
- window.rafexRegionsV179={begin,choose,cancel,repeat,groups};install();
+ let refreshFrameV428=0;
+ const syncV428=()=>syncRegionsV426(m2LayoutState,racks(),symbols(),m2RackBounds);
+ function refreshV428(){
+  refreshFrameV428=0;syncV428();m2RenderLayoutProductList();draw();
+  if(typeof m2ScheduleReportRefresh==='function')m2ScheduleReportRefresh(650);
+ }
+ function scheduleV428(){if(!refreshFrameV428)refreshFrameV428=requestAnimationFrame(refreshV428);}
+ window.addEventListener('pointerup',event=>{if(event.target?.closest?.('#m2LayoutSvg,.rafex-drag-scene-v248'))scheduleV428();},true);
+ window.addEventListener('pointercancel',scheduleV428,true);
+ document.addEventListener('change',scheduleV428,true);
+ document.addEventListener('keydown',event=>{if(['Delete','Backspace','Enter'].includes(event.key)||((event.ctrlKey||event.metaKey)&&['z','y','v'].includes(event.key.toLowerCase())))scheduleV428();},true);
+ window.rafexRegionsV179={begin,choose,cancel,repeat,groups,sync:syncV428,refresh:scheduleV428};install();
 }
 
 export function transform(html){
@@ -268,6 +279,7 @@ export function transform(html){
   function symbols(){const all=allSymbolsV179();return regionScopeV179?all.filter(r=>regionScopeV179.symbols.has(r.id)):all;}
   window.rafexRegionInventoryV179=function(rackIds,symbolIds){const previous=regionScopeV179;try{regionScopeV179={racks:new Set(rackIds),symbols:new Set(symbolIds)};return rows();}finally{regionScopeV179=previous;}};
   function accessories(){`);
+ replace('    var signature=inventorySignature();','    window.rafexRegionsV179?.sync?.();\n    var signature=inventorySignature();');
  replace('var signature=inventorySignature();',"var signature=inventorySignature()+'#'+JSON.stringify([...racks(),...symbols()].map(r=>[r.rafexRegionV179||null,r.rafexUnassignedGroupNameV196||null,r.typeName,r.rafexCatalogKey]))+'#'+JSON.stringify(m2LayoutState.rafexRegionsV426||[]);");
  replace("    host.classList.remove('rafex-system-product-lists');","    sections=window.rafexRegionSectionsV179?.()||sections;\n    host.classList.remove('rafex-system-product-lists');");
  html=html.slice(0,start)+s+html.slice(end);
