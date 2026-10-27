@@ -16,7 +16,7 @@ for(const width of [1201,0,-1,NaN,1100,1200])assert(!katWirePlan(3400,width).val
 assert.equal(katWirePlan(2700,1000).width,890,'Standards take priority when they fit');assert.equal(katWirePlan(97900).width,890);
 let scripts=0;for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))if(m[1].trim()){new vm.Script(m[1]);scripts++;}
 const runtime=html.match(/<script data-kat-wire="v392">([\s\S]*?)<\/script>/)?.[1];assert(runtime);
-const env={window:{dispatchEvent(){}},document:{},CustomEvent:class{}};vm.createContext(env);vm.runInContext(runtime,env);
+const env={window:{dispatchEvent(){}},document:{},CustomEvent:class{},structuredClone};vm.createContext(env);vm.runInContext(runtime,env);
 const api=env.window.rafexKatWireV392;assert(api.controls(3400,{customWidth:null},'noop()').includes('max="1200"'));assert(!api.controls(2700,{},'noop()').includes('<input'));
 // Native serializers preserve custom dimensions across save/reopen and customization.
 const cloneMain=html.match(/const cloneState = \(\) => accessories\.map\(([\s\S]*?)\n  \}\)\);/)?.[0];assert(cloneMain);
@@ -75,7 +75,8 @@ const commitStart=html.indexOf(' window.rafexCommitCustomTypeV184=(rack,entry,pr
 const oldEntry={id:1,name:'A',system:'b2b',drawing:{typeName:'A'}},commitEnv={window:{rafexKatWireV392:api,rafexProjectTypesV133:[oldEntry]},m2SavedRackTypes:[oldEntry],structuredClone,rack:editRack,previous:{typeName:'A',rafexCatalogKey:'b2b:1',rackDetail:structuredClone(editRack.rackDetail)}};vm.createContext(commitEnv);vm.runInContext(html.slice(commitStart,commitEnd)+'\nwindow.rafexCommitCustomTypeV184(rack,{id:1,name:"A",system:"b2b",drawing:structuredClone(rack)},previous);',commitEnv);
 assert.equal(editRack.typeName,'B');assert.equal(editRack.rafexCustomNameV203,'B');assert.equal(commitEnv.window.rafexProjectTypesV133[0].name,'A');assert.equal(commitEnv.window.rafexProjectTypesV133[1].name,'B');
 console.log('Regression: live accessory mutation and identical previous sealed views still create B; original A retained; tunnel-only remains A; all normal accessories and structural fields trigger new type.');
-editRack.b2b.accessories=[];api.begin(editRack);fields.m2CustomizeModal={dataset:{tunnelManualNameV237:'A - Tünel'}};fields.m2CustomizeName={value:'A - Tünel'};env.window.rafexManualCustomizeRowsV178=()=>[{bottom:3500}];assert(!api.requiresNewType(editRack),'Tunnel manual changes preserve source type');api.noteNormal();assert(api.requiresNewType(editRack),'Normal changes alongside a manual tunnel create a new type');
+editRack.b2b.accessories=[];api.begin(editRack);fields.m2CustomizeModal={dataset:{tunnelManualNameV237:'A - Tünel'}};fields.m2CustomizeName={value:'A - Tünel'};env.window.rafexManualCustomizeRowsV178=()=>[{bottom:3500}];api.tunnelManualApplied();assert(!api.requiresNewType(editRack),'Tunnel manual changes preserve source type');fields.m2CustomizeRowGap={value:'450'};api.noteNormal();assert(api.requiresNewType(editRack),'Normal changes alongside a manual tunnel create a new type');delete fields.m2CustomizeRowGap;
+
 delete fields.m2CustomizeModal;editRack.b2b.accessories=[{type:'tray',levels:[1,2,3]}];api.begin(editRack);fields.m2CustomizeTunnel={checked:true};env.window.rafexAccessoryLevelsV121=()=>[3];editRack.b2b.accessories=[{type:'tray',levels:[3]}];assert(!api.requiresNewType(editRack),'Tunnel removing hidden lower floors is still a tunnel-only edit');editRack.b2b.accessories.push({type:'katWire',levels:[3]});assert(api.requiresNewType(editRack));
 // The visible-modal entry can bypass the older open wrapper; execute its initializer.
 delete fields.m2CustomizeTunnel;delete env.window.rafexAccessoryLevelsV121;editRack.b2b.accessories=[];
@@ -88,3 +89,57 @@ const finalLine=html.split('\n').find(line=>line.includes('pages.push(`<section'
 assert(finalLine);const finalContext={window:{rafexUniquePalletRowsV184:types=>types,rafexPalletRowsV395:palletRowsV395,rafexNamePalletVariantsV398:namePalletVariantsV398},types:[{name:'A',drawing:{palD:1200,palW:800,palletHeight:1200,palletWeight:1000,b2bLayout:{}}}],palletTotal:12,t:{pallets:'PALET TİPLERİ',totalPallets:'TOPLAM PALET SAYISI',technical:'TEKNİK'},namedBlocks:[],images:'',pages:[],fmt:n=>String(n),esc:s=>String(s),m2CorporateHeader:()=>'<header>RAFEX</header>'};vm.createContext(finalContext);vm.runInContext(html.slice(palletFunctionStart,palletFunctionEnd)+'\n'+finalLine,finalContext);const finalPage=finalContext.pages[0];assert.equal((finalPage.match(/TOPLAM PALET SAYISI/g)||[]).length,1);assert(finalPage.indexOf('m2-report-pallet-model-v393')<finalPage.indexOf('m2-corporate-pallets'));assert(finalPage.indexOf('m2-final-pallet-total-v393')>finalPage.indexOf('rafex-drawing-note-footer'));assert(finalPage.includes('/report-pallet.png?v=v397'));assert(html.includes('grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important'));
 console.log('Final PDF page: original GLB illustration on left, pallet table in right half, exactly one full-width pallet total at bottom.');
 const multiPallet={name:'A',drawing:{levels:3,palD:1200,palW:800,palletHeight:1200,palletWeight:1000,b2b:{palletCount:3,manualLevelSpecs:[{palletHeight:1200,weight:3000},{palletHeight:1600,weight:2400},{palletHeight:1200,weight:3000}]}}};let variants=palletRowsV395([multiPallet,multiPallet]);assert.equal(variants.length,2);assert.deepEqual(variants.map(r=>[r.drawing.palletHeight,r.drawing.palletWeight]),[[1200,1000],[1600,800]]);assert(variants.every(r=>r.name==='A'));variants=palletRowsV395([{...multiPallet,drawing:{...multiPallet.drawing,b2b:{palletCount:3,manualLevelSpecs:[{palletHeight:0,weight:0},{palletHeight:1200,weight:3000},{palletHeight:1600,weight:2400}]}}}]);assert.equal(variants.length,2);assert(html.includes('font-size:10px!important'));console.log('Pallet table: multiple heights/weights per block, per-pallet load conversion, duplicate suppression and hidden ground pallet passed.');
+
+// v419: semantic customization and visibility regressions.
+{
+const fields={},rack={id:7,typeName:'A',b2b:{accessories:[],collectionLevels:{enabled:false}},rackDetail:{views:{b2b:{}}}};
+let accessories=[],manual=[],pallets=true,collection={enabled:false};
+const defaults={m2CustomizeBlockName:'',m2CustomizeName:'A',m2CustomizePalletCount:'3',m2CustomizeLevels:'4',m2CustomizePalletHeight:'1200',m2CustomizeRowType:'single',m2CustomizeRowGap:'200'};
+function reset(){for(const k of Object.keys(fields))delete fields[k];for(const [k,v] of Object.entries(defaults))fields[k]={value:v};fields.m2CustomizeManualLevels={type:'checkbox',checked:false};fields.m2CustomizeTunnel={checked:false};fields.m2CustomizeModal={dataset:{}};accessories=[];manual=[];pallets=true;collection={enabled:false};rack.b2b.accessories=[];rack.typeName='A';}
+const original={id:1,name:'A',system:'b2b',drawing:{typeName:'A',b2b:{accessories:[]}}};
+const env={window:{},document:{getElementById:id=>fields[id]||null},structuredClone,m2SavedRackTypes:[original],m2SelectedSavedType:0};
+Object.assign(env.window,{m2CollectCustomizeRackAccessories:()=>accessories,m2CustomizePalletsVisible:()=>pallets,rafexCollectCustomizeCollectionV119:()=>collection,rafexManualCustomizeRowsV178:()=>manual,rafexAccessoryLevelsV121:()=>[1,2,3]});
+vm.createContext(env);vm.runInContext(html.match(/<script data-kat-wire="v392">([\s\S]*?)<\/script>/)[1],env);const api=env.window.rafexKatWireV392;
+const results=[];function check(name,change,expected=true){reset();env.m2SavedRackTypes=structuredClone([original]);api.begin(rack);change();assert.equal(api.requiresNewType(rack),expected,name);results.push({name,newType:expected});}
+check('No change',()=>{},false);
+for(const [id,v] of Object.entries({m2CustomizeBlockName:'zone',m2CustomizeName:'custom',m2CustomizePalletCount:'2',m2CustomizeLevels:'3',m2CustomizePalletHeight:'1000',m2CustomizeRowType:'double',m2CustomizeRowGap:'300'}))check(id,()=>{fields[id].value=v;});
+check('Manual checkbox',()=>{fields.m2CustomizeManualLevels.checked=true;});
+for(const type of ['palletStop','hTraverse','tray','katWire']){check(type+' add',()=>{accessories=[{type,levels:[2]}];});reset();accessories=[{type,levels:[2]}];rack.b2b.accessories=structuredClone(accessories);api.begin(rack);accessories=[];assert(api.requiresNewType(rack),type+' remove');results.push({name:type+' remove',newType:true});}
+check('Tray width',()=>{accessories=[{type:'tray',levels:[2],width:200}];});
+check('Wire custom width',()=>{accessories=[{type:'katWire',levels:[2],customWidth:900}];});
+for(const prop of ['weight','palletWeight','palletHeight','distance','traverseType','selectionMode'])check('Manual '+prop,()=>{manual=[{[prop]:prop==='traverseType'?'CC120':500}];});
+for(const prop of ['enabled','groundGap','floors'])check('Collection '+prop,()=>{collection={enabled:true,groundGap:600,floors:[{height:500,traverse:'CC120',load:100,thickness:1}]};});
+check('Hide pallets',()=>{pallets=false;});
+check('Tunnel enable/height/cover',()=>{fields.m2CustomizeTunnel.checked=true;rack.b2b.tunnelHeight=3000;accessories=[{type:'katWire',levels:[3],tunnelCover:true}];},false);
+check('Tunnel + normal accessory',()=>{fields.m2CustomizeTunnel.checked=true;accessories=[{type:'katWire',levels:[3],tunnelCover:true},{type:'hTraverse',levels:[3]}];});
+check('Tunnel + collection',()=>{fields.m2CustomizeTunnel.checked=true;collection={enabled:true,floors:[{height:500}]};});
+reset();api.begin(rack);fields.m2CustomizeName.value='A - Tünel';fields.m2CustomizeManualLevels.checked=true;manual=[{distance:3500}];api.tunnelManualApplied();assert(!api.requiresNewType(rack));results.push({name:'Tunnel manual only',newType:false});fields.m2CustomizeRowGap.value='350';assert(api.requiresNewType(rack));results.push({name:'Tunnel manual + row gap',newType:true});fields.m2CustomizeRowGap.value='200';manual=[{distance:3600}];assert(api.requiresNewType(rack));results.push({name:'Normal manual change after tunnel manual',newType:true});
+// Actual commit code must preserve the original local and unified catalogs.
+reset();api.begin(rack);accessories=[{type:'katWire',levels:[2]}];env.window.rafexProjectTypesV133=structuredClone([original]);
+const a=html.indexOf(' window.rafexCommitCustomTypeV184=(rack,entry,previous)=>{'),b=html.indexOf(' window.rafexHistoryPalletsV184=',a);
+vm.runInContext(html.slice(a,b),env);env.window.rafexCommitCustomTypeV184(rack,{id:1,name:'A',system:'b2b',drawing:structuredClone(rack)},{typeName:'A',rafexCatalogKey:'b2b:1',rackDetail:structuredClone(rack.rackDetail)});
+assert.equal(rack.typeName,'B');assert.deepEqual(Array.from(env.m2SavedRackTypes,x=>x.name),['A','B']);assert.equal(env.m2SavedRackTypes[0].drawing.b2b.accessories.length,0);assert.equal(env.window.rafexProjectTypesV133[0].name,'A');
+// Visibility is an explicit saved boolean, including after JSON round-trip.
+assert.equal(JSON.parse(JSON.stringify({b2b:{showPallets:false}})).b2b.showPallets,false);
+assert(html.includes('requiresNewType(rack)||!sameStructure'));
+assert(html.includes('m2SetCustomizePalletsVisible(rack.b2b?.showPallets!==false,false)'));
+assert(!html.includes('m2SetCustomizePalletsVisible(true,false)'));
+assert(html.includes('if(false&&!document.getElementById(\'m2CustomizeModal\')?.dataset.detailEditedV135)'));
+console.log('PASS',results.length,'individual change cases + actual catalog commit + visibility reload guards.');
+
+
+
+}
+
+// v419: semantic customization and visibility regressions.
+{
+const start=html.indexOf(' function b2bCustomizeOptions(rack){'),end=html.indexOf('\n\n var customizeTimerV166',start);
+const fields={m2CustomizeModal:{dataset:{}},m2CustomizePalletCount:{value:'3'},m2CustomizeLevels:{value:'4'},m2CustomizePalletHeight:{value:'1200'},m2CustomizeRowType:{value:'double'},m2CustomizeRowGap:{value:'200'},m2CustomizeTunnel:{checked:false}};
+let visible=false;const updates=[];const context={document:{getElementById:id=>fields[id]},window:{rafexReadRackDetailV135:()=>({showPallets:true,footHeight:6500}),rafexCustomizeCollectionOptionsV119:o=>({...o,showPallets:visible})},b2bOptions:()=>({showPallets:true,footHeight:6500,palletWidth:800,palletHeight:1200,palletCount:3,levels:4,traverseHeight:125}),rafexSectionWidthV238:()=>2700};
+vm.createContext(context);vm.runInContext(html.slice(start,end)+'\nglobalThis.get=b2bCustomizeOptions;',context);
+for(const rowType of ['single','double'])for(const saved of [true,false]){fields.m2CustomizeRowType.value=rowType;for(const value of [false,true,false]){visible=value;const o=context.get({id:1,b2b:{showPallets:saved},b2bLayout:{}});assert.equal(o.showPallets,value);assert.equal(o.rowType,rowType);updates.push({rowType,saved,visible:value});}}
+const fnStart=html.indexOf(' function normalizeRackPreviewV233('),fnEnd=html.indexOf(' function b2bOptions(',fnStart),nctx={window:{rafexManualPalletWeightsV398:()=>[]},copy:structuredClone};vm.createContext(nctx);vm.runInContext(html.slice(fnStart,fnEnd)+'\nglobalThis.normalize=normalizeRackPreviewV233;',nctx);assert.equal(nctx.normalize({showPallets:true},{b2b:{showPallets:false},b2bLayout:{rowCount:2}}).showPallets,false);
+console.log('PASS',updates.length,'single/double row, stored/live visibility changes + sealed detail false preserved.');
+
+
+}
