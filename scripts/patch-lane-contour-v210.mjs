@@ -4,6 +4,11 @@ export function transform(html){
  const code=`<style data-lane-contour="v210">
 #page #m2LayoutSvg [data-rack]:has(.rafex-plan-detail-v143)>.m2-layout-rack:is(.selected,:not(.selected)){stroke-opacity:0!important;fill-opacity:0!important}
 #page #m2LayoutSvg[data-lane-pressed-v210] [data-rack]:has(.rafex-plan-detail-v143)>.m2-layout-rack.selected{stroke-opacity:1!important;fill-opacity:.12!important}
+/* selected-module-frame-v424 */
+#page #m2LayoutSvg [data-rack]>.m2-layout-rack.selected.selected.selected{
+ stroke:#ef8c16!important;stroke-opacity:1!important;stroke-width:1.5px!important;stroke-dasharray:none!important;fill-opacity:0!important;vector-effect:non-scaling-stroke;pointer-events:all;
+}
+@media print{#page #m2LayoutSvg [data-rack]>.m2-layout-rack.selected.selected.selected{stroke-opacity:0!important}}
 </style><script>(()=>{
 let active=null;
 function clear(){active?.removeAttribute('data-lane-pressed-v210');active=null;}
