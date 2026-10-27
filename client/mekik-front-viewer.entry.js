@@ -53,6 +53,13 @@ function isMekikFront() {
   const activeMobilePage = document.querySelector("#mobileTabs button[data-mobile-page].active")?.dataset?.mobilePage;
   const activePage = String(activeDesktopPage || activeMobilePage || "");
 
+  // Ortak Çizim keeps its own navigation item active; use its system picker.
+  if(page.dataset?.rafexFreeDrawing==='1'||page.classList.contains('rafex-free-drawing-page')){
+    const selected=document.querySelector('#rafexUnifiedSystemPicker input:checked')?.value;
+    if(selected)return selected==='mekik2'||selected==='mekik';
+    try{return m2ActiveModule==='mekik2';}catch(_){return false;}
+  }
+
   // B2B'den dönüşte page sınıfı/global modül kısa süre eski kalabiliyor.
   // Kullanıcının gerçekten açtığı menü öğesi bu yüzden tek yetkili sayfa işaretidir.
   if (activePage) return activePage === "mekik2" || activePage === "mekik";
@@ -93,7 +100,7 @@ function readConfig() {
   const requestedSpacing = numberFrom("m2LevelSpacing", Number(drawing?.levelH) || palletHeight + 380, 380, 5000);
   const levelSpacing = requestedSpacing;
   const footType = clamp(Number(drawing?.footType) || numberFrom("m2FootType", 100, 60, 200), 60, 200);
-  const uprightHeight = Math.max(150, firstLevelHeight + (levels - 1) * levelSpacing + palletHeight / 2);
+  const uprightHeight = Math.max(150, firstLevelHeight + (levels - 1) * levelSpacing + palletHeight / 2, Number(drawing?.sideUprightHeight) || 0);
   const bayPitch = palletWidth + sideClearance * 2;
   return {
     bays,
@@ -613,7 +620,7 @@ function updateZoomLabel(zoom) {
 function updateInfo(config) {
   if (!info) return;
   const formatter = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
-  const text = `5 temsili blok · TOPLAM UZUNLUK ${formatter.format(config.totalWidth / 1000)} m`;
+  const text = `5 temsili blok · TOPLAM UZUNLUK ${formatter.format(config.totalWidth / 1000)} m · AYAK BOYU ${formatter.format(config.uprightHeight)} mm`;
   if (info.textContent !== text) info.textContent = text;
 }
 
