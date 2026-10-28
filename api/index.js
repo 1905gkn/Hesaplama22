@@ -141,6 +141,7 @@ async function dailyDashboard(request) {
 const application = {
   async fetch(request) {
     const path = new URL(request.url).pathname;
+    if(/^\/p\/[A-Za-z0-9_-]{16}$/.test(path))return proxyApi(request);
     if(path==='/api/exchange-rates' && request.method==='GET') return exchangeRatesResponse();
     if(/^\/api\/crm\/[^/]+$/.test(path))return crmLookup(request,{proxyApi});
     if(path==='/api/layout-agent') return layoutAgent(request,{proxyApi});
