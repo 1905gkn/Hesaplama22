@@ -3,6 +3,16 @@
   const rows = (/* TRANSLATION_ROWS */ []).concat([
  ['Tava Hesabı','Shelf Panel Calculation','Calcul des plateaux'],
  ['HAZIRLAYAN','PREPARED BY','PRÉPARÉ PAR'],['Hazırlayan','Prepared by','Préparé par'],
+ ['YAN GÖRÜNÜŞ','SIDE VIEW','VUE LATÉRALE'],['ÖNDEN TEKNİK GÖRÜNÜŞ','TECHNICAL FRONT VIEW','VUE TECHNIQUE DE FACE'],
+ ['MR SİSTEM','MR SYSTEM','SYSTÈME MR'],['MR 3D GÖRÜNÜŞ','MR 3D VIEW','VUE 3D MR'],['KAYITLI ÖLÇÜLER','SAVED DIMENSIONS','DIMENSIONS ENREGISTRÉES'],
+ ['B2B ÜRÜNLERİ','B2B COMPONENTS','COMPOSANTS B2B'],['MEKİK ÜRÜNLERİ','SHUTTLE COMPONENTS','COMPOSANTS NAVETTE'],['DRIVE-IN ÜRÜNLERİ','DRIVE-IN COMPONENTS','COMPOSANTS DRIVE-IN'],
+ ['MR ÜRÜNLERİ','MR COMPONENTS','COMPOSANTS MR'],['KONSOL KOLLU ÜRÜNLERİ','CANTILEVER COMPONENTS','COMPOSANTS CANTILEVER'],['(devam)','(continued)','(suite)'],['KOD','CODE','CODE'],
+ ['Düz arabağ','Straight frame spacer','Entretoise droite'],['Palet yastığı','Pallet support pad','Support de palette'],
+ ['Arka stoper','Rear pallet stop','Butée arrière de palette'],['Forklift stoperi','Forklift stop','Butée de chariot élévateur'],
+ ['Giriş konsolu','Entry bracket','Console d’entrée'],['Yatay çapraz seti','Horizontal bracing set','Jeu de contreventement horizontal'],
+ ['Konsol ayak','Cantilever upright','Montant cantilever'],['Konsol kolu','Cantilever arm','Bras cantilever'],
+ ['MR Ayak Toplama','MR frame assembly','Échelle MR assemblée'],['ZS Travers','ZS beam','Lisse ZS'],
+ ['PALET ÜST KOTU','TOP OF LOAD','COTE SUPÉRIEURE DE LA CHARGE'],
  ['HAZIRLANMA TARİHİ','PREPARATION DATE','DATE DE PRÉPARATION'],['PROJE NO','PROJECT NO.','N° DE PROJET'],['CRM NO','CRM NO.','N° CRM'],
  ['KOT ARALIKLARI','LEVEL SPACING','ESPACEMENT DES NIVEAUX'],['SON PALET YÜKSEKLİĞİ','TOP PALLET ELEVATION','COTE DE LA PALETTE SUPÉRIEURE'],
  ['SON KAT ÜSTÜ','ABOVE TOP LEVEL','AU-DESSUS DU DERNIER NIVEAU'],['TOPLAM UZUNLUK','TOTAL LENGTH','LONGUEUR TOTALE'],
@@ -59,6 +69,11 @@
     const engineeringLabels = ['AYAK','ARABAĞ','RAY','TRAVERS','KOL','GÖZ','TOPLAM','YÜKSEKLİK','DERİNLİK','GENİŞLİK','PALET','KAT ARASI','TOPLAM GENİŞLİK','TOPLAM DERİNLİK','TOPLAM UZUNLUK','SON PALET YÜKSEKLİĞİ','AYAK UZUNLUĞU','V TEKRARI','İLK DÜĞÜM'];
     if (engineering && engineeringLabels.includes(engineering[1].toLocaleUpperCase('tr'))) return source.replace(trimmed, `${translate(engineering[1].toLocaleUpperCase('tr'), language)} ${engineering[2]}`);
     const patterns = [
+      [/^([\d.,]+)\s*mm\s+kalınlık$/i, m => fr ? `épaisseur ${m[1]} mm` : `${m[1]} mm thickness`],
+      [/^([\d.,]+)\s+derinlik$/i, m => fr ? `${m[1]} palettes en profondeur` : `${m[1]} pallets deep`],
+      [/^(\d+)[’']l[üuıi]\s+çapraz seti$/i, m => fr ? `Jeu de contreventement pour ${m[1]} montants` : `${m[1]}-upright bracing set`],
+      [/^([\d.,]+)\s*mm\s+ayak$/i, m => fr ? `Montant de ${m[1]} mm` : `${m[1]} mm upright`],
+      [/^(K\d+\s*[→–-]\s*K\d+)\s+NET$/i, m => `${m[1]} ${fr ? 'LIBRE' : 'CLEAR'}`],
       // v438: translate engineering captions as structured labels, keeping numbers,
       // product codes and user-provided project names unchanged.
       [/^(\d+)\s+temsili blok$/i, m => `${m[1]} ${fr ? 'travées représentatives' : 'representative bays'}`],
