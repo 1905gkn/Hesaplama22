@@ -2,6 +2,27 @@
 (() => {
   const rows = (/* TRANSLATION_ROWS */ []).concat([
  ['Tava Hesabı','Shelf Panel Calculation','Calcul des plateaux'],
+ ['HAZIRLAYAN','PREPARED BY','PRÉPARÉ PAR'],['Hazırlayan','Prepared by','Préparé par'],
+ ['HAZIRLANMA TARİHİ','PREPARATION DATE','DATE DE PRÉPARATION'],['PROJE NO','PROJECT NO.','N° DE PROJET'],['CRM NO','CRM NO.','N° CRM'],
+ ['KOT ARALIKLARI','LEVEL SPACING','ESPACEMENT DES NIVEAUX'],['SON PALET YÜKSEKLİĞİ','TOP PALLET ELEVATION','COTE DE LA PALETTE SUPÉRIEURE'],
+ ['SON KAT ÜSTÜ','ABOVE TOP LEVEL','AU-DESSUS DU DERNIER NIVEAU'],['TOPLAM UZUNLUK','TOTAL LENGTH','LONGUEUR TOTALE'],
+ ['ZEMİN','GROUND LEVEL','SOL'],['ORTAK AYAK','SHARED FRAME','ÉCHELLE COMMUNE'],['ARABAĞ','FRAME SPACER','ENTRETOISE'],
+ ['KOL','ARM','BRAS'],['GÖZ','BAY','TRAVÉE'],['TOPLAM','TOTAL','TOTAL'],['YÜKSEKLİK','HEIGHT','HAUTEUR'],
+ ['KAT ARASI','LEVEL SPACING','ESPACEMENT DES NIVEAUX'],['RAF UZUNLUĞU','RACK LENGTH','LONGUEUR DU RAYONNAGE'],
+ ['MR RAF','MR RACK','RAYONNAGE MR'],['TEK SIRA','SINGLE ROW','SIMPLE RANGÉE'],['ÇİFT SIRA','DOUBLE ROW','DOUBLE RANGÉE'],
+ ['TEK SIRA RAF','SINGLE-ROW RACK','RAYONNAGE SIMPLE RANGÉE'],
+ ['RAY SON AYAKTA BİTER','RAIL ENDS AT THE LAST FRAME','LE RAIL SE TERMINE À LA DERNIÈRE ÉCHELLE'],
+ ['ÖNDEN GÖRÜNÜŞ','FRONT VIEW','VUE DE FACE'],['YANDAN GÖRÜNÜŞ','SIDE VIEW','VUE LATÉRALE'],['ÜST GÖRÜNÜŞ','TOP VIEW','VUE DE DESSUS'],
+ ['3D İLE AYNI MODÜL','SAME BAY AS THE 3D MODEL','MÊME TRAVÉE QUE LE MODÈLE 3D'],
+ ['AYAK · RAY · TRAVERS · PALET montaj görünüşü','FRAME · RAIL · BEAM · PALLET assembly view','Vue d’assemblage ÉCHELLE · RAIL · LISSE · PALETTE'],
+ ['montaj görünüşü','assembly view','vue d’assemblage'],['3D ile aynı sıra düzeni · iki ürün ayrı konstrüksiyon','Same row layout as 3D · two independent structures','Même disposition des rangées que la vue 3D · deux structures indépendantes'],
+ ['2 AYRI RAF · GALVANİZ DÜZ ARABAĞ','2 SEPARATE RACKS · GALVANISED STRAIGHT SPACER','2 RAYONNAGES SÉPARÉS · ENTRETOISE DROITE GALVANISÉE'],
+ ['B2B çift sıra · arabağ uç plakaları ayak deliklerinde','B2B double row · spacer end plates in the upright holes','B2B double rangée · platines d’entretoise dans les perforations des montants'],
+ ['B2B tek sıra','B2B single row','B2B simple rangée'],['V TEKRARI','V BRACING REPEAT','RÉPÉTITION DU CONTREVENTEMENT EN V'],
+ ['İLK DÜĞÜM','FIRST BRACING NODE','PREMIER NŒUD DE CONTREVENTEMENT'],['ÖLÇEK','SCALE','ÉCHELLE'],
+ ['KESİT AÇISI','SECTION ANGLE','ANGLE DE COUPE'],['KESİT','SECTION','COUPE'],
+ ['H Travers','H-beam','Lisse en H'],['Kat teli','Wire decking','Platelage grillagé'],['Tavalı','With shelf panels','Avec plateaux'],
+ ['Toplama katı','Picking level','Niveau de picking'],['Palet dayama','Pallet backstop','Butée de palette'],
  ['Hissedilen','Feels like','Ressenti'],['Rüzgâr','Wind','Vent'],['km/sa','km/h','km/h'],
  ['Bugünün kuru doğrulanamadı.',"Today's exchange rate could not be verified.",'Le taux de change du jour n’a pas pu être vérifié.'],
  ['Günlük gösterge kuru','Daily reference rate','Taux indicatif du jour'],['Kur kaynağı','Rate source','Source du taux'],
@@ -34,7 +55,21 @@
     const exact = UI_TRANSLATIONS[language][trimmed] || lookup[language].get(normalize(trimmed));
     if (exact) return source.replace(trimmed, exact);
     const fr = language === 'fr';
+    const engineering = trimmed.match(/^(.+?)\s+([\d.,]+(?:\s*[×x]\s*[\d.,]+)*(?:\s*(?:mm|m|kg))?)$/);
+    const engineeringLabels = ['AYAK','ARABAĞ','RAY','TRAVERS','KOL','GÖZ','TOPLAM','YÜKSEKLİK','DERİNLİK','GENİŞLİK','PALET','KAT ARASI','TOPLAM GENİŞLİK','TOPLAM DERİNLİK','TOPLAM UZUNLUK','SON PALET YÜKSEKLİĞİ','AYAK UZUNLUĞU','V TEKRARI','İLK DÜĞÜM'];
+    if (engineering && engineeringLabels.includes(engineering[1].toLocaleUpperCase('tr'))) return source.replace(trimmed, `${translate(engineering[1].toLocaleUpperCase('tr'), language)} ${engineering[2]}`);
     const patterns = [
+      // v438: translate engineering captions as structured labels, keeping numbers,
+      // product codes and user-provided project names unchanged.
+      [/^(\d+)\s+temsili blok$/i, m => `${m[1]} ${fr ? 'travées représentatives' : 'representative bays'}`],
+      [/^([\d.,]+)\s+palet derinlik$/i, m => fr ? `${m[1]} palettes en profondeur` : `${m[1]} pallets deep`],
+      [/^([\d.,]+)\s+palet\s*\/\s*bölüm$/i, m => fr ? `${m[1]} palettes / travée` : `${m[1]} pallets / bay`],
+      [/^(Derinlik|Gözler)\s*([↓→])$/i, m => `${m[1].toLocaleLowerCase('tr') === 'derinlik' ? (fr ? 'Profondeur' : 'Depth') : (fr ? 'Travées' : 'Bays')} ${m[2]}`],
+      [/^(ZEMİN)\s*([→–-]\s*K\d+)$/i, m => `${fr ? 'SOL' : 'GROUND'} ${m[2]}`],
+      [/^(AYAK|ARABAĞ|RAY|TRAVERS|KOL|GÖZ|TOPLAM|YÜKSEKLİK|DERİNLİK|GENİŞLİK|PALET|KAT ARASI|TOPLAM GENİŞLİK|TOPLAM DERİNLİK|TOPLAM UZUNLUK|SON PALET YÜKSEKLİĞİ|AYAK UZUNLUĞU|V TEKRARI|İLK DÜĞÜM)\s+([\d.,]+(?:\s*[×x]\s*[\d.,]+)*(?:\s*(?:mm|m|kg))?)$/i, m => `${translate(m[1], language)} ${m[2]}`],
+      [/^KOLON ARALIĞI\s+([\d.,]+\s*mm)$/i, m => `${fr ? 'ESPACEMENT DES COLONNES' : 'COLUMN SPACING'} ${m[1]}`],
+      [/^([\d.,]+\s*mm)\s+(arabağ|kolon ara)$/i, m => `${m[1]} ${m[2].toLocaleLowerCase('tr') === 'arabağ' ? (fr ? 'entretoise' : 'frame spacer') : (fr ? 'entre colonnes' : 'column spacing')}`],
+      [/^(KESİT AÇISI|KESİT)\s+([\d.,]+°)$/i, m => `${translate(m[1], language)} ${m[2]}`],
       [/^Merhaba, (.+)$/, m => (fr ? 'Bonjour, ' : 'Hello, ') + m[1]],
       [/^(\d+) açık$/, m => m[1] + (fr ? ' ouvertes' : ' open')],
       [/^(\d+) kapalı$/, m => m[1] + (fr ? ' clôturées' : ' closed')],
@@ -67,11 +102,19 @@
     // Dimension strings are compound labels; never replace arbitrary words in names.
     const parts = trimmed.split(/(\s+[·|]\s+|\s*:\s*)/);
     if (parts.length > 1) return source.replace(trimmed, parts.map((part, i) => i % 2 ? part : translate(part, language)).join(''));
-    return source.replace(/(\d[\d.,]*)\s+(adet|palet|kat|göz|modül)(?=\s|$)/g, (_, n, unit) => `${n} ${{en:{adet:'units',palet:'pallets',kat:'levels',göz:'bays',modül:'modules'},fr:{adet:'pièces',palet:'palettes',kat:'niveaux',göz:'travées',modül:'modules'}}[language][unit]}`);
+    return source.replace(/(\d[\d.,]*)\s+(adet|palet|kat|göz|modül)(?=\s|$)/gi, (_, n, unit) => `${n} ${{en:{adet:'units',palet:'pallets',kat:'levels',göz:'bays',modül:'modules'},fr:{adet:'pièces',palet:'palettes',kat:'niveaux',göz:'travées',modül:'modules'}}[language][unit.toLocaleLowerCase('tr')]}`);
   };
   window.rafexTranslateText = translate;
   // Canvas callers can provide the independently selected output language.
   window.rafexDimensionText = translate;
+  // Translate new SVG labels before measuring their plates or capturing a report.
+  window.rafexTranslateDrawing438 = (root, language = document.documentElement.lang || 'tr') => {
+    if (!root) return;
+    for (const text of root.querySelectorAll('text,tspan')) {
+      if (text.closest('[data-user-note],.m2-user-note,[translate="no"],[data-no-translate]')) continue;
+      for (const node of text.childNodes) if (node.nodeType === 3) updateText(node, language);
+    }
+  };
   const languageFor = element => element.closest(reportSelector) ? (document.getElementById('m2ReportLanguage')?.value || 'tr') : (document.documentElement.lang || 'tr');
   window.rafexSetUiText = (element, source) => {
     if (!element) return;
