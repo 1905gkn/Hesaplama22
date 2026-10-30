@@ -267,7 +267,6 @@ node scripts/patch-no-mr-foot-protection-v339.mjs
 node scripts/patch-wall-editor-toggle-v340.mjs
 node scripts/patch-save-output-perf-v341.mjs
 node scripts/customer-share-v431.mjs
-node scripts/patch-output-language-v439.mjs
 node scripts/emit-static-index-v1.mjs
 node scripts/verify-idle-dom-runtime-v147.mjs dist/index.html
 node scripts/verify-viewer-visibility-v147.mjs
