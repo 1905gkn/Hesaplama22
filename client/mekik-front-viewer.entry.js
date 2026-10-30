@@ -585,6 +585,7 @@ class MekikFrontViewer {
       <rect x="${columnChipX}" y="${columnChipY}" width="${columnChipWidth}" height="${columnChipHeight}" rx="${columnChipHeight / 2}" class="dim-chip"/>
       <text x="${firstBayCenterX}" y="${columnChipY + 20}" text-anchor="middle" class="dim-column-text">KOLON ARALIĞI · ${fmt(config.bayPitch)} mm</text>
     `;
+    window.rafexTranslateDrawing438?.(dimensions, this.dimensionLanguage || this.config.language || document.documentElement.lang || 'tr');
     const columnText = dimensions.querySelector('.dim-column-text');
     const columnPlate = columnText?.previousElementSibling;
     if (columnText && columnPlate) {
@@ -1021,6 +1022,7 @@ window.rafexMekikFrontGlbV2 = {
     const canvas=document.createElement('canvas'),overlay=document.createElementNS('http://www.w3.org/2000/svg','svg');
     canvas.style.cssText='width:1260px;height:760px';host.append(canvas,overlay);document.body.appendChild(host);
     const capture=new MekikFrontViewer(canvas,null,config,overlay);
+    capture.dimensionLanguage = config?.language || document.getElementById('m2ReportLanguage')?.value || document.documentElement.lang || 'tr';
     try{
       await capture.ready;if(!capture.models)throw Error('Mekik ön görünüşü yüklenemedi');
       capture.resize();capture.fit(true);capture.render();
@@ -1035,4 +1037,3 @@ window.rafexMekikFrontGlbV2 = {
 };
 
 scheduleMountBurst();
-
