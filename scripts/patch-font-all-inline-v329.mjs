@@ -6,11 +6,12 @@ export function transform(html){
   if(!re.test(html))throw Error('v329 font row missing '+id);html=html.replace(re,'<div class="m2-font-size-row-v329">$1$2</div>');
  }
  const style=`<style data-font-all-inline="v329">
+ #page #rafex-menu-measure-tools-v216>.m2-floor-tools{width:300px}
  #page .measure-tools>.m2-font-size-row-v329{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;gap:7px!important;width:100%!important;min-width:0!important;grid-column:1/-1!important;box-sizing:border-box}
  #page .measure-tools>.m2-font-size-row-v329:has(#m2DimensionFontSize){order:5!important}
  #page .measure-tools>.m2-font-size-row-v329:has(#m2AnnotationFontSize){order:6!important}
  #page .m2-font-size-row-v329>.m2-text-size-tool{display:flex!important;flex:1 1 auto!important;min-width:0!important;width:auto!important;align-items:center!important;justify-content:space-between!important;gap:5px!important;margin:0!important;white-space:nowrap}
- #page .m2-font-size-row-v329>.m2-text-size-tool>input{width:48px!important;min-width:0!important;box-sizing:border-box!important}
+ #page .m2-font-size-row-v329>.m2-text-size-tool>input{width:88px!important;min-width:88px!important;flex:0 0 88px!important;padding-inline:10px!important;box-sizing:border-box!important}
  #page .m2-font-size-row-v329>.m2-font-all{display:inline-flex!important;flex:0 0 auto!important;width:auto!important;min-height:0!important;margin:0!important;gap:4px!important;align-items:center!important;white-space:nowrap!important}
  </style>`;
  const end=html.lastIndexOf('</body>');if(end<0)throw Error('v329 body missing');return html.slice(0,end)+style+html.slice(end);
