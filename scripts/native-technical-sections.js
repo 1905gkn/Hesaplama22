@@ -13,7 +13,8 @@
     c.uprightHeight=c.firstLevelHeight+(c.levels-1)*c.levelSpacing+c.palletHeight/2;c.bayPitch=c.palletWidth+c.sideClearance*2;c.totalWidth=c.bays*c.bayPitch+c.footType;
     return c;
   }
-  function standalone(svg,host){
+  function standalone(svg,host,language){
+    window.rafexTranslateDrawing438?.(svg,language);
     const props=['fill','fill-opacity','stroke','stroke-width','stroke-dasharray','stroke-opacity','font-family','font-size','font-weight','text-anchor','dominant-baseline','paint-order','opacity'];
     for(const node of [svg,...svg.querySelectorAll('*')]){
       const style=getComputedStyle(node);for(const prop of props)if(style.getPropertyValue(prop))node.style.setProperty(prop,style.getPropertyValue(prop).replace(/url\(["']?[^)"']*#([^)'" ]+)["']?\)/g,'url(#$1)'));
@@ -23,18 +24,19 @@
   window.rafexCaptureTechnicalViews=async function(d,system){
     d={...(d.rackDetail?.views?.[system]||d.rackDetail?.views?.mekik2||{}),...d};
     d.railLength=Number(d.depthMm||d.railLength);d.totalWidth=Number(d.widthMm||d.totalWidth);
-    const api=await load(system),c=config(d,system),host=document.createElement('div');
+    const language=document.getElementById('m2ReportLanguage')?.value||'tr';
+    const api=await load(system),c={...config(d,system),language},host=document.createElement('div');
     host.className='m2-canvas rafex-native-side-capture';host.style.cssText='position:fixed;left:-20000px;top:0;width:1260px;height:760px';document.body.append(host);
     const css=document.createElement('style');css.textContent=Array.from(document.styleSheets).flatMap(sheet=>{try{return Array.from(sheet.cssRules).map(rule=>rule.cssText).filter(text=>text.includes('#m2Side')).map(text=>text.replaceAll('#m2Side','.rafex-native-side-capture'));}catch{return [];}}).join('\n');document.head.append(css);
     try{
       let front=await api.capture(c);
       if(system==='drive'){
         host.innerHTML='<svg class="rafex-drive-dimensions"></svg>';window.rafexDriveDimensions(host,front.config,front.layout);
-        const overlay=host.querySelector('svg');standalone(overlay,host);
+        const overlay=host.querySelector('svg');standalone(overlay,host,language);
         front='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1260 760"><image width="1260" height="760" href="'+front.image+'"/>'+overlay.innerHTML+'</svg>';
       }
-      host.innerHTML=window.rafexNativeSideSection(d);const side=standalone(host.querySelector('svg'),host);
-      const uri=svg=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+      host.innerHTML=window.rafexNativeSideSection(d);const side=standalone(host.querySelector('svg'),host,language);
+      const uri=markup=>{const holder=document.createElement('div');holder.innerHTML=markup;window.rafexTranslateDrawing438?.(holder,language);return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(holder.innerHTML);};
       return {front:uri(front),side:uri(side)};
     }finally{host.remove();css.remove();}
   };
@@ -46,8 +48,9 @@
     for(const [mode,title] of [['front','ÖNDEN GÖRÜNÜŞ'],['side','YAN GÖRÜNÜŞ']]){
       const view=document.createElement('div');view.className='rafex-v19-view';view.dataset.rafexNativeView=mode;
       view.style.setProperty('grid-column','1','important');view.style.setProperty('grid-row',mode==='front'?'2':'3','important');
-      const label=document.createElement('div');label.className='rafex-v19-view-title';label.textContent=title;
-      const visual=document.createElement('div');visual.className='rafex-v19-visual';const image=new Image();image.src=views[mode];image.alt=title;image.loading='eager';visual.append(image);view.append(label,visual);card.append(view);
+      const translated=window.rafexTranslateReportText?.(title)||title;
+      const label=document.createElement('div');label.className='rafex-v19-view-title';label.textContent=translated;
+      const visual=document.createElement('div');visual.className='rafex-v19-visual';const image=new Image();image.src=views[mode];image.alt=translated;image.loading='eager';visual.append(image);view.append(label,visual);card.append(view);
     }
   };
 })();
