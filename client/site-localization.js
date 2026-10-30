@@ -127,7 +127,23 @@
     if (!root) return;
     for (const text of root.querySelectorAll('text,tspan')) {
       if (text.closest('[data-user-note],.m2-user-note,[translate="no"],[data-no-translate]')) continue;
-      for (const node of text.childNodes) if (node.nodeType === 3) updateText(node, language);
+      const nodes=[...text.childNodes].filter(node=>node.nodeType===3);
+      let sources=[];try{sources=JSON.parse(text.getAttribute('data-rafex-drawing-source-v439')||'[]');if(!Array.isArray(sources))sources=[];}catch{}
+      const previousLanguage=text.getAttribute('data-rafex-drawing-language-v439')||language;
+      nodes.forEach((node,index)=>{
+        const state=textState.get(node),current=node.nodeValue;
+        if(typeof sources[index]!=='string'||current!==translate(sources[index],previousLanguage)&&state?.rendered!==current)
+          sources[index]=state&&state.rendered===current?state.source:current;
+        const source=sources[index],rendered=translate(source,language);textState.set(node,{source,rendered});
+        if(current!==rendered)node.nodeValue=rendered;
+      });
+      if(nodes.length){text.setAttribute('data-rafex-drawing-source-v439',JSON.stringify(sources));text.setAttribute('data-rafex-drawing-language-v439',language);}
+    }
+    // French captions can be longer; fit the existing dimension plate to the text.
+    for(const label of root.querySelectorAll('.drive-column-chip text,.dim-column-text')){
+      const plate=label.closest('.drive-column-chip')?.querySelector('rect')||label.previousElementSibling;
+      if(plate?.tagName.toLowerCase()!=='rect')continue;
+      try{const b=label.getBBox();if(b.width>0)for(const [key,value]of Object.entries({x:b.x-10,y:b.y-5,width:b.width+20,height:b.height+10}))plate.setAttribute(key,String(value));}catch{}
     }
   };
   const languageFor = element => element.closest(reportSelector) ? (document.getElementById('m2ReportLanguage')?.value || 'tr') : (document.documentElement.lang || 'tr');
