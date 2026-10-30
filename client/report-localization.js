@@ -36,10 +36,11 @@
   const originals = new WeakMap();
   function apply(root) {
     if (!root) return;
+    window.rafexTranslateDrawing438?.(root,language());
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     let node;
     while ((node = walker.nextNode())) {
-      if (node.parentElement?.closest('script,style,[translate="no"],[data-user-note],.m2-user-note,#m2ReportProjectName,.m2-corporate-cover h1')) continue;
+      if (node.parentElement?.closest('script,style,[translate="no"],[data-user-note],.m2-user-note,#m2ReportProjectName,.m2-corporate-cover h1,text[data-rafex-drawing-source-v439],tspan[data-rafex-drawing-source-v439]')) continue;
       const previous = originals.get(node);
       const source = previous && previous.rendered === node.nodeValue ? previous.source : node.nodeValue;
       const nameOwner=node.parentElement?.closest('[data-rafex-type-name] > strong > span');
