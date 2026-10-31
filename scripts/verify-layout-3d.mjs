@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {layoutSnapshot} from '../client/layout-3d-data.mjs';
+import {transform} from './layout-3d-v443.mjs';
+const rack={id:1,x:100,y:200,w:108,h:48,widthMm:2700,depthMm:1200,angle:90,levels:3,b2b:{customLevels:[{interval:1700},{interval:1500}]},b2bLayout:{rowCount:2}};
+const state={scale:.04,points:[{x:0,y:0},{x:400,y:0}],pathBreaks:[0],racks:[rack]},before=JSON.stringify(state);
+const data=layoutSnapshot(state,()=>({footHeight:4900,frameHeights:[{left:6000,right:4900}],palletHeight:1200,firstPalletPosition:'ground'}));
+assert.equal(JSON.stringify(state),before,'3D must not change the drawing');assert.equal(data.racks[0].width,2.7);assert.equal(data.racks[0].depth,1.2);assert.equal(data.racks[0].x,3.85);assert.ok(Math.abs(data.racks[0].z-5.6)<1e-9);assert.equal(data.racks[0].angle,-Math.PI/2);assert.equal(data.racks[0].height,4.9);assert.deepEqual(data.racks[0].floors,[0,1.7,3.2]);assert.equal(data.racks[0].frameHeights[0].left,6000);assert.equal(data.points[1].x,10);assert.deepEqual(data.breaks,[0]);
+const zoomed=layoutSnapshot({...state,zoom:3,pan:{x:500,y:500}});assert.equal(zoomed.racks[0].x,data.racks[0].x,'screen zoom/pan must not move racks');
+const html='<html><head></head><body><script>const print="</body>";const template=`<button type="button" id="m2FreeButton">Çiz</button>`;</script></body></html>',result=transform(html);assert.equal(transform(result),result);assert.ok(result.indexOf('/layout-3d.js')>result.indexOf('</script>'));assert.equal((result.match(/data-layout-3d>/g)||[]).length,1);assert.equal(layoutSnapshot({racks:[]}).racks.length,0);
+console.log('PASS layout 3D: physical dimensions, placement, rotation, custom levels, end frames, path breaks, immutable snapshot, zoom independence and safe idempotent injection.');
