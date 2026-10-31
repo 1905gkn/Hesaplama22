@@ -141,6 +141,9 @@ async function dailyDashboard(request) {
 const application = {
   async fetch(request) {
     const path = new URL(request.url).pathname;
+    // Web Push subscription writes retain the browser origin check before proxy normalization.
+    if(path.startsWith('/api/push/')&&request.method!=='GET'&&request.headers.get('origin')!==new URL(request.url).origin)return Response.json({error:'Geçersiz istek.'},{status:403});
+    if(path==='/api/push/dispatch'&&(!process.env.CRON_SECRET||request.headers.get('authorization')!=='Bearer '+process.env.CRON_SECRET))return Response.json({error:'Yetkisiz.'},{status:401});
     if(/^\/p\/[A-Za-z0-9_-]{16}$/.test(path))return proxyApi(request);
     if(path==='/api/exchange-rates' && request.method==='GET') return exchangeRatesResponse();
     if(/^\/api\/crm\/[^/]+$/.test(path))return crmLookup(request,{proxyApi});
