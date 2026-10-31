@@ -58,6 +58,24 @@
           "value": "no-cache"
         }
       ]
+    },
+    {
+      "source": "/notification-center.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/notification-center.css",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
     }
   ],
   "functions": {

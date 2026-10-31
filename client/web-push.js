@@ -13,7 +13,7 @@
   const b=box.querySelector('button');b.disabled=busy;
   if(!supported()){b.disabled=true;status(/iphone|ipad|ipod/i.test(navigator.userAgent)?'Bildirim için Safari’den Ana Ekrana Ekle ile uygulamayı yükleyip açın.':'Bu tarayıcı Web Push desteklemiyor. Chrome, Edge, Firefox veya Safari kullanın.');return}
   if(Notification.permission==='denied'){b.disabled=true;status('Bildirim izni kapalı. Tarayıcının site ayarlarından izin verebilirsiniz.');return}
-  try{config=await api('/api/push/config');if(!config.enabled){b.disabled=true;status('Bildirim hizmeti hazırlanıyor.');return}const r=await reg(),sub=await r.pushManager.getSubscription();b.textContent=sub?'Bu cihazda bildirimleri kapat':'Cihaz bildirimlerini aç';status(sub?'Yeni not atamalarını bu cihazda alıyorsunuz.':'Yeni not atandığında telefonunuza veya bilgisayarınıza bildirim gelsin.');if(sub)await api('/api/push/subscription','POST',{subscription:sub.toJSON()})}catch(e){status(e.message)}
+  try{config=await api('/api/push/config');if(!config.enabled){b.disabled=true;status('Bildirim hizmeti hazırlanıyor.');return}const r=await reg(),sub=await r.pushManager.getSubscription();b.textContent=sub?'Bu cihazda bildirimleri kapat':'Cihaz bildirimlerini aç';status(sub?'Not atamalarını, yorumları ve kapatmaları bu cihazda alıyorsunuz.':'Not atamalarında, yorumlarda ve kapatmalarda telefonunuza veya bilgisayarınıza bildirim gelsin.');if(sub)await api('/api/push/subscription','POST',{subscription:sub.toJSON()})}catch(e){status(e.message)}
  }
  async function toggle(){
   if(busy)return;busy=true;const b=document.getElementById('rafexPushToggle');if(b)b.disabled=true;
@@ -32,9 +32,9 @@
  const home=window.renderHome;if(typeof home==='function')window.renderHome=function(){const out=home.apply(this,arguments);void paint();return out};
  window.rafexWebPush={refresh:paint};
  // A push link opens the normal authenticated home page, then locates the note.
- const id=new URL(location.href).searchParams.get('note');
+ const id=new URL(location.href).searchParams.get('note'),openComments=new URL(location.href).searchParams.get('comments')==='1';
  if(/^\d+$/.test(id||'')){
-  let attempts=0,loading=false;const timer=setInterval(async()=>{if(loading)return;if(!document.getElementById('todoList')||!window.rafexNotesV405){if(++attempts>120)clearInterval(timer);return}if(typeof showClosedTodos!=='undefined'&&!showClosedTodos){showClosedTodos=true;window.renderTodoRows?.()}const target=document.querySelector('[data-note="'+id+'"]');if(target){clearInterval(timer);target.scrollIntoView({behavior:'smooth',block:'center'});target.style.outline='3px solid #f2c500';history.replaceState(null,'',location.pathname)}else{loading=true;try{await window.rafexNotesV405.more()}catch{}finally{loading=false}if(++attempts>30)clearInterval(timer)}},1000);
+  let attempts=0,loading=false;const timer=setInterval(async()=>{if(loading)return;if(!document.getElementById('todoList')||!window.rafexNotesV405){if(++attempts>120)clearInterval(timer);return}if(typeof showClosedTodos!=='undefined'&&!showClosedTodos){showClosedTodos=true;window.renderTodoRows?.()}const target=document.querySelector('[data-note="'+id+'"]');if(target){clearInterval(timer);target.scrollIntoView({behavior:'smooth',block:'center'});target.style.outline='3px solid #f2c500';if(openComments)void window.rafexNotesV405.comments(Number(id));history.replaceState(null,'',location.pathname)}else{loading=true;try{await window.rafexNotesV405.more()}catch{}finally{loading=false}if(++attempts>30)clearInterval(timer)}},1000);
  }
  navigator.serviceWorker?.addEventListener('message',e=>{if(e.data?.type==='RAFEX_NOTE_PUSH'){window.loadTodos?.()}});
  void paint();
