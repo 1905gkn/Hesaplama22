@@ -273,3 +273,4 @@ node scripts/verify-viewer-visibility-v147.mjs
 node scripts/split-runtime-assets-v152.mjs
 
 node scripts/web-push-v440.mjs
+node scripts/mobile-readability-v441.mjs
