@@ -1,15 +1,17 @@
 import {b2bFrameLayout} from './layout-3d-b2b-placement.mjs';
 // System-specific local geometry in metres. The viewer applies world placement.
-export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScaleX=null,nativeAccessories=false}={}){
+export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScaleX=null,nativeAccessories=false,simple=false}={}){
  const parts=[];
  const box=(kind,x,y,z,w,h,d,rx=0,rz=0)=>{if([x,y,z,w,h,d].every(Number.isFinite)&&w>0&&h>0&&d>0)parts.push({kind,x,y,z,w,h,d,rx,rz});};
  const post=(x,z,h=r.height)=>{if(!cad||!['b2b','mekik2','drive'].includes(r.system))box('foot',x,h/2,z,r.foot,h,r.foot)};
  function brace(x,z,depth,h){box('foot',x,h/2,z,.035,Math.hypot(depth,h),.035,Math.atan2(depth,h));}
  function panelBracing(x,z1,z2,h){const span=z2-z1;let y=.15,index=0;
+  if(simple){box('brace',x,h/2,(z1+z2)/2,.03,Math.hypot(h,span),.025,Math.atan2(span,h));return;}
   while(y<h-.15){const top=Math.min(y+.6,h-.15);box('brace',x,(top+y)/2,(z1+z2)/2,.03,Math.hypot(top-y,span),.025,Math.atan2((index%2?-1:1)*span,top-y));y=top;index++;}
   for(let y=.15;y<h;y+=1.2)box('tie',x,y,(z1+z2)/2,.03,.04,span);
  }
  function pallet(x,y,z,w,d,h){
+  if(simple){box('load',x,y+Math.max(.16,h)/2,z,w,Math.max(.16,h),d);return;}
   const bw=Math.min(.145,w*.125),bd=Math.min(.145,d*.18),xs=[-(w-bw)/2,0,(w-bw)/2],zs=[-(d-bd)/2,0,(d-bd)/2];
   for(const xx of xs){box('timber',x+xx,y+.0125,z,bw,.025,d);for(const zz of zs)box('timber',x+xx,y+.065,z+zz,bw,.08,bd);}
   for(const zz of zs)box('timber',x,y+.115,z+zz,w,.02,bd);
@@ -33,7 +35,7 @@ export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScal
   }
  }else if(r.system==='drive'||r.system==='mekik2'){
   const pitch=(r.width-r.foot)/r.bays,stations=r.footZ.length?r.footZ:[0,r.depth];
-  if(!(cad&&r.system==='drive'))for(let lane=0;lane<=r.bays;lane++)for(const [start,end] of (r.footFrames?.length?r.footFrames:[[0,r.depth]])){
+  if(!simple&&!(cad&&r.system==='drive'))for(let lane=0;lane<=r.bays;lane++)for(const [start,end] of (r.footFrames?.length?r.footFrames:[[0,r.depth]])){
    const x=-r.width/2+r.foot/2+lane*pitch,z1=Math.max(r.foot/2,start)-r.depth/2,z2=Math.min(r.depth-r.foot/2,end)-r.depth/2,span=z2-z1;let y=.15,index=0;
    while(y<r.height-.15){const top=Math.min(y+.6,r.height-.15);box('brace',x,(top+y)/2,(z1+z2)/2,.03,Math.hypot(top-y,span),.025,Math.atan2((index%2?-1:1)*span,top-y));y=top;index++;}
 
@@ -56,5 +58,17 @@ export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScal
    }
   }
  }
+ if(simple&&r.system==='b2b'){
+  const {depth:fd,centers}=b2bFrameLayout(r);
+  for(const z of centers){
+   for(const floor of r.collectionFloors||[]){const y=Number(floor.bottom)/1000;if(Number.isFinite(y)&&y>=0)box('shelf',0,y+r.beam,z,r.width-2*r.foot,.03,fd);}
+   for(const a of r.accessories||[])for(const level of a.levels||[]){const i=Number(level)-1,y=r.floors[i];if(!Number.isFinite(y))continue;
+    if(a.type==='tray'||a.type==='katWire')box('shelf',0,y-.015,z,r.width-2*r.foot,.03,fd);
+    if(a.type==='hTraverse')for(const side of [-1,1])box('beam',side*r.width/4,y-.04,z,.045,.06,fd);
+    if(a.type==='palletStop')box('beam',0,y+.15,z+fd/2,r.width-2*r.foot,.06,.04);
+   }
+  }
+ }
  return parts;
 }
+
