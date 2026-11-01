@@ -260,6 +260,16 @@ class KonsolViewer {
 
 let savedMainViewer = null;
 window.RafexKonsolViewer = {
+  async layoutAccessoryGeometry(options){
+    const model=Object.create(KonsolViewer.prototype);model.options=model.normalize(structuredClone(options));model.root=new THREE.Group();model.buildRack();model.root.updateMatrixWorld(true);
+    const isLoad=m=>/Kutu profil|Paletli yük|Palet üst|Palet taşıyıcı/i.test(m.name||''),parts=[],bounds=new THREE.Box3();
+    model.root.traverse(m=>{if(m.isMesh&&m.geometry.type!=='PlaneGeometry'&&!isLoad(m))bounds.union(new THREE.Box3().setFromObject(m));});const center=bounds.getCenter(new THREE.Vector3());
+    try{model.root.traverse(m=>{if(!m.isMesh||m.geometry.type==='PlaneGeometry')return;const g=m.geometry.clone(),material=Array.isArray(m.material)?m.material[0]:m.material,part={geometry:g,color:material?.color?.getHex?.()??0xaeb8bd,name:m.name||'Konsol kayıtlı parça',load:isLoad(m)};
+      if(m.isInstancedMesh){g.scale(.001,.001,.001);part.matrices=[];for(let i=0;i<m.count;i++){const local=new THREE.Matrix4();m.getMatrixAt(i,local);const matrix=new THREE.Matrix4().multiplyMatrices(m.matrixWorld,local);matrix.elements[12]=(matrix.elements[12]-center.x)*.001;matrix.elements[13]*=.001;matrix.elements[14]=(matrix.elements[14]-center.z)*.001;part.matrices.push(matrix.toArray());}}
+      else{g.applyMatrix4(m.matrixWorld);g.translate(-center.x,0,-center.z);g.scale(.001,.001,.001);if(m.matrixWorld.determinant()<0){if(!g.index)g.setIndex(Array.from({length:g.attributes.position.count},(_,i)=>i));const ix=g.index.array;for(let i=0;i<ix.length;i+=3){const a=ix[i+1];ix[i+1]=ix[i+2];ix[i+2]=a;}g.index.needsUpdate=true;}}
+      g.computeBoundingBox();g.computeBoundingSphere();parts.push(part);});return parts;
+    }finally{disposeObject(model.root);model.root.clear();}
+  },
   getSavedDetail() { return savedMainViewer&&!savedMainViewer.destroyed ? JSON.parse(JSON.stringify(savedMainViewer.options)) : null; },
   mount(canvas, options) {
     const viewer=new KonsolViewer(canvas, options);

@@ -282,6 +282,7 @@ node scripts/verify-layout-3d.mjs
 node scripts/verify-layout-3d-cad.mjs
 node scripts/verify-drive-connector-contact.mjs
 node scripts/verify-layout-accessories.mjs
+node scripts/verify-layout-native-variants.mjs
 node scripts/verify-customize-collection-z1.mjs
 node scripts/verify-mekik-cad-seating.mjs
 node scripts/verify-layout-clearances.mjs
