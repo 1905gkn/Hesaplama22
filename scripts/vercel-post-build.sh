@@ -280,6 +280,7 @@ node scripts/notification-center-v442.mjs
 node scripts/verify-lane-detail-native.mjs
 node scripts/verify-layout-3d.mjs
 node scripts/verify-layout-3d-cad.mjs
+node scripts/verify-layout-accessories.mjs
 node scripts/verify-mekik-cad-seating.mjs
 node scripts/verify-layout-clearances.mjs
 node scripts/verify-layout-environment.mjs

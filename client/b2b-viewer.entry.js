@@ -947,6 +947,17 @@ async function captureB2BViews(options = {}, settings = {}) {
 
 let active = null;
 window.RafexB2BViewer = {
+  async layoutAccessoryGeometry(options){
+    const model=Object.create(B2BViewer.prototype),content=new THREE.Group();let failure=null;
+    Object.assign(model,{content,canvas:{id:'layout-accessories'},destroyed:false,options:model.normalizeOptions({...options,moduleCount:1,moduleOptions:null,showPallets:false}),emit(name,detail){if(name==='b2b-viewer-error')failure=detail?.message;},addDimensions(){},addGround(){},fitCamera(){}});
+    model.update=()=>{};await model.load();delete model.update;if(!model.models)throw Error(failure||'Aksesuar CAD modelleri yüklenemedi');
+    const sharedGeometry=new Set(),sharedMaterials=new Set();for(const root of Object.values(model.models))root.traverse(m=>{if(m.isMesh){sharedGeometry.add(m.geometry);for(const mat of Array.isArray(m.material)?m.material:[m.material])sharedMaterials.add(mat);}});
+    const result=[];
+    try{model.update(model.options,true);content.updateMatrixWorld(true);const frame=new THREE.Box3();content.traverse(m=>{if(m.isMesh&&/AYAK|HRTD|UPRIGHT/i.test(m.name)){const b=new THREE.Box3().setFromObject(m);if(b.max.y-b.min.y>model.options.footHeight*.5)frame.union(b);}});if(frame.isEmpty())frame.setFromObject(content);const center=frame.getCenter(new THREE.Vector3());
+      content.traverse(m=>{if(!m.isMesh)return;let accessory=false;for(let at=m;at&&at!==content;at=at.parent)if(/Palet Dayama|H Travers|^Tava |Toplama/i.test(at.name)){accessory=true;break;}if(!accessory)return;const g=m.geometry.clone().applyMatrix4(m.matrixWorld);g.translate(-center.x,0,-center.z);g.scale(.001,.001,.001);g.computeBoundingBox();g.computeBoundingSphere();const mat=Array.isArray(m.material)?m.material[0]:m.material;result.push({geometry:g,color:mat?.color?.getHex?.()??0xaeb8bd,name:m.name});});return result;
+    }finally{const gs=new Set(),ms=new Set();content.traverse(m=>{if(m.isMesh){if(!sharedGeometry.has(m.geometry))gs.add(m.geometry);for(const mat of Array.isArray(m.material)?m.material:[m.material])if(!sharedMaterials.has(mat))ms.add(mat);}});gs.forEach(g=>g.dispose());ms.forEach(m=>m.dispose());content.clear();}
+  },
+
   palletCapacity(options) {
     const model=Object.create(B2BViewer.prototype);model.options=model.normalizeOptions({...options,moduleCount:1,moduleOptions:null});
     const occupied=Array.from({length:model.options.levels},(_,level)=>level).filter(level=>model.hasPalletAt(level));

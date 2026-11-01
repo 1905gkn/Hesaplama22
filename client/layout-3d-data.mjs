@@ -39,6 +39,6 @@ export function layoutSnapshot(state,optionsFor=()=>({})){
    rows:count((o.rowType?o.rowType==='double'?2:1:l.rowCount)||(b.rowType==='double'?2:1),1,2),rowGap:num(o.rowGap??l.rowGap??b.rowGap,200)/1000,frameDepth:((b.palletOverhang??l.palletOverhang)!=null?Math.max(100,palletDepth*1000-2*num(b.palletOverhang??l.palletOverhang,50)):pos(l.frameDepth,Math.max(100,palletDepth*1000-2*num(o.frontPalletGap,50))))/1000,frameHeights:structuredClone(o.frameHeights||[]),
    pallets:count(o.palletCount||l.palletCount||b.palletCount||r.bays,3,12),bays:count(r.bays,1),modules:count(o.modules||b.modules,1),positions,footZ,footFrames,
    uprightCount:count(o.uprightCount||k.count||r.plan?.feet?.length,5),spacing:pos(o.spacing||k.spacing||r.palW,1500)/1000,arm:pos(o.armLength||k.arm||k.armLength||r.palD,1200)/1000,baseDepth:pos(o.baseDepth||k.baseDepth||k.arm,1200)/1000,doubleSided:o.doubleSided??(k.side==='double'||k.doubleSided===true),productHeight:pos(o.productHeight||k.productHeight,300)/1000,loadType:o.loadType||k.loadType||'profile',
-   accessories:structuredClone(o.accessories||b.accessories||[]),tunnelHeight:num(b.tunnelHeight??o.tunnelHeight)/1000};
+   nativeOptions:structuredClone(o),collectionFloors:structuredClone(o.collectionFloors||[]),accessories:structuredClone(o.accessories||b.accessories||[]),tunnelHeight:num(b.tunnelHeight??o.tunnelHeight)/1000};
  })};
 }

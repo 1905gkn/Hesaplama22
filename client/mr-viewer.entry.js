@@ -254,6 +254,7 @@ class MRViewer {
             this.trayPiecePlan(width, accessory.width).forEach((pieceWidth) => {
               const shelf = tray.object.clone(true);
               shelf.scale.set(pieceWidth / tray.size.x, 1, depth / tray.size.z);
+              shelf.userData.layoutAccessory=true;
               shelf.rotation.x = Math.PI;
               shelf.position.set(moduleX + cursor, levelY + traverseHeight + tray.size.y - 50, depth);
               this.root.add(shelf);
@@ -409,6 +410,11 @@ class MRViewer {
 
 let active = null;
 window.RafexMRViewer = {
+  async layoutAccessoryGeometry(config){
+    const model=Object.create(MRViewer.prototype);let failure=null;Object.assign(model,{canvas:{id:'layout-accessories',dispatchEvent(e){if(e.type==='mr-viewer-error')failure=e.detail?.message;}},root:new THREE.Group(),bounds:new THREE.Box3(),center:new THREE.Vector3(),size:new THREE.Vector3(),loadToken:0,configSignature:'',destroyed:false,grid:{scale:{setScalar(){}}},ground:{scale:{set(){}}},disposeDimensions(){},addDimensions(){},setView(){}});
+    await model.build(config);if(failure)throw Error(failure);model.root.updateMatrixWorld(true);const result=[];model.root.traverse(m=>{if(!m.isMesh)return;let selected=false;for(let at=m;at;at=at.parent)if(at.userData.layoutAccessory)selected=true;if(!selected)return;const g=m.geometry.clone().applyMatrix4(m.matrixWorld);g.scale(.001,.001,.001);g.computeBoundingBox();g.computeBoundingSphere();const mat=Array.isArray(m.material)?m.material[0]:m.material;result.push({geometry:g,color:mat?.color?.getHex?.()??0xaeb8bd,name:'MR Tava'});});model.root.clear();return result;
+  },
+
   getSavedDetail() { return active?.canvas?.id === 'mrCanvas' ? JSON.parse(JSON.stringify(active.config)) : null; },
   mount(canvas, options) { if (!(canvas instanceof HTMLCanvasElement)) throw new Error("MR 3D alanı bulunamadı."); active?.destroy(); active = new MRViewer(canvas, options); return active; },
   setConfiguration(config) { return active?.setConfiguration(config); },

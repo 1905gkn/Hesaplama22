@@ -1,6 +1,6 @@
 import {b2bFrameLayout} from './layout-3d-b2b-placement.mjs';
 // System-specific local geometry in metres. The viewer applies world placement.
-export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScaleX=null}={}){
+export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScaleX=null,nativeAccessories=false}={}){
  const parts=[];
  const box=(kind,x,y,z,w,h,d,rx=0,rz=0)=>{if([x,y,z,w,h,d].every(Number.isFinite)&&w>0&&h>0&&d>0)parts.push({kind,x,y,z,w,h,d,rx,rz});};
  const post=(x,z,h=r.height)=>{if(!cad||!['b2b','mekik2','drive'].includes(r.system))box('foot',x,h/2,z,r.foot,h,r.foot)};
@@ -29,14 +29,14 @@ export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScal
   const modules=r.modules,pitch=(r.width-r.foot)/modules;
   for(let i=0;i<=modules;i++){const x=-r.width/2+r.foot/2+i*pitch;for(const z of [-1,1])post(x,z*(r.depth-r.foot)/2);panelBracing(x,-(r.depth-r.foot)/2,(r.depth-r.foot)/2,r.height);}
   for(let m=0;m<modules;m++)for(let i=0;i<r.floors.length;i++){const y=r.floors[i],x=-r.width/2+r.foot/2+(m+.5)*pitch;if(!cad)for(const z of [-1,1])box('beam',x,y-r.beam/2,z*(r.depth-r.foot)/2,pitch-r.foot,r.beam,.045);
-   const tray=r.accessories.some(a=>a.type==='tray'&&(a.levels||[]).map(Number).includes(i+1));if(tray)box('shelf',x,y+.015,0,pitch-r.foot,.03,r.depth-r.foot);
+   const tray=r.accessories.some(a=>a.type==='tray'&&(a.levels||[]).map(Number).includes(i+1));if(tray&&!nativeAccessories)box('shelf',x,y+.015,0,pitch-r.foot,.03,r.depth-r.foot);
   }
  }else if(r.system==='drive'||r.system==='mekik2'){
   const pitch=(r.width-r.foot)/r.bays,stations=r.footZ.length?r.footZ:[0,r.depth];
   if(!(cad&&r.system==='drive'))for(let lane=0;lane<=r.bays;lane++)for(const [start,end] of (r.footFrames?.length?r.footFrames:[[0,r.depth]])){
    const x=-r.width/2+r.foot/2+lane*pitch,z1=Math.max(r.foot/2,start)-r.depth/2,z2=Math.min(r.depth-r.foot/2,end)-r.depth/2,span=z2-z1;let y=.15,index=0;
    while(y<r.height-.15){const top=Math.min(y+.6,r.height-.15);box('brace',x,(top+y)/2,(z1+z2)/2,.03,Math.hypot(top-y,span),.025,Math.atan2((index%2?-1:1)*span,top-y));y=top;index++;}
-   for(let y=.15;y<r.height;y+=1.2)box('tie',x,y,(z1+z2)/2,.03,.04,span);
+
   }
   for(let lane=0;lane<=r.bays;lane++){const x=-r.width/2+r.foot/2+lane*pitch;for(const zz of [...new Set(stations)])post(x,Math.max(r.foot/2,Math.min(r.depth-r.foot/2,zz))-r.depth/2);}
   for(let lane=0;lane<r.bays;lane++){const x=-r.width/2+r.foot/2+(lane+.5)*pitch;
