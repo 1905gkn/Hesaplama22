@@ -1,6 +1,6 @@
 import tls from 'node:tls';
 import net from 'node:net';
-import {timingSafeEqual} from 'node:crypto';
+import {timingSafeEqual,createHmac} from 'node:crypto';
 const json=(data,status=200)=>Response.json(data,{status,headers:{'cache-control':'no-store'}});
 export async function smtpApproval({to,name,title,code,projectNumber},env=process.env,{verifyOnly=false}={}){
  const host=env.RAFEX_SMTP_HOST,user=env.RAFEX_SMTP_USER,password=env.RAFEX_SMTP_PASSWORD;
@@ -16,8 +16,8 @@ export async function smtpApproval({to,name,title,code,projectNumber},env=proces
  const expect=async codes=>{const result=await next();if(!codes.includes(result.code))throw Error('SMTP_REJECTED_'+result.code);return result;};
  const command=async(line,codes=[250])=>{socket.write(line+'\r\n');return expect(codes);};
  try{
-  await expect([220]);await command('EHLO rafex-configurator.vercel.app');
-  await command('AUTH LOGIN',[334]);await command(Buffer.from(user).toString('base64'),[334]);await command(Buffer.from(password).toString('base64'),[235]);
+  await expect([220]);const capabilities=await command('EHLO rafex-configurator.vercel.app');
+  if(capabilities.lines.some(line=>/AUTH.*CRAM-MD5/i.test(line))){const challenge=await command('AUTH CRAM-MD5',[334]);const digest=createHmac('md5',password).update(Buffer.from(challenge.lines.at(-1).slice(4),'base64')).digest('hex');await command(Buffer.from(user+' '+digest).toString('base64'),[235]);}else{await command('AUTH LOGIN',[334]);await command(Buffer.from(user).toString('base64'),[334]);await command(Buffer.from(password).toString('base64'),[235]);}
   if(!verifyOnly){
    await command('MAIL FROM:<'+user+'>');await command('RCPT TO:<'+to+'>',[250,251]);await command('DATA',[354]);
    const subject='=?UTF-8?B?'+Buffer.from('RAFEX · Proje onaylama kodu').toString('base64')+'?=';
