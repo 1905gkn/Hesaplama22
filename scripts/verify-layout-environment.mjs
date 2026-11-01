@@ -6,6 +6,7 @@ import {layoutSnapshot} from '../client/layout-3d-data.mjs';
 import {rackParts} from '../client/layout-3d-geometry.mjs';
 import {fixtures} from './verify-layout-3d.mjs';
 const state={scale:.1,closed:true,racks:fixtures,points:[{x:0,y:0},{x:1000,y:0},{x:1000,y:800},{x:0,y:800}],pathBreaks:[]},symbols=[{id:10,type:'door',x:400,y:-10,w:200,h:20,widthMm:2000,depthMm:200},{id:11,type:'column',x:700,y:600,w:50,h:50,widthMm:500,depthMm:500,angle:90}],before=JSON.stringify({state,symbols});
+assert.equal(environmentSnapshot({...state,walllessWorkspaceV205:true},symbols).wallless,false,'Legacy workspace flag stays set after drawing walls; never hide those walls');assert.equal(environmentSnapshot({...state,points:[]},symbols).wallless,true);
 const snap=environmentSnapshot(state,symbols),data={...layoutSnapshot(state),...snap},parts=environmentParts(data),walls=parts.filter(p=>p.kind==='wall');
 assert.ok(walls.every(p=>p.h===1&&p.y===.5),'Walls must be exactly one metre high');assert.ok(Math.abs(walls.reduce((n,p)=>n+p.w,0)-34)<1e-6,'The 2m doorway must cut the 36m perimeter');assert.equal(parts.filter(p=>p.kind==='column').length,1);assert.equal(parts.filter(p=>p.kind==='door').length,3);assert.equal(parts.filter(p=>p.kind==='doorLeaf').length,1);
 const front=walls.filter(p=>Math.abs(p.z+.06)<1e-6);assert.equal(front.length,2);assert.ok(front.every(p=>Math.abs(p.w-4)<1e-6));assert.ok(front.every(p=>Math.abs(p.z+p.d/2)<1e-6),'Wall inner face must stay on the measured plan edge');

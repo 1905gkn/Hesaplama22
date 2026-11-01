@@ -1,7 +1,7 @@
 const positive=(n,f)=>Number(n)>0?Number(n):f;
 export function environmentSnapshot(state,symbols=[]){
  const unit=1/(positive(state.scale,.04)*1000);
- return {wallless:!!state.walllessWorkspaceV205,symbols:symbols.filter(s=>s.type==='column'||s.type==='door').map(s=>({id:s.id,type:s.type,x:(Number(s.x)+Number(s.w)/2)*unit,z:(Number(s.y)+Number(s.h)/2)*unit,width:positive(s.widthMm,Number(s.w)*unit*1000)/1000,depth:positive(s.depthMm,Number(s.h)*unit*1000)/1000,angle:-(Number(s.angle)||0)*Math.PI/180}))};
+ return {wallless:(state.points||[]).length<2,symbols:symbols.filter(s=>s.type==='column'||s.type==='door').map(s=>({id:s.id,type:s.type,x:(Number(s.x)+Number(s.w)/2)*unit,z:(Number(s.y)+Number(s.h)/2)*unit,width:positive(s.widthMm,Number(s.w)*unit*1000)/1000,depth:positive(s.depthMm,Number(s.h)*unit*1000)/1000,angle:-(Number(s.angle)||0)*Math.PI/180}))};
 }
 export function rackVisualTop(r){
  const special=(r.frameHeights||[]).flatMap(row=>[Number(row.left)/1000,Number(row.right)/1000]).filter(Number.isFinite);
