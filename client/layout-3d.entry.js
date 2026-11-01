@@ -9,7 +9,7 @@ import {readRackClearances,visiblePlanClearances,layoutClearances} from './layou
 
 let active=null,openToken=0,measureFontSize=11;try{measureFontSize=Math.max(8,Math.min(32,Number(localStorage.getItem('rafex3DMeasureFontSize'))||11))}catch{}
 function makeViewer(host,data,templates){
- const scene=new THREE.Scene();scene.background=new THREE.Color('#ffffff');
+ const scene=new THREE.Scene();scene.background=new THREE.Color('#f0f5f3');
  const camera=new THREE.PerspectiveCamera(45,1,.05,10000),renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.domElement.setAttribute('aria-label','Serbest yerleşimin üç boyutlu önizlemesi');host.append(renderer.domElement);
  const controls=new OrbitControls(camera,renderer.domElement);controls.maxPolarAngle=Math.PI/2-.01;controls.screenSpacePanning=true;
  const geometries=[],materials=[],parts={},geometry=new THREE.BoxGeometry(1,1,1);geometries.push(geometry);
@@ -27,6 +27,7 @@ function makeViewer(host,data,templates){
   const key=p.name+':'+p.color;if(!cadGroups.has(key))cadGroups.set(key,{template:templates[p.name],color:p.color,matrices:[]});dummy.position.set(p.x,p.y,p.z);dummy.rotation.set(0,p.ry||0,0);dummy.scale.set(p.sx,p.sy,p.sz);dummy.updateMatrix();cadGroups.get(key).matrices.push(new THREE.Matrix4().multiplyMatrices(parent.matrix,dummy.matrix));
  }}
  for(const {template,color,matrices} of cadGroups.values()){const material=new THREE.MeshStandardMaterial({color:colors[color]||'#005078',roughness:.42,metalness:.4});materials.push(material);const galvanized=new THREE.MeshStandardMaterial({color:colors.galvanized,metalness:.6,roughness:.42});materials.push(galvanized);for(const [index,geometry] of template.geometries.entries()){const mesh=new THREE.InstancedMesh(geometry,template.finishes?.[index]==='galvanized'?galvanized:material,matrices.length);matrices.forEach((matrix,i)=>mesh.setMatrixAt(i,matrix));scene.add(mesh)}}
+ for(const ring of data.floorLoops||[]){const shape=new THREE.Shape(ring.map(p=>new THREE.Vector2(p.x,-p.z))),floorGeometry=new THREE.ShapeGeometry(shape),floorMaterial=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide});geometries.push(floorGeometry);materials.push(floorMaterial);const floor=new THREE.Mesh(floorGeometry,floorMaterial);floor.rotation.x=-Math.PI/2;floor.position.y=-.01;scene.add(floor);}
  const surroundings=new THREE.Group();scene.add(surroundings);const surroundingParts=environmentParts(data),environmentColors={wall:'#cbd4ce',column:'#808e86',door:'#516b60',doorLeaf:'#78b9a0'};
  for(const kind of Object.keys(environmentColors)){const list=surroundingParts.filter(p=>p.kind===kind);if(!list.length)continue;const material=new THREE.MeshStandardMaterial({color:environmentColors[kind],roughness:.85,transparent:kind==='doorLeaf',opacity:kind==='doorLeaf'?.5:1});materials.push(material);const mesh=new THREE.InstancedMesh(geometry,material,list.length);list.forEach((p,i)=>{dummy.position.set(p.x,p.y,p.z);dummy.rotation.set(0,p.ry,0);dummy.scale.set(p.w,p.h,p.d);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix)});mesh.userData.environmentKind=kind;mesh.userData.environmentParts=list;surroundings.add(mesh);}
  const typeHost=document.createElement('div');typeHost.className='rafex-layout3d-types';host.append(typeHost);const typeLabels=[];

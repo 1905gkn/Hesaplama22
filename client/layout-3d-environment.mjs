@@ -1,3 +1,8 @@
+export function closedWallFloors(segments){
+ const key=p=>p.x+':'+p.z,adj=new Map(),used=new Set(),loops=[];segments.forEach((s,i)=>{for(const p of [s.a,s.b]){const k=key(p);if(!adj.has(k))adj.set(k,[]);adj.get(k).push(i)}});
+ for(let i=0;i<segments.length;i++){if(used.has(i))continue;let at=segments[i].a,start=key(at),edge=i,ring=[],local=new Set();while(!local.has(edge)){local.add(edge);ring.push(at);const s=segments[edge];at=key(s.a)===key(at)?s.b:s.a;if(key(at)===start){if(ring.length>=3)loops.push(ring);break}const next=(adj.get(key(at))||[]).filter(n=>n!==edge);if(next.length!==1)break;edge=next[0];}for(const n of local)used.add(n);}
+ return loops;
+}
 const positive=(n,f)=>Number(n)>0?Number(n):f;
 export function planWallSegments(state){
  const out=[],seen=new Set();const add=(a,b)=>{if(!a||!b||![a.x,a.y,b.x,b.y].every(v=>Number.isFinite(Number(v)))||Math.hypot(b.x-a.x,b.y-a.y)<1e-8)return;const first=[Number(a.x),Number(a.y)],last=[Number(b.x),Number(b.y)],key=[first.join(':'),last.join(':')].sort().join('|');if(seen.has(key))return;seen.add(key);out.push({a:{x:first[0],y:first[1]},b:{x:last[0],y:last[1]}})};
@@ -6,7 +11,8 @@ export function planWallSegments(state){
 export function environmentSnapshot(state,symbols=[]){
  const unit=1/(positive(state.scale,.04)*1000),segments=planWallSegments(state),all=symbols.filter(s=>s.type==='column'||s.type==='door').slice(),represented=new Set(all.filter(s=>s.cadElement).map(s=>JSON.stringify([s.cadElement.type,s.cadElement.points])));
  for(const e of state.cadElements||[]){if(!['column','door'].includes(e.type)||represented.has(JSON.stringify([e.type,e.points]))||!e.points?.length)continue;const xs=e.points.map(p=>Number(p.x)),ys=e.points.map(p=>Number(p.y));all.push({id:e.id,type:e.type,x:Math.min(...xs),y:Math.min(...ys),w:Math.max(...xs)-Math.min(...xs),h:Math.max(...ys)-Math.min(...ys)});}
- return {wallless:!segments.length,wallSegments:segments.map(s=>({a:{x:s.a.x*unit,z:s.a.y*unit},b:{x:s.b.x*unit,z:s.b.y*unit}})),symbols:all.map(s=>({id:s.id,type:s.type,x:(Number(s.x)+Number(s.w)/2)*unit,z:(Number(s.y)+Number(s.h)/2)*unit,width:positive(s.widthMm,Math.max(1,Number(s.w))*unit*1000)/1000,depth:positive(s.depthMm,Math.max(1,Number(s.h))*unit*1000)/1000,angle:-(Number(s.angle)||0)*Math.PI/180}))};
+ const worldSegments=segments.map(s=>({a:{x:s.a.x*unit,z:s.a.y*unit},b:{x:s.b.x*unit,z:s.b.y*unit}}));
+ return {floorLoops:closedWallFloors(worldSegments),wallless:!segments.length,wallSegments:segments.map(s=>({a:{x:s.a.x*unit,z:s.a.y*unit},b:{x:s.b.x*unit,z:s.b.y*unit}})),symbols:all.map(s=>({id:s.id,type:s.type,x:(Number(s.x)+Number(s.w)/2)*unit,z:(Number(s.y)+Number(s.h)/2)*unit,width:positive(s.widthMm,Math.max(1,Number(s.w))*unit*1000)/1000,depth:positive(s.depthMm,Math.max(1,Number(s.h))*unit*1000)/1000,angle:-(Number(s.angle)||0)*Math.PI/180}))};
 }
 export function rackVisualTop(r){
  const special=(r.frameHeights||[]).flatMap(row=>[Number(row.left)/1000,Number(row.right)/1000]).filter(Number.isFinite);

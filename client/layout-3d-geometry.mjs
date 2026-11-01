@@ -38,7 +38,7 @@ export function rackParts(r,{cad=false,railSeats=null}={}){
   }
   for(let lane=0;lane<=r.bays;lane++){const x=-r.width/2+r.foot/2+lane*pitch;for(const zz of [...new Set(stations)])post(x,Math.max(r.foot/2,Math.min(r.depth-r.foot/2,zz))-r.depth/2);}
   for(let lane=0;lane<r.bays;lane++){const x=-r.width/2+r.foot/2+(lane+.5)*pitch;
-   for(let i=0;i<r.floors.length;i++){const y=r.floors[i];for(const side of [-1,1]){const seat=(railSeats||[-.5925,.5925])[side<0?0:1]*(pitch/1.45),railX=r.system==='mekik2'?x+seat+side*(.075/2-.004):x+side*Math.min(r.palletWidth,pitch-r.foot-.06)*.35;box('rail',railX,y-.06,0,.075,.12,r.depth);}
+   for(let i=0;i<r.floors.length;i++){const y=r.floors[i];for(const side of [-1,1]){const seat=(railSeats||[-.525,.525])[side<0?0:1]*(pitch/1.45),railX=r.system==='mekik2'?x+seat:x+side*Math.min(r.palletWidth,pitch-r.foot-.06)*.35;box('rail',railX,y-.06,0,.075,.12,r.depth);}
     for(const zz of [...new Set(stations)]){const z=Math.max(.05,Math.min(r.depth-.05,zz))-r.depth/2;if(r.system==='drive'){for(const side of [-1,1])box('beam',x+side*pitch*.35,y-.12,z,pitch*.3,.1,.08);}else if(!cad)box('beam',x,y-.1,z,pitch-r.foot,.1,.08);}
     const positions=r.positions.length?r.positions:Array.from({length:Math.max(1,Math.floor(r.depth/(r.palletDepth+.05)))},(_,j)=>j*(r.palletDepth+.05));
     for(const zz of positions)if(zz+r.palletDepth<=r.depth+.02)pallet(x,y,zz+r.palletDepth/2-r.depth/2,Math.min(r.palletWidth,pitch-r.foot-.06),r.palletDepth,r.palletHeights[i]);

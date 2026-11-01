@@ -23,10 +23,11 @@ export function prepareCad(scene,name){
  source.forEach(g=>{g.translate(-center.x,-originY,-center.z);g.scale(.001,.001,.001);g.computeBoundingBox();g.computeBoundingSphere()});
  // Dispose parser materials/textures; prepared geometries are cached across viewers.
  const materials=new Set(),geometries=new Set();scene.traverse(m=>{if(m.isMesh){geometries.add(m.geometry);for(const mat of Array.isArray(m.material)?m.material:[m.material])materials.add(mat)}});materials.forEach(m=>m.dispose());geometries.forEach(g=>g.dispose());
- const bracketBounds=source.map((g,i)=>({box:g.boundingBox,name:names[i]})).filter(p=>p.name.includes('BRAKET'));const left=bracketBounds.filter(p=>(p.box.min.x+p.box.max.x)/2<0),right=bracketBounds.filter(p=>(p.box.min.x+p.box.max.x)/2>0);const railSeats=name==='mekikBeam'&&left.length&&right.length?[Math.min(...left.map(p=>p.box.min.x)),Math.max(...right.map(p=>p.box.max.x))]:null;
- const uprightBoxes=name==='b2bFrame'?source.map(g=>g.boundingBox).filter(b=>b.max.y-b.min.y>size.y*.0007&&b.max.z-b.min.z<size.z*.0004).sort((a,b)=>(a.min.z+a.max.z)-(b.min.z+b.max.z)):[];const innerFaces=uprightBoxes.length>=2?{'-1':uprightBoxes[0].max.z,'1':uprightBoxes.at(-1).min.z}:null;
+ const bracketBounds=source.map((g,i)=>({box:g.boundingBox,name:names[i]})).filter(p=>p.name.includes('BRAKET'));const left=bracketBounds.filter(p=>(p.box.min.x+p.box.max.x)/2<0),right=bracketBounds.filter(p=>(p.box.min.x+p.box.max.x)/2>0);const railSeats=name==='mekikBeam'&&left.length&&right.length?[left.reduce((n,p)=>n+(p.box.min.x+p.box.max.x)/2,0)/left.length,right.reduce((n,p)=>n+(p.box.min.x+p.box.max.x)/2,0)/right.length]:null;
+ const uprightBoxes=['b2bFrame','drivePost','mekikPost'].includes(name)?source.map(g=>g.boundingBox).filter(b=>b.max.y-b.min.y>size.y*.0007&&b.max.z-b.min.z<size.z*.0004).sort((a,b)=>(a.min.z+a.max.z)-(b.min.z+b.max.z)):[];const innerFaces=uprightBoxes.length>=2?{'-1':uprightBoxes[0].max.z,'1':uprightBoxes.at(-1).min.z}:null;
  const outerFaces=uprightBoxes.length>=2?{'-1':uprightBoxes[0].min.z,'1':uprightBoxes.at(-1).max.z}:null;
- return {geometries:source,finishes,railSeats,innerFaces,outerFaces,referenceHeight:profileBounds.isEmpty()?size.y/1000:profileBounds.getSize(new THREE.Vector3()).y/1000,height:size.y/1000,depth:size.z/1000,width:size.x/1000};
+ const connectors=source.filter((g,i)=>names[i].includes('KONNEKT'));const connectorMinZ=connectors.length?Math.min(...connectors.map(g=>g.boundingBox.min.z)):-size.z/2000;
+ return {geometries:source,finishes,railSeats,innerFaces,outerFaces,connectorMinZ,postFrontFaces:uprightBoxes.map(b=>b.min.z),referenceHeight:profileBounds.isEmpty()?size.y/1000:profileBounds.getSize(new THREE.Vector3()).y/1000,height:size.y/1000,depth:size.z/1000,width:size.x/1000};
 }
 export function cadPlacements(r,templates){
  const out=[],add=(name,x,y,z,sx,sy,sz)=>out.push({name,x,y,z,sx,sy,sz,color:name==='mekikBeam'||name==='b2bBeam'||name==='mrBeam'?r.beamColor:r.footColor});
@@ -39,8 +40,10 @@ export function cadPlacements(r,templates){
  }else if(r.system==='mekik2'||r.system==='drive'){
   const postName=r.system==='drive'?'drivePost':'mekikPost',t=templates[postName],pitch=(r.width-r.foot)/r.bays,stations=r.footZ.length?r.footZ:[0,r.depth];
   if(r.system==='drive'){for(let lane=0;lane<=r.bays;lane++)for(const [start,end] of (r.footFrames.length?r.footFrames:[[0,r.depth]]))add(postName,-r.width/2+r.foot/2+lane*pitch,0,(start+end)/2-r.depth/2,r.foot/t.width,r.height/t.height,(end-start)/t.depth);}else for(let lane=0;lane<=r.bays;lane++)for(const zz of [...new Set(stations)])add(postName,-r.width/2+r.foot/2+lane*pitch,0,Math.max(r.foot/2,Math.min(r.depth-r.foot/2,zz))-r.depth/2,r.foot/.1,r.height/t.height,1);
-  if(r.system==='drive')for(let lane=0;lane<r.bays;lane++)for(const zz of [...new Set(stations)]){const beam=templates.b2bBeam,h=.14;add('b2bBeam',-r.width/2+r.foot/2+(lane+.5)*pitch,r.height-h,Math.max(.05,Math.min(r.depth-.05,zz))-r.depth/2,(pitch-r.foot)/2.7,h/(beam.referenceHeight||.12),1);}
-  if(r.system==='mekik2')for(let lane=0;lane<r.bays;lane++)for(const y of r.floors)for(const zz of [...new Set(stations)])add('mekikBeam',-r.width/2+r.foot/2+(lane+.5)*pitch,y,Math.max(.05,Math.min(r.depth-.05,zz))-r.depth/2,pitch/1.45,1,1);
+  const postMounts=r.system==='drive'?(r.footFrames.length?r.footFrames:[[0,r.depth]]).flatMap(([start,end])=>(t.postFrontFaces?.length?t.postFrontFaces:[-t.depth/2,t.depth/2]).map(face=>(start+end)/2-r.depth/2+face*(end-start)/t.depth)):[...new Set(stations)].map(zz=>Math.max(r.foot/2,Math.min(r.depth-r.foot/2,zz))-r.depth/2+(t.postFrontFaces?.[0]??-.04));
+  const beamName=r.system==='drive'?'b2bBeam':'mekikBeam',beam=templates[beamName],ys=r.system==='drive'?[r.height-.14]:r.floors.map(y=>y-.12);
+  for(let lane=0;lane<r.bays;lane++)for(const y of ys)for(const face of postMounts){add(beamName,-r.width/2+r.foot/2+(lane+.5)*pitch,y,face+(beam?.connectorMinZ??-(beam?.depth||.08)/2)+.004,r.system==='drive'?(pitch-r.foot)/2.7:pitch/1.45,r.system==='drive'?.14/(beam.referenceHeight||.12):1,1);out.at(-1).ry=Math.PI;}
+
  }
  return out;
 }

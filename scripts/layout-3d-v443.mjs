@@ -1,21 +1,22 @@
 import fs from 'node:fs';
-export function transform(html){if(html.includes('data-rafex-layout-3d="v456"'))return html;
- if(html.includes('data-rafex-layout-3d="v455"'))return html.replaceAll('v=455','v=456').replaceAll('data-rafex-layout-3d="v455"','data-rafex-layout-3d="v456"');
- if(html.includes('data-rafex-layout-3d="v454"'))return html.replaceAll('v=454','v=456').replaceAll('data-rafex-layout-3d="v454"','data-rafex-layout-3d="v456"');
- if(html.includes('data-rafex-layout-3d="v453"'))return html.replaceAll('v=453','v=456').replaceAll('data-rafex-layout-3d="v453"','data-rafex-layout-3d="v456"');
- if(html.includes('data-rafex-layout-3d="v452"'))return html.replaceAll('v=452','v=456').replaceAll('data-rafex-layout-3d="v452"','data-rafex-layout-3d="v456"');
- if(html.includes('data-rafex-layout-3d="v451"'))return html.replaceAll('v=451','v=456').replaceAll('data-rafex-layout-3d="v451"','data-rafex-layout-3d="v456"');
- if(html.includes('data-rafex-layout-3d="v450"'))return html.replaceAll('v=450','v=456').replaceAll('data-rafex-layout-3d="v450"','data-rafex-layout-3d="v456"');
- if(html.includes('data-rafex-layout-3d="v449"'))return html.replaceAll('v=449','v=456').replaceAll('data-rafex-layout-3d="v449"','data-rafex-layout-3d="v456"');
- if(html.includes('data-rafex-layout-3d="v448"'))return html.replaceAll('v=448','v=456').replaceAll('data-rafex-layout-3d="v448"','data-rafex-layout-3d="v456"');
- if(html.includes('data-rafex-layout-3d="v447"'))return html.replaceAll('v=447','v=456').replaceAll('data-rafex-layout-3d="v447"','data-rafex-layout-3d="v456"');
- if(html.includes('data-rafex-layout-3d="v446"'))return html.replaceAll('v=446','v=456').replaceAll('data-rafex-layout-3d="v446"','data-rafex-layout-3d="v456"');
- if(html.includes('data-rafex-layout-3d="v445"'))return html.replaceAll('v=445','v=456').replaceAll('data-rafex-layout-3d="v445"','data-rafex-layout-3d="v456"');
- if(html.includes('data-rafex-layout-3d="v444"'))return html.replaceAll('v=444','v=456').replaceAll('data-rafex-layout-3d="v444"','data-rafex-layout-3d="v456"');
- if(html.includes('data-rafex-layout-3d="v443"'))return html.replace('src="/layout-3d.js"','src="/layout-3d.js?v=456"').replace('href="/layout-3d.css"','href="/layout-3d.css?v=456"').replace('data-rafex-layout-3d="v443"','data-rafex-layout-3d="v456"');
+export function transform(html){if(html.includes('data-rafex-layout-3d="v457"'))return html;
+ if(html.includes('data-rafex-layout-3d="v456"'))return html.replaceAll('v=456','v=457').replaceAll('data-rafex-layout-3d="v456"','data-rafex-layout-3d="v457"');
+ if(html.includes('data-rafex-layout-3d="v455"'))return html.replaceAll('v=455','v=457').replaceAll('data-rafex-layout-3d="v455"','data-rafex-layout-3d="v457"');
+ if(html.includes('data-rafex-layout-3d="v454"'))return html.replaceAll('v=454','v=457').replaceAll('data-rafex-layout-3d="v454"','data-rafex-layout-3d="v457"');
+ if(html.includes('data-rafex-layout-3d="v453"'))return html.replaceAll('v=453','v=457').replaceAll('data-rafex-layout-3d="v453"','data-rafex-layout-3d="v457"');
+ if(html.includes('data-rafex-layout-3d="v452"'))return html.replaceAll('v=452','v=457').replaceAll('data-rafex-layout-3d="v452"','data-rafex-layout-3d="v457"');
+ if(html.includes('data-rafex-layout-3d="v451"'))return html.replaceAll('v=451','v=457').replaceAll('data-rafex-layout-3d="v451"','data-rafex-layout-3d="v457"');
+ if(html.includes('data-rafex-layout-3d="v450"'))return html.replaceAll('v=450','v=457').replaceAll('data-rafex-layout-3d="v450"','data-rafex-layout-3d="v457"');
+ if(html.includes('data-rafex-layout-3d="v449"'))return html.replaceAll('v=449','v=457').replaceAll('data-rafex-layout-3d="v449"','data-rafex-layout-3d="v457"');
+ if(html.includes('data-rafex-layout-3d="v448"'))return html.replaceAll('v=448','v=457').replaceAll('data-rafex-layout-3d="v448"','data-rafex-layout-3d="v457"');
+ if(html.includes('data-rafex-layout-3d="v447"'))return html.replaceAll('v=447','v=457').replaceAll('data-rafex-layout-3d="v447"','data-rafex-layout-3d="v457"');
+ if(html.includes('data-rafex-layout-3d="v446"'))return html.replaceAll('v=446','v=457').replaceAll('data-rafex-layout-3d="v446"','data-rafex-layout-3d="v457"');
+ if(html.includes('data-rafex-layout-3d="v445"'))return html.replaceAll('v=445','v=457').replaceAll('data-rafex-layout-3d="v445"','data-rafex-layout-3d="v457"');
+ if(html.includes('data-rafex-layout-3d="v444"'))return html.replaceAll('v=444','v=457').replaceAll('data-rafex-layout-3d="v444"','data-rafex-layout-3d="v457"');
+ if(html.includes('data-rafex-layout-3d="v443"'))return html.replace('src="/layout-3d.js"','src="/layout-3d.js?v=457"').replace('href="/layout-3d.css"','href="/layout-3d.css?v=457"').replace('data-rafex-layout-3d="v443"','data-rafex-layout-3d="v457"');
  const anchor='<button type="button" id="m2FreeButton"';if(!html.includes(anchor))throw Error('Free layout toolbar missing');
  html=html.replace(anchor,'<button type="button" data-layout-3d>Yerleşimi 3D Gör</button>'+anchor);
- const head=html.indexOf('</head>'),end=html.lastIndexOf('</body>');html=html.slice(0,end)+'<script defer src="/layout-3d.js?v=456" data-rafex-layout-3d="v456"></script>'+html.slice(end);return html.slice(0,head)+'<link rel="stylesheet" href="/layout-3d.css?v=456">'+html.slice(head);
+ const head=html.indexOf('</head>'),end=html.lastIndexOf('</body>');html=html.slice(0,end)+'<script defer src="/layout-3d.js?v=457" data-rafex-layout-3d="v457"></script>'+html.slice(end);return html.slice(0,head)+'<link rel="stylesheet" href="/layout-3d.css?v=457">'+html.slice(head);
 }
 if(process.argv[1]?.replaceAll('\\','/').endsWith('/layout-3d-v443.mjs')){
  const {build}=await import('esbuild');
