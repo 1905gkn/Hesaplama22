@@ -10,7 +10,7 @@
   }
   function config(d,system){
     const c={bays:Number(d.bays)||1,levels:Number(d.levels)||4,palletWidth:Number(d.palW)||1200,palletDepth:Number(d.palD)||800,palletHeight:Number(d.palletHeight)||1200,firstLevelHeight:Number(d.firstRailHeight??430),levelSpacing:Number(d.levelH)||1580,footType:Number(d.footType)||90,footColor:d.mekikFootColor||'ral5010',traverseColor:d.mekikTraverseColor||'ral1007',traverseHeight:Number(d.mekikTraverseHeight)||50,sideClearance:Number(d.mekikSideClearance??75),depthPallets:Number(d.depth)||5,systemType:d.systemType||'fifo',firstPalletGap:Number(d.firstPalletGap??200),palletGap:Number(d.palletGap??50)};
-    c.uprightHeight=c.firstLevelHeight+(c.levels-1)*c.levelSpacing+c.palletHeight/2;c.bayPitch=c.palletWidth+c.sideClearance*2;c.totalWidth=c.bays*c.bayPitch+c.footType;
+    c.uprightHeight=system==='drive'?window.rafexDriveInUprightHeight(d):c.firstLevelHeight+(c.levels-1)*c.levelSpacing+c.palletHeight/2;c.bayPitch=c.palletWidth+c.sideClearance*2;c.totalWidth=c.bays*c.bayPitch+c.footType;
     return c;
   }
   function standalone(svg,host,language){
@@ -25,6 +25,7 @@
     d={...(d.rackDetail?.views?.[system]||d.rackDetail?.views?.mekik2||{}),...d};
     d.railLength=Number(d.depthMm||d.railLength);d.totalWidth=Number(d.widthMm||d.totalWidth);
     const language=document.getElementById('m2ReportLanguage')?.value||'tr';
+    if(system==='drive')d.sideUprightHeight=window.rafexDriveInUprightHeight(d);
     const api=await load(system),c={...config(d,system),language},host=document.createElement('div');
     host.className='m2-canvas rafex-native-side-capture';host.style.cssText='position:fixed;left:-20000px;top:0;width:1260px;height:760px';document.body.append(host);
     const css=document.createElement('style');css.textContent=Array.from(document.styleSheets).flatMap(sheet=>{try{return Array.from(sheet.cssRules).map(rule=>rule.cssText).filter(text=>text.includes('#m2Side')).map(text=>text.replaceAll('#m2Side','.rafex-native-side-capture'));}catch{return [];}}).join('\n');document.head.append(css);

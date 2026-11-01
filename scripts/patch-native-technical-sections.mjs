@@ -1,3 +1,4 @@
+import {driveInUprightHeight} from '../client/drive-in-height.mjs';
 import fs from 'node:fs';
 export function transform(html){
  if(html.includes('data-rafex-native-technical-sections'))return html;
@@ -12,7 +13,7 @@ export function transform(html){
  const portal=fs.readFileSync('portal.html','utf8'),start=portal.indexOf('        const elevation = (mode) => {'),end=portal.indexOf('        if (renderAuxiliaryViews)',start);
  if(start<0||end<0)throw Error('Native side renderer missing');
  const elevation=portal.slice(start,end),dimLine=portal.split('\n').find(line=>line.includes('const dimLine = (x1, y1, x2, y2) =>'));
- const side=`window.rafexNativeSideSection=function(d){
+ const side=`window.rafexDriveInUprightHeight=${driveInUprightHeight.toString()};window.rafexNativeSideSection=function(d){
  const m2LastDrawing=d,bays=d.bays,depth=d.depth,levels=d.levels,railLength=d.railLength,totalWidth=d.totalWidth,footType=d.footType,palletHeight=d.palletHeight,sideUprightHeight=d.sideUprightHeight,totalRackHeight=d.totalRackHeight,visibleDepth=Math.min(depth,10),visibleBays=Math.min(bays,10),firstRailHeight=d.firstRailHeight,levelH=d.levelH,clearance=d.clearance;
  ${dimLine}
  const palletLayout=m2PalletDepthLayout(depth,d.palD,d.systemType,d.firstPalletGap??200,d.palletGap??50);

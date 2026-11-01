@@ -1,3 +1,4 @@
+import {driveInUprightHeight} from './drive-in-height.mjs';
 import * as THREE from "three";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
@@ -209,7 +210,7 @@ class DriveInFrontViewer {
     const bayClear = c.palletWidth + 150;
     const bayPitch = bayClear + uprightWidth;
     const rackWidth = FRONT_DISPLAY_BAYS * bayClear + (FRONT_DISPLAY_BAYS + 1) * uprightWidth;
-    const rackHeight = c.firstLevelHeight + Math.max(0, c.levels - 1) * c.levelSpacing + c.palletHeight + 220;
+    const rackHeight = driveInUprightHeight(c);
     const depth = Math.max(c.palletDepth, c.railLength);
     const ayakSize = metricsOf(this.models.ayak).size;
     const raySize = metricsOf(this.models.ray).size;

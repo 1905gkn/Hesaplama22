@@ -1,3 +1,4 @@
+import {driveInUprightHeight} from './drive-in-height.mjs';
 const num=(v,f=0)=>Number.isFinite(Number(v))?Number(v):f;
 const pos=(v,f)=>num(v)>0?Number(v):f;
 const count=(v,f,max=100)=>Math.max(1,Math.min(max,Math.round(pos(v,f))));
@@ -15,7 +16,7 @@ export function layoutSnapshot(state,optionsFor=()=>({})){
   const system=rackSystem(r),o=optionsFor(r,system)||{};if(system==='mekik2'||system==='drive')r={...r,...o,id:r.id,x:r.x,y:r.y,w:r.w,h:r.h,angle:r.angle};const b=r.b2b||{},k=r.konsol||r.spec||{},l=r.b2bLayout||{};
   const width=(system==='b2b'&&Number(o.sectionWidth)>0?Number(o.sectionWidth)+2*pos(o.footWidth,pos(r.footType,100)):pos(r.widthMm,pos(r.totalWidth,r.w/scale)))/1000,depth=pos(r.depthMm,pos(r.railLength,r.h/scale))/1000;
   const levels=count(o.levels||k.levels||r.levels||b.levels,4,30),palletHeight=pos(o.palletHeight,pos(r.palletHeight,pos(b.palletHeight,1200)))/1000;
-  const height=pos(system==='konsol'?o.height||k.height:o.uprightHeight||o.footHeight,pos(r.sideUprightHeight,pos(r.totalRackHeight,pos(b.footHeight,5000))))/1000;
+  const height=system==='drive'?driveInUprightHeight(r)/1000:pos(system==='konsol'?o.height||k.height:o.uprightHeight||o.footHeight,pos(r.sideUprightHeight,pos(r.totalRackHeight,pos(b.footHeight,5000))))/1000;
   const foot=pos(o.footWidth,pos(r.footType,system==='mr'?60:100))/1000,beam=pos(o.traverseHeight,pos(r.traverseHeight,system==='mr'?75:100))/1000;
   const floors=[],beamYs=[],heights=[];
   if(system==='b2b'){
