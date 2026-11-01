@@ -37,3 +37,6 @@ console.log('PASS full-detail customer CAD at all distances, retained pallet cou
 
 
 await import('./verify-customer-distance.mjs');
+
+
+await import('./verify-static-3d-labels.mjs');
