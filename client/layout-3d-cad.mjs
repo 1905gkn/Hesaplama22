@@ -46,7 +46,7 @@ export function cadPlacements(r,templates){
   if(r.system==='drive'){for(let lane=0;lane<=r.bays;lane++)for(const [start,end] of (r.footFrames.length?r.footFrames:[[0,r.depth]]))add(postName,-r.width/2+r.foot/2+lane*pitch,0,(start+end)/2-r.depth/2,r.foot/t.width,r.height/t.height,(end-start)/t.depth);}else for(let lane=0;lane<=r.bays;lane++)for(const zz of [...new Set(stations)])add(postName,-r.width/2+r.foot/2+lane*pitch,0,Math.max(r.foot/2,Math.min(r.depth-r.foot/2,zz))-r.depth/2,r.foot/.1,r.height/t.height,1);
   const postMounts=r.system==='drive'?(r.footFrames.length?r.footFrames:[[0,r.depth]]).flatMap(([start,end])=>(t.postCenters?.length?t.postCenters:[-t.depth/2,t.depth/2]).map(center=>(start+end)/2-r.depth/2+center*(end-start)/t.depth)):[...new Set(stations)].map(zz=>Math.max(r.foot/2,Math.min(r.depth-r.foot/2,zz))-r.depth/2+(t.postCenters?.[0]??.02));
   const beamName=r.system==='drive'?'b2bBeam':'mekikBeam',beam=templates[beamName],sy=r.system==='drive'?.14/(beam.referenceHeight||.12):1,bearingY=beam.railBearings?.[0]?.y??-.146,ys=r.system==='drive'?[r.height-(beam.topY??.18)*sy]:r.floors.map(y=>y-(r.railHeight||.17)-bearingY);
-  for(let lane=0;lane<r.bays;lane++)for(const y of ys)for(const z of postMounts){add(beamName,-r.width/2+r.foot/2+(lane+.5)*pitch,y,z-.002,deepBeamScale(r,t,beam),sy,1);out.at(-1).ry=Math.PI;}
+  for(let lane=0;lane<r.bays;lane++)for(const y of ys)for(const z of postMounts){add(beamName,-r.width/2+r.foot/2+(lane+.5)*pitch,y,z-.002,deepBeamScale(r,t,beam),sy,1);out.at(-1).ry=r.system==='drive'?0:Math.PI;}
 
 
  }

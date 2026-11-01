@@ -10,8 +10,10 @@ export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScal
   for(let y=.15;y<h;y+=1.2)box('tie',x,y,(z1+z2)/2,.03,.04,span);
  }
  function pallet(x,y,z,w,d,h){
-  for(const side of [-.35,0,.35])box('timber',x+side*w,y+.055,z,w*.1,.11,d);
-  for(const zz of [-.38,0,.38])box('timber',x,y+.13,z+zz*d,w,.04,d*.18);
+  const bw=Math.min(.145,w*.125),bd=Math.min(.145,d*.18),xs=[-(w-bw)/2,0,(w-bw)/2],zs=[-(d-bd)/2,0,(d-bd)/2];
+  for(const xx of xs){box('timber',x+xx,y+.0125,z,bw,.025,d);for(const zz of zs)box('timber',x+xx,y+.065,z+zz,bw,.08,bd);}
+  for(const zz of zs)box('timber',x,y+.115,z+zz,w,.02,bd);
+  const deckWidth=w/5*.85;for(let i=0;i<5;i++)box('timber',x-w/2+deckWidth/2+i*(w-deckWidth)/4,y+.1425,z,deckWidth,.035,d);
   if(h>.16)box('load',x,y+.16+(h-.16)/2,z,w*.94,h-.16,d*.94);
  }
  if(r.system==='konsol'){
