@@ -21,7 +21,7 @@ export function createStatic3DLabels(labels,{maxTextureSize=2048,anchorY=0,docum
   const sizes=[],rects=[],positions=[];
   for(const item of page.items){const x=item.x/page.scale,y=item.y/page.scale;
    if(item.background){ctx.fillStyle=item.background;ctx.fillRect(x,y,item.width,item.height);ctx.strokeStyle=item.border||'#739c87';ctx.lineWidth=1;ctx.strokeRect(x+.5,y+.5,item.width-1,item.height-1);}
-   const text=(content,size,baseline)=>{ctx.font='600 '+size+'px Arial,sans-serif';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillStyle=item.color||'#247fba';if(!item.background){ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.strokeText(content,x+item.width/2,baseline);}ctx.fillText(content,x+item.width/2,baseline);};
+   const text=(content,size,baseline)=>{ctx.font='600 '+size+'px Arial,sans-serif';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillStyle=item.background?(item.color||'#247fba'):new THREE.Color(item.color||'#247fba').lerp(new THREE.Color('#303b40'),.3).getStyle();ctx.fillText(content,x+item.width/2,baseline);};
    text(item.text,item.fontSize,y+4);if(item.detail)text(item.detail,item.detailSize,y+item.fontSize+7);
    for(const position of item.instances){positions.push(position);sizes.push(item.width,item.height);rects.push(item.x/page.width,1-(item.y+item.height*page.scale)/page.height,(item.x+item.width*page.scale)/page.width,1-item.y/page.height);}
   }
