@@ -20,6 +20,7 @@ try{
   const origin=`http://127.0.0.1:${server.address().port}`;
   const source=fs.readFileSync(new URL('../api/index.js',import.meta.url),'utf8')
     .replace('import worker from "../dist/server/index.js";','const worker = {};')
+    .replace("'../scripts/customer-view-page.mjs'",JSON.stringify(new URL('./customer-view-page.mjs',import.meta.url).href))
     .replace("'../scripts/wire-gzip-v244.mjs'",JSON.stringify(new URL('./wire-gzip-v244.mjs',import.meta.url).href))
     .replace("'../scripts/exchange-rates-v326.mjs'",JSON.stringify(new URL('./exchange-rates-v326.mjs',import.meta.url).href))
     .replace("'../scripts/crm-api-v368.mjs'",JSON.stringify(new URL('./crm-api-v368.mjs',import.meta.url).href))
