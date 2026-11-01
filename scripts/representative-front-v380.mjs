@@ -22,7 +22,8 @@ export function transformElevationHeightV422(html){
  const replace=(a,b,n=1)=>{if(html.split(a).length!==n+1)throw Error('v422 anchor '+a.slice(0,95));html=html.split(a).join(b);};
  replace('rackHeight = firstRail + (levels - 1) * levelHeight + loadHeight / 2,','rackHeight = Math.max(firstRail + (levels - 1) * levelHeight + loadHeight / 2,Number(drawing?.sideUprightHeight)||0),');
  replace('rackHeightMm = topRailHeightMm + loadHeightMm / 2,','rackHeightMm = Math.max(topRailHeightMm + loadHeightMm / 2,Number(drawing?.sideUprightHeight)||0),');
- replace('c.uprightHeight=c.firstLevelHeight+(c.levels-1)*c.levelSpacing+c.palletHeight/2;', 'c.uprightHeight=Math.max(c.firstLevelHeight+(c.levels-1)*c.levelSpacing+c.palletHeight/2,Number(d.sideUprightHeight)||0);');
+ const sharedHeight="c.uprightHeight=system==='drive'?window.rafexDriveInUprightHeight(d):c.firstLevelHeight+(c.levels-1)*c.levelSpacing+c.palletHeight/2;";
+ if(html.includes(sharedHeight))replace(sharedHeight,"c.uprightHeight=system==='drive'?window.rafexDriveInUprightHeight(d):Math.max(c.firstLevelHeight+(c.levels-1)*c.levelSpacing+c.palletHeight/2,Number(d.sideUprightHeight)||0);");elsereplace('c.uprightHeight=c.firstLevelHeight+(c.levels-1)*c.levelSpacing+c.palletHeight/2;', 'c.uprightHeight=Math.max(c.firstLevelHeight+(c.levels-1)*c.levelSpacing+c.palletHeight/2,Number(d.sideUprightHeight)||0);');
  replace('if(storedV135&&!representativeFront)return storedV135;',"if(storedV135&&!representativeFront&&!(drawing?.rafexSystem==='mekik2'&&drawing?.mekikUprightMode==='manual'))return storedV135;");
  // A longer upright does not move the pallets or change their top elevation.
  replace('topLoadHeight = totalRackHeight,','topLoadHeight = firstRailHeight+(levels-1)*levelH+palletHeight,',2);
