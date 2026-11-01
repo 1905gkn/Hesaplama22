@@ -2,7 +2,7 @@ import tls from 'node:tls';
 import net from 'node:net';
 import {timingSafeEqual} from 'node:crypto';
 const json=(data,status=200)=>Response.json(data,{status,headers:{'cache-control':'no-store'}});
-export async function smtpApproval({to,name,title,code},env=process.env,{verifyOnly=false}={}){
+export async function smtpApproval({to,name,title,code,projectNumber},env=process.env,{verifyOnly=false}={}){
  const host=env.RAFEX_SMTP_HOST,user=env.RAFEX_SMTP_USER,password=env.RAFEX_SMTP_PASSWORD;
  if(!host||!user||!password)throw Error('SMTP_CONFIG');
  const plain=env.RAFEX_SMTP_TRANSPORT==='plain',port=Number(env.RAFEX_SMTP_PORT)||(plain?587:465);
@@ -21,7 +21,7 @@ export async function smtpApproval({to,name,title,code},env=process.env,{verifyO
   if(!verifyOnly){
    await command('MAIL FROM:<'+user+'>');await command('RCPT TO:<'+to+'>',[250,251]);await command('DATA',[354]);
    const subject='=?UTF-8?B?'+Buffer.from('RAFEX · Proje onaylama kodu').toString('base64')+'?=';
-   const body=Buffer.from('Sayın '+name+',\n\n'+title+' projesi için onaylama kodunuz: '+code+'\n\nBu kod 10 dakika geçerlidir. Kodu yalnızca RAFEX proje görüntüleme sayfasına girin.\nBu işlemi siz başlatmadıysanız kodu paylaşmayın.\n\nRAFEX Raf Sistemleri').toString('base64').match(/.{1,76}/g).join('\r\n');
+   const body=Buffer.from('Sayın '+name+',\n\n'+title+'\nProje No: '+(projectNumber||'Belirtilmemiş (eski paylaşım)')+'\n\nOnaylama kodunuz: '+code+'\n\nBu kod 10 dakika geçerlidir. Kodu yalnızca RAFEX proje görüntüleme sayfasına girin.\nBu işlemi siz başlatmadıysanız kodu paylaşmayın.\n\nRAFEX Raf Sistemleri').toString('base64').match(/.{1,76}/g).join('\r\n');
    socket.write('From: RAFEX <'+user+'>\r\nTo: <'+to+'>\r\nSubject: '+subject+'\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n'+body+'\r\n.\r\n');await expect([250]);
   }
   await command('QUIT',[221]);
