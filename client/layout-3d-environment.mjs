@@ -1,7 +1,12 @@
 const positive=(n,f)=>Number(n)>0?Number(n):f;
+export function planWallSegments(state){
+ const out=[],seen=new Set();const add=(a,b)=>{if(!a||!b||![a.x,a.y,b.x,b.y].every(v=>Number.isFinite(Number(v)))||Math.hypot(b.x-a.x,b.y-a.y)<1e-8)return;const first=[Number(a.x),Number(a.y)],last=[Number(b.x),Number(b.y)],key=[first.join(':'),last.join(':')].sort().join('|');if(seen.has(key))return;seen.add(key);out.push({a:{x:first[0],y:first[1]},b:{x:last[0],y:last[1]}})};
+ const path=(p,closed,breaks=[])=>{for(let i=0;i<(closed?p.length:p.length-1);i++)if(!breaks.includes(i))add(p[i],p[(i+1)%p.length])};path(state.points||[],state.closed,state.pathBreaks||[]);for(const e of state.cadElements||[])if(e.type==='wall')path(e.points||[],e.closed);return out;
+}
 export function environmentSnapshot(state,symbols=[]){
- const unit=1/(positive(state.scale,.04)*1000);
- return {wallless:(state.points||[]).length<2,symbols:symbols.filter(s=>s.type==='column'||s.type==='door').map(s=>({id:s.id,type:s.type,x:(Number(s.x)+Number(s.w)/2)*unit,z:(Number(s.y)+Number(s.h)/2)*unit,width:positive(s.widthMm,Number(s.w)*unit*1000)/1000,depth:positive(s.depthMm,Number(s.h)*unit*1000)/1000,angle:-(Number(s.angle)||0)*Math.PI/180}))};
+ const unit=1/(positive(state.scale,.04)*1000),segments=planWallSegments(state),all=symbols.filter(s=>s.type==='column'||s.type==='door').slice(),represented=new Set(all.filter(s=>s.cadElement).map(s=>JSON.stringify([s.cadElement.type,s.cadElement.points])));
+ for(const e of state.cadElements||[]){if(!['column','door'].includes(e.type)||represented.has(JSON.stringify([e.type,e.points]))||!e.points?.length)continue;const xs=e.points.map(p=>Number(p.x)),ys=e.points.map(p=>Number(p.y));all.push({id:e.id,type:e.type,x:Math.min(...xs),y:Math.min(...ys),w:Math.max(...xs)-Math.min(...xs),h:Math.max(...ys)-Math.min(...ys)});}
+ return {wallless:!segments.length,wallSegments:segments.map(s=>({a:{x:s.a.x*unit,z:s.a.y*unit},b:{x:s.b.x*unit,z:s.b.y*unit}})),symbols:all.map(s=>({id:s.id,type:s.type,x:(Number(s.x)+Number(s.w)/2)*unit,z:(Number(s.y)+Number(s.h)/2)*unit,width:positive(s.widthMm,Math.max(1,Number(s.w))*unit*1000)/1000,depth:positive(s.depthMm,Math.max(1,Number(s.h))*unit*1000)/1000,angle:-(Number(s.angle)||0)*Math.PI/180}))};
 }
 export function rackVisualTop(r){
  const special=(r.frameHeights||[]).flatMap(row=>[Number(row.left)/1000,Number(row.right)/1000]).filter(Number.isFinite);
@@ -12,8 +17,9 @@ export function environmentParts(data){
  const out=[],box=(kind,x,y,z,w,h,d,ry=0)=>{if([x,y,z,w,h,d,ry].every(Number.isFinite)&&w>0&&h>0&&d>0)out.push({kind,x,y,z,w,h,d,ry});};
  const symbols=data.symbols||[],points=data.points||[],thickness=.12;
  let area=0;for(let i=0;i<points.length;i++){const a=points[i],b=points[(i+1)%points.length];area+=a.x*b.z-b.x*a.z;}
- if(!data.wallless)for(let i=0;i<points.length;i++){
-  const j=(i+1)%points.length;if((j===0&&!data.closed)||data.breaks.includes(i))continue;const a=points[i],b=points[j],dx=b.x-a.x,dz=b.z-a.z,length=Math.hypot(dx,dz);if(length<.001)continue;
+ const segments=data.wallSegments||points.flatMap((a,i)=>{const j=(i+1)%points.length;return (j===0&&!data.closed)||data.breaks.includes(i)?[]:[{a,b:points[j]}]});
+ if(!data.wallless)for(const {a,b} of segments){
+  const dx=b.x-a.x,dz=b.z-a.z,length=Math.hypot(dx,dz);if(length<.001)continue;
   const ux=dx/length,uz=dz/length,sign=area>=0?1:-1,nx=sign*uz,nz=-sign*ux,cuts=[];
   for(const door of symbols.filter(s=>s.type==='door')){
    const offsetX=door.x-a.x,offsetZ=door.z-a.z,position=offsetX*ux+offsetZ*uz,distance=Math.abs(offsetX*uz-offsetZ*ux),alignment=Math.abs(Math.cos(door.angle)*ux-Math.sin(door.angle)*uz);

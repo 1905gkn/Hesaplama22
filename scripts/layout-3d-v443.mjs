@@ -1,13 +1,14 @@
 import fs from 'node:fs';
-export function transform(html){if(html.includes('data-rafex-layout-3d="v448"'))return html;
- if(html.includes('data-rafex-layout-3d="v447"'))return html.replaceAll('v=447','v=448').replaceAll('data-rafex-layout-3d="v447"','data-rafex-layout-3d="v448"');
- if(html.includes('data-rafex-layout-3d="v446"'))return html.replaceAll('v=446','v=448').replaceAll('data-rafex-layout-3d="v446"','data-rafex-layout-3d="v448"');
- if(html.includes('data-rafex-layout-3d="v445"'))return html.replaceAll('v=445','v=448').replaceAll('data-rafex-layout-3d="v445"','data-rafex-layout-3d="v448"');
- if(html.includes('data-rafex-layout-3d="v444"'))return html.replaceAll('v=444','v=448').replaceAll('data-rafex-layout-3d="v444"','data-rafex-layout-3d="v448"');
- if(html.includes('data-rafex-layout-3d="v443"'))return html.replace('src="/layout-3d.js"','src="/layout-3d.js?v=448"').replace('href="/layout-3d.css"','href="/layout-3d.css?v=448"').replace('data-rafex-layout-3d="v443"','data-rafex-layout-3d="v448"');
+export function transform(html){if(html.includes('data-rafex-layout-3d="v449"'))return html;
+ if(html.includes('data-rafex-layout-3d="v448"'))return html.replaceAll('v=448','v=449').replaceAll('data-rafex-layout-3d="v448"','data-rafex-layout-3d="v449"');
+ if(html.includes('data-rafex-layout-3d="v447"'))return html.replaceAll('v=447','v=449').replaceAll('data-rafex-layout-3d="v447"','data-rafex-layout-3d="v449"');
+ if(html.includes('data-rafex-layout-3d="v446"'))return html.replaceAll('v=446','v=449').replaceAll('data-rafex-layout-3d="v446"','data-rafex-layout-3d="v449"');
+ if(html.includes('data-rafex-layout-3d="v445"'))return html.replaceAll('v=445','v=449').replaceAll('data-rafex-layout-3d="v445"','data-rafex-layout-3d="v449"');
+ if(html.includes('data-rafex-layout-3d="v444"'))return html.replaceAll('v=444','v=449').replaceAll('data-rafex-layout-3d="v444"','data-rafex-layout-3d="v449"');
+ if(html.includes('data-rafex-layout-3d="v443"'))return html.replace('src="/layout-3d.js"','src="/layout-3d.js?v=449"').replace('href="/layout-3d.css"','href="/layout-3d.css?v=449"').replace('data-rafex-layout-3d="v443"','data-rafex-layout-3d="v449"');
  const anchor='<button type="button" id="m2FreeButton"';if(!html.includes(anchor))throw Error('Free layout toolbar missing');
  html=html.replace(anchor,'<button type="button" data-layout-3d>Yerleşimi 3D Gör</button>'+anchor);
- const head=html.indexOf('</head>'),end=html.lastIndexOf('</body>');html=html.slice(0,end)+'<script defer src="/layout-3d.js?v=448" data-rafex-layout-3d="v448"></script>'+html.slice(end);return html.slice(0,head)+'<link rel="stylesheet" href="/layout-3d.css?v=448">'+html.slice(head);
+ const head=html.indexOf('</head>'),end=html.lastIndexOf('</body>');html=html.slice(0,end)+'<script defer src="/layout-3d.js?v=449" data-rafex-layout-3d="v449"></script>'+html.slice(end);return html.slice(0,head)+'<link rel="stylesheet" href="/layout-3d.css?v=449">'+html.slice(head);
 }
 if(process.argv[1]?.replaceAll('\\','/').endsWith('/layout-3d-v443.mjs')){
  const {build}=await import('esbuild');
