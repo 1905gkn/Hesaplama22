@@ -1,3 +1,4 @@
+import {customerShareStorage} from '../scripts/customer-share-storage.mjs';
 import {customerViewPage} from '../scripts/customer-view-page.mjs';
 import {decodeRequest,encodeResponse} from '../scripts/wire-gzip-v244.mjs';
 import {exchangeRatesResponse} from '../scripts/exchange-rates-v326.mjs';
@@ -146,6 +147,7 @@ const application = {
     if((path.startsWith('/api/push/')||path.startsWith('/api/notifications'))&&request.method!=='GET'&&request.headers.get('origin')!==new URL(request.url).origin)return Response.json({error:'Geçersiz istek.'},{status:403});
     if(path==='/api/push/dispatch'&&(!process.env.CRON_SECRET||request.headers.get('authorization')!=='Bearer '+process.env.CRON_SECRET))return Response.json({error:'Yetkisiz.'},{status:401});
     if(/^\/p\/[A-Za-z0-9_-]{16}$/.test(path))return customerViewPage(request,{proxyApi,version:process.env.VERCEL_GIT_COMMIT_SHA||'customer473'});
+    if(path==='/api/customer-shares'||/^\/api\/customer-shares\/[A-Za-z0-9_-]{16}\/images\/0$/.test(path))return customerShareStorage(request,{proxyApi});
     if(path==='/api/exchange-rates' && request.method==='GET') return exchangeRatesResponse();
     if(/^\/api\/crm\/[^/]+$/.test(path))return crmLookup(request,{proxyApi});
     if(path==='/api/layout-agent') return layoutAgent(request,{proxyApi});
