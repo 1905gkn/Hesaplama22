@@ -99,5 +99,8 @@
       "path": "/api/push/dispatch",
       "schedule": "* * * * *"
     }
+  ],
+  "regions": [
+    "fra1"
   ]
 }
