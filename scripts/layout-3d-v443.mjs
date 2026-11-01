@@ -1,9 +1,10 @@
 import fs from 'node:fs';
-export function transform(html){if(html.includes('data-rafex-layout-3d="v444"'))return html;
- if(html.includes('data-rafex-layout-3d="v443"'))return html.replace('src="/layout-3d.js"','src="/layout-3d.js?v=444"').replace('href="/layout-3d.css"','href="/layout-3d.css?v=444"').replace('data-rafex-layout-3d="v443"','data-rafex-layout-3d="v444"');
+export function transform(html){if(html.includes('data-rafex-layout-3d="v445"'))return html;
+ if(html.includes('data-rafex-layout-3d="v444"'))return html.replaceAll('v=444','v=445').replaceAll('data-rafex-layout-3d="v444"','data-rafex-layout-3d="v445"');
+ if(html.includes('data-rafex-layout-3d="v443"'))return html.replace('src="/layout-3d.js"','src="/layout-3d.js?v=445"').replace('href="/layout-3d.css"','href="/layout-3d.css?v=445"').replace('data-rafex-layout-3d="v443"','data-rafex-layout-3d="v445"');
  const anchor='<button type="button" id="m2FreeButton"';if(!html.includes(anchor))throw Error('Free layout toolbar missing');
  html=html.replace(anchor,'<button type="button" data-layout-3d>Yerleşimi 3D Gör</button>'+anchor);
- const head=html.indexOf('</head>'),end=html.lastIndexOf('</body>');html=html.slice(0,end)+'<script defer src="/layout-3d.js?v=444" data-rafex-layout-3d="v444"></script>'+html.slice(end);return html.slice(0,head)+'<link rel="stylesheet" href="/layout-3d.css?v=444">'+html.slice(head);
+ const head=html.indexOf('</head>'),end=html.lastIndexOf('</body>');html=html.slice(0,end)+'<script defer src="/layout-3d.js?v=445" data-rafex-layout-3d="v445"></script>'+html.slice(end);return html.slice(0,head)+'<link rel="stylesheet" href="/layout-3d.css?v=445">'+html.slice(head);
 }
 if(process.argv[1]?.replaceAll('\\','/').endsWith('/layout-3d-v443.mjs')){
  const {build}=await import('esbuild');

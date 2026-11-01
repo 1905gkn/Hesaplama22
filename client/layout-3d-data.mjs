@@ -11,7 +11,7 @@ export function rackSystem(r){
 }
 export function layoutSnapshot(state,optionsFor=()=>({})){
  const scale=pos(state.scale,.04),unit=1/(scale*1000);
- return {points:(state.points||[]).map(p=>({x:p.x*unit,z:p.y*unit})),closed:!!state.closed,breaks:[...(state.pathBreaks||[])],racks:(state.racks||[]).map(r=>{
+ return {selectedId:state.selected,showAreaDimensions:!!state.showAreaDimensions,edgeDimensions:[...(state.edgeDimensions||[])],points:(state.points||[]).map(p=>({x:p.x*unit,z:p.y*unit})),closed:!!state.closed,breaks:[...(state.pathBreaks||[])],racks:(state.racks||[]).map(r=>{
   const system=rackSystem(r),o=optionsFor(r,system)||{},b=r.b2b||{},k=r.konsol||r.spec||{},l=r.b2bLayout||{};
   const width=pos(r.widthMm,pos(r.totalWidth,r.w/scale))/1000,depth=pos(r.depthMm,pos(r.railLength,r.h/scale))/1000;
   const levels=count(o.levels||k.levels||r.levels||b.levels,4,30),palletHeight=pos(o.palletHeight,pos(r.palletHeight,pos(b.palletHeight,1200)))/1000;
@@ -32,11 +32,11 @@ export function layoutSnapshot(state,optionsFor=()=>({})){
    floors.push(y);beamYs.push(y-beam);heights.push(palletHeight);
   }
   const positions=(r.palletPositions||[]).map(v=>num(v)/1000).filter(v=>v>=0&&v<depth),palletDepth=pos(o.palletDepth,pos(l.palletDepth,pos(r.palD,1200)))/1000;
-  const footZ=[];let cursor=0;for(let i=0;i<(r.plan?.feet||[]).length;i++){const f=num(r.plan.feet[i])/1000;if(f>0){footZ.push(cursor,cursor+f);cursor+=f}cursor+=num(r.plan.braces?.[i])/1000;}
+  const footZ=[],footFrames=[];let cursor=0;for(let i=0;i<(r.plan?.feet||[]).length;i++){const f=num(r.plan.feet[i])/1000;if(f>0){footZ.push(cursor,cursor+f);footFrames.push([cursor,cursor+f]);cursor+=f}cursor+=num(r.plan.braces?.[i])/1000;}
   return {system,id:r.id,name:String(r.typeName||r.blockName||'Raf'),x:(num(r.x)+num(r.w)/2)*unit,z:(num(r.y)+num(r.h)/2)*unit,angle:-num(r.angle)*Math.PI/180,width,depth,height,levels,foot,beam,floors,beamYs,palletHeights:heights,palletHeight,palletDepth,palletWidth:pos(o.palletWidth,pos(l.palletWidth,pos(r.palW,800)))/1000,
    footColor:String(system==='konsol'?'pgv':b.uprightFinish||b.footColor||r.mekikFootColor||o.footColor||'ral5010'),beamColor:String(k.armColor||b.traverseFinish||b.traverseColor||r.mekikTraverseColor||o.traverseColor||'ral1007'),
    rows:count(l.rowCount||(b.rowType==='double'?2:1),1,2),rowGap:num(l.rowGap??b.rowGap,200)/1000,frameDepth:pos(l.frameDepth,1100)/1000,frameHeights:structuredClone(o.frameHeights||[]),
-   pallets:count(l.palletCount||o.palletCount||b.palletCount,3,12),bays:count(r.bays,1),modules:count(o.modules||b.modules,1),positions,footZ,
+   pallets:count(l.palletCount||o.palletCount||b.palletCount,3,12),bays:count(r.bays,1),modules:count(o.modules||b.modules,1),positions,footZ,footFrames,
    uprightCount:count(o.uprightCount||k.count||r.plan?.feet?.length,5),spacing:pos(o.spacing||k.spacing||r.palW,1500)/1000,arm:pos(o.armLength||k.arm||k.armLength||r.palD,1200)/1000,baseDepth:pos(o.baseDepth||k.baseDepth||k.arm,1200)/1000,doubleSided:o.doubleSided??(k.side==='double'||k.doubleSided===true),productHeight:pos(o.productHeight||k.productHeight,300)/1000,loadType:o.loadType||k.loadType||'profile',
    accessories:structuredClone(o.accessories||b.accessories||[]),tunnelHeight:num(o.tunnelHeight||b.tunnelHeight)/1000};
  })};

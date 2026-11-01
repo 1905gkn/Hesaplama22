@@ -278,4 +278,5 @@ node scripts/mobile-readability-v441.mjs
 node scripts/notification-center-v442.mjs
 
 node scripts/verify-layout-3d.mjs
+node scripts/verify-layout-3d-cad.mjs
 node scripts/layout-3d-v443.mjs
