@@ -5,7 +5,6 @@ export function b2bFrameLayout(r){
  return {depth,centers};
 }
 export function b2bBeamMountZ(r,frame,beam,side){
- const face=Number.isFinite(frame.outerFaces?.[String(side)])?frame.outerFaces[String(side)]*r.frameDepth/frame.depth:side*r.frameDepth/2;
- // Seat the connector against the outside upright face, independently of pallets.
- return face+side*((beam?.depth||.063)/2-.004);
+ // The outside beam edge follows pallet depth minus the saved overhang on each end.
+ return side*(r.frameDepth/2-(beam?.depth||.063)/2);
 }
