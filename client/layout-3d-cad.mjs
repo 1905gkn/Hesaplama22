@@ -1,3 +1,4 @@
+import {b2bFrameLayout,b2bBeamMountZ} from './layout-3d-b2b-placement.mjs';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
@@ -22,16 +23,17 @@ export function prepareCad(scene,name){
  // Dispose parser materials/textures; prepared geometries are cached across viewers.
  const materials=new Set(),geometries=new Set();scene.traverse(m=>{if(m.isMesh){geometries.add(m.geometry);for(const mat of Array.isArray(m.material)?m.material:[m.material])materials.add(mat)}});materials.forEach(m=>m.dispose());geometries.forEach(g=>g.dispose());
  const bracketBounds=source.map((g,i)=>({box:g.boundingBox,name:names[i]})).filter(p=>p.name.includes('BRAKET'));const left=bracketBounds.filter(p=>(p.box.min.x+p.box.max.x)/2<0),right=bracketBounds.filter(p=>(p.box.min.x+p.box.max.x)/2>0);const railSeats=name==='mekikBeam'&&left.length&&right.length?[Math.max(...left.map(p=>p.box.max.x)),Math.min(...right.map(p=>p.box.min.x))]:null;
- return {geometries:source,finishes,railSeats,referenceHeight:profileBounds.isEmpty()?size.y/1000:profileBounds.getSize(new THREE.Vector3()).y/1000,height:size.y/1000,depth:size.z/1000,width:size.x/1000};
+ const uprightBoxes=name==='b2bFrame'?source.map(g=>g.boundingBox).filter(b=>b.max.y-b.min.y>size.y*.0007&&b.max.z-b.min.z<size.z*.0004).sort((a,b)=>(a.min.z+a.max.z)-(b.min.z+b.max.z)):[];const innerFaces=uprightBoxes.length>=2?{'-1':uprightBoxes[0].max.z,'1':uprightBoxes.at(-1).min.z}:null;
+ return {geometries:source,finishes,railSeats,innerFaces,referenceHeight:profileBounds.isEmpty()?size.y/1000:profileBounds.getSize(new THREE.Vector3()).y/1000,height:size.y/1000,depth:size.z/1000,width:size.x/1000};
 }
 export function cadPlacements(r,templates){
  const out=[],add=(name,x,y,z,sx,sy,sz)=>out.push({name,x,y,z,sx,sy,sz,color:name==='mekikBeam'||name==='b2bBeam'||name==='mrBeam'?r.beamColor:r.footColor});
  if(r.system==='b2b'){
-  const t=templates.b2bFrame,fd=Math.min(r.frameDepth,(r.depth-r.rowGap*(r.rows-1))/r.rows),pitch=r.rows===2?r.depth-fd:0;
-  for(let row=0;row<r.rows;row++)for(const side of [-1,1]){const h=Number(r.frameHeights[row]?.[side<0?'left':'right'])/1000||r.height;add('b2bFrame',side*(r.width-r.foot)/2,0,(row-(r.rows-1)/2)*pitch,r.foot/.09,h/t.height,fd/t.depth)}
-  for(let row=0;row<r.rows;row++)for(let i=0;i<r.floors.length;i++){const y=r.beamYs[i];if(y===null||(r.tunnelHeight>0&&r.floors[i]<=r.tunnelHeight))continue;for(const side of [-1,1]){add('b2bBeam',0,y,(row-(r.rows-1)/2)*pitch+side*((fd-r.foot)/2+.04+(templates.b2bBeam?.depth||.063)/2-.004),(r.width-2*r.foot)/2.7,r.beam/(templates.b2bBeam?.referenceHeight||.12),1);out.at(-1).ry=side<0?Math.PI:0;}}
+  const t=templates.b2bFrame,{depth:fd,centers}=b2bFrameLayout(r);
+  for(let row=0;row<r.rows;row++)for(const side of [-1,1]){const h=Number(r.frameHeights[row]?.[side<0?'left':'right'])/1000||r.height;add('b2bFrame',side*(r.width-r.foot)/2,0,centers[row],r.foot/.09,h/t.height,fd/t.depth)}
+  for(let row=0;row<r.rows;row++)for(let i=0;i<r.floors.length;i++){const y=r.beamYs[i];if(y===null||(r.tunnelHeight>0&&r.floors[i]<=r.tunnelHeight))continue;for(const side of [-1,1]){add('b2bBeam',0,y,centers[row]+b2bBeamMountZ(r,t,templates.b2bBeam,side),(r.width-2*r.foot)/2.7,r.beam/(templates.b2bBeam?.referenceHeight||.12),1);out.at(-1).ry=side<0?Math.PI:0;}}
  }else if(r.system==='mr'){
-  const t=templates.mrBeam,pitch=(r.width-r.foot)/r.modules;for(let m=0;m<r.modules;m++)for(const y of r.floors)for(const side of [-1,1]){add('mrBeam',-r.width/2+r.foot/2+(m+.5)*pitch,y,side*((r.depth-r.foot)/2+.03+t.depth/2-.004),(pitch-r.foot)/t.width,r.beam/t.height,1);out.at(-1).ry=side<0?Math.PI:0;}
+  const t=templates.mrBeam,pitch=(r.width-r.foot)/r.modules;for(let m=0;m<r.modules;m++)for(const y of r.floors)for(const side of [-1,1]){add('mrBeam',-r.width/2+r.foot/2+(m+.5)*pitch,y,side*(r.depth/2-t.depth/2),(pitch-r.foot)/t.width,r.beam/t.height,1);out.at(-1).ry=side<0?Math.PI:0;}
  }else if(r.system==='mekik2'||r.system==='drive'){
   const t=templates.mekikPost,pitch=(r.width-r.foot)/r.bays,stations=r.footZ.length?r.footZ:[0,r.depth];
   for(let lane=0;lane<=r.bays;lane++)for(const zz of [...new Set(stations)])add('mekikPost',-r.width/2+r.foot/2+lane*pitch,0,Math.max(r.foot/2,Math.min(r.depth-r.foot/2,zz))-r.depth/2,r.foot/.1,r.height/t.height,1);

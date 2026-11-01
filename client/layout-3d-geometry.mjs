@@ -1,3 +1,4 @@
+import {b2bFrameLayout} from './layout-3d-b2b-placement.mjs';
 // System-specific local geometry in metres. The viewer applies world placement.
 export function rackParts(r,{cad=false,railSeats=null}={}){
  const parts=[];
@@ -44,8 +45,8 @@ export function rackParts(r,{cad=false,railSeats=null}={}){
    }
   }
  }else{
-  const rows=r.rows,fd=Math.min(r.frameDepth,(r.depth-r.rowGap*(rows-1))/rows),pitch=rows===2?r.depth-fd:0;
-  for(let row=0;row<rows;row++){const z=(row-(rows-1)/2)*pitch;
+  const rows=r.rows,{depth:fd,centers}=b2bFrameLayout(r);
+  for(let row=0;row<rows;row++){const z=centers[row];
    for(const side of [-1,1]){const x=side*(r.width-r.foot)/2,h=Number(r.frameHeights[row]?.[side<0?'left':'right'])/1000||r.height;for(const edge of [-1,1])post(x,z+edge*(fd-r.foot)/2,h);if(!cad){brace(x,z,fd-r.foot,h*.85);for(let y=.5;y<h;y+=1)box('foot',x,y,z,.04,.045,fd);}}
    for(let i=0;i<r.floors.length;i++){const y=r.floors[i];if(r.tunnelHeight>0&&y<=r.tunnelHeight)continue;const by=r.beamYs[i];if(by!==null&&!cad)for(const edge of [-1,1])box('beam',0,by+r.beam/2,z+edge*(fd-r.foot)/2,r.width-2*r.foot,r.beam,.055);
     const clear=r.width-2*r.foot,space=(clear-r.pallets*r.palletWidth)/(r.pallets+1);for(let p=0;p<r.pallets;p++)pallet(-clear/2+space+(p+.5)*r.palletWidth+p*space,y,z,r.palletWidth,r.palletDepth,r.palletHeights[i]);
