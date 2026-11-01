@@ -288,3 +288,5 @@ node scripts/verify-mekik-cad-seating.mjs
 node scripts/verify-layout-clearances.mjs
 node scripts/verify-layout-environment.mjs
 node scripts/layout-3d-v443.mjs
+node scripts/build-customer-view.mjs
+node scripts/verify-customer-view.mjs
