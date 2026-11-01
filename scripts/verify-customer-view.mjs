@@ -19,7 +19,10 @@ const {chooseDetailRack,createDetailController}=await import('../client/customer
 assert.equal(chooseDetailRack([{id:1}],()=>({pixels:100,x:0,y:0,z:0})),null);
 assert.equal(chooseDetailRack([{id:1}],()=>({pixels:400,x:0,y:0,z:0})).id,1);
 const lodRuntime=fs.readFileSync('client/layout-3d.entry.js','utf8');
-assert.ok(lodRuntime.includes('if(options.customerPerformance)return makeViewer(host,data,{},new Map(),options)'),'Customer overview does not eagerly load CAD');
+assert.ok(!lodRuntime.includes('return makeViewer(host,data,{},new Map(),options)'),'Customer links must retain the full CAD scene at every distance');
+assert.ok(lodRuntime.includes('const templates=await loadLayoutCad(data.racks),parts=await loadLayoutAccessories(data.racks,undefined,templates)'),'Load all original rack and accessory details');
+assert.ok(lodRuntime.includes('rackParts(r,{cad:true,')&&!lodRuntime.includes('simple:options.customerPerformance'),'Never replace customer rack detail by a simplified model');
+assert.ok(!lodRuntime.includes('createDetailController'),'Zooming must not replace or remove CAD detail');
 assert.ok(lodRuntime.includes('if(paused||disposed)return;'),'Hidden layout must not render');
 assert.ok(runtime.includes('view?.pause(true);dialog.showModal()'),'Opening details pauses the main layout');
 assert.ok(runtime.includes('view?.pause(selected!=='),'Closing details restores layout visibility state');
@@ -29,7 +32,7 @@ const fullParts=customerParts(proxyRack),lightParts=customerParts(proxyRack,{sim
 assert.equal(lightParts.filter(p=>p.kind==='load').length,12);
 assert.equal(lightParts.filter(p=>p.kind==='timber').length,0);
 assert.ok(lightParts.length<fullParts.length*.3);
-console.log('PASS lightweight customer overview, on-demand nearby CAD, retained pallet count, and detail-dialog suspension.');
+console.log('PASS full-detail customer CAD at all distances, retained pallet count, and detail-dialog suspension.');
 
 
 
