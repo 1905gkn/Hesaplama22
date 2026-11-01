@@ -33,7 +33,7 @@ export function layoutSnapshot(state,optionsFor=()=>({})){
   }
   const positions=(r.palletPositions||[]).map(v=>num(v)/1000).filter(v=>v>=0&&v<depth),palletDepth=pos(o.palletDepth,pos(l.palletDepth,pos(r.palD,1200)))/1000;
   const footZ=[],footFrames=[];let cursor=0;for(let i=0;i<(r.plan?.feet||[]).length;i++){const f=num(r.plan.feet[i])/1000;if(f>0){footZ.push(cursor,cursor+f);footFrames.push([cursor,cursor+f]);cursor+=f}cursor+=num(r.plan.braces?.[i])/1000;}
-  return {system,id:r.id,name:String(r.typeName||r.blockName||'Raf'),x:(num(r.x)+num(r.w)/2)*unit,z:(num(r.y)+num(r.h)/2)*unit,angle:-num(r.angle)*Math.PI/180,width,depth,height,levels,foot,beam,floors,beamYs,palletHeights:heights,palletHeight,palletDepth,palletWidth:pos(o.palletWidth,pos(l.palletWidth,pos(r.palW,800)))/1000,
+  return {system,id:r.id,name:String(r.typeName||r.blockName||'Raf'),typeColor:String(r.typeColor||'#247fba'),x:(num(r.x)+num(r.w)/2)*unit,z:(num(r.y)+num(r.h)/2)*unit,angle:-num(r.angle)*Math.PI/180,width,depth,height,levels,foot,beam,floors,beamYs,palletHeights:heights,palletHeight,palletDepth,palletWidth:pos(o.palletWidth,pos(l.palletWidth,pos(r.palW,800)))/1000,
    footColor:String(system==='konsol'?'pgv':b.uprightFinish||b.footColor||r.mekikFootColor||o.footColor||'ral5010'),beamColor:String(k.armColor||b.traverseFinish||b.traverseColor||r.mekikTraverseColor||o.traverseColor||'ral1007'),
    rows:count(l.rowCount||(b.rowType==='double'?2:1),1,2),rowGap:num(l.rowGap??b.rowGap,200)/1000,frameDepth:pos(l.frameDepth,1100)/1000,frameHeights:structuredClone(o.frameHeights||[]),
    pallets:count(l.palletCount||o.palletCount||b.palletCount,3,12),bays:count(r.bays,1),modules:count(o.modules||b.modules,1),positions,footZ,footFrames,
