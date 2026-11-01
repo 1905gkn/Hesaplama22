@@ -29,7 +29,7 @@ export function layoutSnapshot(state,optionsFor=()=>({})){
     const y=ground?0:beamY+pos(o.traverseHeights?.[idx],beam*1000)/1000;floors.push(y);beamYs.push(beamY);heights.push(ph);previousTop=y+ph;
    }
   }else for(let i=0;i<levels;i++){
-   const y=system==='mr'?(num(o.firstTraverse??b.firstTraverse??r.firstRailHeight,200)+i*(pos(o.levelGap||b.levelGap||r.levelH,1000)+beam*1000)+beam*1000)/1000:system==='konsol'?height*(i+1)/(levels+1):(num(r.firstRailHeight,430)+i*pos(r.levelH,palletHeight*1000+380))/1000;
+   const y=system==='mr'?(num(o.firstTraverse??b.firstTraverse??r.firstRailHeight,200)+i*pos(o.levelGap||b.levelGap||r.levelH,1000))/1000:system==='konsol'?height*(i+1)/(levels+1):(num(r.firstRailHeight,430)+i*pos(r.levelH,palletHeight*1000+380))/1000;
    floors.push(y);beamYs.push(y-beam);heights.push(palletHeight);
   }
   const positions=(r.palletPositions||[]).map(v=>num(v)/1000).filter(v=>v>=0&&v<depth),palletDepth=pos(o.palletDepth,pos(l.palletDepth,pos(r.palD,1200)))/1000;
