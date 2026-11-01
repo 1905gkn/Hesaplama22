@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {prepareCad} from '../client/layout-3d-cad.mjs';
 import assert from 'node:assert/strict';
-import {environmentSnapshot,environmentParts,rackVisualTop} from '../client/layout-3d-environment.mjs';
+import {environmentSnapshot,environmentParts,rackVisualTop,gridOutsideWalls} from '../client/layout-3d-environment.mjs';
 import {layoutSnapshot} from '../client/layout-3d-data.mjs';
 import {rackParts} from '../client/layout-3d-geometry.mjs';
 import {fixtures} from './verify-layout-3d.mjs';
@@ -12,8 +12,8 @@ assert.ok(walls.every(p=>p.h===1&&p.y===.5),'Walls must be exactly one metre hig
 const front=walls.filter(p=>Math.abs(p.z+.06)<1e-6);assert.equal(front.length,2);assert.ok(front.every(p=>Math.abs(p.w-4)<1e-6));assert.ok(front.every(p=>Math.abs(p.z+p.d/2)<1e-6),'Wall inner face must stay on the measured plan edge');
 assert.equal(environmentParts({...data,wallless:true}).filter(p=>p.kind==='wall').length,0,'Never turn workspace edges into physical walls');const broken=environmentParts({...data,...environmentSnapshot({...state,pathBreaks:[3]},symbols),breaks:[3]});assert.ok(Math.abs(broken.filter(p=>p.kind==='wall').reduce((n,p)=>n+p.w,0)-26)<1e-6);
 assert.equal(snap.symbols[1].width,.5);assert.equal(snap.symbols[1].angle,-Math.PI/2);assert.equal(JSON.stringify({state,symbols}),before,'Environment preview must not modify project data');
-const rack=layoutSnapshot({scale:.04,racks:[{...fixtures[3],typeName:'D',typeColor:'#db2777'}]}).racks[0];assert.equal(rack.name,'D');assert.equal(rack.typeColor,'#db2777');const pitch=(rack.width-rack.foot)/rack.bays,seats=[-.525,.525],rails=rackParts(rack,{cad:true,railSeats:seats}).filter(p=>p.kind==='rail');const center=-rack.width/2+rack.foot/2+pitch/2;
-assert.ok(Math.abs(rails[0].x-(center+seats[0]*pitch/1.45))<1e-6,'Rail centered directly over left bracket bearing');assert.ok(Math.abs(rails[1].x-(center+seats[1]*pitch/1.45))<1e-6,'Rail centered directly over right bracket bearing');
+const rack=layoutSnapshot({scale:.04,racks:[{...fixtures[3],typeName:'D',typeColor:'#db2777'}]}).racks[0];assert.equal(rack.name,'D');assert.equal(rack.typeColor,'#db2777');const pitch=(rack.width-rack.foot)/rack.bays,seats=[-.525,.525],rails=rackParts(rack,{cad:true,railSeats:seats,railScaleX:1}).filter(p=>p.kind==='rail');const center=-rack.width/2+rack.foot/2+pitch/2;
+assert.ok(Math.abs(rails[0].x-(center+seats[0]))<1e-6,'Rail centered directly over left bracket bearing');assert.ok(Math.abs(rails[2].x-(center+seats[1]))<1e-6,'Rail centered directly over right bracket bearing');
 
 assert.equal(rackVisualTop({...rack,system:'mr',height:3.7}),3.7,'MR labels must not float above invented pallet loads');assert.equal(rackVisualTop({...rack,height:4.9,frameHeights:[{left:6000,right:4900}]}),6);
 console.log('PASS 3D environment: one-metre walls, real doorway openings, columns/doors in one set, outward wall thickness preserving clearances, breaks/wallless plans, exact type names/colors, immutable state and rails on bracket front faces.');
@@ -27,3 +27,5 @@ const driveRack=layoutSnapshot({scale:.04,racks:[fixtures[4]]}).racks[0];const d
 const tallWalls=environmentParts({...data,wallHeight:3.5}).filter(p=>p.kind==='wall');assert.ok(tallWalls.length>0&&tallWalls.every(p=>p.h===3.5&&p.y===1.75));assert.ok(environmentParts({...data,wallHeight:0}).filter(p=>p.kind==='wall').every(p=>p.h===1));console.log('PASS adjustable wall height: default 1m, 3.5m input keeps plan footprint.');
 
 assert.equal(snap.floorLoops.length,1);assert.equal(environmentSnapshot({...state,closed:false},[]).floorLoops.length,0);assert.equal(cadEnv.floorLoops.length,1);console.log('PASS white floors only inside closed wall outlines; open workspace stays unfilled.');
+
+assert.deepEqual(gridOutsideWalls([-2,0,0,2,0,0],[[{x:-1,z:-1},{x:1,z:-1},{x:1,z:1},{x:-1,z:1}]]),[-2,0,0,-1,0,0,1,0,0,2,0,0]);console.log('PASS grid clipped geometrically outside walls; no faint interior grid or z-fighting.');

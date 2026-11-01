@@ -3,8 +3,8 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {layoutSnapshot} from './layout-3d-data.mjs';
 import {rackParts} from './layout-3d-geometry.mjs';
-import {loadLayoutCad,cadPlacements} from './layout-3d-cad.mjs';
-import {environmentSnapshot,environmentParts,rackVisualTop} from './layout-3d-environment.mjs';
+import {loadLayoutCad,cadPlacements,deepBeamScale} from './layout-3d-cad.mjs';
+import {environmentSnapshot,environmentParts,rackVisualTop,gridOutsideWalls} from './layout-3d-environment.mjs';
 import {readRackClearances,visiblePlanClearances,layoutClearances} from './layout-3d-clearances.mjs';
 
 let active=null,openToken=0,measureFontSize=11;try{measureFontSize=Math.max(8,Math.min(32,Number(localStorage.getItem('rafex3DMeasureFontSize'))||11))}catch{}
@@ -15,7 +15,7 @@ function makeViewer(host,data,templates){
  const geometries=[],materials=[],parts={},geometry=new THREE.BoxGeometry(1,1,1);geometries.push(geometry);
  const colors={ral5010:'#005078',ral5015:'#287ab5',pgv:'#aeb8bd',galvanized:'#aeb8bd',ral1007:'#e5bd00',ral1023:'#f2c500',ral2004:'#e25318',timber:'#a67b45',load:'#d6b47b',product:'#75838a',shelf:'#b8c3c5',rail:'#bbc3c6'};
  const dummy=new THREE.Object3D(),parent=new THREE.Object3D(),palletMeshes=[];
- for(const r of data.racks){parent.position.set(r.x,0,r.z);parent.rotation.set(0,r.angle,0);parent.updateMatrix();for(const p of rackParts(r,{cad:true,railSeats:templates.mekikBeam?.railSeats})){
+ for(const r of data.racks){parent.position.set(r.x,0,r.z);parent.rotation.set(0,r.angle,0);parent.updateMatrix();for(const p of rackParts(r,{cad:true,railSeats:templates.mekikBeam?.railSeats,railBearings:templates.mekikBeam?.railBearings,railScaleX:r.system==='mekik2'?deepBeamScale(r,templates.mekikPost,templates.mekikBeam):null})){
   const loads=['timber','load','product'].includes(p.kind),color=['brace','tie'].includes(p.kind)?'galvanized':p.kind==='foot'?r.footColor:p.kind==='beam'?r.beamColor:p.kind,key=(loads?'load:':'structure:')+color;
   dummy.position.set(p.x,p.y,p.z);dummy.rotation.set(p.rx,0,p.rz);dummy.scale.set(p.w,p.h,p.d);dummy.updateMatrix();(parts[key]||=[]).push(new THREE.Matrix4().multiplyMatrices(parent.matrix,dummy.matrix));
  }}
@@ -35,6 +35,7 @@ function makeViewer(host,data,templates){
  const bounds=new THREE.Box3();for(const r of data.racks){const radius=Math.hypot(r.width,r.depth)/2;bounds.expandByPoint(new THREE.Vector3(r.x-radius,0,r.z-radius));bounds.expandByPoint(new THREE.Vector3(r.x+radius,rackVisualTop(r)+.6,r.z+radius));}for(const p of surroundingParts){const ex=(Math.abs(p.w*Math.cos(p.ry))+Math.abs(p.d*Math.sin(p.ry)))/2,ez=(Math.abs(p.w*Math.sin(p.ry))+Math.abs(p.d*Math.cos(p.ry)))/2;bounds.expandByPoint(new THREE.Vector3(p.x-ex,0,p.z-ez));bounds.expandByPoint(new THREE.Vector3(p.x+ex,p.h,p.z+ez));}for(const p of data.points)bounds.expandByPoint(new THREE.Vector3(p.x,0,p.z));
  const center=bounds.getCenter(new THREE.Vector3()),size=bounds.getSize(new THREE.Vector3()),span=Math.max(size.x,size.z,size.y,5);
 
+ const grid=new THREE.GridHelper(Math.ceil(span*1.4),Math.min(200,Math.ceil(span*1.4)),0x9aafa7,0xd6e0db);const clipped=gridOutsideWalls(grid.geometry.attributes.position.array,(data.floorLoops||[]).map(r=>r.map(p=>({x:p.x-center.x,z:p.z-center.z}))));grid.geometry.setAttribute('position',new THREE.Float32BufferAttribute(clipped,3));grid.geometry.setAttribute('color',new THREE.Float32BufferAttribute(clipped.map(()=>.78),3));grid.geometry.computeBoundingSphere();grid.position.set(center.x,-.02,center.z);scene.add(grid);geometries.push(grid.geometry);materials.push(...(Array.isArray(grid.material)?grid.material:[grid.material]));
  const vertices=[];for(let i=0;i<data.points.length;i++){const next=(i+1)%data.points.length;if((next===0&&!data.closed)||data.breaks.includes(i))continue;const a=data.points[i],b=data.points[next];vertices.push(a.x,.025,a.z,b.x,.025,b.z);}
  const outline=new THREE.BufferGeometry();outline.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));geometries.push(outline);const lineMat=new THREE.LineBasicMaterial({color:0x19533e});materials.push(lineMat);surroundings.add(new THREE.LineSegments(outline,lineMat));
  scene.add(new THREE.HemisphereLight(0xffffff,0x8a9c93,2.5));const sun=new THREE.DirectionalLight(0xffffff,2);sun.position.set(center.x+30,50,center.z+20);scene.add(sun);

@@ -1,3 +1,8 @@
+export function gridOutsideWalls(vertices,loops){
+ if(!loops.length)return Array.from(vertices);const out=[],inside=p=>loops.some(r=>{let hit=false;for(let i=0,j=r.length-1;i<r.length;j=i++){const a=r[i],b=r[j];if((a.z>p.z)!==(b.z>p.z)&&p.x<(b.x-a.x)*(p.z-a.z)/(b.z-a.z)+a.x)hit=!hit;}return hit;});
+ for(let i=0;i<vertices.length;i+=6){const ax=vertices[i],ay=vertices[i+1],az=vertices[i+2],dx=vertices[i+3]-ax,dz=vertices[i+5]-az,cuts=[0,1];for(const ring of loops)for(let j=0;j<ring.length;j++){const a=ring[j],b=ring[(j+1)%ring.length],ex=b.x-a.x,ez=b.z-a.z,det=dx*ez-dz*ex;if(Math.abs(det)<1e-9)continue;const t=((a.x-ax)*ez-(a.z-az)*ex)/det,u=((a.x-ax)*dz-(a.z-az)*dx)/det;if(t>0&&t<1&&u>=0&&u<=1)cuts.push(t);}cuts.sort((a,b)=>a-b);for(let j=1;j<cuts.length;j++){const a=cuts[j-1],b=cuts[j],m=(a+b)/2;if(b-a<1e-8||inside({x:ax+dx*m,z:az+dz*m}))continue;out.push(ax+dx*a,ay,az+dz*a,ax+dx*b,ay,az+dz*b);}}
+ return out;
+}
 export function closedWallFloors(segments){
  const key=p=>p.x+':'+p.z,adj=new Map(),used=new Set(),loops=[];segments.forEach((s,i)=>{for(const p of [s.a,s.b]){const k=key(p);if(!adj.has(k))adj.set(k,[]);adj.get(k).push(i)}});
  for(let i=0;i<segments.length;i++){if(used.has(i))continue;let at=segments[i].a,start=key(at),edge=i,ring=[],local=new Set();while(!local.has(edge)){local.add(edge);ring.push(at);const s=segments[edge];at=key(s.a)===key(at)?s.b:s.a;if(key(at)===start){if(ring.length>=3)loops.push(ring);break}const next=(adj.get(key(at))||[]).filter(n=>n!==edge);if(next.length!==1)break;edge=next[0];}for(const n of local)used.add(n);}

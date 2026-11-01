@@ -1,6 +1,6 @@
 import {b2bFrameLayout} from './layout-3d-b2b-placement.mjs';
 // System-specific local geometry in metres. The viewer applies world placement.
-export function rackParts(r,{cad=false,railSeats=null}={}){
+export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScaleX=null}={}){
  const parts=[];
  const box=(kind,x,y,z,w,h,d,rx=0,rz=0)=>{if([x,y,z,w,h,d].every(Number.isFinite)&&w>0&&h>0&&d>0)parts.push({kind,x,y,z,w,h,d,rx,rz});};
  const post=(x,z,h=r.height)=>{if(!cad||!['b2b','mekik2','drive'].includes(r.system))box('foot',x,h/2,z,r.foot,h,r.foot)};
@@ -38,7 +38,8 @@ export function rackParts(r,{cad=false,railSeats=null}={}){
   }
   for(let lane=0;lane<=r.bays;lane++){const x=-r.width/2+r.foot/2+lane*pitch;for(const zz of [...new Set(stations)])post(x,Math.max(r.foot/2,Math.min(r.depth-r.foot/2,zz))-r.depth/2);}
   for(let lane=0;lane<r.bays;lane++){const x=-r.width/2+r.foot/2+(lane+.5)*pitch;
-   for(let i=0;i<r.floors.length;i++){const y=r.floors[i];for(const side of [-1,1]){const seat=(railSeats||[-.525,.525])[side<0?0:1]*(pitch/1.45),railX=r.system==='mekik2'?x+seat:x+side*Math.min(r.palletWidth,pitch-r.foot-.06)*.35;box('rail',railX,y-.06,0,.075,.12,r.depth);}
+   for(let i=0;i<r.floors.length;i++){const y=r.floors[i];for(const side of [-1,1]){if(r.system==='mekik2'){const bearing=railBearings?.[side<0?1:0],sx=railScaleX||((pitch-r.foot)/1.35),seat=bearing?-bearing.x:(railSeats||[-.47925,.47925])[side<0?0:1],rx=x+seat*sx,w=Math.min(.0445,(bearing?.width||.0445)*sx),h=r.railHeight||.17,t=.003;box('rail',rx,y-h+t/2,0,w,t,r.depth);box('rail',rx+side*(w-t)/2,y-h/2,0,t,h,r.depth);}else box('rail',x+side*Math.min(r.palletWidth,pitch-r.foot-.06)*.35,y-.06,0,.075,.12,r.depth);}
+
     for(const zz of [...new Set(stations)]){const z=Math.max(.05,Math.min(r.depth-.05,zz))-r.depth/2;if(r.system==='drive'){for(const side of [-1,1])box('beam',x+side*pitch*.35,y-.12,z,pitch*.3,.1,.08);}else if(!cad)box('beam',x,y-.1,z,pitch-r.foot,.1,.08);}
     const positions=r.positions.length?r.positions:Array.from({length:Math.max(1,Math.floor(r.depth/(r.palletDepth+.05)))},(_,j)=>j*(r.palletDepth+.05));
     for(const zz of positions)if(zz+r.palletDepth<=r.depth+.02)pallet(x,y,zz+r.palletDepth/2-r.depth/2,Math.min(r.palletWidth,pitch-r.foot-.06),r.palletDepth,r.palletHeights[i]);
