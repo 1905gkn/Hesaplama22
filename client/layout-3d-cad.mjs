@@ -24,7 +24,8 @@ export function prepareCad(scene,name){
  const materials=new Set(),geometries=new Set();scene.traverse(m=>{if(m.isMesh){geometries.add(m.geometry);for(const mat of Array.isArray(m.material)?m.material:[m.material])materials.add(mat)}});materials.forEach(m=>m.dispose());geometries.forEach(g=>g.dispose());
  const bracketBounds=source.map((g,i)=>({box:g.boundingBox,name:names[i]})).filter(p=>p.name.includes('BRAKET'));const left=bracketBounds.filter(p=>(p.box.min.x+p.box.max.x)/2<0),right=bracketBounds.filter(p=>(p.box.min.x+p.box.max.x)/2>0);const railSeats=name==='mekikBeam'&&left.length&&right.length?[Math.max(...left.map(p=>p.box.max.x)),Math.min(...right.map(p=>p.box.min.x))]:null;
  const uprightBoxes=name==='b2bFrame'?source.map(g=>g.boundingBox).filter(b=>b.max.y-b.min.y>size.y*.0007&&b.max.z-b.min.z<size.z*.0004).sort((a,b)=>(a.min.z+a.max.z)-(b.min.z+b.max.z)):[];const innerFaces=uprightBoxes.length>=2?{'-1':uprightBoxes[0].max.z,'1':uprightBoxes.at(-1).min.z}:null;
- return {geometries:source,finishes,railSeats,innerFaces,referenceHeight:profileBounds.isEmpty()?size.y/1000:profileBounds.getSize(new THREE.Vector3()).y/1000,height:size.y/1000,depth:size.z/1000,width:size.x/1000};
+ const outerFaces=uprightBoxes.length>=2?{'-1':uprightBoxes[0].min.z,'1':uprightBoxes.at(-1).max.z}:null;
+ return {geometries:source,finishes,railSeats,innerFaces,outerFaces,referenceHeight:profileBounds.isEmpty()?size.y/1000:profileBounds.getSize(new THREE.Vector3()).y/1000,height:size.y/1000,depth:size.z/1000,width:size.x/1000};
 }
 export function cadPlacements(r,templates){
  const out=[],add=(name,x,y,z,sx,sy,sz)=>out.push({name,x,y,z,sx,sy,sz,color:name==='mekikBeam'||name==='b2bBeam'||name==='mrBeam'?r.beamColor:r.footColor});
