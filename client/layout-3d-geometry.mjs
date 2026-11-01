@@ -31,7 +31,7 @@ export function rackParts(r,{cad=false,railSeats=null}={}){
   }
  }else if(r.system==='drive'||r.system==='mekik2'){
   const pitch=(r.width-r.foot)/r.bays,stations=r.footZ.length?r.footZ:[0,r.depth];
-  for(let lane=0;lane<=r.bays;lane++)for(const [start,end] of (r.footFrames?.length?r.footFrames:[[0,r.depth]])){
+  if(!(cad&&r.system==='drive'))for(let lane=0;lane<=r.bays;lane++)for(const [start,end] of (r.footFrames?.length?r.footFrames:[[0,r.depth]])){
    const x=-r.width/2+r.foot/2+lane*pitch,z1=Math.max(r.foot/2,start)-r.depth/2,z2=Math.min(r.depth-r.foot/2,end)-r.depth/2,span=z2-z1;let y=.15,index=0;
    while(y<r.height-.15){const top=Math.min(y+.6,r.height-.15);box('brace',x,(top+y)/2,(z1+z2)/2,.03,Math.hypot(top-y,span),.025,Math.atan2((index%2?-1:1)*span,top-y));y=top;index++;}
    for(let y=.15;y<r.height;y+=1.2)box('tie',x,y,(z1+z2)/2,.03,.04,span);

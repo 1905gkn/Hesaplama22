@@ -15,7 +15,7 @@ export function rackVisualTop(r){
 }
 export function environmentParts(data){
  const out=[],box=(kind,x,y,z,w,h,d,ry=0)=>{if([x,y,z,w,h,d,ry].every(Number.isFinite)&&w>0&&h>0&&d>0)out.push({kind,x,y,z,w,h,d,ry});};
- const symbols=data.symbols||[],points=data.points||[],thickness=.12;
+ const symbols=data.symbols||[],points=data.points||[],thickness=.12,wallHeight=positive(data.wallHeight,1);
  let area=0;for(let i=0;i<points.length;i++){const a=points[i],b=points[(i+1)%points.length];area+=a.x*b.z-b.x*a.z;}
  const segments=data.wallSegments||points.flatMap((a,i)=>{const j=(i+1)%points.length;return (j===0&&!data.closed)||data.breaks.includes(i)?[]:[{a,b:points[j]}]});
  if(!data.wallless)for(const {a,b} of segments){
@@ -25,7 +25,7 @@ export function environmentParts(data){
    const offsetX=door.x-a.x,offsetZ=door.z-a.z,position=offsetX*ux+offsetZ*uz,distance=Math.abs(offsetX*uz-offsetZ*ux),alignment=Math.abs(Math.cos(door.angle)*ux-Math.sin(door.angle)*uz);
    if(distance>door.depth/2+.15||alignment<.95)continue;const half=door.width/2;if(position+half<=0||position-half>=length)continue;cuts.push([Math.max(0,position-half),Math.min(length,position+half)]);
   }
-  let cursor=0;const wall=(start,end)=>{if(end-start<.01)return;const t=(start+end)/2;box('wall',a.x+t*ux+nx*thickness/2,.5,a.z+t*uz+nz*thickness/2,end-start,1,thickness,-Math.atan2(dz,dx));};
+  let cursor=0;const wall=(start,end)=>{if(end-start<.01)return;const t=(start+end)/2;box('wall',a.x+t*ux+nx*thickness/2,wallHeight/2,a.z+t*uz+nz*thickness/2,end-start,wallHeight,thickness,-Math.atan2(dz,dx));};
   for(const [start,end] of cuts.sort((a,b)=>a[0]-b[0])){if(start>cursor)wall(cursor,start);cursor=Math.max(cursor,end);}wall(cursor,length);
  }
  for(const s of symbols){

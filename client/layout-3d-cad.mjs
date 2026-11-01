@@ -5,17 +5,18 @@ import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
 import {MeshoptDecoder} from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 const cache=new Map();
 export async function loadLayoutCad(racks){
- const names=new Set();for(const r of racks){if(r.system==='b2b'){names.add('b2bFrame');names.add('b2bBeam');}if(r.system==='mr')names.add('mrBeam');if(r.system==='mekik2'||r.system==='drive'){names.add('mekikPost');if(r.system==='mekik2')names.add('mekikBeam')}}
+ const names=new Set();for(const r of racks){if(r.system==='b2b'){names.add('b2bFrame');names.add('b2bBeam');}if(r.system==='mr')names.add('mrBeam');if(r.system==='mekik2'){names.add('mekikPost');names.add('mekikBeam')}if(r.system==='drive'){names.add('drivePost');names.add('b2bBeam')}}
  return Object.fromEntries(await Promise.all([...names].map(async name=>{
   if(!cache.has(name))cache.set(name,(async()=>{
    const loader=new GLTFLoader(),draco=new DRACOLoader();draco.setDecoderPath('/draco/');draco.setDecoderConfig({type:'wasm'});loader.setDRACOLoader(draco);loader.setMeshoptDecoder(MeshoptDecoder);
-   const paths={b2bFrame:'/b2b-ayak.glb',b2bBeam:'/b2b-travers.glb',mrBeam:'/mr-zs-travers.glb',mekikPost:'/mekik-front-ayak.glb',mekikBeam:'/mekik-front-travers.glb'};
+   const paths={b2bFrame:'/b2b-ayak.glb',b2bBeam:'/b2b-travers.glb',mrBeam:'/mr-zs-travers.glb',drivePost:'/drive-in/drive-in-ayak-top.glb',mekikPost:'/mekik-front-ayak.glb',mekikBeam:'/mekik-front-travers.glb'};
    try{const gltf=await loader.loadAsync(paths[name]+'?v=layout445');return prepareCad(gltf.scene,name)}finally{draco.dispose()}
   })().catch(e=>{cache.delete(name);throw e}));return [name,await cache.get(name)];
  })));
 }
 export function prepareCad(scene,name){
  scene.updateMatrixWorld(true);const axis=name==='mrBeam'?new THREE.Matrix4().makeBasis(new THREE.Vector3(0,0,1),new THREE.Vector3(1,0,0),new THREE.Vector3(0,-1,0)):new THREE.Matrix4().makeRotationX(name.startsWith('b2b')?Math.PI/2:-Math.PI/2),source=[],names=[],finishes=[],profileBounds=new THREE.Box3();
+ if(name==='drivePost')axis.multiply(new THREE.Matrix4().makeRotationY(Math.PI));
  scene.traverse(mesh=>{if(!mesh.isMesh)return;const geometry=mesh.geometry.clone();geometry.applyMatrix4(new THREE.Matrix4().multiplyMatrices(axis,mesh.matrixWorld));if(axis.determinant()<0&&geometry.index){const indices=geometry.index.array;for(let i=0;i<indices.length;i+=3){const v=indices[i+1];indices[i+1]=indices[i+2];indices[i+2]=v;}geometry.index.needsUpdate=true;}geometry.computeBoundingBox();if(name==='b2bBeam'&&!/KONNEKT/i.test(mesh.name))profileBounds.union(geometry.boundingBox);source.push(geometry);names.push(String(mesh.name).toLocaleUpperCase('tr-TR'));finishes.push(/DİAGONEL|DIAGONEL|ÇAĞRAZ|ÇAPRAZ/.test(String(mesh.name).toLocaleUpperCase('tr-TR'))?'galvanized':null)});
  const bounds=new THREE.Box3();source.forEach(g=>bounds.union(g.boundingBox));const center=bounds.getCenter(new THREE.Vector3()),size=bounds.getSize(new THREE.Vector3());
  const originY=name==='b2bBeam'&&!profileBounds.isEmpty()?profileBounds.min.y:name==='mekikBeam'||name==='mrBeam'?bounds.max.y:bounds.min.y;
@@ -36,8 +37,9 @@ export function cadPlacements(r,templates){
  }else if(r.system==='mr'){
   const t=templates.mrBeam,pitch=(r.width-r.foot)/r.modules;for(let m=0;m<r.modules;m++)for(const y of r.floors)for(const side of [-1,1]){add('mrBeam',-r.width/2+r.foot/2+(m+.5)*pitch,y,side*(r.depth/2-t.depth/2),(pitch-r.foot)/t.width,r.beam/t.height,1);out.at(-1).ry=side<0?Math.PI:0;}
  }else if(r.system==='mekik2'||r.system==='drive'){
-  const t=templates.mekikPost,pitch=(r.width-r.foot)/r.bays,stations=r.footZ.length?r.footZ:[0,r.depth];
-  for(let lane=0;lane<=r.bays;lane++)for(const zz of [...new Set(stations)])add('mekikPost',-r.width/2+r.foot/2+lane*pitch,0,Math.max(r.foot/2,Math.min(r.depth-r.foot/2,zz))-r.depth/2,r.foot/.1,r.height/t.height,1);
+  const postName=r.system==='drive'?'drivePost':'mekikPost',t=templates[postName],pitch=(r.width-r.foot)/r.bays,stations=r.footZ.length?r.footZ:[0,r.depth];
+  if(r.system==='drive'){for(let lane=0;lane<=r.bays;lane++)for(const [start,end] of (r.footFrames.length?r.footFrames:[[0,r.depth]]))add(postName,-r.width/2+r.foot/2+lane*pitch,0,(start+end)/2-r.depth/2,r.foot/t.width,r.height/t.height,(end-start)/t.depth);}else for(let lane=0;lane<=r.bays;lane++)for(const zz of [...new Set(stations)])add(postName,-r.width/2+r.foot/2+lane*pitch,0,Math.max(r.foot/2,Math.min(r.depth-r.foot/2,zz))-r.depth/2,r.foot/.1,r.height/t.height,1);
+  if(r.system==='drive')for(let lane=0;lane<r.bays;lane++)for(const zz of [...new Set(stations)]){const beam=templates.b2bBeam,h=.14;add('b2bBeam',-r.width/2+r.foot/2+(lane+.5)*pitch,r.height-h,Math.max(.05,Math.min(r.depth-.05,zz))-r.depth/2,(pitch-r.foot)/2.7,h/(beam.referenceHeight||.12),1);}
   if(r.system==='mekik2')for(let lane=0;lane<r.bays;lane++)for(const y of r.floors)for(const zz of [...new Set(stations)])add('mekikBeam',-r.width/2+r.foot/2+(lane+.5)*pitch,y,Math.max(.05,Math.min(r.depth-.05,zz))-r.depth/2,pitch/1.45,1,1);
  }
  return out;

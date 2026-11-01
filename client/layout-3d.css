@@ -9,3 +9,5 @@
 #rafexLayout3DDialog [data-font-size]{width:58px;min-height:38px;padding:5px;border:1px solid #b8cec1;border-radius:6px;font:inherit;background:white;color:#173f30}
 
 .rafex-layout3d-types[hidden]{display:none}.rafex-layout3d-measure-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible}.rafex-layout3d-measure-lines path{fill:none;stroke:#39735c;stroke-width:1;opacity:.35}.rafex-layout3d-measure-lines .measure-wall{stroke:#b56a19}.rafex-layout3d-labels .measure-wall{color:#8e5214;border-color:#b56a1966}.rafex-layout3d-labels .measure-pair{border-color:#39735c55}
+
+#rafexLayout3DDialog [data-wall-height]{width:80px;min-height:38px;padding:5px;border:1px solid #b8cec1;border-radius:6px;font:inherit;background:white;color:#173f30}
