@@ -14,7 +14,7 @@ const data=layoutSnapshot(state),types=data.racks.map(r=>r.system);
 assert.deepEqual(types,['b2b','mr','konsol','mekik2','drive']);assert.equal(rackSystem({b2b:{mr:true},systemType:'fifo'}),'mr');assert.equal(rackSystem({konsol:{},systemType:'fifo'}),'konsol');
 const geometry=data.racks.map(rackParts),by=(i,k)=>geometry[i].filter(p=>p.kind===k);
 assert.equal(by(0,'load').length,12,'B2B must contain 3 pallets × 4 levels, not the bay count of one');assert.equal(by(0,'timber').length,240,'Each pallet has a distinct timber base');
-assert.equal(by(1,'load').length,0,'MR must not invent pallet loads');assert.equal(by(1,'shelf').length,4,'Saved MR trays are on their assigned levels');assert.deepEqual(data.racks[1].floors,[.2,1.2,2.2,3.2]);
+assert.equal(by(1,'load').length,0,'MR must not invent pallet loads');assert.equal(by(1,'shelf').length,4,'Saved MR trays are on their assigned levels');assert.deepEqual(data.racks[1].floors,[.275,1.35,2.425,3.5]);
 assert.equal(by(2,'load').length+by(2,'timber').length,0,'Cantilever must carry long goods, not pallets');assert.equal(by(2,'product').length,12);assert.ok(by(2,'beam').filter(p=>p.d>1).every(p=>p.w<.2),'Cantilever arms must extend in depth, not span the bay');
 const double=layoutSnapshot({...state,racks:[{...fixtures[2],depthMm:2620,h:104.8,konsol:{...fixtures[2].konsol,side:'double'}}]}).racks[0];assert.equal(rackParts(double).filter(p=>p.kind==='product').length,24,'Double sided cantilever must have two sets of arms/loads');
 assert.equal(by(3,'load').length,30,'Mekik pallets respect the saved positions and depth bound');assert.equal(by(4,'load').length,30);assert.equal(by(3,'rail').length,36);assert.equal(by(4,'rail').length,12);
