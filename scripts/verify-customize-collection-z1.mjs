@@ -1,0 +1,11 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
+const source=fs.readFileSync('scripts/patch-final-live-controls.mjs','utf8');
+const helpers=source.slice(source.indexOf('    const isGround='),source.indexOf('    const applyGroundK1='));
+let draft=null;const rack={id:7,b2b:{firstPalletPosition:'ground',collectionLevels:{enabled:false,floors:[]}}};
+const context={activeRack:()=>rack,window:{rafexCollectCustomizeCollectionV119:()=>draft}};vm.createContext(context);vm.runInContext(helpers+';globalThis.forbidden=k1Forbidden;',context);
+const types=['hTraverse','tray','katWire'];const check=value=>types.forEach(type=>assert.equal(context.forbidden(type),value,type));
+check(true);draft={enabled:true,floors:[{height:500}]};check(false);draft={enabled:true,floors:[]};check(true);draft={enabled:false,floors:[{height:500}]};check(true);draft=null;rack.b2b.collectionLevels={enabled:true,floors:[{height:500}]};check(false);draft={enabled:false,floors:[]};check(true);rack.b2b.firstPalletPosition='traverse';check(false);assert.equal(context.forbidden('palletStop'),false);
+const isolation=fs.readFileSync('scripts/collection-accessory-isolation-v387.mjs','utf8');const match=isolation.match(/"(const collection=window\.rafexCollectCustomizeCollectionV119[^"\n]+)"/);assert(match);
+vm.runInContext('globalThis.ground=()=>{const rack=activeRack();'+match[1]+'}',context);
+rack.b2b.firstPalletPosition='ground';draft={enabled:true,floors:[{}]};assert.equal(context.ground(),false);draft={enabled:false,floors:[]};assert.equal(context.ground(),true);
+console.log('PASS Z1: live collection draft enables H travers/tray/wire; remove/empty restores ground rule; saved fallback and elevated pallet preserved.');

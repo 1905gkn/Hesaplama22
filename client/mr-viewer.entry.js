@@ -253,8 +253,8 @@ class MRViewer {
             let cursor = 0;
             this.trayPiecePlan(width, accessory.width).forEach((pieceWidth) => {
               const shelf = tray.object.clone(true);
-              shelf.scale.set(pieceWidth / tray.size.x, 1, depth / tray.size.z);
               shelf.userData.layoutAccessory=true;
+              shelf.scale.set(pieceWidth / tray.size.x, 1, depth / tray.size.z);
               shelf.rotation.x = Math.PI;
               shelf.position.set(moduleX + cursor, levelY + traverseHeight + tray.size.y - 50, depth);
               this.root.add(shelf);
