@@ -1,3 +1,4 @@
+import {planRackLabel} from '../client/layout-3d-labels.mjs';
 import {b2bFrameLayout,b2bBeamMountZ} from '../client/layout-3d-b2b-placement.mjs';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
@@ -39,3 +40,5 @@ assert.equal(dp.filter(p=>p.name==='drivePost').length,(drive.bays+1)*drive.foot
 
 for(const config of [{firstRailHeight:430,levels:4,levelH:1580,palletHeight:1200},{firstRailHeight:0,levels:1,levelH:1500,palletHeight:1000},{firstRailHeight:2400,levels:5,levelH:1350,palletHeight:1300}]){const drawing={...fixtures[4],...config,sideUprightHeight:999,totalRackHeight:1000};const snap=layoutSnapshot({scale:.04,racks:[drawing]}).racks[0],expected=(config.firstRailHeight+(config.levels-1)*config.levelH+config.palletHeight+220)/1000;assert.equal(snap.height,expected);const placed=cadPlacements(snap,{drivePost:driveTemplate,b2bBeam:beamTemplate});assert.ok(placed.filter(p=>p.name==='drivePost').every(p=>Math.abs(p.sy*driveTemplate.height-expected)<1e-6));assert.ok(placed.filter(p=>p.name==='b2bBeam').every(p=>Math.abs(p.y+.14-expected)<1e-6));}
 console.log('PASS Drive-In height: same section formula, including ground level and single level; top beams follow the corrected height.');
+
+assert.deepEqual(planRackLabel({id:9,typeName:'A'},null,()=> '1'),{name:'A1',detail:''});assert.deepEqual(planRackLabel({id:9,typeName:'A'},null,()=> 'TÜNEL - 2'),{name:'A2',detail:'TÜNEL'});const labelRoot={querySelectorAll:()=>[{getAttribute:()=> '9',querySelector:()=>({querySelector:selector=>({textContent:selector==='text'?'A1':'TÜNEL'})})}]};assert.deepEqual(planRackLabel({id:9,typeName:'WRONG'},labelRoot,()=> '2'),{name:'A1',detail:'TÜNEL'});console.log('PASS 3D labels preserve exact free-plan A1/A2 and TUNEL text, with shared variant fallback.');
