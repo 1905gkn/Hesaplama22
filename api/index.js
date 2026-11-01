@@ -1,3 +1,4 @@
+import {approvalMailRelay} from '../scripts/approval-mail-v451.mjs';
 import {customerShareStorage} from '../scripts/customer-share-storage.mjs';
 import {customerViewPage} from '../scripts/customer-view-page.mjs';
 import {decodeRequest,encodeResponse} from '../scripts/wire-gzip-v244.mjs';
@@ -143,6 +144,7 @@ async function dailyDashboard(request) {
 const application = {
   async fetch(request) {
     const path = new URL(request.url).pathname;
+    if(path==='/api/internal/approval-mail')return approvalMailRelay(request);
     // Web Push subscription writes retain the browser origin check before proxy normalization.
     if((path.startsWith('/api/push/')||path.startsWith('/api/notifications'))&&request.method!=='GET'&&request.headers.get('origin')!==new URL(request.url).origin)return Response.json({error:'Geçersiz istek.'},{status:403});
     if(path==='/api/push/dispatch'&&(!process.env.CRON_SECRET||request.headers.get('authorization')!=='Bearer '+process.env.CRON_SECRET))return Response.json({error:'Yetkisiz.'},{status:401});
