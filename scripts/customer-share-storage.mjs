@@ -11,7 +11,7 @@ export async function customerShareStorage(request,{proxyApi}){
    return proxyApi(new Request(request.url,{method:request.method,headers:request.headers,body:JSON.stringify(body)}));
   }
  }
- if(request.method==='PUT'&&/^\/api\/customer-shares\/[A-Za-z0-9_-]{16}\/images\/0$/.test(url.pathname)){
+ if(request.method==='PUT'&&/^\/api\/customer-shares\/[a-f0-9]{48}\/images\/0$/.test(url.pathname)){
   const data=await request.clone().json().catch(()=>null);let snapshot=null;
   try{if(typeof data?.png==='string'&&data.png.length<=4000000)snapshot=await readSharePayload(pngDataBytes(data.png));}catch{}
   if(snapshot&&snapshot.reports?.length===0){
