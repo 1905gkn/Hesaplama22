@@ -32,7 +32,7 @@ export function cadPlacements(r,templates){
  if(r.system==='b2b'){
   const t=templates.b2bFrame,{depth:fd,centers}=b2bFrameLayout(r);
   for(let row=0;row<r.rows;row++)for(const side of [-1,1]){const h=Number(r.frameHeights[row]?.[side<0?'left':'right'])/1000||r.height;add('b2bFrame',side*(r.width-r.foot)/2,0,centers[row],r.foot/.09,h/t.height,fd/t.depth)}
-  for(let row=0;row<r.rows;row++)for(let i=0;i<r.floors.length;i++){const y=r.beamYs[i];if(y===null||(r.tunnelHeight>0&&r.floors[i]<=r.tunnelHeight))continue;for(const side of [-1,1]){add('b2bBeam',0,y,centers[row]+b2bBeamMountZ(r,t,templates.b2bBeam,side),(r.width-2*r.foot)/2.7,r.beam/(templates.b2bBeam?.referenceHeight||.12),1);out.at(-1).ry=side<0?Math.PI:0;}}
+  for(let row=0;row<r.rows;row++)for(let i=0;i<r.floors.length;i++){const y=r.beamYs[i];if(y===null||(r.tunnelHeight>0&&y<r.tunnelHeight))continue;for(const side of [-1,1]){add('b2bBeam',0,y,centers[row]+b2bBeamMountZ(r,t,templates.b2bBeam,side),(r.width-2*r.foot)/2.7,r.beam/(templates.b2bBeam?.referenceHeight||.12),1);out.at(-1).ry=side<0?Math.PI:0;}}
  }else if(r.system==='mr'){
   const t=templates.mrBeam,pitch=(r.width-r.foot)/r.modules;for(let m=0;m<r.modules;m++)for(const y of r.floors)for(const side of [-1,1]){add('mrBeam',-r.width/2+r.foot/2+(m+.5)*pitch,y,side*(r.depth/2-t.depth/2),(pitch-r.foot)/t.width,r.beam/t.height,1);out.at(-1).ry=side<0?Math.PI:0;}
  }else if(r.system==='mekik2'||r.system==='drive'){
