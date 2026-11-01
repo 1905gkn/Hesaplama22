@@ -1,9 +1,12 @@
 import fs from 'node:fs';
 export function viewerTransform(s){if(s.includes('mr-speed-v213'))return s;const rep=(a,b)=>{if(!s.includes(a))throw Error('MR anchor '+a);s=s.replace(a,b)};
- rep('window.RafexMRViewer={','window.RafexMRViewer={preload(){return Promise.all([os("upright"),os("traverse"),os("tray")]);},');
- rep('return B?.destroy(),B=new ce(l,e),B','if(B&&!B.destroyed&&B.canvas===l){if(e?.config)B.setConfiguration(e.config);return B;}return B?.destroy(),B=new ce(l,e),B');
+ const loader=s.match(/await Promise\.all\(\[([\w$]+)\("upright"/);if(!loader)throw Error('MR preload loader anchor');
+ rep('window.RafexMRViewer={','window.RafexMRViewer={preload(){return Promise.all(['+loader[1]+'("upright"),'+loader[1]+'("traverse"),'+loader[1]+'("tray")]);},');
+ const mount=s.match(/return ([\w$]+)\?\.destroy\(\),\1=new ([\w$]+)\(([\w$]+),([\w$]+)\),\1/);if(!mount)throw Error('MR mount anchor');const [,active,Viewer,canvas,options]=mount;
+ rep(mount[0],'if('+active+'&&!'+active+'.destroyed&&'+active+'.canvas==='+canvas+'){if('+options+'?.config)'+active+'.setConfiguration('+options+'.config);return '+active+';}'+mount[0]);
  rep('this.renderer.shadowMap.enabled=!0','this.renderer.shadowMap.enabled=this.canvas.id!=="mrCanvas"');
- rep('this.configSignature=t;let L=', 'this.configSignature=t;if(this.canvas.id==="mrCanvas"&&!this.renderer.shadowMap.enabled){requestAnimationFrame(()=>requestAnimationFrame(()=>{if(this.destroyed)return;this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.needsUpdate=true;this.frameDirty=true;}));}let L=');
+ const signature=s.match(/this\.configSignature=([\w$]+);let ([\w$]+)=/);if(!signature)throw Error('MR configuration signature anchor');
+ rep(signature[0],'this.configSignature='+signature[1]+';if(this.canvas.id==="mrCanvas"&&!this.renderer.shadowMap.enabled){requestAnimationFrame(()=>requestAnimationFrame(()=>{if(this.destroyed)return;this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.needsUpdate=true;this.frameDirty=true;}));}let '+signature[2]+'=');
  return s+'\n/* mr-speed-v213 */';
 }
 export function transform(html){if(html.includes('data-mr-speed="v213"'))return html;
