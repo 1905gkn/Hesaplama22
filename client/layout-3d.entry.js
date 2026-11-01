@@ -25,6 +25,7 @@ function makeViewer(host,data,templates,accessoryGeometries=new Map()){
  }
  const cadGroups=new Map();
  for(const r of data.racks){parent.position.set(r.x,0,r.z);parent.rotation.set(0,r.angle,0);parent.updateMatrix();for(const p of cadPlacements(r,templates)){
+  if(r.system==='b2b'&&accessoryGeometries.has(String(r.id))&&p.name==='b2bBeam')continue;
   const key=p.name+':'+p.color;if(!cadGroups.has(key))cadGroups.set(key,{template:templates[p.name],color:p.color,matrices:[]});dummy.position.set(p.x,p.y,p.z);dummy.rotation.set(0,p.ry||0,0);dummy.scale.set(p.sx,p.sy,p.sz);dummy.updateMatrix();cadGroups.get(key).matrices.push(new THREE.Matrix4().multiplyMatrices(parent.matrix,dummy.matrix));
  }}
  for(const {template,color,matrices} of cadGroups.values()){const material=new THREE.MeshStandardMaterial({color:colors[color]||'#005078',roughness:.42,metalness:.4});materials.push(material);const galvanized=new THREE.MeshStandardMaterial({color:colors.galvanized,metalness:.6,roughness:.42});materials.push(galvanized);for(const [index,geometry] of template.geometries.entries()){const mesh=new THREE.InstancedMesh(geometry,template.finishes?.[index]==='galvanized'?galvanized:material,matrices.length);matrices.forEach((matrix,i)=>mesh.setMatrixAt(i,matrix));scene.add(mesh)}}
