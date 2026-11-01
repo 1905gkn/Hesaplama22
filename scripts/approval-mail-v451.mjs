@@ -1,10 +1,12 @@
 import tls from 'node:tls';
+import net from 'node:net';
 import {timingSafeEqual} from 'node:crypto';
 const json=(data,status=200)=>Response.json(data,{status,headers:{'cache-control':'no-store'}});
 export async function smtpApproval({to,name,title,code},env=process.env,{verifyOnly=false}={}){
  const host=env.RAFEX_SMTP_HOST,user=env.RAFEX_SMTP_USER,password=env.RAFEX_SMTP_PASSWORD;
  if(!host||!user||!password)throw Error('SMTP_CONFIG');
- const socket=tls.connect({host,port:465,servername:host,rejectUnauthorized:true});
+ const plain=env.RAFEX_SMTP_TRANSPORT==='plain',port=Number(env.RAFEX_SMTP_PORT)||(plain?587:465);
+ const socket=plain?net.connect({host,port}):tls.connect({host,port,servername:host,rejectUnauthorized:true});
  socket.setTimeout(15000,()=>socket.destroy(Error('SMTP_TIMEOUT')));
  let buffer='',lines=[],queue=[],waiters=[],failure=null;
  const deliver=value=>{const waiter=waiters.shift();if(waiter)waiter.resolve(value);else queue.push(value);};
