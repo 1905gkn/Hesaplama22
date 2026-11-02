@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import * as THREE from 'three';
+import {createPreparedCache} from '../client/layout-3d-prepared-cache.mjs';
+let clock=0,builds=0;
+const cache=createPreparedCache({maxBytes:4096,maxEntries:1,ttl:100,now:()=>clock});
+const source=()=>{builds++;const g=new THREE.BoxGeometry(1,2,3),parts=[{geometry:g,color:'#aeb8bd',roughness:.62,matrices:[new THREE.Matrix4().toArray()]}];return new Map([['a',parts],['b',parts]])};
+const one=await cache.get('unchanged',source);assert.equal(builds,1);assert.equal(one.get('a'),one.get('b'),'Identical rack types share copies within one viewer');
+const g=one.get('a')[0].geometry,positions=Array.from(g.attributes.position.array);g.attributes.position.array[0]=999;one.get('a')[0].matrices[0][0]=999;g.dispose();
+const two=await cache.get('unchanged',source);assert.equal(builds,1,'Reopening skips native assembly and merging');assert.notEqual(two.get('a')[0].geometry,g,'Independent consumers own GPU geometry');assert.deepEqual(Array.from(two.get('a')[0].geometry.attributes.position.array),positions,'Consumer changes cannot corrupt cached CAD');assert.equal(two.get('a')[0].matrices[0][0],1);
+await cache.get('changed',source);assert.equal(builds,2,'Changed source recomputes geometry');assert.equal(cache.stats().entries,1);assert(cache.stats().bytes<=4096);
+clock=101;await cache.get('changed',source);assert.equal(builds,3,'Idle cache expires');
+await assert.rejects(cache.get('failed',()=>Promise.reject(Error('test'))));await cache.get('failed',source);assert.equal(builds,4,'Failed preparation can retry');
+const small=createPreparedCache({maxBytes:1});await small.get('large',source);assert.equal(small.stats().entries,0,'Oversized CAD is not retained');cache.clear();assert.equal(cache.stats().bytes,0);
+console.log('PASS prepared CAD cache: unchanged reopen skips build; source changes invalidate; independent viewer buffers, shared type copies, bounded memory, expiry and failure retry.');

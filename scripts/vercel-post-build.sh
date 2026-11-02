@@ -298,3 +298,5 @@ node scripts/verify-protections-v464.mjs
 node scripts/verify-mr-finishes-v468.mjs
 
 node scripts/verify-layout-preparation-v469.mjs
+
+node scripts/verify-prepared-cache-v470.mjs
