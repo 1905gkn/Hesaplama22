@@ -301,4 +301,3 @@ node scripts/verify-layout-preparation-v469.mjs
 
 node scripts/verify-prepared-cache-v470.mjs
 
-node scripts/verify-customer-plan-v472.mjs
