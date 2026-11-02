@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {approvalMessage} from './approval-mail-v451.mjs';
+const data={to:'recipient@example.test',name:'Élodie Öztürk',title:'Dépôt İstanbul',projectNumber:'374',code:'012345'},sender='configurator@rafex.com.tr';
+const message=approvalMessage(data,sender),[headers,encoded]=message.split('\r\n\r\n'),body=Buffer.from(encoded.replaceAll('\r\n',''),'base64').toString('utf8');
+assert.match(headers,/^Date: .+ GMT\r\nMessage-ID: <[a-f0-9-]+@rafex\.com\.tr>/);
+assert.match(headers,/Content-Language: tr, en, fr/);
+assert.equal((headers.match(/^Message-ID:/gm)||[]).length,1);
+assert.notEqual(message.match(/Message-ID: (.+)/)[1],approvalMessage(data,sender).match(/Message-ID: (.+)/)[1]);
+for(const text of ['Onaylama kodunuz: 012345','Your approval code: 012345','Votre code de validation : 012345','Proje No: 374','Project No: 374','N° de projet : 374','Élodie Öztürk','Dépôt İstanbul'])assert(body.includes(text),text);
+assert(encoded.split('\r\n').every(line=>line.length<=76));
+for(const word of headers.match(/=\?UTF-8\?B\?[^?]+\?=/g))assert(word.length<=75,'RFC 2047 word length');
+assert.throws(()=>approvalMessage({...data,to:'bad\r\nBcc: third@example.test'},sender));
+assert.throws(()=>approvalMessage(data,'bad\r\nBcc: third@example.test'));
+assert(!approvalMessage({...data,name:'Name\r\nBcc: third@example.test'},sender).split('\r\n\r\n')[0].includes('Bcc:'));
+console.log('PASS: date, unique sender-domain Message-ID, UTF-8 multilingual subjects/body, leading-zero OTP, project details, RFC line lengths and header injection protection. No mail sent.');

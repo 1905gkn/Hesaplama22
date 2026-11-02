@@ -1,7 +1,21 @@
 import tls from 'node:tls';
 import net from 'node:net';
-import {timingSafeEqual,createHmac} from 'node:crypto';
+import {timingSafeEqual,createHmac,randomUUID} from 'node:crypto';
 const json=(data,status=200)=>Response.json(data,{status,headers:{'cache-control':'no-store'}});
+export function approvalMessage({to,name,title,code,projectNumber},user,{now=new Date(),id=randomUUID()}={}){
+ if(!/^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(user||'')||/[\r\n]/.test(user)||!/^[-a-zA-Z0-9.]+$/.test(user.split('@')[1]))throw Error('SMTP_CONFIG');
+ if(!/^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(to||'')||/[\r\n]/.test(to)||!/^\d{6}$/.test(code||''))throw Error('SMTP_MESSAGE');
+ const clean=value=>String(value||'').replace(/[\r\n]+/g,' ').trim();
+ name=clean(name);title=clean(title);projectNumber=clean(projectNumber);
+ const sections=[
+  'TÜRKÇE\nSayın '+name+',\n\nProje adı: '+title+'\nProje No: '+(projectNumber||'Belirtilmemiş (eski paylaşım)')+'\n\nOnaylama kodunuz: '+code+'\n\nBu kod 10 dakika geçerlidir. Kodu yalnızca RAFEX proje görüntüleme sayfasına girin.\nBu işlemi siz başlatmadıysanız kodu paylaşmayın.\n\nRAFEX Raf Sistemleri',
+  'ENGLISH\nDear '+name+',\n\nProject name: '+title+'\nProject No: '+(projectNumber||'Not specified (older share)')+'\n\nYour approval code: '+code+'\n\nThis code is valid for 10 minutes. Enter it only on the RAFEX project viewing page.\nIf you did not request this code, do not share it.\n\nRAFEX Racking Systems',
+  'FRANÇAIS\nBonjour '+name+',\n\nNom du projet : '+title+'\nN° de projet : '+(projectNumber||'Non précisé (ancien partage)')+'\n\nVotre code de validation : '+code+'\n\nCe code est valable pendant 10 minutes. Saisissez-le uniquement sur la page de consultation du projet RAFEX.\nSi vous n’êtes pas à l’origine de cette demande, ne communiquez pas ce code.\n\nRAFEX Systèmes de rayonnage'
+ ];
+ const subject=['RAFEX · Proje onaylama kodu','Project approval code','Code de validation du projet'].map(text=>'=?UTF-8?B?'+Buffer.from(text).toString('base64')+'?=').join('\r\n ');
+ const body=Buffer.from(sections.join('\n\n----------------------------------------\n\n')).toString('base64').match(/.{1,76}/g).join('\r\n');
+ return 'Date: '+now.toUTCString()+'\r\nMessage-ID: <'+id+'@'+user.split('@')[1]+'>\r\nFrom: RAFEX <'+user+'>\r\nTo: <'+to+'>\r\nSubject: '+subject+'\r\nMIME-Version: 1.0\r\nContent-Language: tr, en, fr\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n'+body;
+}
 export async function smtpApproval({to,name,title,code,projectNumber},env=process.env,{verifyOnly=false}={}){
  const host=env.RAFEX_SMTP_HOST,user=env.RAFEX_SMTP_USER,password=env.RAFEX_SMTP_PASSWORD;
  if(!host||!user||!password)throw Error('SMTP_CONFIG');
@@ -22,9 +36,8 @@ export async function smtpApproval({to,name,title,code,projectNumber},env=proces
   if(capabilities.lines.some(line=>/AUTH.*CRAM-MD5/i.test(line))){const challenge=await command('AUTH CRAM-MD5',[334]);const digest=createHmac('md5',password).update(Buffer.from(challenge.lines.at(-1).slice(4),'base64')).digest('hex');await command(Buffer.from(user+' '+digest).toString('base64'),[235]);}else{await command('AUTH LOGIN',[334]);await command(Buffer.from(user).toString('base64'),[334]);await command(Buffer.from(password).toString('base64'),[235]);}
   if(!verifyOnly){phase='envelope';
    await command('MAIL FROM:<'+user+'>');await command('RCPT TO:<'+to+'>',[250,251]);await command('DATA',[354]);
-   const subject='=?UTF-8?B?'+Buffer.from('RAFEX · Proje onaylama kodu').toString('base64')+'?=';
-   const body=Buffer.from('Sayın '+name+',\n\n'+title+'\nProje No: '+(projectNumber||'Belirtilmemiş (eski paylaşım)')+'\n\nOnaylama kodunuz: '+code+'\n\nBu kod 10 dakika geçerlidir. Kodu yalnızca RAFEX proje görüntüleme sayfasına girin.\nBu işlemi siz başlatmadıysanız kodu paylaşmayın.\n\nRAFEX Raf Sistemleri').toString('base64').match(/.{1,76}/g).join('\r\n');
-   phase='message';socket.write('From: RAFEX <'+user+'>\r\nTo: <'+to+'>\r\nSubject: '+subject+'\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n'+body+'\r\n.\r\n');await expect([250]);
+   const message=approvalMessage({to,name,title,code,projectNumber},user);
+   phase='message';socket.write(message+'\r\n.\r\n');await expect([250]);
   }
   await command('QUIT',[221]);
  }catch(error){error.smtpPhase=phase;throw error;}finally{socket.destroy();}
