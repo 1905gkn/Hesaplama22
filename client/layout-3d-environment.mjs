@@ -14,10 +14,19 @@ export function planWallSegments(state){
  const path=(p,closed,breaks=[])=>{for(let i=0;i<(closed?p.length:p.length-1);i++)if(!breaks.includes(i))add(p[i],p[(i+1)%p.length])};path(state.points||[],state.closed,state.pathBreaks||[]);for(const e of state.cadElements||[])if(e.type==='wall')path(e.points||[],e.closed);return out;
 }
 export function environmentSnapshot(state,symbols=[]){
- const unit=1/(positive(state.scale,.04)*1000),segments=planWallSegments(state),all=symbols.filter(s=>s.type==='column'||s.type==='door').slice(),represented=new Set(all.filter(s=>s.cadElement).map(s=>JSON.stringify([s.cadElement.type,s.cadElement.points])));
+ const unit=1/(positive(state.scale,.04)*1000),segments=planWallSegments(state),all=symbols.filter(s=>['column','door','uaks','uakz','barrier'].includes(s.type)).slice(),represented=new Set(all.filter(s=>s.cadElement).map(s=>JSON.stringify([s.cadElement.type,s.cadElement.points])));
  for(const e of state.cadElements||[]){if(!['column','door'].includes(e.type)||represented.has(JSON.stringify([e.type,e.points]))||!e.points?.length)continue;const xs=e.points.map(p=>Number(p.x)),ys=e.points.map(p=>Number(p.y));all.push({id:e.id,type:e.type,x:Math.min(...xs),y:Math.min(...ys),w:Math.max(...xs)-Math.min(...xs),h:Math.max(...ys)-Math.min(...ys)});}
  const worldSegments=segments.map(s=>({a:{x:s.a.x*unit,z:s.a.y*unit},b:{x:s.b.x*unit,z:s.b.y*unit}}));
- return {floorLoops:closedWallFloors(worldSegments),wallless:!segments.length,wallSegments:segments.map(s=>({a:{x:s.a.x*unit,z:s.a.y*unit},b:{x:s.b.x*unit,z:s.b.y*unit}})),symbols:all.map(s=>({id:s.id,type:s.type,x:(Number(s.x)+Number(s.w)/2)*unit,z:(Number(s.y)+Number(s.h)/2)*unit,width:positive(s.widthMm,Math.max(1,Number(s.w))*unit*1000)/1000,depth:positive(s.depthMm,Math.max(1,Number(s.h))*unit*1000)/1000,angle:-(Number(s.angle)||0)*Math.PI/180}))};
+ return {floorLoops:closedWallFloors(worldSegments),wallless:!segments.length,wallSegments:segments.map(s=>({a:{x:s.a.x*unit,z:s.a.y*unit},b:{x:s.b.x*unit,z:s.b.y*unit}})),symbols:all.map(s=>{
+ const out={id:s.id,type:s.type,x:(Number(s.x)+Number(s.w)/2)*unit,z:(Number(s.y)+Number(s.h)/2)*unit,width:positive(s.widthMm,Math.max(1,Number(s.w))*unit*1000)/1000,depth:positive(s.depthMm,Math.max(1,Number(s.h))*unit*1000)/1000,angle:-(Number(s.angle)||0)*Math.PI/180,ral:s.ral||'1007'};
+ if(['uaks','uakz'].includes(s.type)&&s.rackId!=null){
+  const rack=(state.racks||[]).find(r=>String(r.id)===String(s.rackId));
+  if(rack&&Number.isFinite(Number(s.localX))&&Number.isFinite(Number(s.localY))){
+   const a=(Number(rack.angle)||0)*Math.PI/180,c=Math.cos(a),sn=Math.sin(a),sideX=Number(s.localX)<0?1:-1,sideY=Number(s.localY)<0?1:-1,half=positive(rack.footType,90)*positive(state.scale,.04)/2,lx=Number(s.localX)+sideX*half,ly=Number(s.localY)+sideY*half;
+   out.x=(Number(rack.x)+Number(rack.w)/2+lx*c-ly*sn)*unit;out.z=(Number(rack.y)+Number(rack.h)/2+lx*sn+ly*c)*unit;out.angle=-a+(sideY>0?Math.PI:0);
+  }
+ }return out;
+ })}
 }
 export function rackVisualTop(r){
  const special=(r.frameHeights||[]).flatMap(row=>[Number(row.left)/1000,Number(row.right)/1000]).filter(Number.isFinite);
@@ -41,6 +50,7 @@ export function environmentParts(data){
  }
  for(const s of symbols){
   if(s.type==='column'){box('column',s.x,.5,s.z,s.width,1,s.depth,s.angle);continue;}
+  if(s.type!=='door')continue;
   const c=Math.cos(s.angle),sn=Math.sin(s.angle),post=.05,position=x=>[s.x+x*c,s.z-x*sn];
   for(const side of [-1,1]){const [x,z]=position(side*(s.width-post)/2);box('door',x,.5,z,post,1,Math.max(.07,s.depth),s.angle);}
   box('door',s.x,.97,s.z,s.width,.06,Math.max(.07,s.depth),s.angle);
