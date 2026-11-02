@@ -30,8 +30,8 @@ export function nativeRenderBatches(racks,byRack){
   parent.position.set(rack.x,0,rack.z);parent.rotation.set(0,rack.angle,0);parent.updateMatrix();
   for(const part of byRack.get(String(rack.id))||[]){
    sourceMeshes++;
-   const roughness=rack.system==='konsol'?Math.max(.42,part.roughness??.42):.42;
-   const metalness=rack.system==='konsol'?(part.load?Math.min(.25,part.metalness??.25):.4):rack.system==='mr'?.4:.48;
+   const roughness=rack.system==='konsol'?Math.max(.42,part.roughness??.42):rack.system==='mr'?(part.roughness??.42):.42;
+   const metalness=rack.system==='konsol'?(part.load?Math.min(.25,part.metalness??.25):.4):rack.system==='mr'?(part.metalness??.4):.48;
    const color=new THREE.Color(part.color).getHex();
    const key=JSON.stringify([part.geometry.uuid,color,roughness,metalness,!!part.load]);
    if(!groups.has(key))groups.set(key,{geometry:part.geometry,color,roughness,metalness,load:!!part.load,name:part.name,matrices:[]});

@@ -7,7 +7,7 @@ import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.j
 const PARTS = { upright: "/mr-ayak-top.glb", traverse: "/mr-zs-travers.glb", tray: "/mr-tava.glb" };
 const FINISHES = {
   ral5010: { color: 0x004f7c, metalness: 0.42, roughness: 0.32 },
-  pgv: { color: 0xb7bec1, metalness: 0.82, roughness: 0.28 },
+  pgv: { color: 0xaeb8bd, metalness: 0.45, roughness: 0.62 },
   ral1007: { color: 0xe5a100, metalness: 0.34, roughness: 0.3 },
   ral2004: { color: 0xe25303, metalness: 0.34, roughness: 0.3 },
 };
@@ -39,11 +39,14 @@ function finishMaterials(object) {
   return object;
 }
 
-function applyFinish(object, finishKey) {
-  const finish = FINISHES[finishKey];
-  if (!finish) return;
+function applyFinish(object, finishKey, kind) {
+  if (!FINISHES[finishKey]) return;
   object.traverse((part) => {
     if (!part.isMesh || !part.material) return;
+    // MRD is the painted upright profile; KP braces, feet and fasteners stay galvanized.
+    // CAD files have no material definitions, so trays also need an explicit finish.
+    const fixedGalvanized = kind === "tray" || (kind === "upright" && !/(?:^|[\s_-])MRD\d/i.test(part.name));
+    const finish = FINISHES[fixedGalvanized ? "pgv" : finishKey];
     const materials = Array.isArray(part.material) ? part.material : [part.material];
     materials.forEach((material) => {
       if (material.color) material.color.setHex(finish.color);
@@ -83,7 +86,7 @@ async function loadFinishedPart(kind, finishKey = "default") {
   if (finishedCache.has(key)) return finishedCache.get(key);
   const task = loadNormalizedPart(kind).then((template) => {
     const object = finishMaterials(template.object.clone(true));
-    if (finishKey !== "default") applyFinish(object, finishKey);
+    applyFinish(object, finishKey === "default" ? "pgv" : finishKey, kind);
     return { object, size: template.size.clone() };
   });
   finishedCache.set(key, task);
@@ -412,7 +415,7 @@ let active = null;
 window.RafexMRViewer = {
   async layoutAccessoryGeometry(config){
     const model=Object.create(MRViewer.prototype);let failure=null;Object.assign(model,{canvas:{id:'layout-accessories',dispatchEvent(e){if(e.type==='mr-viewer-error')failure=e.detail?.message;}},root:new THREE.Group(),bounds:new THREE.Box3(),center:new THREE.Vector3(),size:new THREE.Vector3(),loadToken:0,configSignature:'',destroyed:false,grid:{scale:{setScalar(){}}},ground:{scale:{set(){}}},disposeDimensions(){},addDimensions(){},setView(){}});
-    await model.build(config);if(failure)throw Error(failure);model.root.updateMatrixWorld(true);const result=[];model.root.traverse(m=>{if(!m.isMesh)return;const g=m.geometry.clone().applyMatrix4(m.matrixWorld);if(m.matrixWorld.determinant()<0){if(!g.index)g.setIndex(Array.from({length:g.attributes.position.count},(_,i)=>i));const ix=g.index.array;for(let i=0;i<ix.length;i+=3){const a=ix[i+1];ix[i+1]=ix[i+2];ix[i+2]=a;}g.index.needsUpdate=true;}g.scale(.001,.001,.001);g.computeBoundingBox();g.computeBoundingSphere();const mat=Array.isArray(m.material)?m.material[0]:m.material;result.push({geometry:g,color:mat?.color?.getHex?.()??0xaeb8bd,name:m.name||'MR kayıtlı parça'});});model.root.clear();return result;
+    await model.build(config);if(failure)throw Error(failure);model.root.updateMatrixWorld(true);const result=[];model.root.traverse(m=>{if(!m.isMesh)return;const g=m.geometry.clone().applyMatrix4(m.matrixWorld);if(m.matrixWorld.determinant()<0){if(!g.index)g.setIndex(Array.from({length:g.attributes.position.count},(_,i)=>i));const ix=g.index.array;for(let i=0;i<ix.length;i+=3){const a=ix[i+1];ix[i+1]=ix[i+2];ix[i+2]=a;}g.index.needsUpdate=true;}g.scale(.001,.001,.001);g.computeBoundingBox();g.computeBoundingSphere();const mat=Array.isArray(m.material)?m.material[0]:m.material;result.push({geometry:g,color:mat?.color?.getHex?.()??0xaeb8bd,roughness:mat?.roughness??.42,metalness:mat?.metalness??.4,name:m.name||'MR kayıtlı parça'});});model.root.clear();return result;
   },
 
   getSavedDetail() { return active?.canvas?.id === 'mrCanvas' ? JSON.parse(JSON.stringify(active.config)) : null; },

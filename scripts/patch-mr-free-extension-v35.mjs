@@ -494,54 +494,11 @@ if (mode === "source") {
   if (mrViewer.includes(oldUprightLabelV48)) mrViewer = mrViewer.replace(oldUprightLabelV48, newUprightLabelV48);
   else if (!mrViewer.includes(newUprightLabelV48)) throw new Error("MR v48: ayak boyu etiketi sol tarafa tasinamadi.");
 
-  // MR ayak GLB'sinde KP kodlu yatay ve capraz profiller ile baglanti
-  // elemanlari galvanizdir; yalniz MRD kodlu dikmeler secilen ayak rengini alir.
-  const oldViewerFinishV46 = `    if (finishKey !== "default") applyFinish(object, finishKey);
-    return { object, size: template.size.clone() };`;
-  const newViewerFinishV46 = `    if (finishKey !== "default") applyFinish(object, finishKey);
-    if (kind === "upright") object.traverse((part) => {
-      let node = part, partLabel = "";
-      while (node) { partLabel += " " + String(node.name || ""); node = node.parent; }
-      if (!part.isMesh || !part.material || !/\\b(?:KP|MRAS)\\d|hex (?:nut|screw)/i.test(partLabel)) return;
-      const galvanized = FINISHES.pgv, sourceMaterials = Array.isArray(part.material) ? part.material : [part.material];
-      const materials = sourceMaterials.map((source) => { const material = source.clone(); if (material.color) material.color.setHex(galvanized.color); if ("metalness" in material) material.metalness = galvanized.metalness; if ("roughness" in material) material.roughness = galvanized.roughness; material.needsUpdate = true; return material; });
-      part.material = Array.isArray(part.material) ? materials : materials[0];
-    });
-    return { object, size: template.size.clone() };`;
-  if (mrViewer.includes(oldViewerFinishV46)) mrViewer = mrViewer.replace(oldViewerFinishV46, newViewerFinishV46);
-  else if (!mrViewer.includes('if (kind === "upright") object.traverse')) throw new Error("MR v46: galvaniz diagonal renklendirmesi bulunamadi.");
-
-  // Yuklenen ayak sablonundaki malzeme daha sonra instance clone edilirken
-  // secili ayak rengiyle yeniden ezilebiliyor. Galvanizi son sahne kopyasinda
-  // da uygula; MRD dikmeler secilen renkte, KP/MRAS ve baglantilar galvanizdir.
-  if (!mrViewer.includes("__rafexMrFinalInstanceGalvanizeV49")) {
-    const boundedAnchorV49 = `function bounded(value, fallback, min, max) { return Math.min(max, Math.max(min, Number(value) || fallback)); }`;
-    const galvanizedHelperV49 = `function applyGalvanizedUprightMembersV49(object) {
-  // __rafexMrFinalInstanceGalvanizeV49
-  if (!object) return object;
-  object.traverse((part) => {
-    let node = part, partLabel = "";
-    while (node) { partLabel += " " + String(node.name || ""); node = node.parent; }
-    if (!part.isMesh || !part.material || !/\\b(?:KP|MRAS)\\d|hex (?:nut|screw)/i.test(partLabel)) return;
-    const galvanized = FINISHES.pgv;
-    const sources = Array.isArray(part.material) ? part.material : [part.material];
-    const materials = sources.map((source) => {
-      const material = source.clone();
-      if (material.color) material.color.setHex(galvanized.color);
-      if ("metalness" in material) material.metalness = galvanized.metalness;
-      if ("roughness" in material) material.roughness = galvanized.roughness;
-      material.needsUpdate = true;
-      return material;
-    });
-    part.material = Array.isArray(part.material) ? materials : materials[0];
-  });
-  return object;
-}
-
-${boundedAnchorV49}`;
-    if (!mrViewer.includes(boundedAnchorV49)) throw new Error("MR v49: instance galvaniz yardimci baglanti noktasi bulunamadi.");
-    mrViewer = mrViewer.replace(boundedAnchorV49, galvanizedHelperV49);
-  }
+  // Material roles are assigned once in the source viewer before instances are cloned.
+  // Do not repaint entire frames or clone every brace material in this build patch.
+  if (!mrViewer.includes('const fixedGalvanized = kind === "tray"') ||
+      !mrViewer.includes('applyFinish(object, finishKey === "default" ? "pgv" : finishKey, kind);'))
+    throw new Error("MR v468: parça bazında galvaniz malzemesi bulunamadı.");
 
   const oldMrGroundV46 = `new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.92, metalness: 0 })`;
   const newMrGroundV46 = `new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, metalness: 0 })`;
@@ -603,7 +560,6 @@ ${boundedAnchorV49}`;
         const rowZ = row * (depth + rowGap);
         for (let frame = 0; frame <= modules; frame += 1) {
           const instance = upright.object.clone(true);
-          applyGalvanizedUprightMembersV49(instance);
           instance.scale.copy(uprightScale);
           instance.position.set(frame * framePitch, 0, rowZ);
           this.root.add(instance);

@@ -294,3 +294,5 @@ node scripts/verify-customer-view.mjs
 node scripts/verify-layout-batching-v463.mjs
 
 node scripts/verify-protections-v464.mjs
+
+node scripts/verify-mr-finishes-v468.mjs
