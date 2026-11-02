@@ -1,3 +1,4 @@
+import {mergeVertices} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
@@ -16,8 +17,8 @@ export function cadRenderParts(template){
  const parts=[];
  for(const {finish,geometries} of groups.values()){
   // Morph targets are not used by static CAD. Preserve them if a future asset has any.
-  const merged=geometries.length>1&&!Object.keys(geometries[0].morphAttributes).length?mergeGeometries(geometries,false):null;
-  if(merged){merged.computeBoundingBox();merged.computeBoundingSphere();parts.push({geometry:merged,finish});}
+  let merged=geometries.length>1&&!Object.keys(geometries[0].morphAttributes).length?mergeGeometries(geometries,false):null;
+  if(merged){if(!merged.index){const indexed=mergeVertices(merged,1e-9);const bytes=g=>Object.values(g.attributes).reduce((n,a)=>n+a.array.byteLength,0)+(g.index?.array.byteLength||0);if(bytes(indexed)<bytes(merged)){merged.dispose();merged=indexed;}else indexed.dispose();}merged.computeBoundingBox();merged.computeBoundingSphere();parts.push({geometry:merged,finish});}
   else for(const geometry of geometries)parts.push({geometry,finish});
  }
  cadCache.set(template,parts);return parts;

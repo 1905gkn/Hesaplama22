@@ -1,7 +1,7 @@
 // Only customer links opt in; the configurator editor keeps its existing settings.
 export function customerRenderQuality({renderer,controls,render=()=>{},enabled=false,env=globalThis}){
  if(!enabled)return {dispose(){}};
- const idle=Math.min(Number(env.devicePixelRatio)||1,1.5),moving=Math.min(idle,.75);
+ const idle=Math.min(Number(env.devicePixelRatio)||1,1.5),moving=idle;
  let disposed=false,dragging=false,timer=null,current=null;
  const clear=()=>{if(timer!==null){env.clearTimeout(timer);timer=null;}};
  const quality=value=>{if(disposed||current===value)return;current=value;renderer.setPixelRatio(value);render();};
