@@ -10,7 +10,8 @@ export function protectionAxis(type){
  const up=new THREE.Vector3(-.270598050073,.707106781187,-.653281482438).normalize();
  const front=new THREE.Vector3(-.103553390593,.653281482438,.75);front.addScaledVector(up,-front.dot(up)).normalize();
  const right=new THREE.Vector3().crossVectors(up,front).normalize();
- return new THREE.Matrix4().makeBasis(right,up,front).transpose();
+ // Match the UAKS front face; keep the triangular stiffener behind the post.
+ return new THREE.Matrix4().makeRotationY(-Math.PI/2).multiply(new THREE.Matrix4().makeBasis(right,up,front).transpose());
 }
 export function prepareProtectionCad(scene,type){
  scene.updateMatrixWorld(true);const axis=protectionAxis(type),parts=[];

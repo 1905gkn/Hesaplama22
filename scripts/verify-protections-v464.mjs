@@ -14,3 +14,5 @@ assert.equal(protectionBatches([...data.symbols,...data.symbols],templates).leng
 console.log('PASS: supplied U/UAKS, UZ/UAKZ and barrier GLBs; upright orientation, floor seating, all triangles preserved, rotated attached feet, barrier dimensions, unchanged 2D data and instanced drawing.');
 
 const uzUp=new THREE.Vector3(-.270598050073,.707106781187,-.653281482438).normalize().transformDirection(protectionAxis('uakz'));assert(uzUp.distanceTo(new THREE.Vector3(0,1,0))<1e-9,'UZ base normal must be vertical');assert(Math.abs(protectionAxis('uakz').determinant()-1)<1e-9,'No mirroring');
+
+const rawUp=new THREE.Vector3(-.270598050073,.707106781187,-.653281482438).normalize(),rawFront=new THREE.Vector3(-.103553390593,.653281482438,.75);rawFront.addScaledVector(rawUp,-rawFront.dot(rawUp)).normalize();const rawFace=new THREE.Vector3().crossVectors(rawUp,rawFront).normalize().transformDirection(protectionAxis('uakz'));assert(rawFace.distanceTo(new THREE.Vector3(0,0,1))<1e-9,'UAKZ front face must match UAKS, not its side stiffener');
