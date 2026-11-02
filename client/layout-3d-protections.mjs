@@ -3,8 +3,17 @@ import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 export const protectionTypes=['uaks','uakz','barrier'];
 const paths={uaks:'/uaks-koruma.glb',uakz:'/uakz-koruma.glb',barrier:'/bariyer-koruma.glb'},cache=new Map();
-export function prepareProtectionCad(scene){
- scene.updateMatrixWorld(true);const axis=new THREE.Matrix4().makeRotationX(Math.PI/2),parts=[];
+export function protectionAxis(type){
+ if(type!=='uakz')return new THREE.Matrix4().makeRotationX(Math.PI/2);
+ // The supplied UZ asset has a compound export rotation. Its base normal is
+ // (0.270598,-0.707107,0.653281); align the opposite normal with world up.
+ const up=new THREE.Vector3(-.270598050073,.707106781187,-.653281482438).normalize();
+ const front=new THREE.Vector3(-.103553390593,.653281482438,.75);front.addScaledVector(up,-front.dot(up)).normalize();
+ const right=new THREE.Vector3().crossVectors(up,front).normalize();
+ return new THREE.Matrix4().makeBasis(right,up,front).transpose();
+}
+export function prepareProtectionCad(scene,type){
+ scene.updateMatrixWorld(true);const axis=protectionAxis(type),parts=[];
  scene.traverse(mesh=>{if(!mesh.isMesh)return;const g=mesh.geometry.clone();g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(axis,mesh.matrixWorld));g.scale(.001,.001,.001);parts.push(g)});
  if(!parts.length)throw Error('Koruma modelinde çizilecek parça yok.');
  const bounds=new THREE.Box3();parts.forEach(g=>{g.computeBoundingBox();bounds.union(g.boundingBox)});const center=bounds.getCenter(new THREE.Vector3()),size=bounds.getSize(new THREE.Vector3());
@@ -13,7 +22,7 @@ export function prepareProtectionCad(scene){
  return {geometry,width:size.x,height:size.y,depth:size.z};
 }
 export async function loadProtectionCad(symbols=[]){
- return Object.fromEntries(await Promise.all([...new Set(symbols.filter(s=>protectionTypes.includes(s.type)).map(s=>s.type))].map(async type=>{if(!cache.has(type))cache.set(type,new GLTFLoader().loadAsync(paths[type]+'?v=464').then(g=>prepareProtectionCad(g.scene)).catch(e=>{cache.delete(type);throw e}));return [type,await cache.get(type)]})));
+ return Object.fromEntries(await Promise.all([...new Set(symbols.filter(s=>protectionTypes.includes(s.type)).map(s=>s.type))].map(async type=>{if(!cache.has(type))cache.set(type,new GLTFLoader().loadAsync(paths[type]+'?v=464').then(g=>prepareProtectionCad(g.scene,type)).catch(e=>{cache.delete(type);throw e}));return [type,await cache.get(type)]})));
 }
 export function protectionBatches(symbols=[],templates={}){
  const groups=new Map(),dummy=new THREE.Object3D(),palette={'1007':'#e5bd00','1023':'#f2c500','2004':'#e25318','5010':'#005078',pgv:'#aeb8bd'};
