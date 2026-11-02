@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import * as THREE from 'three';
+import {cadRenderParts,nativeRenderBatches} from '../client/layout-3d-batching.mjs';
+const triangles=g=>(g.index?.count??g.attributes.position.count)/3;
+const source=Array.from({length:120},(_,i)=>new THREE.BoxGeometry(.1,.2,.3).translate(i*.12,0,0));
+const template={geometries:source,finishes:source.map((_,i)=>i%3?'galvanized':null)};
+const oldBytes=source.map(g=>Buffer.from(g.attributes.position.array.buffer).toString('base64'));
+const merged=cadRenderParts(template);
+assert.equal(merged.length,2);assert.equal(merged.reduce((n,p)=>n+triangles(p.geometry),0),source.reduce((n,g)=>n+triangles(g),0),'No triangles/details removed');
+assert.deepEqual(source.map(g=>Buffer.from(g.attributes.position.array.buffer).toString('base64')),oldBytes,'CAD metadata source is unchanged');
+const bounds=new THREE.Box3();source.forEach(g=>{g.computeBoundingBox();bounds.union(g.boundingBox)});
+const mergedBounds=new THREE.Box3();merged.forEach(p=>mergedBounds.union(p.geometry.boundingBox));assert(bounds.equals(mergedBounds));
+assert.equal(cadRenderParts(template),merged,'Cached merged geometry shared across viewers');
+const mixed={geometries:[source[0],source[1].toNonIndexed()],finishes:[]};assert.equal(cadRenderParts(mixed).length,2,'Different attribute/index layouts stay separate');
+const g=new THREE.BoxGeometry(1,1,1),local=new THREE.Matrix4().makeTranslation(0,1,2),native=[{geometry:g,color:'#005078',name:'frame',matrices:[local.toArray()]},{geometry:g,color:'#bdbdbd',name:'brace',matrices:[local.toArray(),new THREE.Matrix4().toArray()]},{geometry:g,color:'#d6b47b',name:'pallet',load:true}];
+const racks=Array.from({length:240},(_,i)=>({id:i,x:i*3,z:i%6,angle:i%2?Math.PI/2:0,system:i%2?'mr':'konsol'})),parts=new Map(racks.map(r=>[String(r.id),native]));
+const {batches,sourceMeshes}=nativeRenderBatches(racks,parts);
+assert.equal(sourceMeshes,720);assert.equal(batches.length,4);assert.equal(batches.find(p=>p.name==='brace').matrices.length,480);assert.equal(batches.filter(p=>p.load).reduce((n,p)=>n+p.matrices.length,0),240,'Load visibility stays independently controllable');
+for(const r of racks){const parent=new THREE.Object3D();parent.position.set(r.x,0,r.z);parent.rotation.y=r.angle;parent.updateMatrix();const expected=new THREE.Matrix4().multiplyMatrices(parent.matrix,local);assert.deepEqual(batches.find(p=>p.name==='frame').matrices[r.id].elements,expected.elements,'Rack rotation and local part translation preserved');}
+assert.equal(nativeRenderBatches([] ,new Map()).batches.length,0);
+const colorVariant=new Map(parts);colorVariant.set('0',[{...native[0],color:'#f2c500'}]);assert.equal(nativeRenderBatches(racks,colorVariant).batches.length,5,'Different finishes remain separate');
+console.log('PASS: native MR/cantilever draw batches 720 -> 4; CAD finish batches 120 -> 2; triangles, bounds, rotations, colors, load toggles and original metadata preserved. Synthetic scene; no FPS claim.');
