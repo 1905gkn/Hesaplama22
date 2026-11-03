@@ -6,6 +6,12 @@ export function transform(html){
  const anchor='html += m2UserNotes.map((note) =>';
  if(!html.includes(anchor))throw Error('Back mesh render anchor missing');
  html=html.replace(anchor,'html += window.rafexBackMeshV482?.svg() || "";\n        '+anchor);
+ const inventory="push('Ağır deprem çaprazı',heavy,'');";
+ if(!html.includes(inventory))throw Error('Back mesh inventory anchor missing');
+ html=html.replace(inventory,inventory+"\n    result.push(...(window.rafexBackMeshV482?.rows()||[]));");
+ const signature='JSON.stringify(rack&&rack.seismicBraces||[])';
+ if(!html.includes(signature))throw Error('Back mesh inventory signature missing');
+ html=html.replaceAll(signature,signature+',JSON.stringify(rack&&rack.backMeshSides||[])');
  const end=html.lastIndexOf('</body>');
  return html.slice(0,end)+'<script data-rafex-back-mesh="v482">'+helpers+'\n'+install+'\ninstallBackMesh();</script>'+html.slice(end);
 }
