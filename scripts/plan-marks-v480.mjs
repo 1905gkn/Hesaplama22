@@ -111,6 +111,15 @@ export function installPlanMarks(geometry,svgMarkup,labelSize){
  }};
 }
 
+export function transformPlanMarkFonts(html){
+ if(html.includes('/* plan-mark-autofont-v481 */'))return html;
+ const from='size = (m2DimensionFontSizes[key]??m2DimensionFontSizes.__all??12);';
+ if(html.split(from).length!==2)throw Error('v481 final dimension font anchor missing');
+ html=html.replace(from,'/* plan-mark-autofont-v481 */ size = key.startsWith("mark-label:")?(m2DimensionFontSizes[key]??m2DimensionFontSizes.__all):(m2DimensionFontSizes[key]??m2DimensionFontSizes.__all??12);');
+ html=html.replaceAll('font.value=(m2DimensionFontSizes[key]??m2DimensionFontSizes.__all)||12;', 'font.value=window.rafexPlanMarksV480?.fontForKey(key)??((m2DimensionFontSizes[key]??m2DimensionFontSizes.__all)||12);');
+ return html;
+}
+
 export function transform(html){
  if(html.includes('data-rafex-plan-marks="v480"'))return html;
  const replace=(a,b)=>{if(html.split(a).length!==2)throw Error('v480 anchor missing or ambiguous: '+a);html=html.replace(a,b);};
@@ -118,8 +127,6 @@ export function transform(html){
  replace('html += m2UserNotes.map((note) =>', 'html += window.rafexPlanMarksV480?.svg(m2LayoutSymbols)||"";\n        html += m2UserNotes.map((note) =>');
  // Annotation shapes have no physical footprint or distance guides.
  replace('function m2SymbolDistanceGuides(symbol){','function m2SymbolDistanceGuides(symbol){if(window.rafexPlanMarksV480?.isMark(symbol))return "";');
- replace('size = (m2DimensionFontSizes[key]??m2DimensionFontSizes.__all??12);','size = key.startsWith("mark-label:")?(m2DimensionFontSizes[key]??m2DimensionFontSizes.__all):(m2DimensionFontSizes[key]??m2DimensionFontSizes.__all??12);');
- html=html.replaceAll('font.value=(m2DimensionFontSizes[key]??m2DimensionFontSizes.__all)||12;', 'font.value=window.rafexPlanMarksV480?.fontForKey(key)??((m2DimensionFontSizes[key]??m2DimensionFontSizes.__all)||12);');
  const at=html.lastIndexOf('</body>');if(at<0)throw Error('Missing body');
  const css='<style data-rafex-plan-marks="v480">#m2SymbolModal .m2-symbol-choices{grid-template-columns:repeat(auto-fit,minmax(90px,1fr))}#m2SymbolModal .rafex-mark-settings{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}#m2SymbolModal .rafex-mark-settings[hidden]{display:none}#m2SymbolModal .rafex-mark-settings label{display:grid;gap:6px;font-weight:700}#m2SymbolModal .rafex-mark-settings input,#m2SymbolModal .rafex-mark-settings textarea{width:100%;min-width:0;box-sizing:border-box;padding:8px;border:1px solid #a4bdb1;border-radius:6px}#m2SymbolModal .rafex-mark-settings input[type=color]{height:42px;padding:3px}#m2SymbolModal .rafex-mark-text,#m2SymbolModal .rafex-mark-settings small{grid-column:1/-1}#m2SymbolModal .rafex-mark-settings small{line-height:1.5;color:#52685e}#m2LayoutSvg.rafex-plan-mark-drawing{cursor:crosshair!important;touch-action:none}#m2LayoutSvg .rafex-plan-mark{pointer-events:stroke;cursor:move}#m2LayoutSvg .rafex-plan-mark-label{cursor:default;pointer-events:visiblePainted}</style>';
  return html.slice(0,at)+css+'<script>'+planMarkLabelSize.toString()+';('+installPlanMarks.toString()+')('+planMarkGeometry.toString()+','+planMarkSvg.toString()+',planMarkLabelSize);</script>'+html.slice(at);

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
-import {planMarkGeometry as geometry,planMarkSvg as svg,planMarkLabelSize as labelSize,installPlanMarks,transform} from './plan-marks-v480.mjs';
+import {planMarkGeometry as geometry,planMarkSvg as svg,planMarkLabelSize as labelSize,installPlanMarks,transform,transformPlanMarkFonts} from './plan-marks-v480.mjs';
 assert.deepEqual(geometry('mark-circle',{x:10,y:20},{x:13,y:24}),{x:5,y:15,w:10,h:10,ax:.5,ay:.5,bx:1,by:.5});
 assert.equal(geometry('mark-rect',{x:1,y:2},{x:1,y:2}),null);
 const reverse=geometry('mark-arrow',{x:100,y:80},{x:10,y:20});assert.equal(reverse.ax,1);assert.equal(reverse.bx,0);
@@ -29,7 +29,7 @@ const count=context.m2LayoutSymbols.length;context.m2CreateSymbol();click(2,3);l
 context.m2LayoutSymbols=JSON.parse(snapshots.at(-1)).symbols;assert.equal(context.m2LayoutSymbols.length,2,'undo must preserve earlier marks');
 assert.equal(snapshots.length,3);
 const fixture='size = (m2DimensionFontSizes[key]??m2DimensionFontSizes.__all??12); m2LayoutSymbols.forEach((symbol)=>{\n          const selected=1;\n}); html += m2UserNotes.map((note) => note); function m2SymbolDistanceGuides(symbol){} </body>';
-const transformed=transform(fixture);assert.equal(transform(transformed),transformed);assert(transformed.includes('?.svg(m2LayoutSymbols)'));assert(transformed.includes('isMark(symbol))return ""'));
+const transformed=transformPlanMarkFonts(transform(fixture));assert.equal(transformPlanMarkFonts(transformed),transformed);assert.equal(transform(transformed),transformed);assert(transformed.includes('?.svg(m2LayoutSymbols)'));assert(transformed.includes('isMark(symbol))return ""'));
 for(const match of transformed.matchAll(/<script>([\s\S]*?)<\/script>/g))new vm.Script(match[1]);
 console.log('PASS: arrow direction, center-radius circle, corner rectangle/Shift-square, color/stroke/text, drawing without area + separate third-click label placement, empty text, cancellation, undo, JSON reload, movable label keys, safe SVG and idempotent injection.');
 
