@@ -35,9 +35,17 @@ export function installPlanMarks(geometry,svgMarkup){
  function preview(){
   const layer=$('m2LayoutContent');if(!layer)return;
   layer.querySelector('[data-mark-preview]')?.remove();
-  if(!draft?.start||!draft.hover||draft.labelId!=null)return;
-  const box=geometry(draft.type,draft.start,draft.hover);if(!box)return;
-  const group=document.createElementNS('http://www.w3.org/2000/svg','g');group.setAttribute('data-mark-preview','1');group.style.pointerEvents='none';group.style.opacity='.75';group.innerHTML=svgMarkup({...box,...draft,id:'preview',text:''});layer.append(group);
+  if(!draft?.start||!draft.hover)return;
+  const group=document.createElementNS('http://www.w3.org/2000/svg','g');group.setAttribute('data-mark-preview','1');group.style.pointerEvents='none';group.style.opacity='.75';
+  if(draft.labelId!=null){
+   const s=m2LayoutSymbols.find(s=>s.id===draft.labelId);if(!s)return;
+   group.innerHTML=svgMarkup(s,{x:draft.hover.x-(s.x+s.w/2),y:draft.hover.y-(s.y+s.h+s.labelSize*1.2)});
+   group.querySelector('.rafex-plan-mark')?.remove();
+  }else{
+   const box=geometry(draft.type,draft.start,draft.hover);if(!box)return;
+   group.innerHTML=svgMarkup({...box,...draft,id:'preview',text:''});
+  }
+  group.querySelectorAll('*').forEach(node=>node.style.pointerEvents='none');layer.append(group);
  }
  function cancel(){draft=null;tap=null;$('m2LayoutSvg')?.classList.remove('rafex-plan-mark-drawing');$('m2LayoutContent')?.querySelector('[data-mark-preview]')?.remove();}
  function syncDialog(){
@@ -61,7 +69,6 @@ export function installPlanMarks(geometry,svgMarkup){
  const choose=m2ChooseSymbol;m2ChooseSymbol=function(type){const result=choose.apply(this,arguments);syncDialog();return result;};
  const create=m2CreateSymbol;m2CreateSymbol=function(){
   if(!isMark({type:m2SymbolChoice}))return create.apply(this,arguments);
-  if(!m2LayoutState.points.length){status('Önce serbest yerleşim alanını oluşturun.');return;}
   settings={color:$('rafexMarkColor480').value,stroke:Math.max(.5,Math.min(12,Number($('rafexMarkStroke480').value)||2)),text:$('rafexMarkText480').value.trim()};
   m2ClearAllSelections('');m2LayoutState.mode='idle';m2LayoutState.areaEditMode=false;m2LayoutState.drag=null;m2SymbolDrag=null;m2NoteDrag=null;m2DimensionDrag=null;m2ProtectionDraft=null;m2SeismicDraft=null;m2AutoFillDraft=null;m2SetLayoutTool(null);
   draft={type:m2SymbolChoice,...settings,labelSize:Math.max(1,Number($('m2AnnotationFontSize')?.value)||14),start:null,hover:null,labelId:null};
@@ -72,7 +79,7 @@ export function installPlanMarks(geometry,svgMarkup){
   if(!draft||event.button!==0||!event.target.closest?.('#m2LayoutSvg'))return;
   stop(event);if(tap){tap=null;return;}tap={id:event.pointerId,x:event.clientX,y:event.clientY};$('m2LayoutSvg')?.setPointerCapture?.(event.pointerId);
  },true);
- document.addEventListener('pointermove',event=>{if(!draft||!event.target.closest?.('#m2LayoutSvg'))return;stop(event);if(draft.start&&draft.labelId==null){draft.hover=point(event);preview();}},true);
+ document.addEventListener('pointermove',event=>{if(!draft||!event.target.closest?.('#m2LayoutSvg'))return;stop(event);if(draft.start){draft.hover=point(event);preview();}},true);
  document.addEventListener('pointerup',event=>{
   if(!draft||!tap||event.pointerId!==tap.id)return;
   stop(event);const old=tap;tap=null;$('m2LayoutSvg')?.releasePointerCapture?.(event.pointerId);
@@ -83,16 +90,16 @@ export function installPlanMarks(geometry,svgMarkup){
   const box=geometry(draft.type,draft.start,p);if(!box){status('Şekil için farklı bir bitiş noktası seçin.');return;}
   m2PushUndo('Açıklama sembolü ekle');const symbol={...box,type:draft.type,color:draft.color,stroke:draft.stroke,text:draft.text,labelSize:draft.labelSize,id:Date.now()+Math.random(),blocking:false,angle:0};
   m2LayoutSymbols.push(symbol);m2SelectedSymbolId=symbol.id;
-  if(symbol.text){draft.labelId=symbol.id;status('Yazının yerini tıklayın. Sonradan Ölçü Yeri Düzenle ile taşıyabilirsiniz.');}
+  if(symbol.text){draft.labelId=symbol.id;draft.hover=p;status('Şekil tamamlandı. Yazının yerini tıklayın. Sonradan Ölçü Yeri Düzenle ile taşıyabilirsiniz.');}
   else{cancel();status('Sembol eklendi.');}
-  m2RenderLayout();
+  m2RenderLayout();preview();
  },true);
  document.addEventListener('pointercancel',()=>{tap=null;},true);
  document.addEventListener('keydown',event=>{if(draft&&event.key==='Escape'){stop(event);cancel();m2RenderLayout();status('Sembol çizimi bitirildi.');}},true);
  const setTool=m2SetLayoutTool;m2SetLayoutTool=function(){cancel();return setTool.apply(this,arguments);};
  const init=m2InitLayoutEditor;m2InitLayoutEditor=function(){cancel();return init.apply(this,arguments);};
  window.rafexPlanMarksV480={isMark,cancel,svg(symbols){
-  return (symbols||[]).filter(isMark).map(s=>svgMarkup(s,m2DimensionOffsets['mark-label:'+s.id],m2DimensionFontSizes['mark-label:'+s.id])).join('');
+  return (symbols||[]).filter(isMark).map(s=>svgMarkup(draft?.labelId===s.id?{...s,text:''}:s,m2DimensionOffsets['mark-label:'+s.id],m2DimensionFontSizes['mark-label:'+s.id])).join('');
  }};
 }
 

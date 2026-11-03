@@ -12,13 +12,14 @@ const modalNodes={'.m2-symbol-choices':{},'[data-mark-settings]':{},'.m2-symbol-
 fields.m2SymbolModal={querySelector(key){return modalNodes[key]||null;}};
 for(const [id,value] of Object.entries({rafexMarkColor480:'#2266aa',rafexMarkStroke480:'3',rafexMarkText480:'Yükleme alanı',m2AnnotationFontSize:'12'}))fields[id]={value};
 fields.m2SymbolSizes={};fields.m2FloorStatus={textContent:''};fields.m2LayoutSvg=svgNode;fields.m2LayoutContent=layer;
-const context={window:{},document:{getElementById:id=>fields[id],addEventListener(name,fn){(listeners[name]??=[]).push(fn);}},m2SymbolChoice:'mark-arrow',m2LayoutState:{points:[{x:0,y:0}],racks:[]},m2LayoutSymbols:[],m2DimensionOffsets:{},m2DimensionFontSizes:{},
+const context={window:{},document:{createElementNS(){return {style:{},setAttribute(){},querySelector(){return null;},querySelectorAll(){return [];}};},getElementById:id=>fields[id],addEventListener(name,fn){(listeners[name]??=[]).push(fn);}},m2SymbolChoice:'mark-arrow',m2LayoutState:{points:[],racks:[]},m2LayoutSymbols:[],m2DimensionOffsets:{},m2DimensionFontSizes:{},
 m2OpenSymbolDialog(){},m2ChooseSymbol(type){context.m2SymbolChoice=type;},m2CreateSymbol(){throw Error('physical creation used');},m2CloseSymbolDialog(){},m2ClearAllSelections(){},m2SetLayoutTool(value){context.m2LayoutTool=value;},m2InitLayoutEditor(){},m2SvgPoint:event=>({x:event.clientX,y:event.clientY}),m2RenderLayout(){},
 m2PushUndo(){snapshots.push(JSON.stringify({symbols:context.m2LayoutSymbols,offsets:context.m2DimensionOffsets}));}};
 vm.createContext(context);vm.runInContext('('+installPlanMarks.toString()+')('+geometry.toString()+','+svg.toString()+')',context);
 let nextId=0;
 function click(x,y,shiftKey=false){const pointerId=++nextId,event={clientX:x,clientY:y,pointerId,button:0,shiftKey,target:{closest:()=>svgNode},preventDefault(){},stopImmediatePropagation(){}};for(const fn of listeners.pointerdown)fn(event);for(const fn of listeners.pointerup)fn(event);}
 context.m2CreateSymbol();click(10,20);click(100,90);assert.equal(context.m2LayoutSymbols.length,1);
+assert(!context.window.rafexPlanMarksV480.svg(context.m2LayoutSymbols).includes('Yükleme alanı'),'label must wait for third click');
 const arrow=context.m2LayoutSymbols[0];assert.equal(arrow.blocking,false);assert.equal(arrow.color,'#2266aa');assert.equal(arrow.stroke,3);click(160,150);
 let output=context.window.rafexPlanMarksV480.svg(context.m2LayoutSymbols);assert(output.includes('x="160" y="150"'));assert(output.includes('font-size:12px'));
 context.m2SymbolChoice='mark-circle';fields.rafexMarkText480.value='';context.m2CreateSymbol();click(200,200);click(230,240);assert.equal(context.m2LayoutSymbols[1].w,100);assert.equal(context.m2LayoutSymbols[1].x,150);
@@ -30,4 +31,4 @@ assert.equal(snapshots.length,3);
 const fixture='m2LayoutSymbols.forEach((symbol)=>{\n          const selected=1;\n}); html += m2UserNotes.map((note) => note); function m2SymbolDistanceGuides(symbol){} </body>';
 const transformed=transform(fixture);assert.equal(transform(transformed),transformed);assert(transformed.includes('?.svg(m2LayoutSymbols)'));assert(transformed.includes('isMark(symbol))return ""'));
 for(const match of transformed.matchAll(/<script>([\s\S]*?)<\/script>/g))new vm.Script(match[1]);
-console.log('PASS: arrow direction, center-radius circle, corner rectangle/Shift-square, color/stroke/text, two-click draw + label placement, empty text, cancellation, undo, JSON reload, movable label keys, safe SVG and idempotent injection.');
+console.log('PASS: arrow direction, center-radius circle, corner rectangle/Shift-square, color/stroke/text, drawing without area + separate third-click label placement, empty text, cancellation, undo, JSON reload, movable label keys, safe SVG and idempotent injection.');
