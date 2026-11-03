@@ -1,3 +1,4 @@
+import {transform as backMesh} from './back-mesh-v482.mjs';
 import {transformPlanMarkFonts} from './plan-marks-v480.mjs';
 import {transform as outputLanguage439} from './patch-output-language-v439.mjs';
 import {transform as reliableDrafts} from './reliable-drafts-v407.mjs';
@@ -127,6 +128,7 @@ html=sharedNotesUI(html);
 html=reliableDrafts(html);
 html=outputLanguage439(html);
 html=transformPlanMarkFonts(html);
+html=backMesh(html);
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
 

@@ -1,6 +1,7 @@
 import {prepareForklifts} from './layout-3d-forklifts.mjs';
 import {loadPreparedAccessories} from './layout-3d-prepared-cache.mjs';
 import {spatializeInstances,yieldPreparation} from './layout-3d-preparation.mjs';
+import {loadBackMeshCad,backMeshBatches} from './layout-3d-back-mesh.mjs';
 import {loadProtectionCad,protectionBatches} from './layout-3d-protections.mjs';
 import {cadRenderParts,nativeRenderBatches} from './layout-3d-batching.mjs';
 import {createStatic3DLabels} from './static-3d-labels.mjs';
@@ -17,7 +18,7 @@ import {environmentSnapshot,environmentParts,rackVisualTop,gridOutsideWalls} fro
 import {readRackClearances,visiblePlanClearances,layoutClearances} from './layout-3d-clearances.mjs';
 
 let active=null,openToken=0,measureFontSize=11;try{measureFontSize=Math.max(8,Math.min(32,Number(localStorage.getItem('rafex3DMeasureFontSize'))||11))}catch{}
-async function loadViewerCad(data){const [cad,guards]=await Promise.all([loadLayoutCad(data.racks),loadProtectionCad(data.symbols)]);return {...cad,protections:guards};}
+async function loadViewerCad(data){const [cad,guards,backMesh]=await Promise.all([loadLayoutCad(data.racks),loadProtectionCad(data.symbols),loadBackMeshCad(data.racks)]);return {...cad,protections:guards,backMesh};}
 async function makeViewer(host,data,templates,accessoryGeometries=new Map(),options={}){
  let paused=false,disposed=false,renderFrames=0,forkliftFleet=null,forkliftWanted=false,forkliftPreparing=null,forkliftTimer=0,forkliftLast=0;
  const stopForkliftClock=()=>{clearTimeout(forkliftTimer);forkliftTimer=0;forkliftLast=0;};
@@ -43,7 +44,7 @@ async function makeViewer(host,data,templates,accessoryGeometries=new Map(),opti
  for(const ring of data.floorLoops||[]){const shape=new THREE.Shape(ring.map(p=>new THREE.Vector2(p.x,-p.z))),floorGeometry=new THREE.ShapeGeometry(shape),floorMaterial=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide});geometries.push(floorGeometry);materials.push(floorMaterial);const floor=new THREE.Mesh(floorGeometry,floorMaterial);floor.rotation.x=-Math.PI/2;floor.position.y=-.01;scene.add(floor);}
  const nativeBatches=nativeRenderBatches(data.racks,accessoryGeometries);
  for(const p of nativeBatches.batches){const mat=new Surface({color:p.color,roughness:p.roughness,metalness:p.metalness});materials.push(mat);if(!geometries.includes(p.geometry))geometries.push(p.geometry);const mesh=new THREE.InstancedMesh(p.geometry,mat,p.matrices.length);p.matrices.forEach((matrix,i)=>mesh.setMatrixAt(i,matrix));mesh.name=p.name;scene.add(mesh);if(p.load)palletMeshes.push(mesh);}
- for(const p of protectionBatches(data.symbols,templates.protections)){const mat=new Surface({color:p.color,roughness:.65,metalness:.2});materials.push(mat);const mesh=new THREE.InstancedMesh(p.geometry,mat,p.matrices.length);p.matrices.forEach((matrix,i)=>mesh.setMatrixAt(i,matrix));scene.add(mesh);}
+ for(const p of [...protectionBatches(data.symbols,templates.protections),...backMeshBatches(data.racks,templates.backMesh)]){const mat=new Surface({color:p.color,roughness:.65,metalness:.2});materials.push(mat);const mesh=new THREE.InstancedMesh(p.geometry,mat,p.matrices.length);p.matrices.forEach((matrix,i)=>mesh.setMatrixAt(i,matrix));scene.add(mesh);}
  const surroundings=new THREE.Group();scene.add(surroundings);const surroundingParts=environmentParts(data),environmentColors={wall:'#cbd4ce',column:'#808e86',door:'#516b60',doorLeaf:'#78b9a0'};
  for(const kind of Object.keys(environmentColors)){const list=surroundingParts.filter(p=>p.kind===kind);if(!list.length)continue;const material=new Surface({color:environmentColors[kind],roughness:.85,transparent:kind==='doorLeaf',opacity:kind==='doorLeaf'?.5:1});materials.push(material);const mesh=new THREE.InstancedMesh(geometry,material,list.length);list.forEach((p,i)=>{dummy.position.set(p.x,p.y,p.z);dummy.rotation.set(0,p.ry,0);dummy.scale.set(p.w,p.h,p.d);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix)});mesh.userData.environmentKind=kind;mesh.userData.environmentParts=list;surroundings.add(mesh);}
  const typeHost=document.createElement('div');typeHost.className='rafex-layout3d-types-accessible';typeHost.style.cssText='position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);pointer-events:none';typeHost.textContent=data.racks.map(r=>r.name+(r.detailLabel?' · '+r.detailLabel:'')).join(', ');host.append(typeHost);
