@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
-import {planMarkGeometry as geometry,planMarkSvg as svg,installPlanMarks,transform} from './plan-marks-v480.mjs';
+import {planMarkGeometry as geometry,planMarkSvg as svg,planMarkLabelSize as labelSize,installPlanMarks,transform} from './plan-marks-v480.mjs';
 assert.deepEqual(geometry('mark-circle',{x:10,y:20},{x:13,y:24}),{x:5,y:15,w:10,h:10,ax:.5,ay:.5,bx:1,by:.5});
 assert.equal(geometry('mark-rect',{x:1,y:2},{x:1,y:2}),null);
 const reverse=geometry('mark-arrow',{x:100,y:80},{x:10,y:20});assert.equal(reverse.ax,1);assert.equal(reverse.bx,0);
@@ -15,20 +15,31 @@ fields.m2SymbolSizes={};fields.m2FloorStatus={textContent:''};fields.m2LayoutSvg
 const context={window:{},document:{createElementNS(){return {style:{},setAttribute(){},querySelector(){return null;},querySelectorAll(){return [];}};},getElementById:id=>fields[id],addEventListener(name,fn){(listeners[name]??=[]).push(fn);}},m2SymbolChoice:'mark-arrow',m2LayoutState:{points:[],racks:[]},m2LayoutSymbols:[],m2DimensionOffsets:{},m2DimensionFontSizes:{},
 m2OpenSymbolDialog(){},m2ChooseSymbol(type){context.m2SymbolChoice=type;},m2CreateSymbol(){throw Error('physical creation used');},m2CloseSymbolDialog(){},m2ClearAllSelections(){},m2SetLayoutTool(value){context.m2LayoutTool=value;},m2InitLayoutEditor(){},m2SvgPoint:event=>({x:event.clientX,y:event.clientY}),m2RenderLayout(){},
 m2PushUndo(){snapshots.push(JSON.stringify({symbols:context.m2LayoutSymbols,offsets:context.m2DimensionOffsets}));}};
-vm.createContext(context);vm.runInContext('('+installPlanMarks.toString()+')('+geometry.toString()+','+svg.toString()+')',context);
+vm.createContext(context);vm.runInContext(labelSize.toString()+';('+installPlanMarks.toString()+')('+geometry.toString()+','+svg.toString()+',planMarkLabelSize)',context);
 let nextId=0;
 function click(x,y,shiftKey=false){const pointerId=++nextId,event={clientX:x,clientY:y,pointerId,button:0,shiftKey,target:{closest:()=>svgNode},preventDefault(){},stopImmediatePropagation(){}};for(const fn of listeners.pointerdown)fn(event);for(const fn of listeners.pointerup)fn(event);}
 context.m2CreateSymbol();click(10,20);click(100,90);assert.equal(context.m2LayoutSymbols.length,1);
 assert(!context.window.rafexPlanMarksV480.svg(context.m2LayoutSymbols).includes('Yükleme alanı'),'label must wait for third click');
 const arrow=context.m2LayoutSymbols[0];assert.equal(arrow.blocking,false);assert.equal(arrow.color,'#2266aa');assert.equal(arrow.stroke,3);click(160,150);
-let output=context.window.rafexPlanMarksV480.svg(context.m2LayoutSymbols);assert(output.includes('x="160" y="150"'));assert(output.includes('font-size:12px'));
+let output=context.window.rafexPlanMarksV480.svg(context.m2LayoutSymbols);assert(output.includes('x="160" y="150"'));assert(output.includes('font-size:'+labelSize(arrow)+'px'));
 context.m2SymbolChoice='mark-circle';fields.rafexMarkText480.value='';context.m2CreateSymbol();click(200,200);click(230,240);assert.equal(context.m2LayoutSymbols[1].w,100);assert.equal(context.m2LayoutSymbols[1].x,150);
 context.m2SymbolChoice='mark-rect';context.m2CreateSymbol();click(300,300);click(340,320,true);assert.equal(context.m2LayoutSymbols[2].w,40);assert.equal(context.m2LayoutSymbols[2].h,40);
 const saved=JSON.stringify(context.m2LayoutSymbols),offsets=JSON.stringify(context.m2DimensionOffsets);context.m2LayoutSymbols=JSON.parse(saved);context.m2DimensionOffsets=JSON.parse(offsets);assert.equal(context.window.rafexPlanMarksV480.svg(context.m2LayoutSymbols).includes('Yükleme alanı'),true);
 const count=context.m2LayoutSymbols.length;context.m2CreateSymbol();click(2,3);listeners.keydown[0]({key:'Escape',preventDefault(){},stopImmediatePropagation(){}});click(40,50);assert.equal(context.m2LayoutSymbols.length,count);
 context.m2LayoutSymbols=JSON.parse(snapshots.at(-1)).symbols;assert.equal(context.m2LayoutSymbols.length,2,'undo must preserve earlier marks');
 assert.equal(snapshots.length,3);
-const fixture='m2LayoutSymbols.forEach((symbol)=>{\n          const selected=1;\n}); html += m2UserNotes.map((note) => note); function m2SymbolDistanceGuides(symbol){} </body>';
+const fixture='size = (m2DimensionFontSizes[key]??m2DimensionFontSizes.__all??12); m2LayoutSymbols.forEach((symbol)=>{\n          const selected=1;\n}); html += m2UserNotes.map((note) => note); function m2SymbolDistanceGuides(symbol){} </body>';
 const transformed=transform(fixture);assert.equal(transform(transformed),transformed);assert(transformed.includes('?.svg(m2LayoutSymbols)'));assert(transformed.includes('isMark(symbol))return ""'));
 for(const match of transformed.matchAll(/<script>([\s\S]*?)<\/script>/g))new vm.Script(match[1]);
 console.log('PASS: arrow direction, center-radius circle, corner rectangle/Shift-square, color/stroke/text, drawing without area + separate third-click label placement, empty text, cancellation, undo, JSON reload, movable label keys, safe SVG and idempotent injection.');
+
+for(const type of ['mark-arrow','mark-circle','mark-rect']){
+ const small={type,w:30,h:40,labelSize:14,id:1,text:'Test',x:0,y:0,ax:0,ay:0,bx:1,by:1},big={...small,w:120,h:160};
+ assert(labelSize(big)>labelSize(small));assert(Math.abs(labelSize(big)-labelSize(small)*4)<.25);
+ assert.equal(labelSize(big,9),9);assert.equal(labelSize({...big,w:99999,h:99999}),72);
+ assert(svg(small).includes('font-size:'+labelSize(small)+'px'));assert(svg(big).includes('font-size:'+labelSize(big)+'px'));
+ const moved=svg(small,{x:10,y:20}),resized=svg(small,{x:10,y:20},30);assert.equal(moved.match(/<text x="[^"]+" y="[^"]+"/)[0],resized.match(/<text x="[^"]+" y="[^"]+"/)[0],'font changes must preserve chosen label position');
+}
+assert.equal(labelSize({type:'mark-arrow',w:0,h:100}),8);
+assert.equal(context.window.rafexPlanMarksV480.fontForKey('wall:1:left'),undefined);
+console.log('PASS: proportional labels for all three mark types, old marks update, manual override preserved, stable placed labels, vertical arrow and size limits.');

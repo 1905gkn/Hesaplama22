@@ -8,9 +8,14 @@ export function planMarkGeometry(type,a,b){
  const w=Math.abs(dx),h=Math.abs(dy);if(type==='mark-rect'&&(w<=.1||h<=.1))return null;
  return {x:Math.min(a.x,b.x),y:Math.min(a.y,b.y),w,h,ax:dx<0?1:0,ay:dy<0?1:0,bx:dx<0?0:1,by:dy<0?0:1};
 }
+export function planMarkLabelSize(s,override){
+ const manual=Number(override);if(Number.isFinite(manual)&&manual>0)return Math.max(1,Math.min(72,manual));
+ const w=Math.max(0,Number(s.w)||0),h=Math.max(0,Number(s.h)||0),span=s.type==='mark-arrow'?Math.hypot(w,h):s.type==='mark-circle'?Math.max(w,h):Math.sqrt(w*h);
+ return Math.max(1,Math.min(72,Math.round(span*.08*10)/10));
+}
 export function planMarkSvg(s,offset={},fontSize){
  const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const color=/^#[0-9a-f]{6}$/i.test(s.color)?s.color:'#d34b23',stroke=Math.max(.5,Math.min(12,Number(s.stroke)||2)),size=Math.max(1,Math.min(72,Number(fontSize)||Number(s.labelSize)||14));
+ const color=/^#[0-9a-f]{6}$/i.test(s.color)?s.color:'#d34b23',stroke=Math.max(.5,Math.min(12,Number(s.stroke)||2)),size=planMarkLabelSize(s,fontSize);
  const x=Number(s.x),y=Number(s.y),w=Number(s.w),h=Number(s.h);if(![x,y,w,h].every(Number.isFinite)||w<0||h<0)return '';
  const attrs=' fill="none" stroke="'+color+'" stroke-width="'+stroke+'" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"';
  let shape='';
@@ -21,13 +26,13 @@ export function planMarkSvg(s,offset={},fontSize){
   const p={x:b.x-head*Math.cos(angle-spread),y:b.y-head*Math.sin(angle-spread)},q={x:b.x-head*Math.cos(angle+spread),y:b.y-head*Math.sin(angle+spread)};
   shape='<path d="M'+a.x+' '+a.y+'L'+b.x+' '+b.y+'M'+p.x+' '+p.y+'L'+b.x+' '+b.y+'L'+q.x+' '+q.y+'"'+attrs+'/>';
  }else return '';
- const key='mark-label:'+s.id,cx=x+w/2,cy=y+h/2,tx=cx+(Number(offset.x)||0),ty=y+h+size*1.2+(Number(offset.y)||0);
+ const key='mark-label:'+s.id,cx=x+w/2,cy=y+h/2,tx=cx+(Number(offset.x)||0),ty=y+h+(Number(s.labelSize)||size)*1.2+(Number(offset.y)||0);
  const text=String(s.text||''),lines=text.split(/\r?\n/).slice(0,12);
- const label=text?'<text x="'+tx+'" y="'+ty+'" class="rafex-plan-mark-label m2-dimension-movable" data-dimension-key="'+escape(key)+'" data-dimension-axis="free" text-anchor="middle" style="fill:'+color+';stroke:none;font-size:'+size+'px;font-weight:700;paint-order:normal">'+lines.map((line,i)=>'<tspan x="'+tx+'" dy="'+(i?size*1.2:0)+'">'+escape(line)+'</tspan>').join('')+'</text>':'';
+ const label=text?'<text x="'+tx+'" y="'+ty+'" class="rafex-plan-mark-label m2-dimension-movable" data-dimension-key="'+escape(key)+'" data-dimension-axis="free" text-anchor="middle" style="fill:'+color+';stroke:none;font-size:'+size+'px!important;font-weight:700;paint-order:normal">'+lines.map((line,i)=>'<tspan x="'+tx+'" dy="'+(i?size*1.2:0)+'">'+escape(line)+'</tspan>').join('')+'</text>':'';
  return '<g class="rafex-plan-mark" data-layout-symbol="'+escape(s.id)+'" transform="rotate('+(Number(s.angle)||0)+' '+cx+' '+cy+')">'+shape+'</g>'+label;
 }
 
-export function installPlanMarks(geometry,svgMarkup){
+export function installPlanMarks(geometry,svgMarkup,labelSize){
  if(window.rafexPlanMarksV480)return;
  let draft=null,tap=null,settings={color:'#d34b23',stroke:2,text:''};
  const $=id=>document.getElementById(id),isMark=s=>/^mark-(arrow|circle|rect)$/.test(s?.type||''),status=text=>{if($('m2FloorStatus'))$('m2FloorStatus').textContent=text;};
@@ -88,7 +93,7 @@ export function installPlanMarks(geometry,svgMarkup){
   if(draft.labelId!=null){const s=m2LayoutSymbols.find(s=>s.id===draft.labelId);if(s)m2DimensionOffsets['mark-label:'+s.id]={x:p.x-(s.x+s.w/2),y:p.y-(s.y+s.h+s.labelSize*1.2)};cancel();m2RenderLayout();status('Sembol ve yazısı eklendi. Yazıyı Ölçü Yeri Düzenle ile taşıyabilirsiniz.');return;}
   if(!draft.start){draft.start=p;draft.hover=p;status(draft.type==='mark-circle'?'Dairenin kenarını tıklayın.':draft.type==='mark-arrow'?'Okun biteceği noktayı tıklayın.':'Karşı köşeyi tıklayın.');return;}
   const box=geometry(draft.type,draft.start,p);if(!box){status('Şekil için farklı bir bitiş noktası seçin.');return;}
-  m2PushUndo('Açıklama sembolü ekle');const symbol={...box,type:draft.type,color:draft.color,stroke:draft.stroke,text:draft.text,labelSize:draft.labelSize,id:Date.now()+Math.random(),blocking:false,angle:0};
+  m2PushUndo('Açıklama sembolü ekle');const symbol={...box,type:draft.type,color:draft.color,stroke:draft.stroke,text:draft.text,labelSize:labelSize({...box,type:draft.type}),id:Date.now()+Math.random(),blocking:false,angle:0};
   m2LayoutSymbols.push(symbol);m2SelectedSymbolId=symbol.id;
   if(symbol.text){draft.labelId=symbol.id;draft.hover=p;status('Şekil tamamlandı. Yazının yerini tıklayın. Sonradan Ölçü Yeri Düzenle ile taşıyabilirsiniz.');}
   else{cancel();status('Sembol eklendi.');}
@@ -98,8 +103,11 @@ export function installPlanMarks(geometry,svgMarkup){
  document.addEventListener('keydown',event=>{if(draft&&event.key==='Escape'){stop(event);cancel();m2RenderLayout();status('Sembol çizimi bitirildi.');}},true);
  const setTool=m2SetLayoutTool;m2SetLayoutTool=function(){cancel();return setTool.apply(this,arguments);};
  const init=m2InitLayoutEditor;m2InitLayoutEditor=function(){cancel();return init.apply(this,arguments);};
- window.rafexPlanMarksV480={isMark,cancel,svg(symbols){
-  return (symbols||[]).filter(isMark).map(s=>svgMarkup(draft?.labelId===s.id?{...s,text:''}:s,m2DimensionOffsets['mark-label:'+s.id],m2DimensionFontSizes['mark-label:'+s.id])).join('');
+ window.rafexPlanMarksV480={isMark,cancel,fontForKey(key){
+  if(!String(key).startsWith('mark-label:'))return;
+  const s=m2LayoutSymbols.find(s=>'mark-label:'+s.id===key);if(s)return labelSize(s,m2DimensionFontSizes[key]??m2DimensionFontSizes.__all);
+ },svg(symbols){
+  return (symbols||[]).filter(isMark).map(s=>svgMarkup(draft?.labelId===s.id?{...s,text:''}:s,m2DimensionOffsets['mark-label:'+s.id],m2DimensionFontSizes['mark-label:'+s.id]??m2DimensionFontSizes.__all)).join('');
  }};
 }
 
@@ -110,9 +118,11 @@ export function transform(html){
  replace('html += m2UserNotes.map((note) =>', 'html += window.rafexPlanMarksV480?.svg(m2LayoutSymbols)||"";\n        html += m2UserNotes.map((note) =>');
  // Annotation shapes have no physical footprint or distance guides.
  replace('function m2SymbolDistanceGuides(symbol){','function m2SymbolDistanceGuides(symbol){if(window.rafexPlanMarksV480?.isMark(symbol))return "";');
+ replace('size = (m2DimensionFontSizes[key]??m2DimensionFontSizes.__all??12);','size = key.startsWith("mark-label:")?(m2DimensionFontSizes[key]??m2DimensionFontSizes.__all):(m2DimensionFontSizes[key]??m2DimensionFontSizes.__all??12);');
+ html=html.replaceAll('font.value=(m2DimensionFontSizes[key]??m2DimensionFontSizes.__all)||12;', 'font.value=window.rafexPlanMarksV480?.fontForKey(key)??((m2DimensionFontSizes[key]??m2DimensionFontSizes.__all)||12);');
  const at=html.lastIndexOf('</body>');if(at<0)throw Error('Missing body');
  const css='<style data-rafex-plan-marks="v480">#m2SymbolModal .m2-symbol-choices{grid-template-columns:repeat(auto-fit,minmax(90px,1fr))}#m2SymbolModal .rafex-mark-settings{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}#m2SymbolModal .rafex-mark-settings[hidden]{display:none}#m2SymbolModal .rafex-mark-settings label{display:grid;gap:6px;font-weight:700}#m2SymbolModal .rafex-mark-settings input,#m2SymbolModal .rafex-mark-settings textarea{width:100%;min-width:0;box-sizing:border-box;padding:8px;border:1px solid #a4bdb1;border-radius:6px}#m2SymbolModal .rafex-mark-settings input[type=color]{height:42px;padding:3px}#m2SymbolModal .rafex-mark-text,#m2SymbolModal .rafex-mark-settings small{grid-column:1/-1}#m2SymbolModal .rafex-mark-settings small{line-height:1.5;color:#52685e}#m2LayoutSvg.rafex-plan-mark-drawing{cursor:crosshair!important;touch-action:none}#m2LayoutSvg .rafex-plan-mark{pointer-events:stroke;cursor:move}#m2LayoutSvg .rafex-plan-mark-label{cursor:default;pointer-events:visiblePainted}</style>';
- return html.slice(0,at)+css+'<script>('+installPlanMarks.toString()+')('+planMarkGeometry.toString()+','+planMarkSvg.toString()+');</script>'+html.slice(at);
+ return html.slice(0,at)+css+'<script>'+planMarkLabelSize.toString()+';('+installPlanMarks.toString()+')('+planMarkGeometry.toString()+','+planMarkSvg.toString()+',planMarkLabelSize);</script>'+html.slice(at);
 }
 if(process.argv[1]?.replaceAll('\\','/').endsWith('/plan-marks-v480.mjs')){
  const f='dist/server/index.js',s=fs.readFileSync(f,'utf8'),m=s.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/);if(!m)throw Error('Missing HTML');
