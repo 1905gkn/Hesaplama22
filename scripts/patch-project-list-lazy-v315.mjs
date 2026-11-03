@@ -28,7 +28,33 @@ export function transform(html){
  copyProject=window.copyProject=action(copyProject);
  m2LoadProject=window.m2LoadProject=action(m2LoadProject);
  window.rafexOpenHistoryProjectV134=action(window.rafexOpenHistoryProjectV134);
- window.rafexToggleHistoryV261=action(window.rafexToggleHistoryV261,1);
+ const detailPending=new Map();
+ function detailBody(id){return document.querySelector('[data-history-body-v261="'+Number(id)+'"]');}
+ function detailState(body,loading){
+  const row=body?.closest('.history-item'),button=row?.querySelector('.history-summary');if(!row||!button)return;
+  row.classList.add('open');button.setAttribute('aria-expanded','true');button.disabled=loading;
+  if(loading){button.setAttribute('aria-busy','true');body.textContent='Proje detayı yükleniyor…';body.setAttribute('role','status');}
+  else{button.removeAttribute('aria-busy');body.removeAttribute('role');}
+ }
+ function paintDetail(body,p){if(!body||!p)return;body.innerHTML=historyProjectBody(p,p.payload||{},p.payload?.inputs||{});body.dataset.loaded='1';delete body.dataset.error;detailState(body,false);}
+ const baseHistoryRender=renderHistoryProjects;
+ renderHistoryProjects=window.renderHistoryProjects=function(){
+  const opened=[...document.querySelectorAll('.history-item.open [data-history-body-v261]')].map(body=>Number(body.getAttribute('data-history-body-v261')));
+  const result=baseHistoryRender.apply(this,arguments);
+  for(const id of opened){const body=detailBody(id);if(!body)continue;const p=records().find(p=>Number(p.id)===id&&!p.__summary);if(detailPending.has(id))detailState(body,true);else if(p)paintDetail(body,p);}
+  return result;
+ };
+ window.rafexToggleHistoryV261=function(button,id){
+  id=Number(id);if(detailPending.has(id))return detailPending.get(id);
+  const body=detailBody(id),row=body?.closest('.history-item');if(!body||!row)return Promise.resolve();
+  if(row.classList.contains('open')&&body.dataset.loaded){row.classList.remove('open');button.setAttribute('aria-expanded','false');return Promise.resolve();}
+  detailState(body,true);
+  const task=(async()=>{
+   try{const p=await hydrate(id);paintDetail(detailBody(id),p);}
+   catch(error){const current=detailBody(id);if(current){current.textContent='Proje detayı alınamadı: '+error.message+' Yeniden denemek için başlığa tıklayın.';current.dataset.error='1';detailState(current,false);}}
+   finally{detailPending.delete(id);const current=detailBody(id);if(current)detailState(current,false);}
+  })();detailPending.set(id,task);return task;
+ };
  const apply=m2ApplyProjectRecord;
  m2ApplyProjectRecord=window.m2ApplyProjectRecord=function(project,...args){
   if(project?.__summary)return hydrate(project.id).then(full=>apply.call(this,full,...args)).catch(error=>{alert(error.message);return false;});

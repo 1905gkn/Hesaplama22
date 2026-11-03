@@ -15,7 +15,7 @@ assert.deepEqual([1999,2000,3000,3001].map(backMeshSupports),[0,1,1,2]);
 assert.deepEqual(backMeshFaces(1100,2,200),{front:-1300,back:1300,middle:0});
 const html=transform("<body><script>html += m2UserNotes.map((note) => 1);push('Ağır deprem çaprazı',heavy,'');JSON.stringify(rack&&rack.seismicBraces||[])</script></body>"),script=html.match(/<script data-rafex-back-mesh="v482">([\s\S]*?)<\/script>/)[1],listeners={};
 const rack={id:1,x:0,y:0,w:116,h:100,widthMm:2900,depthMm:2500,sideUprightHeight:6850,b2bLayout:{sectionWidth:2700,frameDepth:1100,rowCount:2,rowGap:200},backMeshSides:['front','middle','back']};
-const context={window:{rafexProductCodeRulesV322:{split:s=>({code:'',description:s})}},document:{getElementById:()=>null,addEventListener:(t,f)=>listeners[t]=f},m2LayoutState:{scale:.04,racks:[rack]},m2RenderLayout(){},m2LayoutAccessoryRows:()=>[],m2OpenProtectionDialog(){},m2StartProtectionPlacement(){},m2Rack3DOptions:r=>({footHeight:r.sideUprightHeight})};
+const context={window:{rafexProductCodeRulesV322:{split:s=>({code:'',description:s})}},document:{getElementById:()=>null,addEventListener:(t,f)=>listeners[t]=f},m2LayoutState:{scale:.04,racks:[rack]},m2RenderLayout(){},m2SetLayoutTool(){},m2LayoutAccessoryRows:()=>[],m2OpenProtectionDialog(){},m2StartProtectionPlacement(){},m2Rack3DOptions:r=>({footHeight:r.sideUprightHeight})};
 vm.createContext(context);vm.runInContext(script,context);
 const rows=context.window.rafexBackMeshV482.rows();
 assert.equal(rows[0].qty,12);assert.equal(rows[1].qty,3);
