@@ -16,3 +16,9 @@ const rotated=navigationSpace({racks:[{x:0,z:0,width:8,depth:2,angle:Math.PI/4}]
 const huge=await buildNavigation({racks:[{x:0,z:0,width:1,depth:1},{x:1000,z:1000,width:1,depth:1}]});assert(huge.nodes.length<=26000);
 console.log('PASS: 15 minutes, 3 vehicles, no rack/rotated-column/boundary/vehicle collisions; narrow-corridor reverse travel; no-space case; cancellation; bounded navigation grid.',{travelled:Math.round(travelled),nodes:nav.nodes.length,aislePercent:Math.round(aisleTicks/totalTicks*100)});
 
+
+const steady=createTraffic(narrowNav,1,()=>.2),vehicle=steady.agents[0];steady.step(.001);
+const destination=narrowNav.nodes.filter(n=>n.component===narrowNav.nodes[vehicle.node].component&&n.axis===narrowNav.nodes[vehicle.node].axis).sort((p,q)=>Math.hypot(q.x-vehicle.x,q.z-vehicle.z)-Math.hypot(p.x-vehicle.x,p.z-vehicle.z))[0];
+assert(steady.command(0,destination.x,destination.z).accepted);
+for(let i=0;i<600;i++){const x=vehicle.x,z=vehicle.z;steady.step(1/60);assert(Math.abs(Math.hypot(vehicle.x-x,vehicle.z-z)-.85/60)<1e-7,'vehicle hesitated at a grid edge');}
+console.log('PASS: uninterrupted constant-speed travel across grid edges at 60 fps.');

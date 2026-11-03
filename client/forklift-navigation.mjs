@@ -61,7 +61,27 @@ export function createTraffic(nav,count=3,random=Math.random){
   if(id==null){if(a.manualGoal!=null)return;const available=n.edges.filter(id=>!blocked(nodes[id]));let ids=available.filter(id=>id!==a.previous);if(!ids.length)ids=available;if(!ids.length)return;id=ids[Math.floor(random()*ids.length)];}
   a.blockedRetries=0;const target=nodes[id],turn=target.axis!==n.axis;a.target=target;a.start={x:a.x,z:a.z,angle:a.angle};a.endAngle=turn?a.angle+Math.PI/2:a.angle;a.duration=turn?1.4:Math.hypot(target.x-a.x,target.z-a.z)/.85;a.elapsed=0;
  }
- function step(dt){dt=Math.max(0,Math.min(.1,dt));for(const a of agents){if(!a.target){a.wait-=dt;if(a.wait>0)continue;choose(a);if(!a.target){a.wait=.5;continue;}}const t=Math.min(1,(a.elapsed+dt)/a.duration),x=a.start.x+(a.target.x-a.start.x)*t,z=a.start.z+(a.target.z-a.start.z)*t;if(agents.some(other=>other!==a&&Math.hypot(x-other.x,z-other.z)<SEPARATION)){a.wait+=dt;if(a.wait>2){const home=nodes[a.node],distance=Math.hypot(home.x-a.x,home.z-a.z);a.previous=a.target.id;a.route=[];if(distance>.01){a.target=home;a.start={x:a.x,z:a.z,angle:a.angle};a.endAngle=a.angle;a.duration=distance/.85;a.elapsed=0;a.wait=0;}else{a.target=null;a.wait=.5;}}continue;}a.wait=0;a.elapsed+=dt;a.wheelTravel+=(x-a.x)*Math.cos(a.angle)-(z-a.z)*Math.sin(a.angle);a.x=x;a.z=z;a.angle=a.start.angle+deltaAngle(a.start.angle,a.endAngle)*t;if(t===1){a.previous=a.node;a.node=a.target.id;if(a.fromRun!==a.reservedRun&&nodes[a.node].aisleRun!==a.fromRun)a.fromRun=null;a.target=null;if(a.node===a.goal&&nodes[a.node].aisleRun!=null){const run=nodes[a.node].aisleRun;a.runTrips=run===a.lastRun?a.runTrips+1:1;a.lastRun=run;visits.set(run,(visits.get(run)||0)+1);}if(a.manualPending)applyCommand(a,a.manualPending);if(a.manualGoal===a.node){a.manualGoal=null;a.route=[];a.wait=1.5;}else a.wait=.15+random()*.6;}}}
+ function step(dt){
+  dt=Math.max(0,Math.min(.1,dt));
+  for(const a of agents){let remaining=dt;
+   // Carry frame time across grid edges: a grid node is not a stop.
+   for(let segment=0;remaining>1e-8&&segment<4;segment++){
+    if(!a.target){if(a.wait>0){const delay=Math.min(remaining,a.wait);a.wait-=delay;remaining-=delay;if(remaining<=1e-8)break;}choose(a);if(!a.target){a.wait=.5;break;}}
+    const slice=Math.min(remaining,Math.max(0,a.duration-a.elapsed)),t=Math.min(1,(a.elapsed+slice)/a.duration),x=a.start.x+(a.target.x-a.start.x)*t,z=a.start.z+(a.target.z-a.start.z)*t;
+    if(agents.some(other=>other!==a&&Math.hypot(x-other.x,z-other.z)<SEPARATION)){
+     a.wait+=remaining;if(a.wait>2){const home=nodes[a.node],distance=Math.hypot(home.x-a.x,home.z-a.z);a.previous=a.target.id;a.route=[];if(distance>.01){a.target=home;a.start={x:a.x,z:a.z,angle:a.angle};a.endAngle=a.angle;a.duration=distance/.85;a.elapsed=0;a.wait=0;}else{a.target=null;a.wait=.5;}}break;
+    }
+    a.wait=0;a.elapsed+=slice;remaining-=slice;a.wheelTravel+=(x-a.x)*Math.cos(a.angle)-(z-a.z)*Math.sin(a.angle);a.x=x;a.z=z;a.angle=a.start.angle+deltaAngle(a.start.angle,a.endAngle)*t;
+    if(t===1){a.previous=a.node;a.node=a.target.id;if(a.fromRun!==a.reservedRun&&nodes[a.node].aisleRun!==a.fromRun)a.fromRun=null;a.target=null;
+     if(a.node===a.goal&&nodes[a.node].aisleRun!=null){const run=nodes[a.node].aisleRun;a.runTrips=run===a.lastRun?a.runTrips+1:1;a.lastRun=run;visits.set(run,(visits.get(run)||0)+1);}
+     if(a.manualPending)applyCommand(a,a.manualPending);
+     if(a.manualGoal===a.node){a.manualGoal=null;a.route=[];}
+     a.wait=0;
+    }
+   }
+  }
+ }
+
  return {agents,step,command,coverage:()=>({visitedAisles:visits.size,totalAisles:nav.runs?.length||0})};
 }
 
