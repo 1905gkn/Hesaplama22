@@ -20,7 +20,7 @@ assert.equal(chooseDetailRack([{id:1}],()=>({pixels:100,x:0,y:0,z:0})),null);
 assert.equal(chooseDetailRack([{id:1}],()=>({pixels:400,x:0,y:0,z:0})).id,1);
 const lodRuntime=fs.readFileSync('client/layout-3d.entry.js','utf8');
 assert.ok(!lodRuntime.includes('return makeViewer(host,data,{},new Map(),options)'),'Customer links must retain the full CAD scene at every distance');
-assert.ok(lodRuntime.includes('const templates=await loadViewerCad(data),parts=await loadPreparedAccessories(data.racks,templates)')&&lodRuntime.includes('Promise.all([loadLayoutCad(data.racks),loadProtectionCad(data.symbols)])'),'Load all original rack/accessory details together with protection CAD');
+assert.ok(lodRuntime.includes('const templates=await loadViewerCad(data),parts=await loadPreparedAccessories(data.racks,templates)')&&lodRuntime.includes('Promise.all([loadLayoutCad(data.racks),loadProtectionCad(data.symbols),loadBackMeshCad(data.racks)])'),'Load all original rack/accessory details together with protection CAD');
 assert.ok(lodRuntime.includes('rackParts(r,{cad:true,')&&!lodRuntime.includes('simple:options.customerPerformance'),'Never replace customer rack detail by a simplified model');
 assert.ok(!lodRuntime.includes('createDetailController'),'Zooming must not replace or remove CAD detail');
 assert.ok(lodRuntime.includes('if(paused||disposed)return;'),'Hidden layout must not render');
