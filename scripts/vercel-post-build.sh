@@ -303,3 +303,5 @@ node scripts/verify-prepared-cache-v470.mjs
 
 
 node scripts/verify-forklift-navigation.mjs
+
+node scripts/verify-forklift-fleet.mjs
