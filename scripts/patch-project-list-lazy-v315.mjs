@@ -28,7 +28,7 @@ export function transform(html){
  copyProject=window.copyProject=action(copyProject);
  m2LoadProject=window.m2LoadProject=action(m2LoadProject);
  window.rafexOpenHistoryProjectV134=action(window.rafexOpenHistoryProjectV134);
- const detailPending=new Map();
+ const detailPending=new Map(),detailHTML=new Map();
  function detailBody(id){return document.querySelector('[data-history-body-v261="'+Number(id)+'"]');}
  function detailState(body,loading){
   const row=body?.closest('.history-item'),button=row?.querySelector('.history-summary');if(!row||!button)return;
@@ -36,18 +36,19 @@ export function transform(html){
   if(loading){button.setAttribute('aria-busy','true');body.textContent='Proje detayı yükleniyor…';body.setAttribute('role','status');}
   else{button.removeAttribute('aria-busy');body.removeAttribute('role');}
  }
- function paintDetail(body,p){if(!body||!p)return;body.innerHTML=historyProjectBody(p,p.payload||{},p.payload?.inputs||{});body.dataset.loaded='1';delete body.dataset.error;detailState(body,false);}
+ function paintDetail(body,p){if(!body||!p)return;body.innerHTML=historyProjectBody(p,p.payload||{},p.payload?.inputs||{});body.dataset.loaded='1';detailHTML.set(Number(p.id),body.innerHTML);delete body.dataset.error;detailState(body,false);}
  const baseHistoryRender=renderHistoryProjects;
  renderHistoryProjects=window.renderHistoryProjects=function(){
   const opened=[...document.querySelectorAll('.history-item.open [data-history-body-v261]')].map(body=>Number(body.getAttribute('data-history-body-v261')));
   const result=baseHistoryRender.apply(this,arguments);
-  for(const id of opened){const body=detailBody(id);if(!body)continue;const p=records().find(p=>Number(p.id)===id&&!p.__summary);if(detailPending.has(id))detailState(body,true);else if(p)paintDetail(body,p);}
+  for(const id of opened){const body=detailBody(id);if(!body)continue;const p=records().find(p=>Number(p.id)===id&&!p.__summary);if(detailPending.has(id))detailState(body,true);else if(p)paintDetail(body,p);else if(detailHTML.has(id)){body.innerHTML=detailHTML.get(id);body.dataset.loaded='1';detailState(body,false);}}
+  for(const id of detailHTML.keys()){if(!opened.includes(id)||!detailBody(id))detailHTML.delete(id);}
   return result;
  };
  window.rafexToggleHistoryV261=function(button,id){
   id=Number(id);if(detailPending.has(id))return detailPending.get(id);
   const body=detailBody(id),row=body?.closest('.history-item');if(!body||!row)return Promise.resolve();
-  if(row.classList.contains('open')&&body.dataset.loaded){row.classList.remove('open');button.setAttribute('aria-expanded','false');return Promise.resolve();}
+  if(row.classList.contains('open')&&body.dataset.loaded){row.classList.remove('open');detailHTML.delete(id);button.setAttribute('aria-expanded','false');return Promise.resolve();}
   detailState(body,true);
   const task=(async()=>{
    try{const p=await hydrate(id);paintDetail(detailBody(id),p);}
