@@ -51,6 +51,7 @@
  async function showPdf(url,filename){
   let dialog=el('engFileDialog');if(!dialog){dialog=document.createElement('dialog');dialog.id='engFileDialog';dialog.className='eng-file-dialog';document.body.append(dialog)}
   dialog.innerHTML='<div class="eng-list-head"><h3>'+esc(filename)+'</h3><button type="button" id="engCloseFile">Kapat</button></div><div class="eng-pdf-tools"><button type="button" data-pdf-prev>Önceki</button><span data-pdf-status>PDF yükleniyor…</span><button type="button" data-pdf-next>Sonraki</button><button type="button" data-pdf-out>−</button><button type="button" data-pdf-in>+</button></div><div class="eng-pdf-content"><canvas></canvas></div>';
+  dialog.querySelector('#engCloseFile').onclick=()=>dialog.close();
   dialog.showModal();let task,pdf,rendering,closed=false,generation=0,pageNumber=1,zoom=1;
   dialog.onclose=()=>{closed=true;generation++;rendering?.cancel();task?.destroy();dialog.innerHTML=''};
   const status=dialog.querySelector('[data-pdf-status]');
