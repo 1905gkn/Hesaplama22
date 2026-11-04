@@ -103,7 +103,7 @@ export function transformHtml(html){
   html=html.slice(0,palletStart)+`  if(compact&&p.showPallets){for(let row=0;row<p.depth;row++){let d='';for(let bay=0;bay<p.bays;bay++){const px=p.foot+bay*p.pitch+(p.pitch-p.foot-p.palW)/2;d+='M'+px+' '+p.positions[row]+'h'+p.palW+'v'+p.palD+'h'+(-p.palW)+'z';}out+='<path class="rafex-plan-pallet-v143" data-pallet-row="'+(row+1)+'" d="'+d+'" fill="#dfbd72" stroke="#c38838" stroke-width="'+(p.palW/80)+'"/>';}}else
 `+oldPallet+html.slice(palletEnd);
   html=replaceOnce(html,'window.rafexRenderPlanV143(window.rafexPlanDetailV143(m2LastDrawing),{x:left,y:topY,scale:topScale,braces:false})','window.rafexRenderPlanV143(window.rafexPlanDetailV143(m2LastDrawing),{x:left,y:topY,scale:topScale,braces:false,compact:true})','compact configuration top view only');
-  html=html.replace(/\/(mr|konsol|mekik-front)-viewer\.js(?:\?[^"'\s<>]*)?/g,'/$1-viewer.js?v=rack-performance-v498');
+  html=html.replace(/\/(mr|konsol|mekik-front)-viewer\.js(\?[^"'\s<>]*)?/g,(_,name,query='')=>'/'+name+'-viewer.js'+query+(query?'&':'?')+'performance=v498');
   const bodyEnd=html.lastIndexOf('</body>');if(bodyEnd<0)throw Error('v498 missing document body');
   return html.slice(0,bodyEnd)+'<script data-rack-performance="v498">window.rafexRackPerformanceVersion="v498";</script>'+html.slice(bodyEnd);
 }
