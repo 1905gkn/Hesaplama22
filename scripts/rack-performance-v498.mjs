@@ -64,6 +64,7 @@ export function transformMR(code){
   if(code.includes(marker))return code;
   code=code.replace(/this\.frameDirty=(?:!0|true)/g,'this.invalidateV498()');
   code=replaceOnce(code,'this.controls=new ke(this.camera,e),','this.controls=new ke(this.camera,e),this.controls.addEventListener("change",()=>this.requestFrameV498()),','MR camera wake');
+  code=replaceOnce(code,'setAutoRotate(e){this.controls.autoRotate=!!e,this.controls.autoRotateSpeed=.75}', 'setAutoRotate(e){this.controls.autoRotate=!!e,this.controls.autoRotateSpeed=.75,this.requestFrameV498()}','MR programmatic rotation wake');
   const before='this.controls.update(),Za(this)&&(';
   code=replaceOnce(code,before,'this.controls.update();const changedV498=Za(this);changedV498&&(','MR dirty frame');
   code=replaceOnce(code,'this.animationFrame=requestAnimationFrame(this.animate)}}destroy(){','(changedV498||this.controls.autoRotate)&&this.requestFrameV498()}}requestFrameV498(){if(!this.destroyed&&!document.hidden&&this.visibilityV147?.visible!==false&&this.animationFrame==null)this.animationFrame=requestAnimationFrame(this.animate)}invalidateV498(){this.frameDirty=true;this.requestFrameV498()}destroy(){','MR stop idle frames');
