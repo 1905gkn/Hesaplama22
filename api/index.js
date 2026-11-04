@@ -145,7 +145,7 @@ const application = {
     const path = new URL(request.url).pathname;
     if(path==='/api/internal/approval-mail'){const {approvalMailRelay}=await import('../scripts/approval-mail-v451.mjs');return approvalMailRelay(request);}
     // Web Push subscription writes retain the browser origin check before proxy normalization.
-    if((path.startsWith('/api/push/')||path.startsWith('/api/notifications'))&&request.method!=='GET'&&request.headers.get('origin')!==new URL(request.url).origin)return Response.json({error:'Geçersiz istek.'},{status:403});
+    if((path.startsWith('/api/push/')||path.startsWith('/api/notifications')||path.startsWith('/api/engineering/'))&&request.method!=='GET'&&request.headers.get('origin')!==new URL(request.url).origin)return Response.json({error:'Geçersiz istek.'},{status:403});
     if(path==='/api/push/dispatch'&&(!process.env.CRON_SECRET||request.headers.get('authorization')!=='Bearer '+process.env.CRON_SECRET))return Response.json({error:'Yetkisiz.'},{status:401});
     if(/^\/p\/[A-Za-z0-9_-]{16}$/.test(path))return customerViewPage(request,{proxyApi,version:process.env.VERCEL_GIT_COMMIT_SHA||'customer473'});
     if(path==='/api/customer-shares'||/^\/api\/customer-shares\/[a-f0-9]{48}\/images\/0$/.test(path))return customerShareStorage(request,{proxyApi});

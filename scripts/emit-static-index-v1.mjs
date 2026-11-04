@@ -1,3 +1,4 @@
+import {transform as engineering} from './engineering-v488.mjs';
 import {transform as b2bLiveInput} from './b2b-live-input-v486.mjs';
 import {transform as backMesh} from './back-mesh-v482.mjs';
 import {transformPlanMarkFonts} from './plan-marks-v480.mjs';
@@ -131,6 +132,7 @@ html=outputLanguage439(html);
 html=transformPlanMarkFonts(html);
 html=backMesh(html);
 html=b2bLiveInput(html);
+html=engineering(html);
 execFileSync(process.execPath,['scripts/verify-b2b-live-input-v486.mjs'],{stdio:'inherit'});
 // Both the static entry and API fallback must serve the same optimized runtime.
 fs.writeFileSync(serverPath,source.replace(match[2],Buffer.from(html,'utf8').toString('base64')));
