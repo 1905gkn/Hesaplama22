@@ -8092,5 +8092,42 @@
       changeProgramLanguage(appLanguage, false);
       boot();
     </script>
-  <style>.m2-corporate-final{min-height:0;flex:1}.m2-corporate-copy:has(.rafex-drawing-note-footer){display:flex;flex-direction:column;height:100%}.m2-corporate-copy .rafex-drawing-note-footer{margin-top:auto;padding:6px 8px;background:transparent;font-size:9px;line-height:1.35}.m2-corporate-copy .rafex-drawing-note-footer h3{font-size:10px;margin:0 0 3px}.m2-corporate-copy .rafex-drawing-note-footer p{font-size:9px;margin:0}</style><style>.m2-corporate-final{min-height:0;flex:1}.m2-corporate-copy:has(.rafex-drawing-note-footer){display:flex;flex-direction:column;height:100%}.m2-corporate-copy .rafex-drawing-note-footer{margin-top:auto;padding:6px 8px;background:transparent;font-size:9px;line-height:1.35}.m2-corporate-copy .rafex-drawing-note-footer h3{font-size:10px;margin:0 0 3px}.m2-corporate-copy .rafex-drawing-note-footer p{font-size:9px;margin:0}</style></body>
+  <style>.m2-corporate-final{min-height:0;flex:1}.m2-corporate-copy:has(.rafex-drawing-note-footer){display:flex;flex-direction:column;height:100%}.m2-corporate-copy .rafex-drawing-note-footer{margin-top:auto;padding:6px 8px;background:transparent;font-size:9px;line-height:1.35}.m2-corporate-copy .rafex-drawing-note-footer h3{font-size:10px;margin:0 0 3px}.m2-corporate-copy .rafex-drawing-note-footer p{font-size:9px;margin:0}</style><style>.m2-corporate-final{min-height:0;flex:1}.m2-corporate-copy:has(.rafex-drawing-note-footer){display:flex;flex-direction:column;height:100%}.m2-corporate-copy .rafex-drawing-note-footer{margin-top:auto;padding:6px 8px;background:transparent;font-size:9px;line-height:1.35}.m2-corporate-copy .rafex-drawing-note-footer h3{font-size:10px;margin:0 0 3px}.m2-corporate-copy .rafex-drawing-note-footer p{font-size:9px;margin:0}</style><style data-rafex-mobile-touch-layout="v1">
+@media(max-width:760px),(pointer:coarse) and (max-device-width:760px){
+body #page #m2DxfButton{display:none!important}
+body #page .b2b-measure-controls{position:absolute!important;right:8px!important;bottom:8px!important;top:auto!important;left:auto!important;display:flex!important;flex-direction:column!important;max-width:90%!important;gap:6px!important}
+body #page .b2b-measure-controls button{font-size:12px!important;padding:8px!important;min-height:40px!important}
+body #page .m2-floor-canvas{overflow:auto!important;touch-action:none!important}
+}
+</style>
+<script data-rafex-mobile-touch-layout="v1">
+(()=>{
+const points=new Map();let active=null;
+const stop=e=>{e.preventDefault();e.stopImmediatePropagation()};
+const pair=()=>Array.from(points.values()).slice(0,2);
+document.addEventListener('pointerdown',e=>{
+if(e.pointerType!=='touch')return;
+const svg=e.target.closest?.('#m2LayoutSvg');if(!svg)return;
+points.set(e.pointerId,{x:e.clientX,y:e.clientY});
+const box=svg.closest('.m2-floor-canvas');if(!box)return;
+if(points.size===2){
+svg.dispatchEvent(new PointerEvent('pointercancel',{bubbles:true,pointerId:Array.from(points.keys())[0],pointerType:'mouse'}));
+const [a,b]=pair();active={svg,box,d:Math.hypot(a.x-b.x,a.y-b.y),width:svg.getBoundingClientRect().width};stop(e);return;
+}
+let idle=false;try{idle=m2LayoutState.mode==='idle'&&!m2LayoutTool&&!m2AutoFillDraft&&!m2MultiSelect.active&&!m2ProtectionDraft&&!m2SeismicDraft&&!m2CustomizeMode&&!m2CopyMode&&!m2JoinMode}catch{}
+if(idle&&!e.target.closest('[data-rack],[data-layout-symbol],[data-dimension-key],[data-user-note],[data-edge-index]')){
+active={svg,box,x:e.clientX,y:e.clientY,left:box.scrollLeft,top:box.scrollTop};stop(e);
+}
+},true);
+document.addEventListener('pointermove',e=>{
+if(!points.has(e.pointerId))return;points.set(e.pointerId,{x:e.clientX,y:e.clientY});
+if(!active)return;
+if(points.size>=2){const [a,b]=pair();const ratio=Math.hypot(a.x-b.x,a.y-b.y)/Math.max(1,active.d||Math.hypot(a.x-b.x,a.y-b.y));const width=Math.max(active.box.clientWidth,Math.min(active.box.clientWidth*5,(active.width||active.svg.getBoundingClientRect().width)*ratio));active.svg.style.setProperty('width',width+'px','important');active.svg.style.setProperty('max-width','none','important');}
+else if(active.x!=null){active.box.scrollLeft=active.left+active.x-e.clientX;active.box.scrollTop=active.top+active.y-e.clientY;}
+stop(e);
+},{capture:true,passive:false});
+for(const name of ['pointerup','pointercancel'])document.addEventListener(name,e=>{if(e.pointerType!=='touch')return;points.delete(e.pointerId);if(active){stop(e);if(!points.size)active=null;}},true);
+})();
+</script>
+</body>
 </html>
