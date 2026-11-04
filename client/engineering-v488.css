@@ -19,3 +19,5 @@
 @media(max-width:650px){.eng-page:has(.eng-hero) .eng-pallet-row>.eng-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 .eng-page:has(.eng-hero) .eng-list-search{display:flex;align-items:end;gap:8px;flex-wrap:wrap;margin-bottom:16px}.eng-page:has(.eng-hero) .eng-list-search label{flex:1 1 125px;min-width:0;margin:0}
+
+.eng-page:has(.eng-hero) .eng-column-search th{padding:6px 5px;background:transparent;vertical-align:bottom}.eng-page:has(.eng-hero) .eng-column-search input{width:100%;min-width:65px;box-sizing:border-box;margin:0;padding:7px 6px}.eng-page:has(.eng-hero) .eng-column-search button{padding:7px 8px;margin:2px}
