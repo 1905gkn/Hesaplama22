@@ -18,6 +18,17 @@ const technicalMaterials = {
   palet: new THREE.MeshStandardMaterial({ color: 0x9a6028, metalness: 0.04, roughness: 0.94 }),
   yuk: new THREE.MeshStandardMaterial({ color: 0xc58b47, metalness: 0, roughness: 0.94 }),
 };
+// Immutable finish pairs are shared by captures and live views without recoloring each other.
+const driveFinishMaterialsV500=new Map();
+function selectedDriveMaterialsV500(c){
+  const key=c.footColor+':'+c.traverseColor;
+  if(driveFinishMaterialsV500.has(key))return driveFinishMaterialsV500.get(key);
+  const finish=(color,metalness=.34,roughness=.42)=>new THREE.MeshStandardMaterial({color,metalness,roughness});
+  const galvanized=finish(0xaeb8bd,.45,.62),upright=c.footColor==='pgv'?galvanized:finish(0x004f7c);
+  const beam=finish(c.traverseColor==='ral2004'?0xe25303:0xe5a100);
+  const result={ayak:part=>/HR[_\s-]*\d+[_\s-]*AYAK/i.test(part.name)?upright:galvanized,ray:beam,konsol:beam,arabag:beam};
+  driveFinishMaterialsV500.set(key,result);return result;
+}
 const loadBoxGeometry = new THREE.BoxGeometry(1, 1, 1);
 
 function metricsOf(source) {
@@ -39,7 +50,7 @@ function cloneAtPhysicalScale(source, scale, material, orientation = {}) {
     if (!part.isMesh) return;
     part.castShadow = false;
     part.receiveShadow = false;
-    part.material = material;
+    part.material = typeof material === "function" ? material(part) : material;
   });
   const center = metricsOf(source).center;
   clone.scale.copy(scale);
@@ -136,13 +147,15 @@ class DriveInFrontViewer {
       firstPalletGap,
       palletGap,
       railLength,
+      footColor: ["ral5010","pgv"].includes(next.footColor ?? next.mekikFootColor) ? (next.footColor ?? next.mekikFootColor) : "ral5010",
+      traverseColor: ["ral1007","ral2004"].includes(next.traverseColor ?? next.mekikTraverseColor) ? (next.traverseColor ?? next.mekikTraverseColor) : "ral1007",
       firstLevelHeight,
       levelSpacing: clamp(Number(next.levelSpacing) || palletHeight + 70 + 80, 380, 5000),
     };
   }
 
   configKey(value = this.config) {
-    return [value.bays, value.levels, value.depthPallets, value.palletWidth, value.palletDepth, value.palletHeight, value.firstLevelHeight, value.levelSpacing, value.systemType, value.firstPalletGap, value.palletGap, value.totalWidth].join("|");
+    return [value.bays, value.levels, value.depthPallets, value.palletWidth, value.palletDepth, value.palletHeight, value.firstLevelHeight, value.levelSpacing, value.systemType, value.firstPalletGap, value.palletGap, value.totalWidth,value.footColor,value.traverseColor].join("|");
   }
 
   emit(name, detail = {}) { this.canvas.dispatchEvent(new CustomEvent(name, { detail })); }
@@ -186,6 +199,8 @@ class DriveInFrontViewer {
   }
 
   addPart(source, scale, position, material, orientation) {
+    const finishes=selectedDriveMaterialsV500(this.config);
+    for(const key of ["ayak","ray","konsol","arabag"])if(material===technicalMaterials[key]){material=finishes[key];break;}
     const holder = new THREE.Group();
     holder.position.copy(position);
     holder.add(cloneAtPhysicalScale(source, scale, material, orientation));

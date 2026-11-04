@@ -314,3 +314,5 @@ node scripts/rack-performance-v498.mjs
 node scripts/verify-rack-performance-v498.mjs
 
 node scripts/dimension-layout-v499.mjs
+
+node scripts/finishes-v500.mjs
