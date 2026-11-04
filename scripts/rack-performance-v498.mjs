@@ -48,6 +48,10 @@ export function batchMrPartsV498(root){
   }
 }
 
+export function disposeMrInstancesV498(root){
+  root?.traverse?.(node=>{if(node.isInstancedMesh)node.dispose();});
+}
+
 export function transformMekik(code){
   if(code.includes(marker))return code;
   const old='clearRoot(){for(;this.root.children.length;)this.root.remove(this.root.children[0])}';
@@ -69,7 +73,9 @@ export function transformMR(code){
   code=replaceOnce(code,before,'this.controls.update();const changedV498=Za(this);changedV498&&(','MR dirty frame');
   code=replaceOnce(code,'this.animationFrame=requestAnimationFrame(this.animate)}}destroy(){','(changedV498||this.controls.autoRotate)&&this.requestFrameV498()}}requestFrameV498(){if(!this.destroyed&&!document.hidden&&this.visibilityV147?.visible!==false&&this.animationFrame==null)this.animationFrame=requestAnimationFrame(this.animate)}invalidateV498(){this.frameDirty=true;this.requestFrameV498()}destroy(){','MR stop idle frames');
   code=replaceOnce(code,'this.root.updateMatrixWorld(!0),this.bounds.setFromObject(this.root)', 'this.canvas.id==="mrCanvas"&&batchMrPartsV498(this.root),this.root.updateMatrixWorld(!0),this.bounds.setFromObject(this.root)','MR identical part batching');
-  return `/* ${marker} */\n${batchMrPartsV498.toString()}\n`+code;
+  code=replaceOnce(code,'this.disposeDimensions(),this.root.clear();','this.disposeDimensions(),disposeMrInstancesV498(this.root),this.root.clear();','MR instance buffers on rebuild');
+  code=replaceOnce(code,'this.disposeDimensions(),this.canvas.removeEventListener','this.disposeDimensions(),disposeMrInstancesV498(this.root),this.canvas.removeEventListener','MR instance buffers on destroy');
+  return `/* ${marker} */\n${batchMrPartsV498.toString()}\n${disposeMrInstancesV498.toString()}\n`+code;
 }
 
 export function transformKonsol(code){

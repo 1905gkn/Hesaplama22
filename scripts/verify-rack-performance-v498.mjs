@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
-import {clearMekikResourcesV498,batchMrPartsV498,transformHtml,transformMR,transformMekik,transformKonsol} from './rack-performance-v498.mjs';
+import {clearMekikResourcesV498,batchMrPartsV498,disposeMrInstancesV498,transformHtml,transformMR,transformMekik,transformKonsol} from './rack-performance-v498.mjs';
 const THREE=await import(process.env.RAFEX_THREE_MODULE||'three');
 globalThis.RafexThree=THREE;
 
@@ -17,6 +17,7 @@ const parts=new THREE.Group();for(let i=0;i<48;i++){const part=new THREE.Mesh(sh
 const boundsBefore=new THREE.Box3().setFromObject(parts);batchMrPartsV498(parts);
 const boundsAfter=new THREE.Box3().setFromObject(parts);assert.equal(parts.children.length,1);assert.equal(parts.children[0].count,48);
 assert.ok(boundsBefore.min.distanceTo(boundsAfter.min)<1e-5);assert.ok(boundsBefore.max.distanceTo(boundsAfter.max)<1e-5);
+let instanceDisposals=0;parts.children[0].addEventListener('dispose',()=>instanceDisposals++);disposeMrInstancesV498(parts);assert.equal(instanceDisposals,1);assert.equal(disposals.sharedGeometry,0);assert.equal(disposals.sharedMaterial,0);
 
 function frameTest(code,name){
   const start=name==='MR'?code.indexOf('animate(){if(!this.destroyed)'):code.indexOf('loop(){if(!this.destroyed)');
