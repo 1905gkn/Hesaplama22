@@ -55,7 +55,8 @@ if (!html.includes(viewerWarmMarker)) {
     if(pending[module])return pending[module];
     started.add(module);
     const path=src.split('?')[0];
-    if(document.querySelector('script[src^="'+path+'"]'))return Promise.resolve(true);
+    const existing=document.querySelector('script[src^="'+path+'"]');
+    if(existing)return new Promise((resolve,reject)=>{existing.addEventListener('load',()=>resolve(true),{once:true});existing.addEventListener('error',()=>reject(new Error(module+' 3D motoru yuklenemedi')),{once:true});});
     const script=document.createElement('script');
     script.src=src;
     script.async=true;
@@ -76,6 +77,15 @@ if (!html.includes(viewerWarmMarker)) {
     if(target?.matches?.('input[name="rafexUnifiedSystem"]'))load(target.value);
   },true);
   window.rafexLoadViewerOnDemandV3=load;
+  const loadActive=()=>{
+    const page=document.getElementById('page');
+    const module=page?.dataset?.rafexFreeContextSystem||page?.dataset?.m2Module||(page?.classList.contains('b2b-mode')?'b2b':page?.classList.contains('mr-mode')?'mr':'');
+    if(sourceByModule[module])load(module).catch(console.warn);
+  };
+  const page=document.getElementById('page');
+  if(page)new MutationObserver(loadActive).observe(page,{attributes:true,attributeFilter:['class','data-m2-module','data-rafex-free-context-system']});
+  window.addEventListener('rafex-authority-state',loadActive);
+  loadActive();
 })();
 </script>`;
   const bodyEnd = html.lastIndexOf("</body>");
