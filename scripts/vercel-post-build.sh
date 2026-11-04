@@ -312,3 +312,5 @@ node scripts/verify-forklift-commands.mjs
 
 node scripts/rack-performance-v498.mjs
 node scripts/verify-rack-performance-v498.mjs
+
+node scripts/dimension-layout-v499.mjs
