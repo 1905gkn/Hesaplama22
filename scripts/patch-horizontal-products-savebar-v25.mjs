@@ -147,7 +147,10 @@ const runtime = String.raw`
     if(!layout)return;
     let bar=page.querySelector('.rafex-b2b-mekik-savebar');
     if(!bar){bar=document.createElement('div');bar.className='rafex-b2b-mekik-savebar'}
-    if(bar.previousElementSibling!==layout)layout.insertAdjacentElement('afterend',bar);
+    const mobile=window.matchMedia('(max-width:760px), (pointer:coarse) and (max-device-width:760px)').matches;
+    const anchor=mobile?(page.querySelector('.m2-export')||layout):layout;
+    if(mobile){if(bar.nextElementSibling!==anchor)anchor.insertAdjacentElement('beforebegin',bar);}
+    else if(bar.previousElementSibling!==layout)layout.insertAdjacentElement('afterend',bar);
     if(button.parentElement!==bar)bar.appendChild(button);
   };
   const schedule=()=>{if(!queued){queued=true;requestAnimationFrame(apply)}};
