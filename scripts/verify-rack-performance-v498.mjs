@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
-import {clearMekikResourcesV498,batchMrPartsV498,disposeMrInstancesV498,transformHtml,transformMR,transformMekik,transformKonsol} from './rack-performance-v498.mjs';
+import {clearMekikResourcesV498,batchMrPartsV498,disposeMrInstancesV498,observeKonsolDetachV498,transformHtml,transformMR,transformMekik,transformKonsol} from './rack-performance-v498.mjs';
 const THREE=await import(process.env.RAFEX_THREE_MODULE||'three');
 globalThis.RafexThree=THREE;
 
@@ -18,6 +18,8 @@ const boundsBefore=new THREE.Box3().setFromObject(parts);batchMrPartsV498(parts)
 const boundsAfter=new THREE.Box3().setFromObject(parts);assert.equal(parts.children.length,1);assert.equal(parts.children[0].count,48);
 assert.ok(boundsBefore.min.distanceTo(boundsAfter.min)<1e-5);assert.ok(boundsBefore.max.distanceTo(boundsAfter.max)<1e-5);
 let instanceDisposals=0;parts.children[0].addEventListener('dispose',()=>instanceDisposals++);disposeMrInstancesV498(parts);assert.equal(instanceDisposals,1);assert.equal(disposals.sharedGeometry,0);assert.equal(disposals.sharedMaterial,0);
+let detachCallback,destroyCalls=0;globalThis.document={getElementById:()=>({})};globalThis.MutationObserver=class{constructor(cb){detachCallback=cb}observe(){}disconnect(){}};
+const detachedViewer={canvas:{id:'konsolCanvas',isConnected:true},destroy(){destroyCalls++}};observeKonsolDetachV498(detachedViewer);detachCallback();assert.equal(destroyCalls,0);detachedViewer.canvas.isConnected=false;detachCallback();assert.equal(destroyCalls,1);
 
 function frameTest(code,name){
   const start=name==='MR'?code.indexOf('animate(){if(!this.destroyed)'):code.indexOf('loop(){if(!this.destroyed)');

@@ -52,6 +52,13 @@ export function disposeMrInstancesV498(root){
   root?.traverse?.(node=>{if(node.isInstancedMesh)node.dispose();});
 }
 
+export function observeKonsolDetachV498(viewer){
+  if(viewer.canvas.id!=='konsolCanvas')return;
+  const page=document.getElementById('page');if(!page)return;
+  viewer.detachObserverV498=new MutationObserver(()=>{if(!viewer.canvas.isConnected)viewer.destroy();});
+  viewer.detachObserverV498.observe(page,{childList:true});
+}
+
 export function transformMekik(code){
   if(code.includes(marker))return code;
   const old='clearRoot(){for(;this.root.children.length;)this.root.remove(this.root.children[0])}';
@@ -82,9 +89,10 @@ export function transformKonsol(code){
   if(code.includes(marker))return code;
   code=replaceOnce(code,'return(o.renderDirty||o.renderCameraKey!==t)&&(o.renderer.render(o.scene,e),o.renderCameraKey=t,o.renderDirty=!1),!0}', 'const changedV498=o.renderDirty||o.renderCameraKey!==t;return changedV498&&(o.renderer.render(o.scene,e),o.renderCameraKey=t,o.renderDirty=!1),!!(changedV498||o.controls.autoRotate)}','Konsol stop idle frames');
   code=code.replace(/this\.renderDirty=!0/g,'this.invalidateV498()');
-  code=replaceOnce(code,'this.controls=new ie(this.camera,e),','this.controls=new ie(this.camera,e),this.controls.addEventListener("change",()=>this.requestFrameV498()),','Konsol camera wake');
+  code=replaceOnce(code,'this.controls=new ie(this.camera,e),','this.controls=new ie(this.camera,e),this.controls.addEventListener("change",()=>this.requestFrameV498()),observeKonsolDetachV498(this),','Konsol camera wake');
   code=replaceOnce(code,'ke(this)&&(this.raf=requestAnimationFrame(()=>this.loop()))}}destroy(){','ke(this)&&this.requestFrameV498()}}requestFrameV498(){if(!this.destroyed&&!document.hidden&&this.renderVisibility?.visible!==false&&this.raf==null)this.raf=requestAnimationFrame(()=>this.loop())}invalidateV498(){this.renderDirty=true;this.requestFrameV498()}destroy(){','Konsol invalidation');
-  return `/* ${marker} */\n`+code;
+  code=replaceOnce(code,'this.renderVisibility?.dispose(),this.resizeObserver?.disconnect()', 'this.renderVisibility?.dispose(),this.detachObserverV498?.disconnect(),this.resizeObserver?.disconnect()','Konsol idle navigation cleanup');
+  return `/* ${marker} */\n${observeKonsolDetachV498.toString()}\n`+code;
 }
 
 export function transformHtml(html){
@@ -95,7 +103,7 @@ export function transformHtml(html){
   function syncEdge(){if(!freePage())return;var editor=document.getElementById('m2EdgeEditor');if(!editor)return;var pref=localStorage.getItem(EDGE_KEY);if(pref==null){pref='1';localStorage.setItem(EDGE_KEY,pref);}if(edgeEditorSyncedV498===editor&&edgePreferenceSyncedV498===pref)return;edgeEditorSyncedV498=editor;edgePreferenceSyncedV498=pref;try{m2EdgeEditorVisible=pref==='1';}catch(e){return;}if(document.getElementById('page')?.dataset?.rafexWorkflowScreen==='layout'&&typeof m2RenderLayout==='function')m2RenderLayout();}
 `+html.slice(edgeEnd);
   html=replaceOnce(html,'function doGeometry(){geometryRaf=0;var s=currentState();updateSummary(s);updateSectionSvg(s);if(viewer&&viewer.update)viewer.update(s)}',`let geometryTimerV498=0,geometryKeyV498='',geometryViewerV498=null;
-  function doGeometry(){geometryRaf=0;var s=currentState(),key=JSON.stringify(s);if(key===geometryKeyV498&&viewer===geometryViewerV498)return;geometryKeyV498=key;geometryViewerV498=viewer;updateSummary(s);updateSectionSvg(s);if(viewer&&viewer.update)viewer.update(s)}`,'Konsol unchanged update guard');
+  function doGeometry(){geometryRaf=0;if(!el('konsolCanvas')?.isConnected)return;var s=currentState(),key=JSON.stringify(s);if(key===geometryKeyV498&&viewer===geometryViewerV498)return;geometryKeyV498=key;geometryViewerV498=viewer;updateSummary(s);updateSectionSvg(s);if(viewer&&viewer.update)viewer.update(s)}`,'Konsol unchanged update guard');
   html=replaceOnce(html,'function scheduleGeometry(){if(geometryRaf)return;geometryRaf=requestAnimationFrame(doGeometry)}', 'function scheduleGeometry(){clearTimeout(geometryTimerV498);if(geometryRaf){cancelAnimationFrame(geometryRaf);geometryRaf=0;}geometryTimerV498=setTimeout(()=>{geometryTimerV498=0;geometryRaf=requestAnimationFrame(doGeometry)},90)}','Konsol coalesce input and change');
   html=replaceOnce(html,'viewer=null;if(geometryRaf){cancelAnimationFrame(geometryRaf);geometryRaf=0}', 'viewer=null;clearTimeout(geometryTimerV498);geometryTimerV498=0;if(geometryRaf){cancelAnimationFrame(geometryRaf);geometryRaf=0}','Konsol navigation timer cleanup');
   html=replaceOnce(html,'function renderPlan(p,{x=0,y=0,scale=1,braces=true}={}) {','function renderPlan(p,{x=0,y=0,scale=1,braces=true,compact=false}={}) {','compact native plan option');
