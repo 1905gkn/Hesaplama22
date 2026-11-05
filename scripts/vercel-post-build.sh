@@ -319,3 +319,5 @@ node scripts/finishes-v500.mjs
 node scripts/joined-measurements-v501.mjs
 
 node scripts/side-finishes-v502.mjs
+
+node scripts/accessory-wall-clearance-v503.mjs
