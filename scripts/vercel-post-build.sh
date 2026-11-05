@@ -317,3 +317,5 @@ node scripts/dimension-layout-v499.mjs
 
 node scripts/finishes-v500.mjs
 node scripts/joined-measurements-v501.mjs
+
+node scripts/side-finishes-v502.mjs
