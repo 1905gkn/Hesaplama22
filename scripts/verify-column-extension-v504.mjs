@@ -28,6 +28,7 @@ for(const rows of [1,2]){
  assert.equal(accepted[0].columnPassageV504.slots.length,rows,'Every obstructed row loses its pallet place');assert.equal(t.c.rafexPalletCapacity(accepted[0]),0,'A one-pallet bay is empty on all affected rows and floors');
  const restored=JSON.parse(JSON.stringify(accepted[0]));assert.equal(t.c.rafexPalletCapacity(restored),0,'Save/reopen preserves disabled capacity');
  assert.equal(t.c.m2RackOverlapsBlockingSymbol(restored),false,'Saved authorized column remains valid');
+ Object.assign(t.c,{m2RackOverlaps:()=>false});vm.runInContext(cut('m2ProjectPlacementError'),t.c);assert.equal(t.c.m2ProjectPlacementError(),'','Native project-save validator accepts the authorized column passage');
  assert.equal(t.c.m2RackOverlapsBlockingSymbol(restored,restored.x,restored.y+280,0),true,'Moving the bay into a traverse collision is still blocked');
  t.symbols.length=0;t.c.m2RefreshColumnPassagesV504();assert.equal(accepted[0].columnPassageV504,undefined,'Removing the column restores all pallet places');
 }

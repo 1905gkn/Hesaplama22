@@ -94,7 +94,7 @@ export function transform(html){
  replace('function m2RenderLayout() {','function m2RenderLayout() { m2RefreshColumnPassagesV504();');
  replace('for (let pallet = 0; pallet < layout.palletCount; pallet++) {','for (let pallet = 0; pallet < layout.palletCount; pallet++) {\n                if(m2ColumnPalletBlockedV504(rack,row,pallet))continue;');
  replace('const remapRack = rack => {','const remapRack = rack => {\n    if(rack.columnPassageV504?.columnIds)rack.columnPassageV504.columnIds=rack.columnPassageV504.columnIds.map(id=>mapped(symbolIds,id));');
- replace('/layout-3d.js?v=484','/layout-3d.js?v=504');
+ html=html.replace(/\/layout-3d\.js(?:\?v=[A-Za-z0-9_-]+)?/g,'/layout-3d.js?v=504');
  // All existing totals (screen, PDF, share, history) use this shared capacity function.
  replace('function rafexPalletCapacity(drawing){',`function rafexPalletCapacity(drawing){const capacity=rafexPalletCapacityBaseV504(drawing),l=drawing?.b2bLayout,slots=drawing?.columnPassageV504?.slots||[];if(!l||!slots.length)return capacity;const count=Number(l.palletCount)||1,rows=Number(l.rowCount)||1,unique=new Set(slots.filter(p=>p.row>=0&&p.row<rows&&p.pallet>=0&&p.pallet<count).map(p=>p.row+':'+p.pallet));return Math.max(0,Math.round(capacity*(count*rows-unique.size)/(count*rows)));}\nfunction rafexPalletCapacityBaseV504(drawing){`);
  const marker=html.lastIndexOf('</body>');html=html.slice(0,marker)+`<script data-column-extension="v504">
