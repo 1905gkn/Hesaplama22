@@ -321,3 +321,6 @@ node scripts/joined-measurements-v501.mjs
 node scripts/side-finishes-v502.mjs
 
 node scripts/accessory-wall-clearance-v503.mjs
+
+node scripts/column-extension-v504.mjs
+node scripts/verify-column-extension-v504.mjs
