@@ -12,7 +12,7 @@ export function transform(html){
  replace(block,'');
  replace('if(m2SeismicDraft){m2SeismicDraft.start=point;',block+'\n          if(m2SeismicDraft){m2SeismicDraft.start=point;');
  replace('if (!m2LayoutState.points.length) m2InsertFreePoint({ x: 500, y: 325 });','if (!m2CurrentDrawPoint()) { $("m2FloorStatus").textContent="Önce duvarın başlangıç noktasını çizimde tıkla."; return; }');
- const end=html.lastIndexOf('</body>');html=html.slice(0,end)+'<script data-free-wall-start="v509">window.rafexFreeWallStartVersion="v509";</script>'+html.slice(end);
+ const end=html.lastIndexOf('</body>');html=html.slice(0,end)+'<script data-free-wall-start="v509">window.rafexFreeWallStartVersion="v509";window.addEventListener("pointerdown",function(event){if(typeof m2LayoutState==="undefined"||m2LayoutState.mode!=="draw"||event.button!==0)return;const svg=event.target.closest?.("#m2LayoutSvg");if(!svg||typeof svg.onpointerdown!=="function")return;event.preventDefault();event.stopImmediatePropagation();svg.onpointerdown(event);},true);</script>'+html.slice(end);
  for(const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g))if(!/src=|application\/json/.test(m[1]))new vm.Script(m[2]);return html;
 }
 if(/[\\/]free-wall-start-v509\.mjs$/.test(process.argv[1]||''))for(const file of ['dist/index.html','dist/server/index.js'])if(fs.existsSync(file)){
