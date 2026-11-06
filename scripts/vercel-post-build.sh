@@ -328,3 +328,6 @@ node scripts/verify-column-extension-v504.mjs
 node scripts/note-pins-v505.mjs
 node scripts/column-continuation-v506.mjs
 node scripts/wall-output-v507.mjs
+
+node scripts/four-direction-gaps-v508.mjs
+node scripts/verify-four-direction-gaps-v508.mjs
