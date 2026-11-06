@@ -340,3 +340,6 @@ node scripts/verify-mekik-custom-pallet-v510.mjs
 
 node scripts/mekik-last-pallet-min-v511.mjs
 node scripts/verify-mekik-last-pallet-min-v511.mjs
+
+node scripts/mekik-front-columns-v512.mjs
+node scripts/verify-mekik-front-columns-v512.mjs
