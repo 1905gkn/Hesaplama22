@@ -1,7 +1,7 @@
 import {upgradeMekikStepped} from './mekik-stepped.mjs';
 import {b2bFrameLayout} from './layout-3d-b2b-placement.mjs';
 // System-specific local geometry in metres. The viewer applies world placement.
-export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScaleX=null,nativeAccessories=false,simple=false}={}){
+export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScaleX=null,nativeAccessories=false,simple=false,palletInstances=false}={}){
  r=upgradeMekikStepped(r);
  const parts=[];
  const box=(kind,x,y,z,w,h,d,rx=0,rz=0)=>{if([x,y,z,w,h,d].every(Number.isFinite)&&w>0&&h>0&&d>0)parts.push({kind,x,y,z,w,h,d,rx,rz});};
@@ -16,6 +16,7 @@ export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScal
  function pallet(x,y,z,w,d,h){
   if(r.showPallets===false)return;
   if(simple){box('load',x,y+Math.max(.16,h)/2,z,w,Math.max(.16,h),d);return;}
+  if(palletInstances){parts.push({kind:'palletTimber',x,y,z,w,h:.16,d});if(h>.16)box('load',x,y+.16+(h-.16)/2,z,w*.94,h-.16,d*.94);return;}
   const bw=Math.min(.145,w*.125),bd=Math.min(.145,d*.18),xs=[-(w-bw)/2,0,(w-bw)/2],zs=[-(d-bd)/2,0,(d-bd)/2];
   for(const xx of xs){box('timber',x+xx,y+.0125,z,bw,.025,d);for(const zz of zs)box('timber',x+xx,y+.065,z+zz,bw,.08,bd);}
   for(const zz of zs)box('timber',x,y+.115,z+zz,w,.02,bd);
@@ -36,6 +37,19 @@ export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScal
   for(let i=0;i<=modules;i++){const x=-r.width/2+r.foot/2+i*pitch;for(const z of [-1,1])post(x,z*(r.depth-r.foot)/2);panelBracing(x,-(r.depth-r.foot)/2,(r.depth-r.foot)/2,r.height);}
   for(let m=0;m<modules;m++)for(let i=0;i<r.floors.length;i++){const y=r.floors[i],x=-r.width/2+r.foot/2+(m+.5)*pitch;if(!cad)for(const z of [-1,1])box('beam',x,y-r.beam/2,z*(r.depth-r.foot)/2,pitch-r.foot,r.beam,.045);
    const tray=r.accessories.some(a=>a.type==='tray'&&(a.levels||[]).map(Number).includes(i+1));if(tray&&!nativeAccessories)box('shelf',x,y+.015,0,pitch-r.foot,.03,r.depth-r.foot);
+  }
+ }else if(r.system==='drive'&&r.driveStepped){
+  const s=r.driveStepped,pitch=(r.width-r.foot)/r.bays;
+  for(let lane=0;lane<=r.bays;lane++)for(const f of s.frames){const x=-r.width/2+r.foot/2+lane*pitch,z1=Math.max(r.foot/2,f.start/1000)-r.depth/2,z2=Math.min(r.depth-r.foot/2,f.end/1000)-r.depth/2;post(x,z1,f.height/1000);post(x,z2,f.height/1000);if(!cad&&f.levels>0)panelBracing(x,z1,z2,f.height/1000,false);}
+  for(let lane=0;lane<r.bays;lane++){const x=-r.width/2+r.foot/2+(lane+.5)*pitch;
+   for(const floor of s.floors){const y=floor.y/1000;for(const run of floor.runs){const z=(run.start+run.end)/2000-r.depth/2,d=(run.end-run.start)/1000;
+    for(const side of [-1,1])box('rail',x+side*Math.min(r.palletWidth,pitch-r.foot-.06)*.35,y-.06,z,.075,.12,d);
+    // Drive-In console arms carry the rails; never close a forklift channel
+    // with the full-width per-level beams used in shuttle racking.
+    for(const at of run.supports)for(const side of [-1,1])box('beam',x+side*pitch*.35,y-.12,at/1000-r.depth/2,pitch*.3,.1,.08);
+   }
+   for(const at of floor.positions)pallet(x,y,at/1000+r.palletDepth/2-r.depth/2,Math.min(r.palletWidth,pitch-r.foot-.06),r.palletDepth,r.palletHeights[floor.index]);
+   }
   }
  }else if(r.system==='mekik2'&&r.mekikStepped){
   const s=r.mekikStepped,pitch=(r.width-r.foot)/r.bays;

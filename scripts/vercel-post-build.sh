@@ -365,3 +365,8 @@ node scripts/verify-side-dimension-targets-v518.mjs
 node scripts/end-ties-v519.mjs
 node scripts/catalog-report-v520.mjs
 node scripts/verify-catalog-report-v520.mjs
+
+node scripts/drive-stepped-v521.mjs
+node scripts/verify-drive-stepped-v521.mjs
+node scripts/layout-consistency-v522.mjs
+node scripts/verify-layout-consistency-v522.mjs

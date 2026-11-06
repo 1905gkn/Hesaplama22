@@ -44,6 +44,15 @@ export function cadPlacements(r,templates){
   for(let row=0;row<r.rows;row++)for(let i=0;i<r.floors.length;i++){const y=r.beamYs[i];if(y===null||(r.tunnelHeight>0&&y<r.tunnelHeight))continue;for(const side of [-1,1]){add('b2bBeam',0,y,centers[row]+b2bBeamMountZ(r,t,templates.b2bBeam,side),(r.width-2*r.foot)/2.7,r.beam/(templates.b2bBeam?.referenceHeight||.12),1);out.at(-1).ry=side<0?Math.PI:0;}}
  }else if(r.system==='mr'){
   const t=templates.mrBeam,pitch=(r.width-r.foot)/r.modules;for(let m=0;m<r.modules;m++)for(const y of r.floors)for(const side of [-1,1]){add('mrBeam',-r.width/2+r.foot/2+(m+.5)*pitch,y,side*(r.depth/2-t.depth/2),(pitch-r.foot)/t.width,r.beam/t.height,1);out.at(-1).ry=side<0?Math.PI:0;}
+ }else if(r.system==='drive'&&r.driveStepped){
+  const t=templates.drivePost,beam=templates.b2bBeam,pitch=(r.width-r.foot)/r.bays,sy=.14/(beam.referenceHeight||.12);
+  for(const f of r.driveStepped.frames){
+   for(let lane=0;lane<=r.bays;lane++)add('drivePost',-r.width/2+r.foot/2+lane*pitch,0,(f.start+f.end)/2000-r.depth/2,r.foot/t.width,f.height/1000/t.height,f.depth/1000/t.depth);
+   const mounts=(t.postHoleFaces?.length?t.postHoleFaces:[{at:-t.depth/2,sign:-1},{at:t.depth/2,sign:1}]).map(face=>({z:(f.start+f.end)/2000-r.depth/2+face.at*f.depth/1000/t.depth,side:face.sign}));
+   // Native Drive-In cross-channel connection stays above the highest load
+   // carried by each frame, including frames shortened along the depth.
+   for(let lane=0;lane<r.bays;lane++)for(const mount of mounts){add('b2bBeam',-r.width/2+r.foot/2+(lane+.5)*pitch,f.height/1000-(beam.topY??.18)*sy,mount.z-mount.side*(beam.connectorContactZ??beam.connectorMinZ??-(beam.depth||.063)/2)+mount.side*.0002,deepBeamScale(r,t,beam),sy,1);out.at(-1).ry=mount.side<0?Math.PI:0;}
+  }
  }else if(r.system==='mekik2'&&r.mekikStepped){
   const s=r.mekikStepped,t=templates.mekikPost,beam=templates.mekikBeam,pitch=(r.width-r.foot)/r.bays;
   for(let lane=0;lane<=r.bays;lane++)for(const f of s.frames)for(const zz of [f.start/1000,f.end/1000])add('mekikPost',-r.width/2+r.foot/2+lane*pitch,0,Math.max(r.foot/2,Math.min(r.depth-r.foot/2,zz))-r.depth/2,r.foot/.1,f.height/1000/t.height,1);

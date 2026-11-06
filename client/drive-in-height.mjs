@@ -1,5 +1,7 @@
+import {driveStepped} from './drive-stepped.mjs';
 // Shared Drive-In upright height: upper load top plus the 220mm top connection allowance.
 export function driveInUprightHeight(c){
+ if(c.driveStepped)return c.driveStepped.height;if(c.driveCustomizationV521)return driveStepped(c).height;
  const positive=(v,f)=>Number.isFinite(Number(v))&&Number(v)>0?Number(v):f;
  const first=Number(c.firstLevelHeight??c.firstRailHeight);
  return Math.ceil(((Number.isFinite(first)&&first>=0?first:430)+Math.max(0,Math.round(positive(c.levels,4))-1)*positive(c.levelSpacing??c.levelH,1580)+positive(c.palletHeight,1200)+220)/50)*50;

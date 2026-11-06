@@ -136,6 +136,7 @@ class DriveInFrontViewer {
     const specialGapCount = systemType === "filo" ? Math.min(1, gapCount) : Math.min(2, gapCount);
     const railLength = depthPallets * palletDepth + specialGapCount * firstPalletGap + (gapCount - specialGapCount) * palletGap;
     return {
+      driveStepped:next.driveStepped||null,showPallets:next.showPallets!==false,
       bays: clamp(Math.round(Number(next.bays) || 1), 1, 50),
       totalWidth: Number(next.totalWidth) > 0 ? Number(next.totalWidth) : clamp(Math.round(Number(next.bays) || 1),1,50) * (clamp(Number(next.palletWidth)||1200,300,3000)+240)+90,
       levels: clamp(Math.round(Number(next.levels) || 4), 1, 15),
@@ -155,7 +156,7 @@ class DriveInFrontViewer {
   }
 
   configKey(value = this.config) {
-    return [value.bays, value.levels, value.depthPallets, value.palletWidth, value.palletDepth, value.palletHeight, value.firstLevelHeight, value.levelSpacing, value.systemType, value.firstPalletGap, value.palletGap, value.totalWidth,value.footColor,value.traverseColor].join("|");
+    return [value.bays, value.levels, value.depthPallets, value.palletWidth, value.palletDepth, value.palletHeight, value.firstLevelHeight, value.levelSpacing, value.systemType, value.firstPalletGap, value.palletGap, value.totalWidth,value.footColor,value.traverseColor,value.showPallets,JSON.stringify(value.driveStepped)].join("|");
   }
 
   emit(name, detail = {}) { this.canvas.dispatchEvent(new CustomEvent(name, { detail })); }
@@ -212,7 +213,7 @@ class DriveInFrontViewer {
     const mesh = new THREE.Mesh(loadBoxGeometry, technicalMaterials.yuk);
     mesh.scale.copy(size);
     mesh.position.copy(position);
-    this.root.add(mesh);
+    mesh.visible=this.config.showPallets!==false;this.root.add(mesh);
     return mesh;
   }
 
@@ -220,7 +221,7 @@ class DriveInFrontViewer {
     this.root.clear();
     this.visualPalletBottomZ = [];
     this.palletBounds = [];
-    const c = this.config;
+    const c = this.config;const stepped=c.driveStepped;
     const uprightWidth = 90;
     const bayClear = c.palletWidth + 150;
     const bayPitch = bayClear + uprightWidth;
@@ -249,22 +250,21 @@ class DriveInFrontViewer {
 
     for (let i = 0; i <= FRONT_DISPLAY_BAYS; i += 1) {
       const x = uprightWidth / 2 + i * bayPitch;
-      this.addPart(this.models.ayak, ayakScale, new THREE.Vector3(x, frontY - ayakSize.y / 2, rackHeight / 2), technicalMaterials.ayak);
+      if(stepped){for(const f of stepped.frames)this.addPart(this.models.ayak,new THREE.Vector3(uprightWidth/ayakSize.x,f.depth/ayakSize.y,f.height/ayakSize.z),new THREE.Vector3(x,frontY-(f.start+f.end)/2,f.height/2),technicalMaterials.ayak);}else this.addPart(this.models.ayak, ayakScale, new THREE.Vector3(x, frontY - ayakSize.y / 2, rackHeight / 2), technicalMaterials.ayak);
     }
 
     for (let level = 0; level < c.levels; level += 1) {
-      const supportZ = c.firstLevelHeight + level * c.levelSpacing;
+      const supportZ = c.firstLevelHeight + level * c.levelSpacing;const floor=stepped?.floors[level],firstPallet=floor?.positions[0]||0,runs=floor?.runs||[{start:0,end:depth,supports:[0]}];
       // Formdaki ilk kat ve kat aralığı değerleri taşıma üst kotunu belirtir.
       const supportTopZ = supportZ;
       for (let bay = 0; bay < FRONT_DISPLAY_BAYS; bay += 1) {
         const left = uprightWidth + bay * bayPitch;
         const right = left + bayClear;
         const centerX = (left + right) / 2;
-        this.addPart(this.models.ray, rayScale, new THREE.Vector3(left + raySize.x / 2, 0, supportTopZ - 75), technicalMaterials.ray);
-        this.addPart(this.models.ray, rayScale, new THREE.Vector3(right - raySize.x / 2, 0, supportTopZ - 75), technicalMaterials.ray);
-        this.addPart(konsolModel, konsolScale, new THREE.Vector3(centerX, frontY - konsolSize.y / 2, supportTopZ - 70 + konsolSize.z / 2), technicalMaterials.konsol);
+        for(const run of runs){const rayPositionY=frontY-(run.start+run.end)/2,scale=new THREE.Vector3(1,(run.end-run.start)/raySize.y,150/raySize.z);this.addPart(this.models.ray,scale,new THREE.Vector3(left+raySize.x/2,rayPositionY,supportTopZ-75),technicalMaterials.ray);this.addPart(this.models.ray,scale,new THREE.Vector3(right-raySize.x/2,rayPositionY,supportTopZ-75),technicalMaterials.ray);for(const at of run.supports)this.addPart(konsolModel,konsolScale,new THREE.Vector3(centerX,frontY-at-konsolSize.y/2,supportTopZ-70+konsolSize.z/2),technicalMaterials.konsol);}
         const palletSeatZ = supportTopZ;
-        const palletPart=this.addPart(this.models.palet, paletScale, new THREE.Vector3(centerX, frontY - c.palletDepth / 2 - 40, palletSeatZ + palletThickness / 2), technicalMaterials.palet, { rotateY: false, rotationZ: -Math.PI / 2 });
+        const palletPart=this.addPart(this.models.palet, paletScale, new THREE.Vector3(centerX, frontY - firstPallet - c.palletDepth / 2 - 40, palletSeatZ + palletThickness / 2), technicalMaterials.palet, { rotateY: false, rotationZ: -Math.PI / 2 });
+        palletPart.visible=c.showPallets;
         palletPart.updateMatrixWorld(true);
         const palletBounds = new THREE.Box3().setFromObject(palletPart);
         if (!this.palletBounds[level]) this.palletBounds[level] = palletBounds.clone();
@@ -272,12 +272,12 @@ class DriveInFrontViewer {
         this.visualPalletBottomZ[level] = this.palletBounds[level].min.z;
         this.addLoadBox(
           new THREE.Vector3(c.palletWidth * 0.94, c.palletDepth * 0.94, c.palletHeight - palletThickness),
-          new THREE.Vector3(centerX, frontY - c.palletDepth / 2 - 40, palletSeatZ + palletThickness + (c.palletHeight - palletThickness) / 2),
+          new THREE.Vector3(centerX, frontY - firstPallet - c.palletDepth / 2 - 40, palletSeatZ + palletThickness + (c.palletHeight - palletThickness) / 2),
         );
       }
       for (let i = 0; i <= FRONT_DISPLAY_BAYS; i += 1) {
         const x = uprightWidth / 2 + i * bayPitch;
-        this.addPart(this.models.arabag, arabagScale, new THREE.Vector3(x, frontY - ayakSize.y - arabagSize.y / 2, supportZ + arabagSize.z / 2), technicalMaterials.arabag);
+        if(!stepped)this.addPart(this.models.arabag, arabagScale, new THREE.Vector3(x, frontY - ayakSize.y - arabagSize.y / 2, supportZ + arabagSize.z / 2), technicalMaterials.arabag);else if(level%2===0)for(const run of runs)for(let fi=run.firstFrame;fi<run.lastFrame;fi++){const a=stepped.frames[fi].end,b=stepped.frames[fi+1].start;if(b>a)this.addPart(this.models.arabag,new THREE.Vector3(uprightWidth/arabagSize.x,(b-a)/arabagSize.y,1),new THREE.Vector3(x,frontY-(a+b)/2,supportZ+arabagSize.z/2),technicalMaterials.arabag);}
       }
     }
     this.fitCamera();
@@ -348,7 +348,7 @@ class DriveInFrontViewer {
         palletPoints[level].left.y
       )),
       palletPoints,
-      uprightTopY: project(0, this.config.firstLevelHeight + (this.config.levels - 1) * this.config.levelSpacing + this.config.palletHeight + 220).y,
+      uprightTopY: project(0, driveInUprightHeight(this.config)).y,
       columnXs: Array.from({length:FRONT_DISPLAY_BAYS+1},(_,i)=>project(45+i*(this.config.palletWidth+240),0).x).sort((a,b)=>a-b),
       bayPitch: this.config.palletWidth + 240,
       totalWidth: this.config.totalWidth,

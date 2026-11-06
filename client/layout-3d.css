@@ -13,3 +13,5 @@
 #rafexLayout3DDialog [data-wall-height]{width:80px;min-height:38px;padding:5px;border:1px solid #b8cec1;border-radius:6px;font:inherit;background:white;color:#173f30}
 
 .rafex-layout3d-type small{display:block;text-align:center;font-size:10px;font-weight:600;margin-top:3px}
+
+#rafexLayout3DDialog [data-areas]{flex:0 0 auto;max-height:96px;overflow:auto;border-top:1px solid #dce5df}#rafexLayout3DDialog [data-areas] button[aria-pressed="true"]{background:#214f3b;color:#fff;border-color:#214f3b}
