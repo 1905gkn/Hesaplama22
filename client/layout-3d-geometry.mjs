@@ -7,10 +7,10 @@ export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScal
  const box=(kind,x,y,z,w,h,d,rx=0,rz=0)=>{if([x,y,z,w,h,d].every(Number.isFinite)&&w>0&&h>0&&d>0)parts.push({kind,x,y,z,w,h,d,rx,rz});};
  const post=(x,z,h=r.height)=>{if(!cad||!['b2b','mekik2','drive'].includes(r.system))box('foot',x,h/2,z,r.foot,h,r.foot)};
  function brace(x,z,depth,h){box('foot',x,h/2,z,.035,Math.hypot(depth,h),.035,Math.atan2(depth,h));}
- function panelBracing(x,z1,z2,h){const span=z2-z1;let y=.15,index=0;
+ function panelBracing(x,z1,z2,h,horizontalTies=true){const span=z2-z1;let y=.15,index=0;
   if(simple){box('brace',x,h/2,(z1+z2)/2,.03,Math.hypot(h,span),.025,Math.atan2(span,h));return;}
-  while(y<h-.15){const top=Math.min(y+.6,h-.15);box('brace',x,(top+y)/2,(z1+z2)/2,.03,Math.hypot(top-y,span),.025,Math.atan2((index%2?-1:1)*span,top-y));y=top;index++;}
-  for(let y=.15;y<h;y+=1.2)box('tie',x,y,(z1+z2)/2,.03,.04,span);
+  while(y<h-.15){let top=Math.min(y+.6,h-.15);if(!horizontalTies&&h-.15-top<.3)top=h-.15;box('brace',x,(top+y)/2,(z1+z2)/2,.03,Math.hypot(top-y,span),.025,Math.atan2((index%2?-1:1)*span,top-y));y=top;index++;}
+  if(horizontalTies)for(let y=.15;y<h;y+=1.2)box('tie',x,y,(z1+z2)/2,.03,.04,span);
  }
  function pallet(x,y,z,w,d,h){
   if(r.showPallets===false)return;
@@ -38,7 +38,7 @@ export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScal
   }
  }else if(r.system==='mekik2'&&r.mekikStepped){
   const s=r.mekikStepped,pitch=(r.width-r.foot)/r.bays;
-  for(let lane=0;lane<=r.bays;lane++)for(const f of s.frames){const x=-r.width/2+r.foot/2+lane*pitch,z1=Math.max(r.foot/2,f.start/1000)-r.depth/2,z2=Math.min(r.depth-r.foot/2,f.end/1000)-r.depth/2;post(x,z1,f.height/1000);post(x,z2,f.height/1000);panelBracing(x,z1,z2,f.height/1000);}
+  for(let lane=0;lane<=r.bays;lane++)for(const f of s.frames){const x=-r.width/2+r.foot/2+lane*pitch,z1=Math.max(r.foot/2,f.start/1000)-r.depth/2,z2=Math.min(r.depth-r.foot/2,f.end/1000)-r.depth/2;post(x,z1,f.height/1000);post(x,z2,f.height/1000);if(f.levels>0)panelBracing(x,z1,z2,f.height/1000,false);}
   for(let lane=0;lane<r.bays;lane++){const x=-r.width/2+r.foot/2+(lane+.5)*pitch;
    for(const floor of s.floors){const y=floor.y/1000;
     for(const run of floor.runs)for(const side of [-1,1]){const bearing=railBearings?.[side<0?1:0],sx=railScaleX||((pitch-r.foot)/1.35),seat=bearing?-bearing.x:(railSeats||[-.47925,.47925])[side<0?0:1],rx=x+seat*sx,w=(bearing?.width||.0575)*sx,h=r.railHeight||.17,t=.003,z=(run.start+run.end)/2000-r.depth/2,d=(run.end-run.start)/1000,webX=rx+side*(w-t)/2,cap=Math.min(.025,w);box('rail',rx,y-h+t/2,z,w,t,d);box('rail',webX,y-h/2,z,t,h,d);box('rail',webX-side*(cap-t)/2,y-t/2,z,cap,t,d);}

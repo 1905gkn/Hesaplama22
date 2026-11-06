@@ -355,3 +355,6 @@ node scripts/verify-mekik-terminal-rail-v515.mjs
 
 node scripts/native-views-v516.mjs
 node scripts/verify-native-views-v516.mjs
+
+node scripts/terminal-support-v517.mjs
+node scripts/verify-terminal-support-v517.mjs

@@ -24,10 +24,17 @@ export function mekikStepped(r) {
    run.start=loads[0];run.end=loads.at(-1)+pd;
    let supports=candidates.filter(p=>p.at>=run.start-1&&p.at<=run.end+1);
    if(!supports.length){const closest=[...candidates].sort((a,b)=>Math.max(run.start-a.at,0,a.at-run.end)-Math.max(run.start-b.at,0,b.at-run.end))[0];run.start=Math.min(run.start,closest.at);run.end=Math.max(run.end,closest.at);supports=[closest];}
+   // Only shortened boundaries receive terminal supports and a 100 mm rail tail.
+   // Standard full-depth levels retain their original entry/exit connections.
+   const cutStart=loads[0]>positions[0]+1,cutEnd=loads.at(-1)+pd<positions.at(-1)+pd-1;
+   const terminalSupports=[];
+   if(cutStart){const terminal=candidates.filter(p=>p.at<=loads[0]+1).at(-1);if(terminal){run.start=terminal.at-100;terminalSupports.push(terminal);}}
+   if(cutEnd){const terminal=candidates.find(p=>p.at>=loads.at(-1)+pd-1);if(terminal){run.end=terminal.at+100;terminalSupports.push(terminal);}}
+   if(terminalSupports.length){supports=candidates.filter(p=>p.at>=run.start-1&&p.at<=run.end+1);run.terminalSupports=[...new Set(terminalSupports.map(p=>p.at))];}
    run.firstFrame=Math.min(...supports.map(p=>p.frame));run.lastFrame=Math.max(...supports.map(p=>p.frame));run.supports=[...new Set(supports.map(p=>p.at))];
    // Preserve native FIFO/FILO outer-entry exclusions, but retain a required
    // inner terminal support instead of dropping it merely for being first.
-   run.stations=run.supports.filter(p=>!(r.systemType==='fifo'&&p===frames[0].start)&&p!==frames.at(-1).end);
+   run.stations=run.supports.filter(p=>run.terminalSupports?.includes(p)||(!(r.systemType==='fifo'&&p===frames[0].start)&&p!==frames.at(-1).end));
    if(r.hasExtra&&run.lastFrame===frames.length-1){const extra=length-n(r.footType,100)/2;if(extra>=run.start&&extra<=run.end)run.stations.push(extra);}
    if(!run.stations.length)run.stations=[run.supports[0]];
   }
@@ -42,13 +49,13 @@ export function mekikStepped(r) {
  const traverse=typeof r.traverseRecommendation==='string'?r.traverseRecommendation:r.traverseRecommendation?.label||r.traverseType||'',pitch=(n(r.totalWidth||r.widthMm,0)-n(r.footType,100))/bays;
  for(const floor of floors)for(const run of floor.runs){add('Travers',run.stations.length*bays,traverse+' · '+fmt(pitch)+' mm');add('Ray',bays*2,fmt(n(r.railThickness,2.5))+' mm kalınlık · H '+fmt(n(r.railHeight,150))+' mm · L '+fmt(run.end-run.start)+' mm · '+floor.positions.filter(p=>p>=run.start&&p+pd<=run.end+1).length+' derinlik');for(let j=run.firstFrame;j<run.lastFrame;j++)add('Düz arabağ',(bays+1),fmt(n(r.plan.braces[j],0))+' mm');}
  const railQty=floors.reduce((a,l)=>a+l.runs.length*bays*2,0),fifo=r.systemType==='fifo';add('Palet yastığı',railQty*(fifo?2:1));add('Forklift stoperi',fifo?railQty*2:bays+1);add('Giriş konsolu',fifo?railQty*2:(bays+1)*levels);if(!fifo)add('Arka stoper',railQty);add('Yatay çapraz seti',bays*Math.floor(levels/2));if(r.hasExtra)add('Ayak Profili',bays+1,'L '+fmt(height)+' mm');
- return {version:515,anchor:'rear',levels,depth,positions,floors,frames,height:Math.max(height,...frames.map(f=>f.height)),minimum:top,automatic,capacity:bays*floors.reduce((s,l)=>s+l.positions.length,0),rows,errors};
+ return {version:517,anchor:'rear',levels,depth,positions,floors,frames,height:Math.max(height,...frames.map(f=>f.height)),minimum:top,automatic,capacity:bays*floors.reduce((s,l)=>s+l.positions.length,0),rows,errors};
 }
 
 // Customer links contain an immutable 3D snapshot. Upgrade old derived geometry
 // once during preparation without changing the source project or saved slots.
 export function upgradeMekikStepped(r){
- const s=r?.mekikStepped;if(r?.system!=='mekik2'||!s||s.version>=515)return r;
+ const s=r?.mekikStepped;if(r?.system!=='mekik2'||!s||s.version>=517)return r;
  const frames=s.frames,floors=s.floors;if(!frames?.length||!floors?.length)return r;
  const raw={levels:s.levels,depth:s.depth,bays:r.bays,palD:r.palletDepth*1000,palW:r.palletWidth*1000,palletHeight:r.palletHeight*1000,railLength:r.depth*1000,totalWidth:r.width*1000,footType:r.foot*1000,firstRailHeight:floors[0].y,levelH:floors.length>1?floors[1].y-floors[0].y:1580,systemType:r.systemType||'fifo',hasExtra:r.hasExtra,palletPositions:s.positions,plan:{feet:frames.map(f=>f.depth),braces:frames.slice(0,-1).map((f,i)=>frames[i+1].start-f.end)},mekikCustomizationV514:{depths:floors.map(f=>f.count),heightMode:'manual',uprightHeight:s.height,frameLevels:frames.map(f=>f.limit),frameHeights:frames.map(f=>f.height)}};
  return {...r,mekikStepped:mekikStepped(raw)};
