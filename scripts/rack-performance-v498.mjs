@@ -89,8 +89,10 @@ export function transformKonsol(code){
   if(code.includes(marker))return code;
   code=replaceOnce(code,'return(o.renderDirty||o.renderCameraKey!==t)&&(o.renderer.render(o.scene,e),o.renderCameraKey=t,o.renderDirty=!1),!0}', 'const changedV498=o.renderDirty||o.renderCameraKey!==t;return changedV498&&(o.renderer.render(o.scene,e),o.renderCameraKey=t,o.renderDirty=!1),!!(changedV498||o.controls.autoRotate)}','Konsol stop idle frames');
   code=code.replace(/this\.renderDirty=!0/g,'this.invalidateV498()');
-  code=replaceOnce(code,'this.controls=new ie(this.camera,e),','this.controls=new ie(this.camera,e),this.controls.addEventListener("change",()=>this.requestFrameV498()),observeKonsolDetachV498(this),','Konsol camera wake');
-  code=replaceOnce(code,'ke(this)&&(this.raf=requestAnimationFrame(()=>this.loop()))}}destroy(){','ke(this)&&this.requestFrameV498()}}requestFrameV498(){if(!this.destroyed&&!document.hidden&&this.renderVisibility?.visible!==false&&this.raf==null)this.raf=requestAnimationFrame(()=>this.loop())}invalidateV498(){this.renderDirty=true;this.requestFrameV498()}destroy(){','Konsol invalidation');
+  const cameraWake=code.match(/this\.controls=new [\w$]+\(this\.camera,e\),/)?.[0];if(!cameraWake)throw Error('v498 missing Konsol controls');
+  code=replaceOnce(code,cameraWake,cameraWake+'this.controls.addEventListener("change",()=>this.requestFrameV498()),observeKonsolDetachV498(this),','Konsol camera wake');
+  const frameName=code.match(/([\w$]+)\(this\)&&\(this\.raf=requestAnimationFrame\(\(\)=>this\.loop\(\)\)\)\}\}destroy\(\)\{/)?.[1];if(!frameName)throw Error('v498 missing Konsol frame');
+  code=replaceOnce(code,frameName+'(this)&&(this.raf=requestAnimationFrame(()=>this.loop()))}}destroy(){',frameName+'(this)&&this.requestFrameV498()}}requestFrameV498(){if(!this.destroyed&&!document.hidden&&this.renderVisibility?.visible!==false&&this.raf==null)this.raf=requestAnimationFrame(()=>this.loop())}invalidateV498(){this.renderDirty=true;this.requestFrameV498()}destroy(){','Konsol invalidation');
   code=replaceOnce(code,'this.renderVisibility?.dispose(),this.resizeObserver?.disconnect()', 'this.renderVisibility?.dispose(),this.detachObserverV498?.disconnect(),this.resizeObserver?.disconnect()','Konsol idle navigation cleanup');
   return `/* ${marker} */\n${observeKonsolDetachV498.toString()}\n`+code;
 }

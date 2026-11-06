@@ -27,6 +27,7 @@ function frameTest(code,name){
   const queue=new Map();let seq=0,renders=0,dirty=true;
   const context={requestAnimationFrame:fn=>{queue.set(++seq,fn);return seq},cancelAnimationFrame:id=>queue.delete(id),document:{hidden:false},Za:()=>{const value=dirty;dirty=false;return value},$a:()=>true,ke:o=>{if(o.renderDirty){renders++;o.renderDirty=false;return true}return !!o.controls.autoRotate}};
   context.console=console;
+  if(name==='Konsol'){const frameName=methods.match(/([\w$]+)\(this\)&&this.requestFrameV498/)?.[1];assert.ok(frameName);context[frameName]=context.ke;}
   const C=vm.runInNewContext('(class Harness{'+methods+'})',context),v=new C();
   Object.assign(v,{destroyed:false,canvas:{isConnected:true,clientHeight:800},visibilityV147:{visible:true},renderVisibility:{visible:true},controls:{update(){},autoRotate:false},dimensionLabels:[],renderer:{render(){renders++}},camera:{},scene:{},animationFrame:null,raf:null});
   if(name==='MR')v.animate=v.animate.bind(v);
