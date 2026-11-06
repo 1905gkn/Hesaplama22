@@ -33,10 +33,10 @@ export function mekikStepped(r) {
   }
   floors.push({index:i,y:first+i*gap,count,positions:usable,runs});
  }
- const top=first+(levels-1)*gap,automatic=Math.ceil((top+ph/2)/50)*50,manual=n(c.uprightHeight,0),height=c.heightMode==='manual'?manual:automatic,errors=[];
+ const top=first+(levels-1)*gap,automatic=Math.ceil((top+ph/2)/50)*50,manual=Math.ceil(n(c.uprightHeight,0)/50)*50,height=c.heightMode==='manual'?manual:automatic,errors=[];
  if(height<top)errors.push('Ayak boyu son paletin oturduğu kottan ('+top+' mm) kısa olamaz.');
  for(const floor of floors)if(!floor.positions.length)errors.push('K'+(floor.index+1)+' katında kullanılabilir palet yeri kalmadı. Ayak katlarını veya derinliği kontrol edin.');
- for(const f of frames){const supported=floors.filter(l=>l.runs.some(run=>f.index>=run.firstFrame&&f.index<=run.lastFrame));f.levels=supported.length;f.minimum=supported.at(-1)?.y||first;const auto=supported.length===levels?height:supported.length?Math.min(height,Math.ceil((f.minimum+ph/2)/50)*50):Math.min(height,first);f.height=n(c.frameHeights?.[f.index],0)||auto;if(f.height<f.minimum)errors.push((f.index+1)+'. ayak boyu bağlı olduğu son ray kotundan kısa olamaz.');}
+ for(const f of frames){const supported=floors.filter(l=>l.runs.some(run=>f.index>=run.firstFrame&&f.index<=run.lastFrame));f.levels=supported.length;f.minimum=supported.at(-1)?.y||first;const auto=supported.length===levels?height:supported.length?Math.min(height,Math.ceil((f.minimum+ph/2)/50)*50):Math.min(height,first);f.height=Math.ceil((n(c.frameHeights?.[f.index],0)||auto)/50)*50;if(f.height<f.minimum)errors.push((f.index+1)+'. ayak boyu bağlı olduğu son ray kotundan kısa olamaz.');}
  const rows=[];const add=(name,qty,spec='')=>{if(qty>0)rows.push({name,qty,spec,unit:name==='Ayak takımı'?'takım':'adet'});};
  const fmt=v=>new Intl.NumberFormat('tr-TR',{maximumFractionDigits:2}).format(v),groups=new Map();for(const f of frames){const key=f.depth+'|'+f.height;groups.set(key,(groups.get(key)||0)+bays+1);}for(const [key,qty]of groups){const [d,h]=key.split('|').map(Number);add('Ayak takımı',qty,(r.footProfile?r.footProfile+' · ':'')+'Yükseklik '+fmt(h)+' mm · Derinlik '+fmt(d)+' mm');}
  const traverse=typeof r.traverseRecommendation==='string'?r.traverseRecommendation:r.traverseRecommendation?.label||r.traverseType||'',pitch=(n(r.totalWidth||r.widthMm,0)-n(r.footType,100))/bays;
