@@ -343,3 +343,6 @@ node scripts/verify-mekik-last-pallet-min-v511.mjs
 
 node scripts/mekik-front-columns-v512.mjs
 node scripts/verify-mekik-front-columns-v512.mjs
+
+node scripts/draw-column-delete-v513.mjs
+node scripts/verify-draw-column-delete-v513.mjs
