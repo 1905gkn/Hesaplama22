@@ -363,3 +363,5 @@ node scripts/side-dimension-targets-v518.mjs
 node scripts/verify-side-dimension-targets-v518.mjs
 
 node scripts/end-ties-v519.mjs
+node scripts/catalog-report-v520.mjs
+node scripts/verify-catalog-report-v520.mjs
