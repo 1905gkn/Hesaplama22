@@ -1,3 +1,4 @@
+import {upgradeMekikStepped} from './mekik-stepped.mjs';
 import {prepareForklifts} from './layout-3d-forklifts.mjs';
 import {loadPreparedAccessories} from './layout-3d-prepared-cache.mjs';
 import {spatializeInstances,yieldPreparation} from './layout-3d-preparation.mjs';
@@ -20,6 +21,7 @@ import {readRackClearances,visiblePlanClearances,layoutClearances} from './layou
 let active=null,openToken=0,measureFontSize=11;try{measureFontSize=Math.max(8,Math.min(32,Number(localStorage.getItem('rafex3DMeasureFontSize'))||11))}catch{}
 async function loadViewerCad(data){const [cad,guards,backMesh]=await Promise.all([loadLayoutCad(data.racks),loadProtectionCad(data.symbols),loadBackMeshCad(data.racks)]);return {...cad,protections:guards,backMesh};}
 async function makeViewer(host,data,templates,accessoryGeometries=new Map(),options={}){
+ data={...data,racks:data.racks.map(upgradeMekikStepped)};
  let paused=false,disposed=false,renderFrames=0,forkliftFleet=null,forkliftWanted=false,forkliftPreparing=null,forkliftTimer=0,forkliftLast=0;
  const stopForkliftClock=()=>{clearTimeout(forkliftTimer);forkliftTimer=0;forkliftLast=0;};
  const scene=new THREE.Scene();scene.background=new THREE.Color('#f0f5f3');

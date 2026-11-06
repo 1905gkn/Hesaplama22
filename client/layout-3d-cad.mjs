@@ -1,3 +1,4 @@
+import {upgradeMekikStepped} from './mekik-stepped.mjs';
 import {b2bFrameLayout,b2bBeamMountZ} from './layout-3d-b2b-placement.mjs';
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -35,6 +36,7 @@ const mountFace=connectors.flatMap(g=>cadPlanarFaces(g,'x')).sort((a,b)=>b.area-
  return {geometries:source,finishes,connectorContactZ,railSeats,railBearings,innerFaces,outerFaces,connectorMinZ,mountHalfSpan,topY:Math.max(...source.map(g=>g.boundingBox.max.y)),bodyWidthX:uprightBoxes[0]?uprightBoxes[0].max.x-uprightBoxes[0].min.x:null,postHoleFaces:uprightBoxes.map(box=>{const g=source.find(g=>g.boundingBox===box),faces=g?cadPlanarFaces(g,'z'):[],best=faces.filter(f=>f.area>=(faces[0]?.area||0)*.9).sort((a,b)=>Math.abs(b.at-(box.min.z+box.max.z)/2)-Math.abs(a.at-(box.min.z+box.max.z)/2))[0];return {at:best?.at??box.max.z,sign:(best?.at??box.max.z)>(box.min.z+box.max.z)/2?1:-1};}),postCenters:uprightBoxes.map(b=>(b.min.z+b.max.z)/2),postFrontFaces:uprightBoxes.map(b=>b.min.z),referenceHeight:profileBounds.isEmpty()?size.y/1000:profileBounds.getSize(new THREE.Vector3()).y/1000,height:size.y/1000,depth:size.z/1000,width:size.x/1000};
 }
 export function cadPlacements(r,templates){
+ r=upgradeMekikStepped(r);
  const out=[],add=(name,x,y,z,sx,sy,sz)=>out.push({name,x,y,z,sx,sy,sz,color:name==='mekikBeam'||name==='b2bBeam'||name==='mrBeam'?r.beamColor:r.footColor});
  if(r.system==='b2b'){
   const t=templates.b2bFrame,{depth:fd,centers}=b2bFrameLayout(r);
@@ -46,7 +48,7 @@ export function cadPlacements(r,templates){
   const s=r.mekikStepped,t=templates.mekikPost,beam=templates.mekikBeam,pitch=(r.width-r.foot)/r.bays;
   for(let lane=0;lane<=r.bays;lane++)for(const f of s.frames)for(const zz of [f.start/1000,f.end/1000])add('mekikPost',-r.width/2+r.foot/2+lane*pitch,0,Math.max(r.foot/2,Math.min(r.depth-r.foot/2,zz))-r.depth/2,r.foot/.1,f.height/1000/t.height,1);
   if(r.hasExtra)for(let lane=0;lane<=r.bays;lane++)add('mekikPost',-r.width/2+r.foot/2+lane*pitch,0,r.depth/2-r.foot/2,r.foot/.1,r.height/t.height,1);
-  for(let lane=0;lane<r.bays;lane++)for(const floor of s.floors)for(const run of floor.runs){const stations=s.frames.slice(run.firstFrame,run.lastFrame+1).flatMap(f=>[f.start/1000,f.end/1000]);if(r.hasExtra&&run.lastFrame===s.frames.length-1)stations.push(r.depth-r.foot/2);if(r.systemType==='fifo'){stations.shift();stations.pop();}else stations.pop();for(const zz of stations){add('mekikBeam',-r.width/2+r.foot/2+(lane+.5)*pitch,floor.y/1000-(r.railHeight||.17)-(beam.railBearings?.[0]?.y??-.146),Math.max(r.foot/2,Math.min(r.depth-r.foot/2,zz))-r.depth/2+(t.postCenters?.[0]??.02)-.002,deepBeamScale(r,t,beam),1,1);out.at(-1).ry=Math.PI;}}
+  for(let lane=0;lane<r.bays;lane++)for(const floor of s.floors)for(const run of floor.runs){const stations=run.stations.map(p=>p/1000);for(const zz of stations){add('mekikBeam',-r.width/2+r.foot/2+(lane+.5)*pitch,floor.y/1000-(r.railHeight||.17)-(beam.railBearings?.[0]?.y??-.146),Math.max(r.foot/2,Math.min(r.depth-r.foot/2,zz))-r.depth/2+(t.postCenters?.[0]??.02)-.002,deepBeamScale(r,t,beam),1,1);out.at(-1).ry=Math.PI;}}
  }else if(r.system==='mekik2'||r.system==='drive'){
   const postName=r.system==='drive'?'drivePost':'mekikPost',t=templates[postName],pitch=(r.width-r.foot)/r.bays,stations=r.footZ.length?r.footZ:[0,r.depth];
   if(r.system==='drive'){for(let lane=0;lane<=r.bays;lane++)for(const [start,end] of (r.footFrames.length?r.footFrames:[[0,r.depth]]))add(postName,-r.width/2+r.foot/2+lane*pitch,0,(start+end)/2-r.depth/2,r.foot/t.width,r.height/t.height,(end-start)/t.depth);}else for(let lane=0;lane<=r.bays;lane++)for(const zz of [...new Set(stations)])add(postName,-r.width/2+r.foot/2+lane*pitch,0,Math.max(r.foot/2,Math.min(r.depth-r.foot/2,zz))-r.depth/2,r.foot/.1,r.height/t.height,1);

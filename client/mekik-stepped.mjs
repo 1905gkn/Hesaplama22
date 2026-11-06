@@ -14,10 +14,23 @@ export function mekikStepped(r) {
   const support=[...frames].reverse().find(f=>f.start<=start)||frames[0],active=frames.filter(f=>f.index>=support.index&&f.limit>=i+1),runs=[];
   for(const f of active){const last=runs.at(-1);if(last&&f.index===last.lastFrame+1){last.end=f.end;last.lastFrame=f.index;}else runs.push({start:f.start,end:f.end,firstFrame:f.index,lastFrame:f.index});}
   for(const run of runs){run.start=Math.max(0,run.start);run.end=Math.min(end,run.end);}
-  const slots=requested.filter(p=>runs.some(run=>p>=run.start-1&&p+pd<=run.end+1));
   // A full-depth legacy run may end just beyond the final frame.
   for(const run of runs)if(run.lastFrame===frames.length-1)run.end=end;
   const usable=requested.filter(p=>runs.some(run=>p>=run.start-1&&p+pd<=run.end+1));
+  // A partial terminal frame needs only the face reached by this level.
+  // Keep the pallet interval; never round a rail out to both frame posts.
+  for(let j=runs.length-1;j>=0;j--){const run=runs[j],loads=usable.filter(p=>p>=run.start-1&&p+pd<=run.end+1);if(!loads.length){runs.splice(j,1);continue;}
+   const candidates=frames.slice(run.firstFrame,run.lastFrame+1).flatMap(f=>[{at:f.start,frame:f.index},{at:f.end,frame:f.index}]);
+   run.start=loads[0];run.end=loads.at(-1)+pd;
+   let supports=candidates.filter(p=>p.at>=run.start-1&&p.at<=run.end+1);
+   if(!supports.length){const closest=[...candidates].sort((a,b)=>Math.max(run.start-a.at,0,a.at-run.end)-Math.max(run.start-b.at,0,b.at-run.end))[0];run.start=Math.min(run.start,closest.at);run.end=Math.max(run.end,closest.at);supports=[closest];}
+   run.firstFrame=Math.min(...supports.map(p=>p.frame));run.lastFrame=Math.max(...supports.map(p=>p.frame));run.supports=[...new Set(supports.map(p=>p.at))];
+   // Preserve native FIFO/FILO outer-entry exclusions, but retain a required
+   // inner terminal support instead of dropping it merely for being first.
+   run.stations=run.supports.filter(p=>!(r.systemType==='fifo'&&p===frames[0].start)&&p!==frames.at(-1).end);
+   if(r.hasExtra&&run.lastFrame===frames.length-1){const extra=length-n(r.footType,100)/2;if(extra>=run.start&&extra<=run.end)run.stations.push(extra);}
+   if(!run.stations.length)run.stations=[run.supports[0]];
+  }
   floors.push({index:i,y:first+i*gap,count,positions:usable,runs});
  }
  const top=first+(levels-1)*gap,automatic=Math.ceil((top+ph/2)/50)*50,manual=n(c.uprightHeight,0),height=c.heightMode==='manual'?manual:automatic,errors=[];
@@ -27,7 +40,16 @@ export function mekikStepped(r) {
  const rows=[];const add=(name,qty,spec='')=>{if(qty>0)rows.push({name,qty,spec,unit:name==='Ayak takımı'?'takım':'adet'});};
  const fmt=v=>new Intl.NumberFormat('tr-TR',{maximumFractionDigits:2}).format(v),groups=new Map();for(const f of frames){const key=f.depth+'|'+f.height;groups.set(key,(groups.get(key)||0)+bays+1);}for(const [key,qty]of groups){const [d,h]=key.split('|').map(Number);add('Ayak takımı',qty,(r.footProfile?r.footProfile+' · ':'')+'Yükseklik '+fmt(h)+' mm · Derinlik '+fmt(d)+' mm');}
  const traverse=typeof r.traverseRecommendation==='string'?r.traverseRecommendation:r.traverseRecommendation?.label||r.traverseType||'',pitch=(n(r.totalWidth||r.widthMm,0)-n(r.footType,100))/bays;
- for(const floor of floors)for(const run of floor.runs){const supported=frames.slice(run.firstFrame,run.lastFrame+1),stationCount=supported.length*2+(r.hasExtra&&run.lastFrame===frames.length-1?1:0)-(r.systemType==='fifo'?2:1);add('Travers',Math.max(0,stationCount)*bays,traverse+' · '+fmt(pitch)+' mm');add('Ray',bays*2,fmt(n(r.railThickness,2.5))+' mm kalınlık · H '+fmt(n(r.railHeight,150))+' mm · L '+fmt(run.end-run.start)+' mm · '+floor.positions.filter(p=>p>=run.start&&p+pd<=run.end+1).length+' derinlik');for(let j=run.firstFrame;j<run.lastFrame;j++)add('Düz arabağ',(bays+1),fmt(n(r.plan.braces[j],0))+' mm');}
+ for(const floor of floors)for(const run of floor.runs){add('Travers',run.stations.length*bays,traverse+' · '+fmt(pitch)+' mm');add('Ray',bays*2,fmt(n(r.railThickness,2.5))+' mm kalınlık · H '+fmt(n(r.railHeight,150))+' mm · L '+fmt(run.end-run.start)+' mm · '+floor.positions.filter(p=>p>=run.start&&p+pd<=run.end+1).length+' derinlik');for(let j=run.firstFrame;j<run.lastFrame;j++)add('Düz arabağ',(bays+1),fmt(n(r.plan.braces[j],0))+' mm');}
  const railQty=floors.reduce((a,l)=>a+l.runs.length*bays*2,0),fifo=r.systemType==='fifo';add('Palet yastığı',railQty*(fifo?2:1));add('Forklift stoperi',fifo?railQty*2:bays+1);add('Giriş konsolu',fifo?railQty*2:(bays+1)*levels);if(!fifo)add('Arka stoper',railQty);add('Yatay çapraz seti',bays*Math.floor(levels/2));if(r.hasExtra)add('Ayak Profili',bays+1,'L '+fmt(height)+' mm');
- return {version:514,anchor:'rear',levels,depth,positions,floors,frames,height:Math.max(height,...frames.map(f=>f.height)),minimum:top,automatic,capacity:bays*floors.reduce((s,l)=>s+l.positions.length,0),rows,errors};
+ return {version:515,anchor:'rear',levels,depth,positions,floors,frames,height:Math.max(height,...frames.map(f=>f.height)),minimum:top,automatic,capacity:bays*floors.reduce((s,l)=>s+l.positions.length,0),rows,errors};
+}
+
+// Customer links contain an immutable 3D snapshot. Upgrade old derived geometry
+// once during preparation without changing the source project or saved slots.
+export function upgradeMekikStepped(r){
+ const s=r?.mekikStepped;if(r?.system!=='mekik2'||!s||s.version>=515)return r;
+ const frames=s.frames,floors=s.floors;if(!frames?.length||!floors?.length)return r;
+ const raw={levels:s.levels,depth:s.depth,bays:r.bays,palD:r.palletDepth*1000,palW:r.palletWidth*1000,palletHeight:r.palletHeight*1000,railLength:r.depth*1000,totalWidth:r.width*1000,footType:r.foot*1000,firstRailHeight:floors[0].y,levelH:floors.length>1?floors[1].y-floors[0].y:1580,systemType:r.systemType||'fifo',hasExtra:r.hasExtra,palletPositions:s.positions,plan:{feet:frames.map(f=>f.depth),braces:frames.slice(0,-1).map((f,i)=>frames[i+1].start-f.end)},mekikCustomizationV514:{depths:floors.map(f=>f.count),heightMode:'manual',uprightHeight:s.height,frameLevels:frames.map(f=>f.limit),frameHeights:frames.map(f=>f.height)}};
+ return {...r,mekikStepped:mekikStepped(raw)};
 }

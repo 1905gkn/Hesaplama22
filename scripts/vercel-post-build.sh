@@ -349,3 +349,6 @@ node scripts/verify-draw-column-delete-v513.mjs
 
 node scripts/mekik-stepped-v514.mjs
 node scripts/verify-mekik-stepped-v514.mjs
+
+node scripts/mekik-terminal-rail-v515.mjs
+node scripts/verify-mekik-terminal-rail-v515.mjs

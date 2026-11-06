@@ -1,6 +1,8 @@
+import {upgradeMekikStepped} from './mekik-stepped.mjs';
 import {b2bFrameLayout} from './layout-3d-b2b-placement.mjs';
 // System-specific local geometry in metres. The viewer applies world placement.
 export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScaleX=null,nativeAccessories=false,simple=false}={}){
+ r=upgradeMekikStepped(r);
  const parts=[];
  const box=(kind,x,y,z,w,h,d,rx=0,rz=0)=>{if([x,y,z,w,h,d].every(Number.isFinite)&&w>0&&h>0&&d>0)parts.push({kind,x,y,z,w,h,d,rx,rz});};
  const post=(x,z,h=r.height)=>{if(!cad||!['b2b','mekik2','drive'].includes(r.system))box('foot',x,h/2,z,r.foot,h,r.foot)};
@@ -40,7 +42,7 @@ export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScal
   for(let lane=0;lane<r.bays;lane++){const x=-r.width/2+r.foot/2+(lane+.5)*pitch;
    for(const floor of s.floors){const y=floor.y/1000;
     for(const run of floor.runs)for(const side of [-1,1]){const bearing=railBearings?.[side<0?1:0],sx=railScaleX||((pitch-r.foot)/1.35),seat=bearing?-bearing.x:(railSeats||[-.47925,.47925])[side<0?0:1],rx=x+seat*sx,w=(bearing?.width||.0575)*sx,h=r.railHeight||.17,t=.003,z=(run.start+run.end)/2000-r.depth/2,d=(run.end-run.start)/1000,webX=rx+side*(w-t)/2,cap=Math.min(.025,w);box('rail',rx,y-h+t/2,z,w,t,d);box('rail',webX,y-h/2,z,t,h,d);box('rail',webX-side*(cap-t)/2,y-t/2,z,cap,t,d);}
-    if(!cad)for(const run of floor.runs)for(const f of s.frames.slice(run.firstFrame,run.lastFrame+1))for(const p of [f.start,f.end])box('beam',x,y-.1,p/1000-r.depth/2,pitch-r.foot,.1,.08);
+    if(!cad)for(const run of floor.runs)for(const p of run.stations)box('beam',x,y-.1,p/1000-r.depth/2,pitch-r.foot,.1,.08);
     for(const p of floor.positions)pallet(x,y,p/1000+r.palletDepth/2-r.depth/2,Math.min(r.palletWidth,pitch-r.foot-.06),r.palletDepth,r.palletHeights[floor.index]);
    }
   }
