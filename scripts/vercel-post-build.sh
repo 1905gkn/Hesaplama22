@@ -370,3 +370,5 @@ node scripts/drive-stepped-v521.mjs
 node scripts/verify-drive-stepped-v521.mjs
 node scripts/layout-consistency-v522.mjs
 node scripts/verify-layout-consistency-v522.mjs
+node scripts/depth-join-v523.mjs
+node scripts/verify-depth-join-v523.mjs
