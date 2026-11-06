@@ -8,6 +8,7 @@ export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScal
  const post=(x,z,h=r.height)=>{if(!cad||!['b2b','mekik2','drive'].includes(r.system))box('foot',x,h/2,z,r.foot,h,r.foot)};
  function brace(x,z,depth,h){box('foot',x,h/2,z,.035,Math.hypot(depth,h),.035,Math.atan2(depth,h));}
  function panelBracing(x,z1,z2,h,horizontalTies=true){const span=z2-z1;let y=.15,index=0;
+  if(!horizontalTies&&h>.3)for(const y of [.15,h-.15])box('tie',x,y,(z1+z2)/2,.03,.04,span);
   if(simple){box('brace',x,h/2,(z1+z2)/2,.03,Math.hypot(h,span),.025,Math.atan2(span,h));return;}
   while(y<h-.15){let top=Math.min(y+.6,h-.15);if(!horizontalTies&&h-.15-top<.3)top=h-.15;box('brace',x,(top+y)/2,(z1+z2)/2,.03,Math.hypot(top-y,span),.025,Math.atan2((index%2?-1:1)*span,top-y));y=top;index++;}
   if(horizontalTies)for(let y=.15;y<h;y+=1.2)box('tie',x,y,(z1+z2)/2,.03,.04,span);
