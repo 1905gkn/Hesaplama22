@@ -10,17 +10,17 @@ export function createCustomerManifest(layout,pages,originals=[]){
 }
 export async function attachCustomerBlockDetails(manifest,saved,originals=[]){
  const catalogue=[];
- for(const block of manifest.blocks){
-  const original=originals.find(r=>String(r.id)===String(block.rack?.id));
-  const entry=(saved||[]).find(e=>e?.drawing&&window.rafexSystemOfV115(e)===block.system&&String(e.name||e.drawing.typeName)===block.name);
-  const d=original||entry?.__rafexSnapshot||entry?.drawing;if(!d)throw Error(block.name+' bloğunun kaynak çizimi bulunamadı.');
+ async function prepare(block,d){
+  if(!d)throw Error(block.name+' bloğunun kaynak çizimi bulunamadı.');
   const system=block.system;let options=null,technical=null;
   if(system==='b2b')options=window.rafexB2BDetailOptionsV117(d);
   else if(['mr','konsol'].includes(system))options=window.rafexReadRackDetailV135?.(d,system)||(system==='mr'?window.rafexMrConfigFromRackV37?.(d):window.rafexKonsolDetailOptionsV135?.(d));
   else {technical=await window.rafexCaptureTechnicalViews(d,system);for(const key of ['front','side']){const img=new Image();await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(Error(block.name+' teknik görünümü hazırlanamadı.'));img.src=technical[key];});const canvas=document.createElement('canvas');canvas.width=1260;canvas.height=Math.max(1,Math.round(1260*img.height/img.width));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);technical[key]=canvas.toDataURL('image/png');canvas.width=canvas.height=1;}}
   if(!options&&!technical)throw Error(block.name+' bloğunun detay görünümü hazırlanamadı.');
-  const r=block.rack;block.detailView={system,options:options?structuredClone(options):null,technical,meta:[['Sistem',systemNames[system]],['Tip',block.name+(block.detail?' · '+block.detail:'')],['Genişlik',Math.round(r.width*1000)+' mm'],['Derinlik',Math.round(r.depth*1000)+' mm'],['Kat',r.levels],['Ayak boyu',Math.round(r.height*1000)+' mm']]};catalogue.push(block);
+  const r=block.rack||{width:Number(d.totalWidth||d.widthMm||0)/1000,depth:Number(d.railLength||d.depthMm||0)/1000,height:Number(d.sideUprightHeight||d.totalRackHeight||0)/1000,levels:Number(d.levels||d.b2b?.levels||0)};block.detailView={system,options:options?structuredClone(options):null,technical,meta:[['Sistem',systemNames[system]],['Tip',block.name+(block.detail?' · '+block.detail:'')],['Genişlik',Math.round(r.width*1000)+' mm'],['Derinlik',Math.round(r.depth*1000)+' mm'],['Kat',r.levels],['Ayak boyu',Math.round(r.height*1000)+' mm']]};catalogue.push(block);
  }
+ for(const block of manifest.blocks){const original=originals.find(r=>String(r.id)===String(block.rack?.id));const entry=(saved||[]).find(e=>e?.drawing&&window.rafexSystemOfV115(e)===block.system&&String(e.name||e.drawing.typeName)===block.name);await prepare(block,original||entry?.__rafexSnapshot||entry?.drawing);}
+ for(const entry of saved||[]){if(!entry?.drawing)continue;const d=entry.__rafexSnapshot||entry.drawing,system=window.rafexSystemOfV115(entry),name=String(entry.name||d.typeName||'Raf');if(!systemNames[system]||manifest.blocks.some(b=>b.name===name&&b.system===system))continue;await prepare({key:'saved-'+catalogue.length,name,detail:'',system,systemName:systemNames[system],count:0,rackIds:[],rack:null,detailView:null},d);}
  manifest.blocks=catalogue;return validateSharePayload(manifest);
 }
 export async function packCustomerSnapshot(png,payload){let original=png;for(let attempt=0;attempt<6;attempt++){const packed=payload?pngDataUrl(await embedSharePayload(pngDataBytes(original),payload)):original;if(packed.length<=3900000)return packed;const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=original;});const canvas=document.createElement('canvas');canvas.width=Math.round(image.width*.8);canvas.height=Math.round(image.height*.8);canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);original=canvas.toDataURL('image/png');canvas.width=canvas.height=1;}throw Error('3D paylaşım verisi görünüme sığmadı. Projeyi daha küçük bölümlerle paylaşın.');}
