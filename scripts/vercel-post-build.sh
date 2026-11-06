@@ -346,3 +346,6 @@ node scripts/verify-mekik-front-columns-v512.mjs
 
 node scripts/draw-column-delete-v513.mjs
 node scripts/verify-draw-column-delete-v513.mjs
+
+node scripts/mekik-stepped-v514.mjs
+node scripts/verify-mekik-stepped-v514.mjs
