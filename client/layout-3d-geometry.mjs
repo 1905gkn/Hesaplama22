@@ -1,3 +1,4 @@
+import {isSharedDepthMember} from './depth-shared-support.mjs';
 import {upgradeMekikStepped} from './mekik-stepped.mjs';
 import {b2bFrameLayout} from './layout-3d-b2b-placement.mjs';
 // System-specific local geometry in metres. The viewer applies world placement.
@@ -97,6 +98,6 @@ export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScal
    }
   }
  }
- return parts;
+ return parts.filter(p=>!(['foot','brace','tie'].includes(p.kind)&&isSharedDepthMember(r,p.x,p.z,p.kind)));
 }
 

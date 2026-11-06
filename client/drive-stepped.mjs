@@ -19,9 +19,10 @@ export function driveStepped(r){
   f.height=ceil(n(c.frameHeights?.[f.index])||automatic);
   if(f.height<f.minimum)errors.push((f.index+1)+'. Drive-In ayak boyu taşıdığı paletin üst kotu ve üst bağlantı payından kısa olamaz.');
  }
+ const shared=(typeof window!=='undefined'&&window.rafexDepthSharedV524?.(r))||r.depthSharedSupport||{feet:[],braces:[],extra:false};
  const rows=[],fmt=v=>new Intl.NumberFormat('tr-TR',{maximumFractionDigits:2}).format(v);
  const add=(name,qty,spec='')=>{if(qty>0)rows.push({name,qty,spec,unit:name==='Ayak takımı'?'takım':'adet'});};
- const feet=new Map();for(const f of base.frames){const key=f.depth+'|'+f.height;feet.set(key,(feet.get(key)||0)+cols);}
+ const feet=new Map();for(const f of base.frames){const key=f.depth+'|'+f.height;feet.set(key,(feet.get(key)||0)+cols-Number(shared.feet.includes(f.index)));}
  for(const [key,qty]of feet){const [d,h]=key.split('|').map(Number);add('Ayak takımı',qty,(r.footProfile?r.footProfile+' · ':'')+'Yükseklik '+fmt(h)+' mm · Derinlik '+fmt(d)+' mm');}
  const profile=typeof r.traverseRecommendation==='string'?r.traverseRecommendation:r.traverseRecommendation?.label||r.traverseType||'';
  const pitch=(n(r.totalWidth||r.widthMm)-n(r.footType,90))/bays;
@@ -29,12 +30,12 @@ export function driveStepped(r){
   add('Travers',run.stations.length*bays,profile+' · '+fmt(pitch)+' mm');
   add('Ray',bays*2,fmt(n(r.railThickness,2.5))+' mm kalınlık · H '+fmt(n(r.railHeight,150))+' mm · L '+fmt(run.end-run.start)+' mm · '+floor.positions.filter(p=>p>=run.start&&p+n(r.palD,800)<=run.end+1).length+' derinlik');
   // Native Drive-In ties occur on alternating levels, including the first.
-  if(floor.index%2===0)for(let j=run.firstFrame;j<run.lastFrame;j++)add('Düz arabağ',cols,fmt(n(r.plan.braces[j]))+' mm');
+  if(floor.index%2===0)for(let j=run.firstFrame;j<run.lastFrame;j++)add('Düz arabağ',cols-Number(shared.braces.includes(j)),fmt(n(r.plan.braces[j]))+' mm');
  }
  const railQty=base.floors.reduce((sum,l)=>sum+l.runs.length*bays*2,0);
  add('Palet yastığı',railQty);add('Arka stoper',railQty);
  add('Forklift stoperi',cols);add('Giriş konsolu',cols*base.floors.reduce((sum,l)=>sum+l.runs.length,0));
  add('Yatay çapraz seti',bays*Math.floor(base.levels/2));
- if(r.hasExtra)add('Ayak Profili',cols,'L '+fmt(Math.max(height,...base.frames.map(f=>f.height)))+' mm');
+ if(r.hasExtra)add('Ayak Profili',cols-Number(shared.extra),'L '+fmt(Math.max(height,...base.frames.map(f=>f.height)))+' mm');
  return {...base,version:521,system:'drive',rows,height:Math.max(height,...base.frames.map(f=>f.height)),automatic:minimum,minimum,errors};
 }

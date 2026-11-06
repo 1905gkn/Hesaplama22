@@ -1,3 +1,4 @@
+import {isSharedDepthMember} from './depth-shared-support.mjs';
 import {upgradeMekikStepped} from './mekik-stepped.mjs';
 import {b2bFrameLayout,b2bBeamMountZ} from './layout-3d-b2b-placement.mjs';
 import * as THREE from 'three';
@@ -67,5 +68,5 @@ export function cadPlacements(r,templates){
 
 
  }
- return out;
+ return out.filter(p=>!(['mekikPost','drivePost'].includes(p.name)&&isSharedDepthMember(r,p.x,p.z)));
 }

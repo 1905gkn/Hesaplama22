@@ -372,3 +372,6 @@ node scripts/layout-consistency-v522.mjs
 node scripts/verify-layout-consistency-v522.mjs
 node scripts/depth-join-v523.mjs
 node scripts/verify-depth-join-v523.mjs
+
+node scripts/shared-depth-support-v524.mjs
+node scripts/verify-shared-depth-support-v524.mjs
