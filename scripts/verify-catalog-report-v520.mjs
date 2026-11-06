@@ -9,7 +9,7 @@ for(const status of [401,403,409,413,500]){
  assert.equal(await c.window.rafexSaveDrawingCatalogV158(),false);assert.equal(c.window.rafexLastCatalogErrorV520.status,status);assert.equal(identity.drawingCatalogRevision,3);assert.equal(identity.drawingCatalogId,452);assert.equal(c.window.rafexProjectSavingV133,false);
  c.req=async()=>({revision:3});assert.equal(await c.window.rafexSaveDrawingCatalogV158(),true);assert.equal(c.window.rafexLastCatalogErrorV520,null);
 }
-assert(html.includes('const width=Math.max(320,target.clientWidth||'));
+assert(html.includes("const width=target.id==='m2CorporatePrint'?297*96/25.4:Math.max(320,target.clientWidth||"));assert(html.includes('window.rafexCombineProductPages?.(print);const pagesV520='));
 assert(html.includes("...details.filter(section=>!section.querySelector('.m2-corporate-final')),...sharedFinals"));
 for(const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g))if(!/src=|application\/json/.test(m[1]))new vm.Script(m[2]);
 console.log('PASS v520: server error details retained, retry clears stale errors, rejected writes do not advance identity, shared pallet final, actual report width, inline JS parses');
