@@ -331,3 +331,6 @@ node scripts/wall-output-v507.mjs
 
 node scripts/four-direction-gaps-v508.mjs
 node scripts/verify-four-direction-gaps-v508.mjs
+
+node scripts/free-wall-start-v509.mjs
+node scripts/verify-free-wall-start-v509.mjs
