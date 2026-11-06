@@ -334,3 +334,6 @@ node scripts/verify-four-direction-gaps-v508.mjs
 
 node scripts/free-wall-start-v509.mjs
 node scripts/verify-free-wall-start-v509.mjs
+
+node scripts/mekik-custom-pallet-v510.mjs
+node scripts/verify-mekik-custom-pallet-v510.mjs
