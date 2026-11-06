@@ -324,3 +324,7 @@ node scripts/accessory-wall-clearance-v503.mjs
 
 node scripts/column-extension-v504.mjs
 node scripts/verify-column-extension-v504.mjs
+
+node scripts/note-pins-v505.mjs
+node scripts/column-continuation-v506.mjs
+node scripts/wall-output-v507.mjs
