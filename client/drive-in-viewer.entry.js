@@ -1,4 +1,5 @@
 import {driveInUprightHeight} from './drive-in-height.mjs';
+import {prepareDriveNativePost,createDriveNativeFacing} from './drive-native-batches.mjs';
 import * as THREE from "three";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
@@ -182,7 +183,9 @@ class DriveInFrontViewer {
       }
       const [ayak, ray, konsol, arabag, palet] = await sharedModelsPromise;
       if (this.destroyed) return;
-      this.models = { ayak: ayak.scene, ray: ray.scene, konsol: konsol.scene, arabag: arabag.scene, palet: palet.scene };
+      const optimizedPost=await prepareDriveNativePost(ayak.scene);
+      if (this.destroyed) return;
+      this.models = { ayak: optimizedPost, ray: ray.scene, konsol: konsol.scene, arabag: arabag.scene, palet: palet.scene };
       this.rebuild();
       this.emit("drive-in-ready", { sources: ["DRIVE IN AYAK TOP", "DRIVE IN RAY BÜKÜMLÜ", "KONSOL", "ARABAĞ DRIVEIN", "DRIVE IN PALET"] });
     } catch (error) {
@@ -218,6 +221,8 @@ class DriveInFrontViewer {
   }
 
   rebuild() {
+    this.nativeFacing=null;
+    this.root.traverse(mesh=>{if(mesh.isInstancedMesh)mesh.dispose();});
     this.root.clear();
     this.visualPalletBottomZ = [];
     this.palletBounds = [];
@@ -280,6 +285,7 @@ class DriveInFrontViewer {
         if(!stepped)this.addPart(this.models.arabag, arabagScale, new THREE.Vector3(x, frontY - ayakSize.y - arabagSize.y / 2, supportZ + arabagSize.z / 2), technicalMaterials.arabag);else if(level%2===0)for(const run of runs)for(let fi=run.firstFrame;fi<run.lastFrame;fi++){const a=stepped.frames[fi].end,b=stepped.frames[fi+1].start;if(b>a)this.addPart(this.models.arabag,new THREE.Vector3(uprightWidth/arabagSize.x,(b-a)/arabagSize.y,1),new THREE.Vector3(x,frontY-(a+b)/2,supportZ+arabagSize.z/2),technicalMaterials.arabag);}
       }
     }
+    this.nativeFacing=createDriveNativeFacing(this.root);
     this.fitCamera();
     this.renderScene();
   }
@@ -379,7 +385,7 @@ class DriveInFrontViewer {
     this.renderScene();
   }
 
-  renderScene() { if (!this.destroyed) {this.renderer.render(this.scene, this.camera);this.emitLayout();} }
+  renderScene() { if (!this.destroyed) {this.nativeFacing?.update(this.camera);this.renderer.render(this.scene, this.camera);this.emitLayout();const stats=this.nativeFacing?.stats();if(stats){this.canvas.dataset.driveCadFull=String(stats.fullTriangles);this.canvas.dataset.driveCadDrawn=String(stats.drawnTriangles);this.canvas.dataset.drawCalls=String(this.renderer.info.render.calls);this.canvas.dataset.drawTriangles=String(this.renderer.info.render.triangles);}} }
   render() { this.renderScene(); }
 
   destroy() {
@@ -388,6 +394,7 @@ class DriveInFrontViewer {
     if (this.resizeFrame) cancelAnimationFrame(this.resizeFrame);
     this.resizeObserver?.disconnect?.();
     this.controls?.dispose?.();
+    this.root.traverse(mesh=>{if(mesh.isInstancedMesh)mesh.dispose();});
     this.root.clear();
     this.renderer?.renderLists?.dispose?.();
     this.renderer?.dispose?.();

@@ -1,0 +1,23 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';import * as T from 'three';
+import {readGlb,readPrimitive} from './cad-gpu-assets-v532.mjs';
+import {prepareDriveNativePost,createDriveNativeFacing,isDrivePaintedPost,drivePartFacesDirection} from '../client/drive-native-batches.mjs';
+import {transform} from './drive-native-v534.mjs';
+const file=process.env.RAFEX_DRIVE_TEST_ASSET||'dist/drive-in/drive-in-ayak-top.glb';
+const source=readGlb(fs.readFileSync(file)),decoded=[];
+for(const mesh of source.json.meshes){const pieces=[];for(const p of mesh.primitives){const data=await readPrimitive(source.json,source.bin,p),g=new T.BufferGeometry();for(const [key,a]of Object.entries(data.attrs))g.setAttribute({POSITION:'position',NORMAL:'normal',TEXCOORD_0:'uv'}[key]||key,new T.BufferAttribute(a.array,a.n));g.setIndex(new T.BufferAttribute(new Uint32Array(data.indices),1));const m=new T.Mesh(g,new T.MeshBasicMaterial());m.name=mesh.name||'';pieces.push(m);}decoded.push(pieces);}
+function node(i){const n=source.json.nodes[i],parts=n.mesh==null?[]:decoded[n.mesh].map(m=>m.clone()),g=parts.length===1?parts[0]:new T.Group();if(parts.length>1)g.add(...parts);g.name=n.name||g.name;if(n.matrix)g.applyMatrix4(new T.Matrix4().fromArray(n.matrix));else{g.position.fromArray(n.translation||[0,0,0]);g.quaternion.fromArray(n.rotation||[0,0,0,1]);g.scale.fromArray(n.scale||[1,1,1]);}for(const c of n.children||[])g.add(node(c));return g;}
+const original=new T.Group();for(const id of source.json.scenes[source.json.scene||0].nodes)original.add(node(id));
+let oldCalls=0,triangles=0,paintTriangles=0;original.traverse(m=>{if(m.isMesh){oldCalls++;const count=(m.geometry.index?.count??m.geometry.attributes.position.count)/3;triangles+=count;if(isDrivePaintedPost(m.name))paintTriangles+=count;}});assert(paintTriangles>0&&paintTriangles<triangles,'Both native finishes detected');
+const before=new T.Box3().setFromObject(original),template=await prepareDriveNativePost(original);assert.equal(await prepareDriveNativePost(original),template,'Source preparation shared');
+const after=new T.Box3().setFromObject(template);for(const edge of ['min','max'])assert(before[edge].distanceTo(after[edge])<.002,'Native CAD bounds preserved within 0.002 mm');
+let total=0,painted=0;template.traverse(m=>{if(m.isMesh){const count=(m.geometry.index?.count??m.geometry.attributes.position.count)/3;total+=count;if(isDrivePaintedPost(m.name))painted+=count;}});assert.equal(total,triangles);assert.equal(painted,paintTriangles);
+// Widely separated, non-uniform physical frames, like the native stepped view.
+const root=new T.Group(),material=new T.MeshStandardMaterial();for(let i=0;i<30;i++){const frame=template.clone(true);frame.position.set(i%6*1450,Math.floor(i/6)*1900,0);frame.scale.set(1,.8+i*.02,.7+i*.01);frame.rotation.y=Math.PI;frame.traverse(m=>{if(m.isMesh)m.material=material;});root.add(frame);}
+const controller=createDriveNativeFacing(root),camera=new T.OrthographicCamera(-10000,10000,10000,-10000,1,100000);camera.up.set(0,0,1);
+camera.position.set(4000,20000,3500);camera.lookAt(4000,0,3500);camera.updateMatrixWorld(true);controller.update(camera);const front=controller.stats();assert(front.drawnTriangles<front.fullTriangles*.9,'Heavy front-view backfaces eliminated');assert(front.parts<oldCalls*30/10,'Repeated native frame assemblies are instanced');
+for(const at of [[-20000,5000,5000],[20000,5000,5000],[4000,-20000,3500],[4000,5000,20000]]){camera.position.fromArray(at);camera.lookAt(4000,5000,3500);camera.updateMatrixWorld(true);controller.update(camera);assert(controller.stats().drawnTriangles>0);}
+// The direction-cone decision is independent of perspective distance.
+const part={axis:new T.Vector3(1,0,0),cosine:1,sine:0};assert.equal(drivePartFacesDirection(part,new T.Vector3(-1,0,0)),false);assert.equal(drivePartFacesDirection(part,new T.Vector3(1,0,0)),true);assert.equal(drivePartFacesDirection(part,new T.Vector3(0,1,0)),true);
+assert(fs.readFileSync('client/drive-in-viewer.entry.js','utf8').includes('await prepareDriveNativePost(ayak.scene)'));
+const html=fs.readFileSync(fs.existsSync('dist/index.html')?'dist/index.html':'preview.html','utf8'),patched=transform(html);assert(patched.includes('/drive-in-viewer.js?v=534'));assert.equal(transform(patched),patched);assert(!/\/drive-in-viewer\.js\?(?!v=534)[^\s"'<>]+/.test(patched));
+console.log(JSON.stringify({pass:true,frames:30,originalSourceMeshes:oldCalls,preparedSourceMeshes:template.children.length,trianglesPerFrame:triangles,paintTriangles,fullHeavyTriangles:front.fullTriangles,drawnHeavyTriangles:front.drawnTriangles,reductionPercent:Math.round(100*(1-front.drawnTriangles/front.fullTriangles)),nativeBoundsAndFinishesPreserved:true}));

@@ -400,3 +400,6 @@ node scripts/cad-gpu-assets-v532.mjs
 node scripts/preparation-v532.mjs
 node scripts/verify-cad-facing-v532.mjs
 node scripts/verify-cad-gpu-asset-v532.mjs
+
+node scripts/drive-native-v534.mjs
+node scripts/verify-drive-native-v534.mjs
