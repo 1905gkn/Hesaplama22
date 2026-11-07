@@ -11,8 +11,8 @@ export function konsolDimensions(o,rows,baseTop,height,width,uprightDepth){
  else rows.forEach((r,i)=>add([left,r.top,uprightDepth/2],[left,r.top,uprightDepth/2+r.depth],r.depth,(i+1)+'. kol derinliği','depth'));
  return result;
 }
-export function addKonsolDimensions(THREE,root,items){
- const group=new THREE.Group();group.name='Konsol ölçüleri';group.userData.measurements=items;
+export function addKonsolDimensions(THREE,root,items,dimensionScale=1){
+ const group=new THREE.Group();group.name='Konsol ölçüleri';group.userData.measurements=items;group.userData.labelScale=dimensionScale;
  const material=new THREE.LineBasicMaterial({color:0x17657c,depthTest:false});
  for(const item of items){
   const a=new THREE.Vector3(...item.a),b=new THREE.Vector3(...item.b),line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([a,b]),material);line.renderOrder=100;group.add(line);
@@ -23,11 +23,13 @@ export function addKonsolDimensions(THREE,root,items){
   const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
   const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,depthTest:false,sizeAttenuation:false}));sprite.position.copy(a).add(b).multiplyScalar(.5);sprite.position.x+=item.side==='right'?900:-900;if(item.label==='Zemin → taban')sprite.position.y-=400;sprite.scale.set(.26,.036,1);sprite.renderOrder=101;group.add(sprite);
   const anchor=sprite.position.clone();
+  if(item.label==='Ayak boyu')anchor.copy(b);
   sprite.onBeforeRender=(renderer,scene,camera)=>{
-   const width=Math.max(1,renderer.domElement.clientWidth),height=Math.max(1,renderer.domElement.clientHeight),pixels=Math.min(36,width*.42/8),scale=pixels*2*Math.tan(camera.fov*Math.PI/360)/height;
+   const width=Math.max(1,renderer.domElement.clientWidth),height=Math.max(1,renderer.domElement.clientHeight),pixels=Math.min(36*group.userData.labelScale,width*.42/8),scale=pixels*2*Math.tan(camera.fov*Math.PI/360)/height;
    sprite.scale.set(scale*8,scale,1);
    const screen=anchor.clone().applyMatrix4(group.matrixWorld).project(camera),margin=(pixels*8+16)/width;
    screen.x=Math.max(-1+margin,Math.min(1-margin,screen.x));
+   if(item.label==='Ayak boyu')screen.y=Math.min(1-(pixels+16)/height,screen.y+(pixels+8)/height);
    sprite.position.copy(group.worldToLocal(screen.unproject(camera)));sprite.updateMatrixWorld(true);
   };
  }

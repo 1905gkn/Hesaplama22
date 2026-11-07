@@ -87,9 +87,11 @@ export function transformMR(code){
 
 export function transformKonsol(code){
   if(code.includes(marker))return code;
-  code=replaceOnce(code,'return(o.renderDirty||o.renderCameraKey!==t)&&(o.renderer.render(o.scene,e),o.renderCameraKey=t,o.renderDirty=!1),!0}', 'const changedV498=o.renderDirty||o.renderCameraKey!==t;return changedV498&&(o.renderer.render(o.scene,e),o.renderCameraKey=t,o.renderDirty=!1),!!(changedV498||o.controls.autoRotate)}','Konsol stop idle frames');
+  const dirtyFrame=/return\(([\w$]+)\.renderDirty\|\|\1\.renderCameraKey!==([\w$]+)\)&&\(\1\.renderer\.render\(\1\.scene,([\w$]+)\),\1\.renderCameraKey=\2,\1\.renderDirty=!1\),!0}/;
+  if(!dirtyFrame.test(code))throw Error('v498 missing Konsol stop idle frames');
+  code=code.replace(dirtyFrame,(_,v,key,camera)=>'const changedV498='+v+'.renderDirty||'+v+'.renderCameraKey!=='+key+';return changedV498&&('+v+'.renderer.render('+v+'.scene,'+camera+'),'+v+'.renderCameraKey='+key+','+v+'.renderDirty=!1),!!(changedV498||'+v+'.controls.autoRotate)}');
   code=code.replace(/this\.renderDirty=!0/g,'this.invalidateV498()');
-  const cameraWake=code.match(/this\.controls=new [\w$]+\(this\.camera,e\),/)?.[0];if(!cameraWake)throw Error('v498 missing Konsol controls');
+  const cameraWake=code.match(/this\.controls=new [\w$]+\(this\.camera,[\w$]+\),/)?.[0];if(!cameraWake)throw Error('v498 missing Konsol controls');
   code=replaceOnce(code,cameraWake,cameraWake+'this.controls.addEventListener("change",()=>this.requestFrameV498()),observeKonsolDetachV498(this),','Konsol camera wake');
   const frameName=code.match(/([\w$]+)\(this\)&&\(this\.raf=requestAnimationFrame\(\(\)=>this\.loop\(\)\)\)\}\}destroy\(\)\{/)?.[1];if(!frameName)throw Error('v498 missing Konsol frame');
   code=replaceOnce(code,frameName+'(this)&&(this.raf=requestAnimationFrame(()=>this.loop()))}}destroy(){',frameName+'(this)&&this.requestFrameV498()}}requestFrameV498(){if(!this.destroyed&&!document.hidden&&this.renderVisibility?.visible!==false&&this.raf==null)this.raf=requestAnimationFrame(()=>this.loop())}invalidateV498(){this.renderDirty=true;this.requestFrameV498()}destroy(){','Konsol invalidation');

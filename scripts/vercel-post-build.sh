@@ -98,6 +98,7 @@ node scripts/verify-stable-rack-catalog.mjs dist/server/index.js
 node scripts/verify-common-performance.mjs dist/server/index.js
 node scripts/konsol-preview-v526.mjs
 node scripts/consistent-preview-v527.mjs source
+node scripts/konsol-label-controls-v529.mjs source
 node scripts/build-shared-three.mjs
 node scripts/patch-free-selection-v145.mjs
 node scripts/verify-free-selection-v145.mjs
@@ -384,3 +385,5 @@ node scripts/verify-konsol-preview-v526.mjs
 
 node scripts/consistent-preview-v527.mjs
 node scripts/verify-consistent-preview-v527.mjs
+
+node scripts/konsol-label-controls-v529.mjs
