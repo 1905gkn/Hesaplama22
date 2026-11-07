@@ -273,6 +273,125 @@ Tablo derinliği|Table depth|Profondeur du tableau
 EN İNCE UYGUN TAVA|THINNEST SUITABLE PANEL|PLATEAU ADAPTÉ LE PLUS FIN
 Tek tava kapasitesi|Single panel capacity|Capacité d’un plateau
 Sonuç|Result|Résultat
+Serbest yerleşimin üç boyutlu önizlemesi|3D preview of the free layout|Aperçu en trois dimensions de l’implantation libre
+İlk kat yüksekliği (mm)|First level height (mm)|Hauteur du premier niveau (mm)
+Hesap Özeti|Calculation Summary|Récapitulatif du calcul
+Hesap açıklaması|Calculation explanation|Explication du calcul
+Kayıtlı Drive In Raf Tipleri|Saved Drive-In Rack Types|Types de rayonnages Drive-In enregistrés
+Değerler değiştikçe GLB parçalarıyla raf yeniden kurulur|The rack is rebuilt from GLB parts when values change|Le rayonnage est reconstruit à partir des pièces GLB lorsque les valeurs changent
+Örn. MR Depo A Blok|E.g. MR Warehouse Block A|Ex. entrepôt MR bloc A
+Bölüm başına kat yükü (kg)|Level load per bay (kg)|Charge par niveau et par travée (kg)
+Sıra düzeni|Row arrangement|Disposition des rangées
+MR sıra düzeni|MR row arrangement|Disposition des rangées MR
+Çift sıra mesafesi (mm)|Double row spacing (mm)|Espacement de double rangée (mm)
+Çift sıra mesafesi|Double row spacing|Espacement de double rangée
+Kat arası mesafe (mm)|Level spacing (mm)|Espacement des niveaux (mm)
+Seçilen H değeri 3D travers yüksekliğine uygulanır.|The selected H value sets the 3D beam height.|La valeur H sélectionnée définit la hauteur de la lisse 3D.
+MR tava seçimi|MR shelf panel selection|Sélection des plateaux MR
+Seçilen tava yeterli|Selected panel is suitable|Le plateau sélectionné convient
+MR RAF SİSTEMİ · CANLI 3D|MR RACK SYSTEM · LIVE 3D|RAYONNAGE MR · 3D EN DIRECT
+Ayak + ZS travers + seçilen katlardaki tavalar canlı monte edilir|Frames, ZS beams and panels on selected levels are assembled live|Les échelles, lisses ZS et plateaux des niveaux sélectionnés sont assemblés en direct
+MR sistem 3D görünümü|MR system 3D view|Vue 3D du système MR
+MR rafı oluşturuluyor…|Building MR rack…|Création du rayonnage MR…
+ÖLÇÜLER VE MESAFELER|DIMENSIONS AND DISTANCES|COTES ET DISTANCES
+MR RAF PROJESİ|MR RACK PROJECT|PROJET DE RAYONNAGE MR
+Excel ikinci sayfa · Ayak ve kol seçimi|Second Excel sheet · Upright and arm selection|Deuxième feuille Excel · Sélection des montants et bras
+Ayak yüksekliği modu|Upright height mode|Mode de hauteur du montant
+En üst kol kotu / KRS H (mm)|Top arm elevation / KRS H (mm)|Cote du bras supérieur / KRS H (mm)
+Kol derinliği (mm)|Arm depth (mm)|Profondeur du bras (mm)
+Taban kat derinliği (mm)|Base level depth (mm)|Profondeur du niveau de base (mm)
+Ayak aralığı (mm)|Upright spacing (mm)|Espacement des montants (mm)
+3D Görünüm|3D View|Vue 3D
+Konsol 3D motoru hazırlanıyor…|Preparing cantilever 3D renderer…|Préparation du moteur 3D cantilever…
+Mevcut Konsol ölçülerini ortak kayıtlı raf tiplerine ekler.|Adds the current cantilever dimensions to the shared saved rack types.|Ajoute les dimensions actuelles du cantilever aux types de rayonnages enregistrés communs.
+Onayla|Confirm|Confirmer
+Projeyi Aç|Open Project|Ouvrir le projet
+Detay için aç|Open details|Ouvrir les détails
+Proje henüz açılmadı|No project opened yet|Aucun projet ouvert
+Başlamak için proje adını yazıp Yeni projeyi kaydet düğmesine bas. Önceki raf tiplerini proje no ve adına göre Eski projeden raf tipi kopyala bölümünden seçebilirsin.|To begin, enter a project name and select Save as New Project. You can select previous rack types by project number and name in Copy Rack Types from Another Project.|Pour commencer, saisissez un nom puis cliquez sur Enregistrer un nouveau projet. Vous pouvez sélectionner d’anciens types par numéro et nom dans Copier les types d’un autre projet.
+Ayak boyu (mm)|Upright height (mm)|Hauteur du montant (mm)
+Ayak boyu modu|Upright height mode|Mode de hauteur du montant
+Manuel ayak boyu (mm)|Manual upright height (mm)|Hauteur manuelle du montant (mm)
+Otomatik ayak boyu|Automatic upright height|Hauteur automatique du montant
+Minimum ayak boyu (son palet kotu)|Minimum upright height (top pallet elevation)|Hauteur minimale du montant (cote de la palette supérieure)
+ÖNERİLEN RAY|RECOMMENDED RAIL|RAIL RECOMMANDÉ
+Önerilen Mekik traversi|Recommended shuttle beam|Lisse de navette recommandée
+Zemin Kat|Ground Level|Niveau au sol
+tüm katlar yüke dahil|all levels included in load|tous les niveaux inclus dans la charge
+Üst görünüş ölçeği|Top view scale|Échelle de la vue de dessus
+Üst görünüşü uzaklaştır|Zoom out of top view|Dézoomer la vue de dessus
+Üst görünüşü yakınlaştır|Zoom into top view|Zoomer la vue de dessus
+Üst görünüşü alana sığdır|Fit top view to area|Ajuster la vue de dessus à la zone
+Mekik raf üst görünüşü; derinlik dikey, gözler yatay|Shuttle rack top view; depth vertical, bays horizontal|Vue de dessus du rayonnage à navette ; profondeur verticale, travées horizontales
+İçeriğini göster|Show contents|Afficher le contenu
+Kopyala|Copy|Copier
+Tek taraflı|Single-sided|Simple face
+Çift taraflı|Double-sided|Double face
+TEK ÜNİTE|SINGLE UNIT|UNITÉ SIMPLE
+Ekstra profil yok|No extra profile|Sans profil supplémentaire
+Ekstra profil var|Extra profile included|Avec profil supplémentaire
+kapasite|capacity|capacité
+tablo yüksekliği|table height|hauteur du tableau
+palet ağırlığı aralığı|pallet load range|plage de charge des palettes
+B2B hesap girdileri|B2B calculation inputs|Données de calcul B2B
+B2B Hesap Girdileri|B2B Calculation Inputs|Données de calcul B2B
+Excel listesindeki alanlar · B2B'ye özel|Fields from the Excel list · specific to B2B|Champs de la liste Excel · propres au B2B
+Kat Mesafesi|Level Spacing|Espacement des niveaux
+Euro palet|Euro pallet|Palette Europe
+Amerikan palet|American pallet|Palette américaine
+Yan rafların özel ölçüsü|Custom end frame dimensions|Dimensions spéciales des échelles d’extrémité
+tek modül|single module|module simple
+kapasite tablosuna giren yük|load used for the capacity table|charge utilisée dans le tableau de capacité
+sol ayak|left upright|montant gauche
+sağ ayak|right upright|montant droit
+Yönetici tarafından kabul edildi !|Approved by administrator !|Accepté par l’administrateur !
+Önerilen|Recommended|Recommandé
+Ürün seçin|Select product|Sélectionner un produit
+3D Görünüş|3D View|Vue 3D
+3D MODÜL HAZIRLANIYOR…|PREPARING 3D MODULE…|PRÉPARATION DU MODULE 3D…
+Ölçülü kaydır|Move by distance|Déplacer d’une distance précise
+Kenar uzunluklarını göster veya gizle|Show or hide edge lengths|Afficher ou masquer les longueurs des côtés
+Duvar Uzaklıklarını Gizle|Hide Wall Clearances|Masquer les distances aux murs
+Duvar Uzaklıklarını Göster|Show Wall Clearances|Afficher les distances aux murs
+Alan eni (mm)|Area width (mm)|Largeur de la zone (mm)
+Alan boyu (mm)|Area length (mm)|Longueur de la zone (mm)
+Yerleşimi 3D Gör|View Layout in 3D|Voir l’implantation en 3D
+Alan adını değiştirmek için yazın|Type to rename the area|Saisissez le nom de la zone
++ Raf Ekle|+ Add Rack|+ Ajouter un rayonnage
+Toplu Seç|Select Multiple|Sélection multiple
+Fonksiyon Çoğaltma|Array Duplication|Duplication en série
+Geri alınacak işlem yok|Nothing to undo|Rien à annuler
+Arası Ölç|Measure Gap|Mesurer l’écart
+Bütün ölçülere uygula|Apply to all dimensions|Appliquer à toutes les cotes
+Bütün yazılara uygula|Apply to all text|Appliquer à tous les textes
+Hepsi|All|Tous
+Ortak Ayağı Göster|Show Shared Frame|Afficher l’échelle commune
+Raf uzatma mesafesi milimetre|Rack extension distance in millimeters|Distance de prolongement du rayonnage en millimètres
+Bu Mesafeyi Doldur|Fill This Distance|Remplir cette distance
+Blok Ekle|Add Block|Ajouter un bloc
+Çizim görünüm ayarları|Drawing view settings|Réglages de la vue du plan
+Plan görünümü yakınlaştırma|Plan view zoom|Zoom du plan
+Yerleşimi uzaklaştır|Zoom out of layout|Dézoomer l’implantation
+Yerleşimi yakınlaştır|Zoom into layout|Zoomer sur l’implantation
+Tüm projeyi göster|Show entire project|Afficher tout le projet
+Seçili rafı okunur büyüklükte göster|Fit selected rack to a readable size|Ajuster le rayonnage sélectionné à une taille lisible
+Alanı kaydır · Sağ tuşla da sürükleyebilirsin · Esc ile kapat|Pan the area · You can also drag with the right button · Esc to exit|Déplacer la zone · Glisser aussi avec le bouton droit · Échap pour quitter
+Çizimi %100 ölçekte ortala|Center drawing at 100% scale|Centrer le plan à l’échelle 100 %
+Raftan Rafa Ölçü|Rack-to-Rack Dimensions|Cotes entre rayonnages
+Arası mesafeler: paletten palete. Ölçü türünü değiştirmek için tıkla.|Gap distances: pallet to pallet. Click to change the measurement basis.|Distances libres : de palette à palette. Cliquez pour changer la référence de mesure.
+Arası mesafeler: raftan rafa. Ölçü türünü değiştirmek için tıkla.|Gap distances: rack to rack. Click to change the measurement basis.|Distances libres : de rayonnage à rayonnage. Cliquez pour changer la référence de mesure.
+Tip yazı ve renk oranları|Type label and color settings|Réglages des libellés de type et des couleurs
+Yerleşim ekleme araçları|Layout insertion tools|Outils d’insertion dans l’implantation
+Sembol Ekleme|Add Symbol|Ajouter un symbole
+Deprem Çaprazı Ekle|Add Seismic Bracing|Ajouter un contreventement sismique
+Aksesuar|Accessory|Accessoire
+Raf yerleşim çizim alanı|Rack layout drawing area|Zone de dessin de l’implantation
+Excel’e Aktar|Export to Excel|Exporter vers Excel
+Henüz ürün yok|No products yet|Aucun produit pour le moment
+Ürün dökümünü ayraç adlarına göre ayırır; ayraç dışındaki ürünler ayrı listelenir.|Groups the bill of materials by zone name; products outside zones are listed separately.|Regroupe la nomenclature par nom de zone ; les produits hors zones sont listés séparément.
+Boş çizim alanı ve yeni proje kimliğiyle başla|Start with an empty layout and a new project ID|Commencer avec une zone vide et un nouvel identifiant de projet
+Taslak kaydet|Save Draft|Enregistrer le brouillon
+Hatalı veya eksik çizimi de bu tarayıcıda saklar|Also saves incomplete or invalid drawings in this browser|Enregistre aussi les plans incomplets ou invalides dans ce navigateur
 GÜNÜN SÖZLERI|DAILY QUOTES|CITATIONS DU JOUR
 Türkçe çeviri|Translation|Traduction
 Kaynak metinden Türkçe çeviri|Translated from the source|Traduit du texte source

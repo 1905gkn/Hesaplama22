@@ -170,8 +170,9 @@
       state = { source: original || current, rendered: current };
       textState.set(node, state);
     }
-    const noteStatus=node.parentElement?.closest('.note-row-v405,.note-row,.todo-row')&&/^Açık$/i.test(state.source.trim());
-    const next = noteStatus&&language!=='tr'?state.source.replace(state.source.trim(),language==='fr'?'Ouvert':'Open'):translate(state.source, language);
+    const inNote=node.parentElement?.closest('.note-row-v405,.note-row,.todo-row');
+    let next = translate(state.source, language);
+    if(inNote&&language!=='tr'&&/(^|[·:]\s*)Açık\s*$/i.test(state.source))next=next.replace(/(?:Clear|Clair|Dégagé)\s*$/i,language==='fr'?'Ouvert':'Open');
     state.rendered = next;
     if (next !== current) node.nodeValue = next;
   }
