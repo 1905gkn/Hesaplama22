@@ -273,6 +273,11 @@ Tablo derinliği|Table depth|Profondeur du tableau
 EN İNCE UYGUN TAVA|THINNEST SUITABLE PANEL|PLATEAU ADAPTÉ LE PLUS FIN
 Tek tava kapasitesi|Single panel capacity|Capacité d’un plateau
 Sonuç|Result|Résultat
+Değiştir|Change|Modifier
+Blok|Block|Bloc
+Sistem|System|Système
+Palet (mm)|Pallet (mm)|Palette (mm)
+Günün sözleri|Daily Quotes|Citations du jour
 Serbest yerleşimin üç boyutlu önizlemesi|3D preview of the free layout|Aperçu en trois dimensions de l’implantation libre
 İlk kat yüksekliği (mm)|First level height (mm)|Hauteur du premier niveau (mm)
 Hesap Özeti|Calculation Summary|Récapitulatif du calcul

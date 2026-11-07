@@ -53,7 +53,7 @@
   const stats = { batches: 0, textChecks: 0, attributeChecks: 0, subtreeScans: 0 };
   window.rafexTranslationStats = stats;
   /* TRANSLATION_EXTENDED */
-  const protectedSelector = 'script,style,textarea,code,pre,[contenteditable="true"],[translate="no"],[data-no-translate],#m2ReportProjectName,.todo-row > span,.note-body,.note-comment-body,.m2-user-note,[data-user-note],[data-rafex-type-name] > strong > span';
+  const protectedSelector = 'script,style,textarea,code,pre,[contenteditable="true"],[translate="no"]:not(.rafex-daily-motivation-v355):not(#dashboardGrid),[data-no-translate],#m2ReportProjectName,.todo-row > span,.note-body,.note-comment-body,.m2-user-note,[data-user-note],[data-rafex-type-name] > strong > span';
   const reportSelector = '#m2A4Sheet,#m2CorporatePreview,.m2-corporate-preview,#m2CorporatePrint,#m2CorporatePrintArea,#konsolOutputPreview';
   const lookup = { en: new Map(), fr: new Map() };
   const normalize = value => value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('tr');
@@ -177,12 +177,13 @@
     if (next !== current) node.nodeValue = next;
   }
   function apply(root = document.body) {
-    if (!root || root.nodeType !== 1 || root.closest(protectedSelector)) return;
-    if (!root.firstChild && !root.matches('[placeholder],[title],[aria-label]')) return;
+    if (!root || root.nodeType !== 1) return;
+    if(root.closest(protectedSelector)){if(root.tagName==='TEXTAREA')updateAttributes(root);return;}
+    if (!root.firstChild && !root.matches('[placeholder],[title],[aria-label],[alt]')) return;
     stats.subtreeScans++;
     // Geometry, paths and groups have no translatable text. Never enumerate
     // every SVG element just to translate a caption or tooltip.
-    for (const element of [root, ...root.querySelectorAll('[placeholder],[title],[aria-label]')]) {
+    for (const element of [root, ...root.querySelectorAll('[placeholder],[title],[aria-label],[alt]')]) {
       updateAttributes(element);
     }
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
@@ -197,12 +198,13 @@
     updateText(node, language);
   }
   function updateAttributes(element, onlyName) {
-      if (element.closest(protectedSelector)) return;
+      const protectedOwner=element.closest(protectedSelector);
+      if(protectedOwner&&!(element.tagName==='TEXTAREA'&&protectedOwner===element))return;
       const language = languageFor(element);
       if (language === 'tr' && !attributeState.has(element) && !i18nOriginalAttributes.has(element)) return;
       let states = attributeState.get(element);
       if (!states) attributeState.set(element, states = {});
-      for (const name of onlyName ? [onlyName] : ['placeholder', 'title', 'aria-label']) {
+      for (const name of onlyName ? [onlyName] : ['placeholder', 'title', 'aria-label', 'alt']) {
         if (!element.hasAttribute(name)) continue;
         stats.attributeChecks++;
         const current = element.getAttribute(name);
@@ -261,7 +263,7 @@
     if (timer === null && (roots.size || texts.size || attributes.size)) timer = setTimeout(flush, 16);
   });
   function observe() {
-    observer.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['placeholder', 'title', 'aria-label'] });
+    observer.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['placeholder', 'title', 'aria-label', 'alt'] });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
   }
   document.addEventListener('change', event => {
