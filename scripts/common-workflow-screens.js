@@ -29,15 +29,23 @@
       const bar = save.closest('.rafex-b2b-mekik-savebar,.common-full-savebar,.m2-export,.mr-rack-save') || save.parentElement;
       bar.insertAdjacentElement('afterend', row);
     }
-    const floor = root.querySelector('.m2-floor-editor');
-    if (floor && !root.querySelector('#rafexLayoutScreenHeader')) {
-      const header = document.createElement('section'); header.id = 'rafexLayoutScreenHeader'; header.className = 'card';
+    // Konsol retains a hidden standalone floor before the shared layout.
+    const floor = root.querySelector('#m2LayoutSvg')?.closest('.m2-floor-editor') || root.querySelector('.m2-floor-editor');
+    let header = root.querySelector('#rafexLayoutScreenHeader');
+    if (floor && !header) {
+      header = document.createElement('section'); header.id = 'rafexLayoutScreenHeader'; header.className = 'card';
       const title = document.createElement('h2'); title.textContent = 'Serbest Yerleşim Alanı';
       const copy = document.createElement('p'); copy.textContent = 'Kayıtlı raf tiplerini seçip alana yerleştirin. Ölçüler, ürün listesi, kesit ve proje çıktıları bu ekrandadır.';
       const back = document.createElement('button'); back.type = 'button'; back.className = 'primary-green';
       back.id = 'rafexBackToRackTypes'; back.textContent = '← Raf Tipi Oluşturmaya Dön';
       back.addEventListener('click', () => switchScreen('types'));
-      header.append(title, copy, back); floor.before(header);
+      header.append(title, copy, back);
+    }
+    if (floor && header) {
+      // Keep navigation outside system wrappers that can be hidden or rearranged.
+      let anchor = floor;
+      while (anchor.parentElement && anchor.parentElement !== root) anchor = anchor.parentElement;
+      if (header.parentElement !== root || header.nextElementSibling !== anchor) root.insertBefore(header, anchor);
     }
   }
   function queue() { if (frame === null) frame = requestAnimationFrame(sync); }
