@@ -6,9 +6,9 @@ const $=id=>document.getElementById(id),el=(tag,text)=>{const n=document.createE
 const token=location.pathname.split('/').filter(Boolean).pop(),base='/api/customer-view/'+encodeURIComponent(token),version=document.body.dataset.assetVersion||'475';
 let loading=false,session='',meta=null,payload=null,view=null,detailView=null,selected='3d',selectedAreaId='',sequence=0,detailSequence=0,imageUrl='',scale=1,fitScale=1,x=0,y=0,currentImage=0;
 const stage=$('stage'),image=$('image'),host=$('threeStage'),requests=new Map();
-function preloadScript(path){const link=document.createElement('link');link.rel='preload';link.as='script';link.href=path+'?v='+encodeURIComponent(version);document.head.append(link);}
+function preloadScript(path){const link=document.createElement('link');link.rel='preload';link.as='script';link.href=path+(path.includes('?')?'&':'?')+'build='+encodeURIComponent(version);document.head.append(link);}
 preloadScript('/rafex-three.js');preloadScript('/layout-3d.js?v=530');
-function loadScript(path){if(!requests.has(path))requests.set(path,new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=path+'?v='+encodeURIComponent(version);s.onload=resolve;s.onerror=()=>{requests.delete(path);s.remove();reject(Error('3D çizici yüklenemedi.'));};document.head.append(s);}));return requests.get(path);}
+function loadScript(path){if(!requests.has(path))requests.set(path,new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=path+(path.includes('?')?'&':'?')+'build='+encodeURIComponent(version);s.onload=resolve;s.onerror=()=>{requests.delete(path);s.remove();reject(Error('3D çizici yüklenemedi.'));};document.head.append(s);}));return requests.get(path);}
 async function loadViewer(system){await loadScript('/rafex-three.js');return loadScript('/'+({b2b:'b2b',mr:'mr',konsol:'konsol',mekik2:'mekik-front',drive:'drive-in'})[system]+'-viewer.js');}
 window.rafexLoadViewerOnDemandV3=loadViewer;window.rafexLoadHeavyViewerV1=loadViewer;
 async function engine(){await loadScript('/rafex-three.js');await loadScript('/layout-3d.js?v=530');if(!window.rafexLayout3D?.mount)throw Error('3D çizici hazır değil.');return window.rafexLayout3D;}
