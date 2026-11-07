@@ -53,16 +53,22 @@ export async function createFacingBatch(scene,geometry,material,matrices,budget)
  if(material.side!==THREE.FrontSide)return null;
  const parts=await cadFacingParts(geometry,budget,{threshold:geometry.userData.renderCopy?50000:100000});if(!parts)return null;
  const inverse=matrices.map(m=>m.determinant()>0?m.clone().invert():null),cameraPoints=inverse.map(()=>new THREE.Vector3()),meshes=[];
+ if(!geometry.boundingBox)geometry.computeBoundingBox();
+ const worldBounds=matrices.map(m=>geometry.boundingBox.clone().applyMatrix4(m)),inView=new Uint8Array(matrices.length),lastPlanes=new Float64Array(24).fill(Infinity);
  for(const part of parts){const mesh=new THREE.InstancedMesh(part.geometry,material,matrices.length);await populateInstances(mesh,matrices,budget);mesh.computeBoundingSphere();mesh.userData.cadFacing=true;scene.add(mesh);meshes.push(mesh);}
  const last=new THREE.Vector3(Infinity,Infinity,Infinity);
  const allIndices=matrices.map((_,i)=>i),previous=new WeakMap();
  const targets=mesh=>mesh.children.length?mesh.children:[mesh];
- return {update(camera){
-  if(last.equals(camera))return;last.copy(camera);
+ return {update(camera,frustum){
+  let changed=!last.equals(camera);
+  if(frustum)for(let i=0;i<6;i++){const p=frustum.planes[i],values=[p.normal.x,p.normal.y,p.normal.z,p.constant];for(let j=0;j<4;j++){const k=i*4+j;if(values[j]!==lastPlanes[k])changed=true;lastPlanes[k]=values[j];}}
+  else if(lastPlanes[0]!==Infinity){lastPlanes.fill(Infinity);changed=true;}
+  if(!changed)return;last.copy(camera);
+  for(let i=0;i<worldBounds.length;i++)inView[i]=!frustum||frustum.intersectsBox(worldBounds[i]);
   for(let i=0;i<inverse.length;i++)if(inverse[i])cameraPoints[i].copy(camera).applyMatrix4(inverse[i]);
   for(let k=0;k<parts.length;k++)for(const mesh of targets(meshes[k])){
    const source=mesh.userData.cadFacingSources||allIndices,visible=[];
-   for(const i of source)if(!inverse[i]||mayFaceCamera(parts[k],cameraPoints[i]))visible.push(i);
+   for(const i of source)if(inView[i]&&(!inverse[i]||mayFaceCamera(parts[k],cameraPoints[i])))visible.push(i);
    const before=previous.get(mesh);if(before&&before.length===visible.length&&before.every((i,j)=>i===visible[j]))continue;
    // Positions are immutable. Copy cached transforms only when the visibility
    // mask changes; never rebuild racks, products or layout on camera movement.

@@ -413,3 +413,5 @@ node scripts/drive-static-v538.mjs
 node scripts/verify-drive-static-v538.mjs
 node scripts/render-copy-v540.mjs
 node scripts/verify-render-copy-v540.mjs
+node scripts/instance-view-v541.mjs
+node scripts/verify-instance-view-v541.mjs
