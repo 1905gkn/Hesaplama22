@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {transform} from './preparation-v531.mjs';
+import {mekikStepped} from '../client/mekik-stepped.mjs';
+import {driveStepped} from '../client/drive-stepped.mjs';
+const html=transform('<html><head></head><body></body></html>'),js=html.match(/<script[^>]*>([\s\S]*?)<\/script>/)[1],ctx=vm.createContext({window:{},Intl});vm.runInContext(js,ctx);
+for(const key of ['rafexMekikSteppedV514','rafexDriveSteppedV521','rafexMekikSideMetricsV518'])assert.equal(typeof ctx.window[key],'function');
+const rack={bays:5,levels:4,depth:10,palD:800,palW:1200,palletHeight:1200,railLength:8750,totalWidth:7350,footType:100,railHeight:150,levelH:1580,firstRailHeight:430,plan:{feet:[1100,1100,1100,1100,1100],braces:[800,800,800,800]},palletPositions:[0,1000,1850,2700,3550,4400,5250,6100,6950,7950],mekikCustomizationV514:{depths:[10,10,5,5],heightMode:'auto'},driveCustomizationV521:{depths:[10,10,5,5],heightMode:'auto'}};
+assert.equal(JSON.stringify(ctx.window.rafexMekikSteppedV514(rack)),JSON.stringify(mekikStepped(rack)));assert.equal(JSON.stringify(ctx.window.rafexDriveSteppedV521(rack)),JSON.stringify(driveStepped(rack)));
+assert(!/WebGL|GLTFLoader/.test(js));assert.equal(transform(html),html);console.log('PASS pure Mekik/Drive calculations available before any 3D renderer; exact capacity/geometry/BOM; idempotent boot ('+Buffer.byteLength(js)+' bytes).');
