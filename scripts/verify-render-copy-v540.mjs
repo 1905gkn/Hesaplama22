@@ -1,0 +1,18 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';import * as T from 'three';
+import {readGlb,readPrimitive}from './cad-gpu-assets-v532.mjs';import{prepareCadRenderCopy}from '../client/cad-render-copy.mjs';import{createPreparationBudget}from '../client/layout-3d-budget.mjs';
+const rows=[];
+for(const [cadKind,file]of [['drivePost','dist/drive-in/drive-in-ayak-top.glb'],['mekikPost','dist/layout-mekik-post.glb']]){
+ const{json,bin}=readGlb(fs.readFileSync(file)),geometries=[];
+ for(const m of json.meshes)for(const p of m.primitives){const{attrs,indices}=await readPrimitive(json,bin,p),g=new T.BufferGeometry();for(const[k,a]of Object.entries(attrs))g.setAttribute({POSITION:'position',NORMAL:'normal'}[k]||k,new T.BufferAttribute(a.array,a.n));g.setIndex(new T.BufferAttribute(new Uint32Array(indices),1));g.scale(.001,.001,.001);g.computeBoundingBox();g.computeBoundingSphere();geometries.push(g);}
+ const contactPlanes={test:123},template={cadKind,geometries,contactPlanes},before=geometries.map(g=>g.index.array.slice()),result=await prepareCadRenderCopy(template,createPreparationBudget());assert.equal(await prepareCadRenderCopy(template,createPreparationBudget()),result,'Prepare once');assert.equal(result.contactPlanes,contactPlanes,'Original CAD contacts remain authoritative');let trianglesBefore=0,trianglesAfter=0;
+ for(let i=0;i<geometries.length;i++){const a=geometries[i],b=result.geometries[i];assert.deepEqual(a.index.array,before[i],'Original source is immutable');assert.equal(b.attributes.position,a.attributes.position,'Original points unchanged');assert.equal(b.attributes.normal,a.attributes.normal,'Original normal data retained');assert(a.boundingBox.equals(b.boundingBox),'Envelope pinned');for(const index of b.index.array)assert(index<a.attributes.position.count);if(b.userData.renderCopy)assert(b.userData.renderCopy.errorMetres<=.000050001);trianglesBefore+=a.index.count/3;trianglesAfter+=b.index.count/3;}
+ assert(trianglesAfter<trianglesBefore*.85,'Real model reduction must be material');
+ // Compare actual openings/silhouette through the full-height profile, both
+ // across its width and at intervals along its height. No distance-based LOD.
+ let raySamples=0,rayDifferences=0;const material=new T.MeshBasicMaterial({side:T.DoubleSide});
+ for(let i=0;i<geometries.length;i++){const a=geometries[i],b=result.geometries[i];if(a===b)continue;const size=a.boundingBox.getSize(new T.Vector3()),axes=['x','y','z'].sort((a,b)=>size[a]-size[b]),through=axes[0],across=axes[1],height=axes[2],original=new T.Mesh(a,material),optimized=new T.Mesh(b,material);original.updateMatrixWorld(true);optimized.updateMatrixWorld(true);const ray=new T.Raycaster(),direction=new T.Vector3();direction[through]=1;
+ for(let h=0;h<72;h++)for(let w=0;w<8;w++){const point=new T.Vector3();point[through]=a.boundingBox.min[through]-.1;point[across]=a.boundingBox.min[across]+size[across]*(w+.371)/8;point[height]=a.boundingBox.min[height]+size[height]*(h+.293)/72;ray.set(point,direction);const before=ray.intersectObject(original,false).length>0,after=ray.intersectObject(optimized,false).length>0;raySamples++;if(before!==after)rayDifferences++;}
+ }
+ assert(rayDifferences<=raySamples*.005,'Profile openings/silhouette changed in sampled rays');rows.push({cadKind,trianglesBefore,trianglesAfter,reductionPercent:+(100*(1-trianglesAfter/trianglesBefore)).toFixed(1),sourceAndContactsUnchanged:true,raySamples,rayDifferences});
+}
+const small={cadKind:'b2bFrame',geometries:[new T.BoxGeometry()]};assert.equal(await prepareCadRenderCopy(small),small);console.log(JSON.stringify({pass:true,toleranceMm:.05,rows}));

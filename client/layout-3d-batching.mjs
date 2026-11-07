@@ -1,5 +1,6 @@
 import {mergeVertices} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {compactCadVertexSteps} from './cad-exact-vertices.mjs';
+import {prepareCadRenderCopy} from './cad-render-copy.mjs';
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
@@ -19,13 +20,14 @@ function* cadRenderSteps(template){
  for(const {finish,geometries} of groups.values()){
   // Morph targets are not used by static CAD. Preserve them if a future asset has any.
   let merged=geometries.length>1&&!Object.keys(geometries[0].morphAttributes).length?mergeGeometries(geometries,false):null;
+  if(merged&&geometries.some(g=>g.userData.renderCopy))merged.userData.renderCopy={prepared:true};
   if(merged){const exact=yield* compactCadVertexSteps(merged);if(exact!==merged){merged.dispose();merged=exact;}else if(!merged.index){const indexed=mergeVertices(merged,1e-9);const bytes=g=>Object.values(g.attributes).reduce((n,a)=>n+a.array.byteLength,0)+(g.index?.array.byteLength||0);if(bytes(indexed)<bytes(merged)){merged.dispose();merged=indexed;}else indexed.dispose();}merged.computeBoundingBox();merged.computeBoundingSphere();parts.push({geometry:merged,finish});}
   else for(const geometry of geometries)parts.push({geometry:yield* compactCadVertexSteps(geometry),finish});
  }
  cadCache.set(template,parts);return parts;
 }
 export function cadRenderParts(template){const iterator=cadRenderSteps(template);for(;;){const step=iterator.next();if(step.done)return step.value;}}
-export async function prepareCadRenderParts(template,budget){const iterator=cadRenderSteps(template);for(;;){const step=iterator.next();if(step.done)return step.value;const pending=budget.checkpoint();if(pending)await pending;}}
+export async function prepareCadRenderParts(template,budget){template=await prepareCadRenderCopy(template,budget);const iterator=cadRenderSteps(template);for(;;){const step=iterator.next();if(step.done)return step.value;const pending=budget.checkpoint();if(pending)await pending;}}
 
 // All transforms are baked once when a viewer is mounted, never on camera movement.
 export function nativeRenderBatches(racks,byRack){

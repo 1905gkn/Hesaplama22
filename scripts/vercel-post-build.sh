@@ -411,3 +411,5 @@ node scripts/drive-gpu-v537.mjs
 node scripts/verify-drive-gpu-v537.mjs
 node scripts/drive-static-v538.mjs
 node scripts/verify-drive-static-v538.mjs
+node scripts/render-copy-v540.mjs
+node scripts/verify-render-copy-v540.mjs

@@ -51,7 +51,7 @@ export function mayFaceCamera(part,point){
 }
 export async function createFacingBatch(scene,geometry,material,matrices,budget){
  if(material.side!==THREE.FrontSide)return null;
- const parts=await cadFacingParts(geometry,budget);if(!parts)return null;
+ const parts=await cadFacingParts(geometry,budget,{threshold:geometry.userData.renderCopy?50000:100000});if(!parts)return null;
  const inverse=matrices.map(m=>m.determinant()>0?m.clone().invert():null),cameraPoints=inverse.map(()=>new THREE.Vector3()),meshes=[];
  for(const part of parts){const mesh=new THREE.InstancedMesh(part.geometry,material,matrices.length);await populateInstances(mesh,matrices,budget);mesh.computeBoundingSphere();mesh.userData.cadFacing=true;scene.add(mesh);meshes.push(mesh);}
  const last=new THREE.Vector3(Infinity,Infinity,Infinity);
