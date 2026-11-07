@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {cadFacingParts} from './cad-facing-batches.mjs';
+import {compactCadVerticesAsync} from './cad-exact-vertices.mjs';
 import {createPreparationBudget} from './layout-3d-budget.mjs';
 
 const templates=new WeakMap(),facingParts=new WeakMap(),postGeometries=new WeakSet();
@@ -29,7 +30,8 @@ export async function prepareDriveNativePost(source){
    const merged=geometries.length>1?mergeGeometries(geometries,false):null;
    const exact=merged?[merged]:geometries;
    if(merged)geometries.forEach(g=>g.dispose());
-   for(const geometry of exact){
+   for(const original of exact){
+    const geometry=await compactCadVerticesAsync(original,budget);if(geometry!==original)original.dispose();
     geometry.computeBoundingBox();geometry.computeBoundingSphere();
     const parts=await cadFacingParts(geometry,budget);
     for(const part of parts||[{geometry}]){
@@ -81,5 +83,5 @@ export function createDriveNativeFacing(root){
    for(let i=0;i<visible.length;i++)mesh.instanceMatrix.array.set(matrices[visible[i]].elements,i*16);
    mesh.count=visible.length;mesh.instanceMatrix.needsUpdate=true;entry.previous=visible;
   }
- },stats(){return {parts:entries.length,fullTriangles:entries.reduce((n,e)=>n+(e.geometry.index?.count??e.geometry.attributes.position.count)/3*e.matrices.length,0),drawnTriangles:entries.reduce((n,e)=>n+(e.geometry.index?.count??e.geometry.attributes.position.count)/3*e.mesh.count,0)};}};
+ },stats(){return {parts:entries.length,fullTriangles:entries.reduce((n,e)=>n+(e.geometry.index?.count??e.geometry.attributes.position.count)/3*e.matrices.length,0),drawnTriangles:entries.reduce((n,e)=>n+Math.min(e.geometry.index?.count??e.geometry.attributes.position.count,e.geometry.drawRange.count)/3*e.mesh.count,0)};}};
 }

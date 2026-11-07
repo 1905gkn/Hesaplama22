@@ -1,4 +1,5 @@
 import {createPreparedSceneSession,layoutRevision,sceneBufferBytes} from './layout-3d-session.mjs';
+import {DRIVE_RENDER_VERSION} from './drive-render-version.mjs';
 import {createFacingBatch} from './cad-facing-batches.mjs';
 import {createPreparationBudget,populateInstances} from './layout-3d-budget.mjs';
 import {mergeAreaLayouts} from './layout-areas.mjs';
@@ -9,7 +10,7 @@ import {loadPreparedAccessories} from './layout-3d-prepared-cache.mjs';
 import {spatializeInstancesAsync,yieldPreparation} from './layout-3d-preparation.mjs';
 import {loadBackMeshCad,backMeshBatches} from './layout-3d-back-mesh.mjs';
 import {loadProtectionCad,protectionBatches} from './layout-3d-protections.mjs';
-import {cadRenderParts,nativeRenderBatches} from './layout-3d-batching.mjs';
+import {prepareCadRenderParts,nativeRenderBatches} from './layout-3d-batching.mjs';
 import {createStatic3DLabels} from './static-3d-labels.mjs';
 import {customerRackDistance,customerWallDistance,customerWallParts,savedCustomerMeasures} from './customer-distance.mjs';
 import {customerRenderQuality} from './customer-render-quality.mjs';
@@ -28,6 +29,7 @@ async function loadViewerCad(data){const [cad,guards,backMesh]=await Promise.all
 async function makeViewer(host,data,templates,accessoryGeometries=new Map(),options={}){
  data={...data,racks:data.racks.map(upgradeMekikStepped)};
  const facingBatches=[];
+ host.dataset.cadRenderVersion=DRIVE_RENDER_VERSION;
  const preparationStarted=performance.now(),budget=createPreparationBudget(),geometryKeys=new WeakMap();let preparedParts=0;
  const geometryKeyFor=r=>{if(!geometryKeys.has(r))geometryKeys.set(r,rackGeometryKey(r));return geometryKeys.get(r);};
  let paused=options.startPaused===true,disposed=false,renderFrames=0,statsDirty=true,forkliftFleet=null,forkliftWanted=false,forkliftPreparing=null,forkliftTimer=0,forkliftLast=0;
@@ -55,7 +57,7 @@ async function makeViewer(host,data,templates,accessoryGeometries=new Map(),opti
   if((++preparedParts&255)===0){const pending=budget.checkpoint();if(pending)await pending;}
   const key=p.name+':'+p.color;if(!cadGroups.has(key))cadGroups.set(key,{template:templates[p.name],color:p.color,matrices:[]});dummy.position.set(p.x,p.y,p.z);dummy.rotation.set(0,p.ry||0,0);dummy.scale.set(p.sx,p.sy,p.sz);dummy.updateMatrix();cadGroups.get(key).matrices.push(new THREE.Matrix4().multiplyMatrices(parent.matrix,dummy.matrix));
  }if(performance.now()-lastYield>12){await yieldPreparation();lastYield=performance.now();}}
- placementCache.clear();for(const {template,color,matrices} of cadGroups.values()){const material=new Surface({color:colors[color]||'#005078',roughness:.42,metalness:.4});materials.push(material);const galvanized=new Surface({color:colors.galvanized,metalness:.6,roughness:.42});materials.push(galvanized);for(const {geometry,finish} of cadRenderParts(template)){const surface=finish==='galvanized'?galvanized:material;const facing=await createFacingBatch(scene,geometry,surface,matrices,budget);if(facing){facingBatches.push(facing);continue;}const mesh=new THREE.InstancedMesh(geometry,surface,matrices.length);await populateInstances(mesh,matrices,budget);scene.add(mesh)}await yieldPreparation();}
+ placementCache.clear();for(const {template,color,matrices} of cadGroups.values()){const material=new Surface({color:colors[color]||'#005078',roughness:.42,metalness:.4});materials.push(material);const galvanized=new Surface({color:colors.galvanized,metalness:.6,roughness:.42});materials.push(galvanized);for(const {geometry,finish} of await prepareCadRenderParts(template,budget)){const surface=finish==='galvanized'?galvanized:material;const facing=await createFacingBatch(scene,geometry,surface,matrices,budget);if(facing){facingBatches.push(facing);continue;}const mesh=new THREE.InstancedMesh(geometry,surface,matrices.length);await populateInstances(mesh,matrices,budget);scene.add(mesh)}await yieldPreparation();}
  for(const ring of data.floorLoops||[]){const shape=new THREE.Shape(ring.map(p=>new THREE.Vector2(p.x,-p.z))),floorGeometry=new THREE.ShapeGeometry(shape),floorMaterial=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide});geometries.push(floorGeometry);materials.push(floorMaterial);const floor=new THREE.Mesh(floorGeometry,floorMaterial);floor.rotation.x=-Math.PI/2;floor.position.y=-.01;scene.add(floor);}
  const nativeBatches=nativeRenderBatches(data.racks,accessoryGeometries);
  for(const p of nativeBatches.batches){const mat=new Surface({color:p.color,roughness:p.roughness,metalness:p.metalness});materials.push(mat);if(!geometries.includes(p.geometry))geometries.push(p.geometry);const mesh=new THREE.InstancedMesh(p.geometry,mat,p.matrices.length);await populateInstances(mesh,p.matrices,budget);mesh.name=p.name;scene.add(mesh);if(p.load)palletMeshes.push(mesh);}
