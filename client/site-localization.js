@@ -52,7 +52,8 @@
   const textState = new WeakMap(), attributeState = new WeakMap();
   const stats = { batches: 0, textChecks: 0, attributeChecks: 0, subtreeScans: 0 };
   window.rafexTranslationStats = stats;
-  const protectedSelector = 'script,style,textarea,code,pre,[contenteditable="true"],[translate="no"],[data-no-translate],#m2ReportProjectName,.todo-row > span,.m2-user-note,[data-user-note],[data-rafex-type-name] > strong > span';
+  /* TRANSLATION_EXTENDED */
+  const protectedSelector = 'script,style,textarea,code,pre,[contenteditable="true"],[translate="no"],[data-no-translate],#m2ReportProjectName,.todo-row > span,.note-body,.note-comment-body,.m2-user-note,[data-user-note],[data-rafex-type-name] > strong > span';
   const reportSelector = '#m2A4Sheet,#m2CorporatePreview,.m2-corporate-preview,#m2CorporatePrint,#m2CorporatePrintArea,#konsolOutputPreview';
   const lookup = { en: new Map(), fr: new Map() };
   const normalize = value => value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('tr');
@@ -64,6 +65,8 @@
     const trimmed = source.trim();
     const exact = UI_TRANSLATIONS[language][trimmed] || lookup[language].get(normalize(trimmed));
     if (exact) return source.replace(trimmed, exact);
+    const extended=window.rafexTranslateExtended542?.(source,language);
+    if(extended&&extended!==source)return extended;
     const fr = language === 'fr';
     const engineering = trimmed.match(/^(.+?)\s+([\d.,]+(?:\s*[×x]\s*[\d.,]+)*(?:\s*(?:mm|m|kg))?)$/);
     const engineeringLabels = ['AYAK','ARABAĞ','RAY','TRAVERS','KOL','GÖZ','TOPLAM','YÜKSEKLİK','DERİNLİK','GENİŞLİK','PALET','KAT ARASI','TOPLAM GENİŞLİK','TOPLAM DERİNLİK','TOPLAM UZUNLUK','SON PALET YÜKSEKLİĞİ','AYAK UZUNLUĞU','V TEKRARI','İLK DÜĞÜM'];
@@ -157,13 +160,18 @@
   function updateText(node, language) {
     stats.textChecks++;
     const current = node.nodeValue;
+    // Translating an option without an explicit value otherwise changes its
+    // submitted value (and breaks system/conditional-field selection).
+    const option=node.parentElement;
+    if(option?.tagName==='OPTION'&&!option.hasAttribute('value'))option.setAttribute('value',option.value);
     let state = textState.get(node);
     if (!state || current !== state.rendered) {
       const original = !state && i18nOriginalText.get(node);
       state = { source: original || current, rendered: current };
       textState.set(node, state);
     }
-    const next = translate(state.source, language);
+    const noteStatus=node.parentElement?.closest('.note-row-v405,.note-row,.todo-row')&&/^Açık$/i.test(state.source.trim());
+    const next = noteStatus&&language!=='tr'?state.source.replace(state.source.trim(),language==='fr'?'Ouvert':'Open'):translate(state.source, language);
     state.rendered = next;
     if (next !== current) node.nodeValue = next;
   }

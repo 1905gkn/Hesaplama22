@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {createInterfaceTranslator} from '../client/translation-core-v542.mjs';
 export function transform(html) {
   if (html.includes('/* site-localization-v202 */')) return html;
   // Change the generated report template, not an already-rendered user's report.
@@ -22,7 +23,7 @@ export function transform(html) {
   html = html.replace("if(subtitle&&subtitle.textContent!==text)subtitle.textContent=text;",
     "if(subtitle){if(window.rafexSetUiText)window.rafexSetUiText(subtitle,text);else if(subtitle.textContent!==text)subtitle.textContent=text;}");
   const rows = JSON.parse(fs.readFileSync(new URL('../client/site-translations.json', import.meta.url), 'utf8'));
-  const runtime = fs.readFileSync(new URL('../client/site-localization.js', import.meta.url), 'utf8').replace('/* TRANSLATION_ROWS */ []', JSON.stringify(rows).replaceAll('<', '\\u003c'));
+  const runtime = fs.readFileSync(new URL('../client/site-localization.js', import.meta.url), 'utf8').replace('/* TRANSLATION_ROWS */ []', JSON.stringify(rows).replaceAll('<', '\\u003c')).replace('/* TRANSLATION_EXTENDED */',`window.rafexTranslateExtended542=(${createInterfaceTranslator.toString()})(rows);`);
   // Earlier occurrences can belong to quoted print-window HTML inside scripts.
   const closingBody = html.lastIndexOf('</body>');
   if (closingBody < 0) throw Error('Missing application closing body');
@@ -34,3 +35,4 @@ if (process.argv[1]?.replaceAll('\\', '/').endsWith('/patch-site-localization-v2
   if (!match) throw Error('Missing embedded application HTML');
   fs.writeFileSync(file, source.replace(match[1], Buffer.from(transform(Buffer.from(match[1], 'base64').toString())).toString('base64')));
 }
+

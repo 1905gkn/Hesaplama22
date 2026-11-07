@@ -415,3 +415,5 @@ node scripts/render-copy-v540.mjs
 node scripts/verify-render-copy-v540.mjs
 node scripts/instance-view-v541.mjs
 node scripts/verify-instance-view-v541.mjs
+node scripts/localization-v542.mjs
+node scripts/verify-localization-v542.mjs

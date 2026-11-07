@@ -1,0 +1,396 @@
+Mühendislik Hesapları|Engineering Calculations|Calculs d’ingénierie
+Dinamik Rapor|Dynamic Report|Rapport dynamique
+Statik Rapor|Static Report|Rapport statique
+Diğer Raporlar ve Talepler|Other Reports and Requests|Autres rapports et demandes
+Rapor Listesi|Report List|Liste des rapports
+Kullanıcı Yetkileri|User Permissions|Autorisations des utilisateurs
+Mühendislik Kullanıcı Yetkileri|Engineering User Permissions|Autorisations des utilisateurs d’ingénierie
+Rapor talepleri, mühendis yanıtları ve dokümanlar|Report requests, engineer responses and documents|Demandes de rapports, réponses des ingénieurs et documents
+Oluşturulan Talepler|Submitted Requests|Demandes créées
+CRM numarası|CRM number|Numéro CRM
+CRM Bilgilerini Getir|Retrieve CRM Details|Récupérer les informations CRM
+CRM bilgileri gelmeden talep kaydedilemez.|Retrieve the CRM details before saving the request.|Récupérez les informations CRM avant d’enregistrer la demande.
+Sistem tipi|System type|Type de système
+Zemin ve beton bilgileri|Ground and concrete details|Informations sur le sol et le béton
+Zemin etüdü raporu var|Geotechnical report available|Rapport géotechnique disponible
+Zemin etüdü raporu|Geotechnical report|Rapport géotechnique
+Zemin ivmesi (agr)|Ground acceleration (agr)|Accélération du sol (agr)
+Zemin sınıfı|Ground class|Classe de sol
+Beton kalınlığı (mm)|Concrete thickness (mm)|Épaisseur du béton (mm)
+Beton kalitesi|Concrete grade|Classe du béton
+Kesit PDF var|Section PDF available|PDF de coupe disponible
+Kesit PDF|Section PDF|PDF de coupe
+Palet bilgileri · palet başına|Pallet specifications · per pallet|Caractéristiques des palettes · par palette
+Palet tipleri · palet başına|Pallet types · per pallet|Types de palettes · par palette
++ Palet tipi ekle|+ Add pallet type|+ Ajouter un type de palette
+Palet tipi|Pallet type|Type de palette
+Palet tipini kaldır|Remove pallet type|Supprimer le type de palette
+Palet bilgileri kesit PDF dosyasında belirtilmiştir.|Pallet specifications are provided in the section PDF.|Les caractéristiques des palettes figurent dans le PDF de coupe.
+Z + kat sayısı|Ground + number of levels|Sol + nombre de niveaux
+Palet eni (mm)|Pallet width (mm)|Largeur de palette (mm)
+Palet boyu (mm)|Pallet depth (mm)|Profondeur de palette (mm)
+Palet yüksekliği (mm)|Pallet height (mm)|Hauteur de palette (mm)
+Palet başına ağırlık (kg)|Load per pallet (kg)|Charge par palette (kg)
+Rüzgar yükü (kN/m²)|Wind load (kN/m²)|Charge de vent (kN/m²)
+Kar yükü (kN/m²)|Snow load (kN/m²)|Charge de neige (kN/m²)
+Koridordaki hareket yükü (kN/m²)|Aisle live load (kN/m²)|Charge d’exploitation de l’allée (kN/m²)
+Taslak çizim|Draft drawing|Plan préliminaire
+Malzeme listesi PDF|Bill of materials PDF|Nomenclature PDF
+Proje çizimi PDF|Project drawing PDF|Plan du projet PDF
+Proje çizimi CAD|Project drawing CAD|Plan du projet CAO
+Talep dosyası|Request attachment|Pièce jointe à la demande
+Talep dosyaları|Request attachments|Pièces jointes à la demande
+Not / açıklama|Note / explanation|Note / explication
+Dosya başına en fazla 4 MB. Yükleme kesilirse talebi taslak listesinden tamamlayabilirsiniz.|Maximum 4 MB per file. If the upload is interrupted, complete the request from the draft list.|4 Mo maximum par fichier. Si le transfert est interrompu, terminez la demande depuis la liste des brouillons.
+Talebi oluştur|Create request|Créer la demande
+Talep|Request|Demande
+Firma adı|Company name|Nom de l’entreprise
+Firma|Company|Entreprise
+Proje|Project|Projet
+İlgili kişi|Contact person|Personne à contacter
+Tür / sistem|Type / system|Type / système
+Talebi açan|Requested by|Demandeur
+Raporlayan mühendis|Reporting engineer|Ingénieur responsable
+Henüz raporlanmadı|Not reported yet|Pas encore de rapport
+Dosyaları bekleyen taslak|Draft awaiting attachments|Brouillon en attente de pièces jointes
+Yanıt bekliyor|Awaiting response|En attente de réponse
+Yanıtlandı|Answered|Réponse fournie
+Görüntüle|View|Afficher
+Veri Gir / Yanıtla|Enter Data / Respond|Saisir des données / Répondre
+Ara|Search|Rechercher
+Yenile|Refresh|Actualiser
+Daha fazla yükle|Load more|Charger davantage
+Henüz talep bulunmuyor.|No requests yet.|Aucune demande pour le moment.
+Mühendislik Hesapları yükleniyor…|Loading Engineering Calculations…|Chargement des calculs d’ingénierie…
+Rapor detayları yükleniyor…|Loading report details…|Chargement des détails du rapport…
+Eksik dosyaları tamamla|Add missing attachments|Ajouter les pièces jointes manquantes
+Dosyaları yükle ve talebi gönder|Upload files and submit request|Transférer les fichiers et envoyer la demande
+Mühendis Yanıtları|Engineer Responses|Réponses des ingénieurs
+Yanıt / değerlendirme|Response / assessment|Réponse / évaluation
+Yanıtı kaydet|Save response|Enregistrer la réponse
+Rapor PDF|Report PDF|Rapport PDF
+Yanıt dokümanı|Response document|Document de réponse
+Bu yanıta doküman ekle|Attach documents to this response|Joindre des documents à cette réponse
+Henüz doküman eklenmedi.|No documents attached yet.|Aucun document joint pour le moment.
+Ürün tipi|Product type|Type de produit
+Ürün adı|Product name|Nom du produit
+Ürünün içeriği|Product specifications|Caractéristiques du produit
+Kullanılacak ürünler|Products to use|Produits à utiliser
+Ürün satırı bulunmuyor.|No product rows.|Aucune ligne de produit.
++ Ürün satırı ekle|+ Add product row|+ Ajouter une ligne de produit
+Ürünleri Tamamla|Finalize Products|Finaliser les produits
+Revizyon|Revision|Révision
+Revizyonlar|Revisions|Révisions
+Henüz revizyon yok.|No revisions yet.|Aucune révision pour le moment.
+Bu revizyondan kopyala|Copy from this revision|Copier cette révision
+Ürün tipi seçin|Select product type|Sélectionner le type de produit
+Ürünler henüz tamamlanmadı.|Products have not been finalized.|Les produits ne sont pas encore finalisés.
+Çalışılıyor|In progress|En cours
+Arşiv|Archive|Archives
+Bu çalışma tamamlanana kadar kullanıcıya gösterilmez.|This work is hidden from the requester until finalized.|Ce travail reste masqué pour le demandeur jusqu’à sa finalisation.
+Ürünler tamamlandı ve kullanıcıya açıldı. Değişiklik için Revizyon açın.|Products finalized and visible to the requester. Start a revision to make changes.|Produits finalisés et visibles pour le demandeur. Créez une révision pour les modifier.
+Ürünler tamamlandı ve kullanıcıya açıldı.|Products finalized and visible to the requester.|Produits finalisés et visibles pour le demandeur.
+Ürünler kaydediliyor…|Saving products…|Enregistrement des produits…
+Ürünler, Rapor PDF veya Yanıt dokümanı eksikse açıklama girin.|Enter an explanation if products, the report PDF or the response document are missing.|Saisissez une explication s’il manque les produits, le rapport PDF ou le document de réponse.
+Mühendis · görülebilen talepleri yanıtlayabilir|Engineer · can respond to visible requests|Ingénieur · peut répondre aux demandes visibles
+Talepleri görüntüleme|Request visibility|Visibilité des demandes
+Kendi talepleri ve atandıkları|Own and assigned requests|Demandes personnelles et attribuées
+Seçilen kişilerin talepleri|Requests from selected people|Demandes des personnes sélectionnées
+Görüntülenebilecek kişiler|People whose requests are visible|Personnes dont les demandes sont visibles
+Yetkileri kaydet|Save permissions|Enregistrer les autorisations
+Yalnız Mühendis yetkisi açık hesaplar yanıtlayabilir. Mühendis hesabı için bu izni açıp görüntülemeyi “Tümü” seçebilirsiniz.|Only accounts with Engineer permission can respond. Enable this permission and select “All” for full request visibility.|Seuls les comptes disposant du droit Ingénieur peuvent répondre. Activez ce droit et choisissez « Tous » pour voir toutes les demandes.
+Kullanıcı yetkileri kaydedildi.|User permissions saved.|Autorisations des utilisateurs enregistrées.
+Talep oluşturuldu.|Request created.|Demande créée.
+Talep gönderildi.|Request submitted.|Demande envoyée.
+Yanıt kaydedildi.|Response saved.|Réponse enregistrée.
+Yanıt dokümanları eklendi.|Response documents attached.|Documents de réponse joints.
+Önceki içerik korundu. Yeni revizyon için çalışma alanı boşaltıldı.|Previous content preserved. The workspace has been cleared for the new revision.|Contenu précédent conservé. L’espace de travail a été vidé pour la nouvelle révision.
+Geçerli bir CRM numarası girin.|Enter a valid CRM number.|Saisissez un numéro CRM valide.
+Önce CRM bilgilerini API üzerinden getirin.|Retrieve CRM details from the API first.|Récupérez d’abord les informations CRM via l’API.
+CRM bilgileri bulunamadı.|CRM details not found.|Informations CRM introuvables.
+Sunucu yanıtı okunamadı.|The server response could not be read.|Impossible de lire la réponse du serveur.
+İşlem tamamlanamadı.|The operation could not be completed.|L’opération n’a pas pu être terminée.
+Dosya alınamadı.|The file could not be retrieved.|Impossible de récupérer le fichier.
+Önceki|Previous|Précédent
+Sonraki|Next|Suivant
+PDF yükleniyor…|Loading PDF…|Chargement du PDF…
+Mapa bağlantı parçaları|Eye plate connectors|Pièces de liaison à œillet
+Yatay çapraz profili|Horizontal bracing profile|Profil de contreventement horizontal
+Deprem çapraz profili|Seismic bracing profile|Profil de contreventement sismique
+Giydirme|Rack-clad building|Bâtiment autoportant
+Mezanin|Mezzanine|Mezzanine
+Platform|Platform|Plateforme
+Manuel|Manual|Manuel
+Kısa katlar arkadaki son palet yerlerini kullanır. Katlar aşağıdan yukarıya sıralanır.|Shortened levels use the rear pallet positions. Levels are listed from bottom to top.|Les niveaux raccourcis utilisent les emplacements arrière. Les niveaux sont classés de bas en haut.
+Ayakları ayrı düzenle · girişten arkaya|Edit frames individually · entry to rear|Modifier les échelles séparément · de l’entrée vers l’arrière
+En fazla kat|Maximum levels|Nombre maximal de niveaux
+Ayak boyu · mm|Upright height · mm|Hauteur du montant · mm
+Kat düzeni|Level configuration|Configuration des niveaux
+Katları özelleştir|Customize levels|Personnaliser les niveaux
+Otomatik düzene dön|Restore automatic configuration|Rétablir la configuration automatique
+Diğer katlar genel mesafe, yük ve derinlik değerlerini kullanır.|Other levels use the general spacing, load and depth values.|Les autres niveaux utilisent les valeurs générales d’espacement, de charge et de profondeur.
+Palet yükseklikleri zemin katından başlayarak sıralanır. Kat aralığı travers üst kotları arasındaki mesafedir.|Pallet heights are listed from ground level upwards. Level spacing is measured between beam top elevations.|Les hauteurs des palettes sont indiquées depuis le sol. L’espacement des niveaux est mesuré entre les faces supérieures des lisses.
+İlk mesafe zeminden ilk kolun üst yüzeyine kadardır. Diğer mesafeler, bir alt kolun üst yüzeyinden bu kolun üst yüzeyine ölçülür. Yük, ilgili katın toplam yüküdür; derinlik kol uzunluğudur.|The first distance runs from the floor to the top of the first arm. Subsequent distances are measured between arm tops. Load is the total for the level; depth is the arm length.|La première distance va du sol au dessus du premier bras. Les suivantes sont mesurées entre les dessus des bras. La charge est le total du niveau ; la profondeur est la longueur du bras.
+Yerleşim 3D Görünümü|3D Layout View|Vue 3D de l’implantation
+Konum ve ölçülere göre yerleşim önizlemesi|Layout preview using saved positions and dimensions|Aperçu de l’implantation selon les positions et dimensions enregistrées
+Tümünü sığdır|Fit all|Tout ajuster
+Duvar / kolon / kapıyı gizle|Hide walls / columns / doors|Masquer les murs / poteaux / portes
+Blok adlarını gizle|Hide block names|Masquer les noms des blocs
+Blok adlarını göster|Show block names|Afficher les noms des blocs
+Duvar yüksekliği|Wall height|Hauteur des murs
+Mesafesi gösterilecek raf|Rack to measure|Rayonnage à mesurer
+Serbest çizimde gösterilen ölçüler|Dimensions shown in the free layout|Cotes affichées dans l’implantation libre
+Duvara olan uzaklığı göster|Show distance to wall|Afficher la distance au mur
+Palet / yük göster|Show pallets / loads|Afficher les palettes / charges
+Mesafe yazısı|Distance text|Texte des distances
+Sürükle: döndür · Tekerlek: yakınlaştır · Sağ tuş: kaydır · Telefonda iki parmakla yakınlaştır / kaydır|Drag: rotate · Wheel: zoom · Right button: pan · On mobile, pinch to zoom / pan|Glisser : tourner · Molette : zoomer · Bouton droit : déplacer · Sur mobile, pincer pour zoomer / déplacer
+Yan boşluk|Side clearance|Jeu latéral
+Paletin solunda ve sağında ayrı ayrı uygulanır.|Applied separately to the left and right of each pallet.|Appliqué séparément à gauche et à droite de chaque palette.
+KANALDAKİ TRAVERS ADEDİ|BEAMS PER CHANNEL|LISSES PAR COULOIR
+TRAVERS BAŞINA GELEN YÜK|LOAD PER BEAM|CHARGE PAR LISSE
+Bildirimler|Notifications|Notifications
+Atamalar, yorumlar ve müşteri onayları|Assignments, comments and customer approvals|Attributions, commentaires et approbations clients
+Tümünü okundu işaretle|Mark all as read|Tout marquer comme lu
+Daha eski bildirimler|Older notifications|Notifications plus anciennes
+Yeni atama|New assignment|Nouvelle attribution
+Yeni yorum|New comment|Nouveau commentaire
+Not kapatıldı|Note closed|Note clôturée
+Müşteri tarafından onaylandı|Approved by customer|Approuvé par le client
+size bir not atadı.|assigned you a note.|vous a attribué une note.
+nota yorum ekledi.|commented on the note.|a commenté la note.
+notu kendi listesinde kapattı.|closed the note in their list.|a clôturé la note dans sa liste.
+projeyi onayladı.|approved the project.|a approuvé le projet.
+Bildirimler yüklenemedi.|Notifications could not be loaded.|Impossible de charger les notifications.
+Cihaz bildirimlerini aç|Enable device notifications|Activer les notifications de l’appareil
+Okundu|Read|Lu
+Okunmamış atama|Unread assignment|Attribution non lue
+Açılmamış not|Unopened note|Note non ouverte
+Başa tuttur|Pin to top|Épingler en haut
+Sabitlemeyi kaldır|Unpin|Désépingler
+Bende kapat|Close for me|Clôturer pour moi
+Yorumlar|Comments|Commentaires
+Kişilere ata|Assign people|Attribuer à des personnes
+Notu kaydet|Save note|Enregistrer la note
+Dosya ekle|Attach file|Joindre un fichier
+Atanan kişiler|Assigned people|Personnes assignées
+Not sahibindeki durum|Status for note owner|Statut pour l’auteur de la note
+Notunuzu veya yapılacak işi yazın…|Write your note or task…|Saisissez votre note ou tâche…
+Serbest Yerleşim|Free Layout|Implantation libre
+3D Yerleşim|3D Layout|Implantation 3D
+Palet Bilgileri|Pallet Specifications|Caractéristiques des palettes
+Aksesuarlar|Accessories|Accessoires
+Bloklar|Blocks|Blocs
+Arasını hesapla|Measure between|Mesurer la distance
+Raftan rafa|Rack to rack|Entre rayonnages
+Duvarları gizle|Hide walls|Masquer les murs
+Duvarları göster|Show walls|Afficher les murs
+Perspektif|Perspective|Perspective
+Önden|Front|Face
+Yandan|Side|Côté
+Üstten|Top|Dessus
+DETAY|DETAIL|DÉTAIL
+İNTERAKTİF 3D|INTERACTIVE 3D|3D INTERACTIVE
+Mouse ile döndür · tekerlek ile yakınlaştır|Drag to rotate · scroll to zoom|Glisser pour tourner · molette pour zoomer
+Bağlantı açılamadı.|The link could not be opened.|Impossible d’ouvrir le lien.
+Paylaşım yükleniyor…|Loading shared project…|Chargement du projet partagé…
+Yalnızca görüntüleme|View only|Consultation seule
+Son erişim|Available until|Disponible jusqu’au
+Açıkken palet taşmaları hariç raf sınırından ölçer.|When enabled, measures from the rack frame, excluding pallet overhang.|Lorsque cette option est activée, la mesure part du rayonnage, hors débord des palettes.
+Onaylıyorum|I approve|J’approuve
+Onaylandı|Approved|Approuvé
+Onayınız için teşekkürler.|Thank you for your approval.|Merci pour votre approbation.
+Onaylayanın adı|Approver’s name|Nom de l’approbateur
+Onaylayanın e-postası|Approver’s email|E-mail de l’approbateur
+Onaylama kodu|Verification code|Code de vérification
+Ölçü aralıklarını ve blokları gözden geçirdim ve onaylıyorum.|I have reviewed and approve the clearances and blocks.|J’ai vérifié et j’approuve les espacements et les blocs.
+Kod e-postası gönderilemedi. Bir dakika sonra yeniden deneyin.|The verification email could not be sent. Try again in one minute.|L’e-mail de vérification n’a pas pu être envoyé. Réessayez dans une minute.
+Arka tel kafes|Rear mesh panel|Panneau grillagé arrière
+Tel kafes|Mesh panel|Panneau grillagé
+Sembol ekle|Add symbol|Ajouter un symbole
+Ok|Arrow|Flèche
+Yuvarlak|Circle|Cercle
+Kare|Square|Carré
+Renk|Color|Couleur
+Çizgi kalınlığı|Line thickness|Épaisseur du trait
+Yazı konumunu belirleyin.|Choose the text position.|Choisissez la position du texte.
+PDF / PNG’den yerleşim|Layout from PDF / PNG|Implantation depuis un PDF / PNG
+Agent ile yerleşim|Agent-assisted layout|Implantation assistée par agent
+Yerleşim talebi|Layout request|Demande d’implantation
+Öneri oluştur|Generate proposal|Générer une proposition
+Önizlemeyi uygula|Apply preview|Appliquer l’aperçu
+Öneriden vazgeç|Discard proposal|Abandonner la proposition
+Kapalı depo alanını ve kayıtlı tipleri hazırlayıp talebini yaz.|Prepare the enclosed warehouse area and saved types, then describe your request.|Préparez la zone fermée de l’entrepôt et les types enregistrés, puis décrivez votre demande.
+Çizilmiş depo alanı ve bu projenin kayıtlı raf tipleri kullanılır. Tek raf seçmen gerekmez.|Uses the drawn warehouse area and this project’s saved rack types. No individual rack selection is needed.|Utilise la zone d’entrepôt dessinée et les types de rayonnages enregistrés du projet. Aucun rayonnage individuel à sélectionner.
+Eklenecek katlar|Levels to add|Niveaux à ajouter
+Eski kayıtta kat yükü bulunmuyor. Ayak hesabını tamamlamak için girin.|The old record has no level load. Enter it to complete the frame calculation.|L’ancien enregistrement ne contient pas de charge par niveau. Saisissez-la pour terminer le calcul de l’échelle.
+Yükü Tamamla|Complete load details|Compléter les charges
+Katı Kaldır|Remove level|Supprimer le niveau
+Z – 1. kat arası mesafe|Ground – first level spacing|Distance sol – premier niveau
+Kat yüksekliği|Level height|Hauteur du niveau
+Toplama Katını Kaydet|Save Picking Level|Enregistrer le niveau de picking
+Toplama Katları|Picking Levels|Niveaux de picking
++ Kat Ekle|+ Add Level|+ Ajouter un niveau
+Tümünü Kaldır|Remove All|Tout supprimer
+Kesiti fareyle sürükle. Mouse tekeriyle büyüt / küçült.|Drag the section. Scroll to zoom in / out.|Faites glisser la coupe. Utilisez la molette pour zoomer / dézoomer.
+Kesit hazırlanıyor…|Preparing section…|Préparation de la coupe…
+Sürükle · Tekerlek|Drag · Scroll|Glisser · Molette
+Sıfırla|Reset|Réinitialiser
+Varsayılana Dön|Restore Default|Rétablir les valeurs par défaut
+Raf Tipi|Rack Type|Type de rayonnage
+PERSPEKTİF ÇIKTISI|PERSPECTIVE OUTPUT|SORTIE EN PERSPECTIVE
+Perspektif hazırlanıyor…|Preparing perspective…|Préparation de la perspective…
+MODÜLLER|MODULES|MODULES
+Seçili Raf Tipini Varsayılana Döndür|Restore Default for Selected Rack Type|Rétablir les valeurs par défaut du type sélectionné
+Kayıtlı raflarda kullanılabilir raf tipi bulunamadı.|No usable saved rack type found.|Aucun type de rayonnage enregistré utilisable.
+Kayıtlı Raflar içindeki raf tipleri burada görünür. Her tipin perspektifi ayrı kaydedilir.|Saved rack types appear here. Each type’s perspective is saved separately.|Les types enregistrés apparaissent ici. La perspective de chaque type est enregistrée séparément.
+Kayıtlı raf tipini seç; perspektif, ölçüler, palet görünümü ve modül dağılımını ayrı ayrı kaydet.|Select a saved rack type; save its perspective, dimensions, pallet visibility and module arrangement separately.|Sélectionnez un type enregistré ; enregistrez séparément sa perspective, ses cotes, la visibilité des palettes et la disposition des modules.
+Kayıtlı raf tipini seç; çıktının standart perspektif açısını, konumunu, büyüklüğünü ve görünecek 4–3–2–1 modüllerini belirle.|Select a saved rack type and set the output perspective, position, size and visible 4–3–2–1 modules.|Sélectionnez un type enregistré et définissez la perspective, la position, la taille et les modules 4–3–2–1 visibles dans la sortie.
+Tekli sıra hangi tarafa eklensin?|Which side should the single row be added to?|De quel côté ajouter la rangée simple ?
+Çiftli sıranın üst veya alt sırasını seç.|Select the upper or lower row of the double row.|Sélectionnez la rangée supérieure ou inférieure de la double rangée.
+Seçim şekli|Selection mode|Mode de sélection
+Travers seçimi|Beam selection|Sélection des lisses
+ZS: burkulma kontrolü hariç ön seçim.|ZS: preliminary selection excluding buckling checks.|ZS : présélection hors vérification du flambement.
+Kopyalanacak kesit|Section to copy|Coupe à copier
+Seçilen kesitin özellikleri bu projedeki tüm|The selected section’s properties apply to all|Les caractéristiques de la coupe sélectionnée s’appliquent à tous les blocs
+bloklarına uygulanır. İsimleri ve tek / çift sıra tipi korunur.|blocks in this project. Names and single / double row types are preserved.|du projet. Les noms et les types de rangée simple / double sont conservés.
+TRAVERS SEÇİMİ|BEAM SELECTION|SÉLECTION DES LISSES
+Boy ve yüke göre travers önerileri|Beam recommendations by length and load|Lisses recommandées selon la longueur et la charge
+CC ve kutu kesitleri ST37 ve ST52 seçenekleriyle karşılaştırın.|Compare CC and box profiles in ST37 and ST52 steel.|Comparez les profils CC et caisson en acier ST37 et ST52.
+Travers boyu kaç mm?|Beam length in mm?|Longueur de lisse en mm ?
+Taşınacak toplam kat yükü kaç kg?|Total level load in kg?|Charge totale du niveau en kg ?
+Bir çift traversin taşıyacağı toplam yük.|Total load carried by one pair of beams.|Charge totale portée par une paire de lisses.
+Traversleri göster|Show beams|Afficher les lisses
+Travers boyunu ve yükü yazarak önerileri görüntüleyin.|Enter beam length and load to view recommendations.|Saisissez la longueur et la charge pour afficher les recommandations.
+Seçim değişti. Güncel öneriler için Traversleri göster düğmesine basın.|Selection changed. Select Show beams for updated recommendations.|La sélection a changé. Cliquez sur Afficher les lisses pour actualiser les recommandations.
+Pozitif boy ve yük girin. Tablo sınırının üzerindeki değerler için öneri bulunmuyor.|Enter a positive length and load. Values above the table limits have no recommendation.|Saisissez une longueur et une charge positives. Aucune recommandation au-delà des limites du tableau.
+MR Toplama Katı|MR Picking Level|Niveau de picking MR
+HR Tava|HR Shelf Panel|Plateau HR
+Hesapla|Calculate|Calculer
+Tava sayısı|Number of shelf panels|Nombre de plateaux
+Tava başına yük|Load per shelf panel|Charge par plateau
+Kalan genişlik|Remaining width|Largeur restante
+Tablo derinliği|Table depth|Profondeur du tableau
+EN İNCE UYGUN TAVA|THINNEST SUITABLE PANEL|PLATEAU ADAPTÉ LE PLUS FIN
+Tek tava kapasitesi|Single panel capacity|Capacité d’un plateau
+Sonuç|Result|Résultat
+GÜNÜN SÖZLERI|DAILY QUOTES|CITATIONS DU JOUR
+Türkçe çeviri|Translation|Traduction
+Kaynak metinden Türkçe çeviri|Translated from the source|Traduit du texte source
+CRM bilgileri getiriliyor…|Retrieving CRM details…|Récupération des informations CRM…
+CRM bilgileri bekleniyor…|Waiting for CRM details…|En attente des informations CRM…
+Yerel Taslaklar|Local Drafts|Brouillons locaux
+Son sürüm ve yüklenme bilgisi|Latest version and load information|Dernière version et informations de chargement
+GÜNÜN SÖZLERİ|DAILY QUOTES|CITATIONS DU JOUR
+Önceki söz|Previous quote|Citation précédente
+Sonraki söz|Next quote|Citation suivante
+Kaynağı aç|Open source|Ouvrir la source
+Duraklat|Pause|Pause
+Sürdür|Resume|Reprendre
+Son yayımlanan referans kuru|Latest published reference rate|Dernier taux de référence publié
+Referans kuru|Reference rate|Taux de référence
+NOTLARIM VE BANA ATANANLAR|MY NOTES AND ASSIGNMENTS|MES NOTES ET ATTRIBUTIONS
+Yeni yorumu henüz açılmamış notlar|Notes with unopened new comments|Notes avec de nouveaux commentaires non ouverts
+Size atanmış, henüz okumadığınız notlar|Unread notes assigned to you|Notes non lues qui vous sont attribuées
+Not / yapılacak iş|Note / task|Note / tâche
+Nota dosya ekle|Attach file to note|Joindre un fichier à la note
+Kapatmak için önce notu ve yeni yorumları okuyun.|Read the note and new comments before closing.|Lisez la note et les nouveaux commentaires avant de clôturer.
+Oluşturan|Created by|Créé par
+Okudum|Mark as read|Marquer comme lu
+Notu kapat|Close note|Clôturer la note
+Henüz atanmadı|Not assigned yet|Pas encore attribué
+Dosyayı kaldır|Remove file|Supprimer le fichier
+Proje onayı|Project approval|Approbation du projet
+Yeni kod gönder|Send a new code|Envoyer un nouveau code
+Onaylama kodu gönderiliyor…|Sending verification code…|Envoi du code de vérification…
+Kod doğrulanıyor…|Verifying code…|Vérification du code…
+Ölçü aralıklarını ve blokları gözden geçirdiğinizi onaylayın.|Confirm that you have reviewed the clearances and blocks.|Confirmez que vous avez vérifié les espacements et les blocs.
+Proje görüntüleme|Project viewer|Consultation du projet
+Şifreli proje|Password-protected project|Projet protégé par mot de passe
+Projeyi açmak için paylaşım şifresini girin.|Enter the sharing password to open the project.|Saisissez le mot de passe de partage pour ouvrir le projet.
+Paylaşım şifresi|Sharing password|Mot de passe de partage
+3D yerleşim kontrolleri|3D layout controls|Commandes de l’implantation 3D
+Proje görünümleri|Project views|Vues du projet
+Mesafe yazısı boyutu|Distance text size|Taille du texte des distances
+Duvar yüksekliği (mm)|Wall height (mm)|Hauteur des murs (mm)
+Kayıtlı ölçüleri göster|Show saved dimensions|Afficher les cotes enregistrées
+Kayıtlı serbest yerleşim|Saved free layout|Implantation libre enregistrée
+Blok detayları|Block details|Détails du bloc
+Blok detayını kapat|Close block details|Fermer les détails du bloc
+Kayıtlı yerleşim 3D olarak hazırlanıyor…|Preparing saved layout in 3D…|Préparation de l’implantation enregistrée en 3D…
+Kayıtlı yerleşim 3D olarak yükleniyor…|Loading saved layout in 3D…|Chargement de l’implantation enregistrée en 3D…
+3D çizici hazır değil.|The 3D renderer is not ready.|Le moteur 3D n’est pas prêt.
+3D çizici yüklenemedi.|The 3D renderer could not be loaded.|Impossible de charger le moteur 3D.
+Kayıtlı blok çizicisi yüklenemedi.|The saved block renderer could not be loaded.|Impossible de charger le moteur du bloc enregistré.
+Bu görünümde kayıtlı palet tablosu bulunmuyor.|No saved pallet table is available in this view.|Aucun tableau de palettes enregistré dans cette vue.
+Bu paylaşımda aksesuar seçilmemiş.|No accessories selected in this shared project.|Aucun accessoire sélectionné dans ce projet partagé.
+Bu eski bağlantıda yapılandırılmış aksesuar bilgisi bulunmuyor.|This older link has no structured accessory data.|Cet ancien lien ne contient pas de données structurées sur les accessoires.
+Bu bağlantıda bağımsız blok verisi bulunmuyor.|No individual block data is available in this link.|Ce lien ne contient pas de données sur les blocs individuels.
+Bu eski bağlantıda yalnızca sabit görseller var. Etkileşimli 3D için projeden yeni bir müşteri bağlantısı oluşturun.|This older link contains static images only. Create a new customer link from the project for interactive 3D.|Cet ancien lien contient uniquement des images fixes. Créez un nouveau lien client depuis le projet pour la 3D interactive.
+Forklift dolaşımını başlat|Start forklift movement|Démarrer le déplacement des chariots
+Forklifti göster|Show forklift|Afficher le chariot
+Forkliftler arasında geçiş yap|Switch between forklifts|Passer d’un chariot à l’autre
+Koridorlar hazırlanıyor…|Preparing aisles…|Préparation des allées…
+Durduruluyor…|Stopping…|Arrêt en cours…
+Durdur|Stop|Arrêter
+Uygun genişlikte koridor bulunamadı|No aisle of suitable width found|Aucune allée de largeur adaptée
+Forklifte tıkla, ardından hedef zemini işaretle.|Click a forklift, then select a floor destination.|Cliquez sur un chariot, puis sélectionnez une destination au sol.
+Forkliftin güvenle dolaşabileceği boşluk bulunamadı.|No safe space for forklift movement was found.|Aucun espace permettant le déplacement sûr du chariot.
+Forklift dolaşımı hazırlanamadı|Could not prepare forklift movement|Impossible de préparer le déplacement des chariots
+Hedef için boş zemini tıklayın.|Click an empty floor location for the destination.|Cliquez sur une zone de sol libre pour définir la destination.
+Duvar / kolon / kapıyı göster|Show walls / columns / doors|Afficher les murs / poteaux / portes
+3D görünümü kapat|Close 3D view|Fermer la vue 3D
+Ayak tipi|Upright type|Type de montant
+Tümü|All|Tous
+Miktar|Quantity|Quantité
+Açıklama|Description|Description
+Tarih|Date|Date
+Malzeme|Material|Matériau
+Kalınlık|Thickness|Épaisseur
+Palet yüksekliği|Pallet height|Hauteur de palette
+Ağırlık (kg)|Load (kg)|Charge (kg)
+Katlar|Levels|Niveaux
+Genişlik (mm)|Width (mm)|Largeur (mm)
+Kalınlık (mm)|Thickness (mm)|Épaisseur (mm)
+Modül|Module|Module
+Kaldır|Remove|Supprimer
+Boy ve yük, tabloda yoksa ayrı ayrı bir üst değere tamamlanır. En fazla 4000 mm ve 4500 kg girilebilir.|Length and load are rounded up separately to the next table value when absent. Maximum input: 4000 mm and 4500 kg.|La longueur et la charge sont arrondies séparément à la valeur supérieure du tableau si nécessaire. Maximum : 4000 mm et 4500 kg.
+Dar kenar 50 mm; önce 1,50 mm et kalınlığı, ardından düşük ağırlık. HR120.80.3,0 ayak ve 170 cm kat yüksekliği esas alınmıştır. Hareketli ve deprem yükleri dahil değildir.|Narrow side: 50 mm; 1.50 mm wall thickness preferred, then lower weight. Based on HR120.80.3,0 uprights and 170 cm level height. Live and seismic loads excluded.|Petit côté : 50 mm ; priorité à l’épaisseur de 1,50 mm, puis au poids inférieur. Référence : montants HR120.80.3,0 et hauteur de niveau de 170 cm. Charges d’exploitation et sismiques exclues.
+Toplam yükün tam tavalar arasında eşit dağıldığı kabul edilir. Kalan genişlik taşıma hesabına katılmaz. Ara derinliklerde bir üst tablo sütunu kullanılır.|The total load is assumed to be distributed equally across full panels. Remaining width is excluded from capacity calculations. Intermediate depths use the next higher table column.|La charge totale est supposée répartie également entre les plateaux entiers. La largeur restante est exclue du calcul de capacité. Pour les profondeurs intermédiaires, la colonne supérieure est utilisée.
+MR TAVA tablosu · Bir bölümün bir katındaki toplam yük. Tava eklenecek katlar aksesuar alanından seçilir.|MR PANEL table · Total load on one level of one bay. Select panel levels in Accessories.|Tableau PLATEAUX MR · Charge totale sur un niveau d’une travée. Sélectionnez les niveaux dans Accessoires.
+Çizimden Otomatik Yerleşim|Automatic Layout from Drawing|Implantation automatique depuis un plan
+Kapat · taslağı koru|Close · keep draft|Fermer · conserver le brouillon
+Üst görünümden duvarlar, blok sayıları ve konumlar çıkarılır. Kesitleri sonraki ekranda siz tasarlarsınız.|Walls, block counts and positions are extracted from the top view. Design the sections on the next screen.|Les murs, nombres de blocs et positions sont extraits de la vue de dessus. Concevez les coupes à l’écran suivant.
+Üst Görünümü Keşfet|Detect Top View|Détecter la vue de dessus
+Seçimdeki Eksikleri Tara|Scan Missing Items in Selection|Rechercher les éléments manquants dans la sélection
+Seçimi Duvar Sınırı Yap|Use Selection as Wall Boundary|Utiliser la sélection comme limite des murs
+Seçimi Modül Ekle|Add Modules from Selection|Ajouter les modules de la sélection
+Seçimdeki Modülleri Sil|Delete Modules in Selection|Supprimer les modules de la sélection
+İlk seçimde duvar iç sınırlarını çerçeveleyin. Eksik alanı çerçeveleyip Seçimdeki Eksikleri Tara ile mevcut plana ekleyin. Ayrı salonları kendi duvar sınırlarıyla tarayın.|First frame the internal wall boundaries. Select missing areas and scan them to add to the plan. Scan separate halls using their own wall boundaries.|Encadrez d’abord les limites intérieures des murs. Sélectionnez les zones manquantes et scannez-les pour les ajouter au plan. Scannez les halls séparés selon leurs propres limites.
+Şüpheli şekilleri incele — turuncu kesikli çizgiler|Review uncertain shapes — orange dashed lines|Vérifier les formes incertaines — traits orange discontinus
+Bu şekiller raf tiplerine katılmadı. Gerçek raf olanı buradan ekleyebilirsiniz.|These shapes were excluded from rack types. Add actual racks here.|Ces formes ont été exclues des types de rayonnages. Ajoutez ici celles correspondant à des rayonnages.
+Yerleşim Taslağına Geç →|Continue to Layout Draft →|Passer au brouillon d’implantation →
+Bu alan çizimin düzenlenebilir taslağıdır. Aynı harfler aynı raf tipini gösterir. Modülleri sürükleyin; konum, sıra uzunluğu ve blok sayısını düzenleyin.|This is the editable drawing draft. Matching letters indicate the same rack type. Drag modules to edit positions, row lengths and block counts.|Il s’agit du brouillon modifiable du plan. Les mêmes lettres indiquent le même type de rayonnage. Déplacez les modules pour modifier les positions, longueurs des rangées et nombres de blocs.
+Bitişik blokları ortak ayakla birleştir|Join adjacent blocks with shared frames|Relier les blocs adjacents par des échelles communes
+Kaynak çizimi altta göster|Show source drawing underneath|Afficher le plan source en arrière-plan
+Çerçeveyle çoklu seç|Box selection|Sélection par cadre
+Seçilenleri Sil|Delete Selected|Supprimer la sélection
+Silmeyi Geri Al|Undo Deletion|Annuler la suppression
+Tek blok için tıklayın; Ctrl/⌘ ile seçime ekleyin. Çerçeveyle seçimde merkezi kutunun içinde kalan bloklar seçilir.|Click a single block; use Ctrl/⌘ to add to the selection. Box selection includes blocks whose centers fall inside the box.|Cliquez sur un bloc ; utilisez Ctrl/⌘ pour l’ajouter à la sélection. Le cadre sélectionne les blocs dont le centre se trouve à l’intérieur.
+Duvarları Güncelle|Update Walls|Actualiser les murs
+Yeni Blok Ekle|Add New Block|Ajouter un bloc
+Üst görünüm tipleri|Top view types|Types de vues de dessus
+Sıra uzunlukları ve blok sayıları|Row lengths and block counts|Longueurs des rangées et nombres de blocs
+A/B Raf Tiplerini Tasarla →|Design A/B Rack Types →|Concevoir les types A/B →
+Plan genişlikleri taslaktan gelir. A/B tiplerini aşağıda oluşturun veya mevcut bir kesitten başlangıç alın. Kesit değişikliği aynı harfin bütün bloklarına uygulanır.|Plan widths come from the draft. Create A/B types below or start from an existing section. Section changes apply to every block with the same letter.|Les largeurs du plan proviennent du brouillon. Créez les types A/B ci-dessous ou partez d’une coupe existante. Les changements de coupe s’appliquent à tous les blocs portant la même lettre.
+Kesitleri Hesapla|Calculate Sections|Calculer les coupes
+Serbest Yerleşime Getir →|Transfer to Free Layout →|Transférer vers l’implantation libre →
+Aktarım, projenin mevcut yerleşimini bu taslakla değiştirir; tek adımda geri alınabilir.|Transfer replaces the current project layout with this draft; it can be undone in one step.|Le transfert remplace l’implantation actuelle par ce brouillon ; il peut être annulé en une étape.
+PDF / Fotoğraf’den otomatik yerleşim|Automatic Layout from PDF / Photo|Implantation automatique depuis un PDF / une photo
+PDF sayfası|PDF page|Page PDF
+Kaynak: tüm sayfa. Bölgeyi sürükleyerek işaretleyebilirsiniz.|Source: entire page. Drag to select a region.|Source : page entière. Faites glisser pour sélectionner une zone.
+Okunabilen ölçüleri kontrol için çıkarır; bulanık ayrıntıları uydurmaz. Çizimi otomatik değiştirmez.|Extracts legible dimensions for review; does not invent unclear details or automatically change the drawing.|Extrait les cotes lisibles pour vérification, sans inventer les détails flous ni modifier automatiquement le plan.
+Her gönderimde yalnız seçili sayfa/bölge ve son konuşmanın sınırlı metni iletilir. Diğer sayfalar otomatik görülmez.|Each submission sends only the selected page/region and limited recent conversation text. Other pages are not viewed automatically.|Chaque envoi transmet uniquement la page/zone sélectionnée et une partie limitée de la conversation récente. Les autres pages ne sont pas consultées automatiquement.
+Ölçülü B2B plan PDF’sini veya PNG/JPEG görselini seç. Raf tipleri ve konumlar otomatik okunur; ayak ve traversler uygulamanın yük tablolarından hesaplanır.|Select a dimensioned B2B PDF plan or PNG/JPEG image. Rack types and positions are detected automatically; frames and beams are calculated using the app’s load tables.|Sélectionnez un plan B2B coté en PDF ou une image PNG/JPEG. Les types et positions sont détectés automatiquement ; les échelles et lisses sont calculées à partir des tableaux de charges de l’application.
+İlk analiz bu tarayıcıda yapılır. Agent ile oku düğmesine basarsanız seçtiğiniz sayfa/bölge OpenAI’ye gönderilir. Vektörel PDF doğrudan okunur. Fotoğraf ve resim PDF’de renkli yatay raf planı ve OCR kullanılır; belirsiz ölçüler sorulur.|Initial analysis runs in this browser. Selecting Read with agent sends the selected page/region to OpenAI. Vector PDFs are read directly. Photos and image PDFs use colored rack-plan detection and OCR; unclear dimensions are requested.|L’analyse initiale s’effectue dans ce navigateur. La lecture par agent envoie la page/zone sélectionnée à OpenAI. Les PDF vectoriels sont lus directement. Les photos et PDF images utilisent la détection du plan coloré et l’OCR ; les cotes incertaines sont demandées.
+PDF veya fotoğraf seçerek başlayabilirsin.|Start by selecting a PDF or photo.|Commencez par sélectionner un PDF ou une photo.
+Uyarıları gördüm. Çakışan gözleri bekleterek mevcut çizimin yerine uygula.|I have reviewed the warnings. Replace the current drawing, leaving conflicting bays pending.|J’ai pris connaissance des avertissements. Remplacer le plan actuel en laissant les travées en conflit en attente.
