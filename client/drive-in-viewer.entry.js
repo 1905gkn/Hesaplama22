@@ -1,5 +1,8 @@
 import {driveInUprightHeight} from './drive-in-height.mjs';
 import {prepareDriveNativePost,createDriveNativeFacing} from './drive-native-batches.mjs';
+import {batchDriveStaticParts} from './drive-static-parts.mjs';
+import {createDemandFrame} from './demand-frame.mjs';
+import {createStaticSceneTransforms} from './static-scene-transforms.mjs';
 import * as THREE from "three";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
@@ -91,6 +94,12 @@ class DriveInFrontViewer {
     this.lastWidth = 0;
     this.lastHeight = 0;
     this.resizeFrame = 0;
+    this.cachedBounds = new THREE.Box3();
+    this.layoutSignature = null;
+    this.renderCount = 0;
+    this.layoutEvents = 0;
+    this.boundsScans = 0;
+    this.drawFrame = createDemandFrame(() => this.drawScene());
 
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
@@ -221,6 +230,7 @@ class DriveInFrontViewer {
   }
 
   rebuild() {
+    this.layoutSignature=null;
     this.nativeFacing=null;
     this.root.traverse(mesh=>{if(mesh.isInstancedMesh)mesh.dispose();});
     this.root.clear();
@@ -286,12 +296,15 @@ class DriveInFrontViewer {
       }
     }
     this.nativeFacing=createDriveNativeFacing(this.root);
+    this.staticBatches=batchDriveStaticParts(this.root);
+    if(this.staticTransforms)this.staticTransforms.refresh();else this.staticTransforms=createStaticSceneTransforms(this.scene);
+    this.cachedBounds.setFromObject(this.root);this.boundsScans++;
     this.fitCamera();
     this.renderScene();
   }
 
   fitCamera() {
-    const bounds = new THREE.Box3().setFromObject(this.root);
+    const bounds = this.cachedBounds;
     if (bounds.isEmpty()) return;
     const size = bounds.getSize(new THREE.Vector3());
     const center = bounds.getCenter(new THREE.Vector3());
@@ -326,11 +339,13 @@ class DriveInFrontViewer {
 
   emitLayout() {
     if (!this.models) return;
-    const bounds = new THREE.Box3().setFromObject(this.root);
-    const center = bounds.getCenter(new THREE.Vector3());
     const width = this.lastWidth || this.canvas.clientWidth;
     const height = this.lastHeight || this.canvas.clientHeight;
     this.camera.updateMatrixWorld();
+    const signature=[width,height,...this.camera.matrixWorld.elements,...this.camera.projectionMatrix.elements].join(',');
+    if(signature===this.layoutSignature)return;
+    const bounds=this.cachedBounds,center=bounds.getCenter(new THREE.Vector3());
+    this.layoutSignature=signature;this.layoutEvents++;
     const project = (x, z) => {
       const point = new THREE.Vector3(x, center.y, z).project(this.camera);
       return { x: (point.x + 1) * width / 2, y: (1 - point.y) * height / 2 };
@@ -385,12 +400,14 @@ class DriveInFrontViewer {
     this.renderScene();
   }
 
-  renderScene() { if (!this.destroyed) {this.nativeFacing?.update(this.camera);this.renderer.render(this.scene, this.camera);this.emitLayout();const stats=this.nativeFacing?.stats();if(stats){this.canvas.dataset.driveCadFull=String(stats.fullTriangles);this.canvas.dataset.driveCadDrawn=String(stats.drawnTriangles);this.canvas.dataset.drawCalls=String(this.renderer.info.render.calls);this.canvas.dataset.drawTriangles=String(this.renderer.info.render.triangles);}} }
-  render() { this.renderScene(); }
+  renderScene() { if (!this.destroyed) this.drawFrame.request(); }
+  drawScene() { if (!this.destroyed) {this.nativeFacing?.update(this.camera);this.renderer.render(this.scene, this.camera);this.renderCount++;this.emitLayout();const stats=this.nativeFacing?.stats();if(stats){this.canvas.dataset.driveCadFull=String(stats.fullTriangles);this.canvas.dataset.driveCadDrawn=String(stats.drawnTriangles);this.canvas.dataset.drawCalls=String(this.renderer.info.render.calls);this.canvas.dataset.drawTriangles=String(this.renderer.info.render.triangles);}Object.assign(this.canvas.dataset,{driveRenderVersion:'v538',renderFrames:String(this.renderCount),layoutEvents:String(this.layoutEvents),boundsScans:String(this.boundsScans),staticDrawsBefore:String(this.staticBatches?.sourceMeshes||0),staticDrawsAfter:String(this.staticBatches?.remainingDraws||0)});} }
+  render() { if (!this.destroyed) this.drawFrame.flush(); }
 
   destroy() {
     if (this.destroyed) return;
     this.destroyed = true;
+    this.drawFrame.dispose();
     if (this.resizeFrame) cancelAnimationFrame(this.resizeFrame);
     this.resizeObserver?.disconnect?.();
     this.controls?.dispose?.();

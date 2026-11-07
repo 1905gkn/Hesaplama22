@@ -1,5 +1,6 @@
 import {createPreparedSceneSession,layoutRevision,sceneBufferBytes} from './layout-3d-session.mjs';
 import {DRIVE_RENDER_VERSION} from './drive-render-version.mjs';
+import {createStaticSceneTransforms} from './static-scene-transforms.mjs';
 import {createFacingBatch} from './cad-facing-batches.mjs';
 import {createPreparationBudget,populateInstances} from './layout-3d-budget.mjs';
 import {mergeAreaLayouts} from './layout-areas.mjs';
@@ -28,7 +29,7 @@ let active=null,editorSession=null,openToken=0,measureFontSize=11;try{measureFon
 async function loadViewerCad(data){const [cad,guards,backMesh]=await Promise.all([loadLayoutCad(data.racks),loadProtectionCad(data.symbols),loadBackMeshCad(data.racks)]);return {...cad,protections:guards,backMesh};}
 async function makeViewer(host,data,templates,accessoryGeometries=new Map(),options={}){
  data={...data,racks:data.racks.map(upgradeMekikStepped)};
- const facingBatches=[];
+ const facingBatches=[];let staticTransforms=null;
  host.dataset.cadRenderVersion=DRIVE_RENDER_VERSION;
  const preparationStarted=performance.now(),budget=createPreparationBudget(),geometryKeys=new WeakMap();let preparedParts=0;
  const geometryKeyFor=r=>{if(!geometryKeys.has(r))geometryKeys.set(r,rackGeometryKey(r));return geometryKeys.get(r);};
@@ -81,10 +82,10 @@ async function makeViewer(host,data,templates,accessoryGeometries=new Map(),opti
   if(signature===measurementSignature){render();return;}measurementSignature=signature;dimensionGroup.clear();measurementLayer?.dispose();dimensionGeometry?.dispose();
   const positions=[],colors=[];for(const d of list){if(d.labelOnly)continue;const color=new THREE.Color(d.key.startsWith('wall:')?'#b56a19':'#39735c');positions.push(...d.a,...d.b);colors.push(color.r,color.g,color.b,color.r,color.g,color.b);}
   dimensionGeometry=new THREE.BufferGeometry();dimensionGeometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));dimensionGeometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));const lines=new THREE.LineSegments(dimensionGeometry,dimensionMaterial);lines.renderOrder=100;dimensionGroup.add(lines);
-  measurementLayer=createStatic3DLabels(list.map(d=>({text:d.label.replace(/^.* · /,''),color:d.key.startsWith('wall:')?'#8e5214':'#204c42',background:'#ffffff',border:d.key.startsWith('wall:')?'#b56a19':'#739c87',fontSize:measurementSize,position:Array.isArray(d.at)?d.at:d.a.map((v,i)=>(v+d.b[i])/2)})),{maxTextureSize:renderer.capabilities.maxTextureSize});dimensionGroup.add(measurementLayer.group);measurementLayer.resize(viewWidth,viewHeight);labelHost.textContent=list.map(d=>d.label).join(', ');render();
+  measurementLayer=createStatic3DLabels(list.map(d=>({text:d.label.replace(/^.* · /,''),color:d.key.startsWith('wall:')?'#8e5214':'#204c42',background:'#ffffff',border:d.key.startsWith('wall:')?'#b56a19':'#739c87',fontSize:measurementSize,position:Array.isArray(d.at)?d.at:d.a.map((v,i)=>(v+d.b[i])/2)})),{maxTextureSize:renderer.capabilities.maxTextureSize});dimensionGroup.add(measurementLayer.group);staticTransforms?.refresh(dimensionGroup);measurementLayer.resize(viewWidth,viewHeight);labelHost.textContent=list.map(d=>d.label).join(', ');render();
  }
  let viewWidth=host.clientWidth||1,viewHeight=host.clientHeight||1,pendingFrame=0;
- const draw=()=>{pendingFrame=0;if(paused||disposed)return;if(document.hidden)return;clearTimeout(forkliftTimer);forkliftTimer=0;const now=performance.now();if(forkliftWanted&&forkliftFleet){forkliftFleet.tick(forkliftLast?(now-forkliftLast)/1000:0);forkliftLast=now;}renderFrames++;for(const batch of facingBatches)batch.update(camera.position);renderer.render(scene,camera);if(statsDirty||renderFrames%30===0){statsDirty=false;renderer.domElement.dataset.drawTriangles=String(renderer.info.render.triangles);renderer.domElement.dataset.drawCalls=String(renderer.info.render.calls);renderer.domElement.dataset.cadTrianglesFull=String(facingBatches.reduce((n,b)=>n+b.stats().fullTriangles,0));renderer.domElement.dataset.cadTrianglesDrawn=String(facingBatches.reduce((n,b)=>n+b.stats().triangles,0));}if(forkliftWanted&&forkliftFleet)render();};
+ const draw=()=>{pendingFrame=0;if(paused||disposed)return;if(document.hidden)return;clearTimeout(forkliftTimer);forkliftTimer=0;const now=performance.now();if(forkliftWanted&&forkliftFleet){forkliftFleet.tick(forkliftLast?(now-forkliftLast)/1000:0);staticTransforms?.refresh(forkliftFleet.group);forkliftLast=now;}renderFrames++;for(const batch of facingBatches)batch.update(camera.position);renderer.render(scene,camera);if(statsDirty||renderFrames%30===0){statsDirty=false;renderer.domElement.dataset.drawTriangles=String(renderer.info.render.triangles);renderer.domElement.dataset.drawCalls=String(renderer.info.render.calls);renderer.domElement.dataset.cadTrianglesFull=String(facingBatches.reduce((n,b)=>n+b.stats().fullTriangles,0));renderer.domElement.dataset.cadTrianglesDrawn=String(facingBatches.reduce((n,b)=>n+b.stats().triangles,0));renderer.domElement.dataset.staticTransformRefreshes=String(staticTransforms?.stats().refreshes||0);}if(forkliftWanted&&forkliftFleet)render();};
  const render=()=>{if(paused||disposed||pendingFrame)return;pendingFrame=requestAnimationFrame(draw);};
  async function forklifts(value){forkliftWanted=Boolean(value);stopForkliftClock();if(!forkliftWanted){if(forkliftFleet)forkliftFleet.group.visible=false;render();return 0;}if(!forkliftFleet){if(!forkliftPreparing)forkliftPreparing=prepareForklifts(scene,data,surroundingParts,()=>disposed||!forkliftWanted).then(fleet=>{if(disposed){fleet?.dispose();return;}forkliftFleet=fleet;}).finally(()=>{forkliftPreparing=null;});await forkliftPreparing;}if(disposed)return 0;if(forkliftFleet)forkliftFleet.group.visible=forkliftWanted;else forkliftWanted=false;render();return forkliftFleet?.count||0;}
  const forkliftVisibility=()=>{if(document.hidden)stopForkliftClock();else if(forkliftWanted&&!paused)render();};document.addEventListener('visibilitychange',forkliftVisibility);
@@ -104,7 +105,7 @@ async function makeViewer(host,data,templates,accessoryGeometries=new Map(),opti
  function markMeasureSelection(ids){selectionGroup.clear();for(const id of ids){
   const wall=id&&typeof id==='object'?customerWallParts(data)[id.wallIndex]:null;
   const r=wall?{x:wall.x,z:wall.z,height:wall.h,width:wall.w,depth:wall.d,angle:wall.ry}:data.racks.find(r=>String(r.id)===String(id));if(!r)continue;
-  const marker=new THREE.LineSegments(selectionEdges,selectionMaterial);marker.position.set(r.x,r.height/2,r.z);marker.rotation.y=r.angle;marker.scale.set(r.width+.04,r.height+.04,r.depth+.04);marker.renderOrder=20;selectionGroup.add(marker);}render();}
+  const marker=new THREE.LineSegments(selectionEdges,selectionMaterial);marker.position.set(r.x,r.height/2,r.z);marker.rotation.y=r.angle;marker.scale.set(r.width+.04,r.height+.04,r.depth+.04);marker.renderOrder=20;selectionGroup.add(marker);}staticTransforms?.refresh(selectionGroup);render();}
  function notifyMeasure(message,result=null){options.onMeasure?.({active:measureMode,firstId:firstMeasureId,message,result});}
  function measurementMode(value){if(value)selectForklift(-1);measureMode=Boolean(value);firstMeasureId=null;pickTargets.length=0;markMeasureSelection([]);renderer.domElement.style.cursor=measureMode?'crosshair':'';if(measureMode){requestedMeasure=null;dimensions();
   for(const r of data.racks){const target=new THREE.Mesh(geometry,pickMaterial);target.position.set(r.x,Math.max(r.height,rackVisualTop(r))/2,r.z);target.rotation.y=r.angle;target.scale.set(r.width,Math.max(r.height,rackVisualTop(r)),r.depth);target.userData.rackId=r.id;target.updateMatrixWorld(true);pickTargets.push(target);}
@@ -146,6 +147,7 @@ async function makeViewer(host,data,templates,accessoryGeometries=new Map(),opti
  const pickCancel=event=>{tapPointers.delete(event.pointerId);tapStart=null;};
  renderer.domElement.addEventListener('pointerdown',pickDown);renderer.domElement.addEventListener('pointerup',pickUp);renderer.domElement.addEventListener('pointercancel',pickCancel);
  await spatializeInstancesAsync(scene,20,budget);
+ staticTransforms=createStaticSceneTransforms(scene);
  // Compile before scheduling the first frame, using parallel shader compilation where supported.
  if(renderer.compileAsync)await renderer.compileAsync(scene,camera);
  const preparationMs=Math.round(performance.now()-preparationStarted),residentBytes=sceneBufferBytes(scene);renderer.domElement.dataset.preparationMs=String(preparationMs);
