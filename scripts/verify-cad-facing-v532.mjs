@@ -5,7 +5,18 @@ assert(parts);assert.equal(parts.reduce((sum,p)=>sum+p.geometry.index.count,0),g
 const original=[];for(let i=0;i<g.index.count;i+=3)original.push(Array.from(g.index.array.subarray(i,i+3)).join(','));const repartitioned=parts.flatMap(p=>{const r=[];for(let i=0;i<p.geometry.index.count;i+=3)r.push(Array.from(p.geometry.index.array.subarray(i,i+3)).join(','));return r;});assert.deepEqual(repartitioned.sort(),original.sort(),'Every original triangle retains its winding');
 let proven=0;for(let i=0;i<30;i++){const camera=new T.Vector3(Math.sin(i*1.7)*50,Math.cos(i*.63)*30,Math.cos(i*.71)*50);for(const p of parts)if(!mayFaceCamera(p,camera)){proven++;const pos=p.geometry.attributes.position;for(let j=0;j<p.geometry.index.count;j+=3){a.fromBufferAttribute(pos,p.geometry.index.getX(j));b.fromBufferAttribute(pos,p.geometry.index.getX(j+1));c.fromBufferAttribute(pos,p.geometry.index.getX(j+2));n.subVectors(b,a).cross(edge.subVectors(c,a));assert(n.dot(edge.subVectors(camera,a))<0,'A visible face must never be culled');}}}
 assert(proven>20);for(const p of parts)assert(mayFaceCamera(p,new T.Vector3()),'Inside camera stays conservative');
-const scene=new T.Scene(),material=new T.MeshStandardMaterial(),matrices=Array.from({length:80},(_,i)=>new T.Matrix4().compose(new T.Vector3(i*.05,0,0),new T.Quaternion(),new T.Vector3(1,1+i*.01,1))),controller=await createFacingBatch(scene,g,material,matrices,budget);await spatializeInstancesAsync(scene,2,budget);controller.update(new T.Vector3(100,50,100));const stats=controller.stats();assert(stats.triangles<stats.fullTriangles*.6);controller.update(new T.Vector3(0,0,0));assert.equal(controller.stats().triangles,stats.fullTriangles);
+const scene=new T.Scene(),material=new T.MeshStandardMaterial(),matrices=Array.from({length:80},(_,i)=>new T.Matrix4().compose(new T.Vector3(i*.05,0,0),new T.Quaternion(),new T.Vector3(1,1+i*.01,1))),controller=await createFacingBatch(scene,g,material,matrices,budget);await spatializeInstancesAsync(scene,2,budget);controller.update(new T.Vector3(100,50,100));const stats=controller.stats();assert(stats.triangles<stats.fullTriangles*.6);
+for(const camera of [new T.Vector3(100,50,100),new T.Vector3(0,0,0),new T.Vector3(-100,-50,-100),new T.Vector3(100,50,100)]){
+ controller.update(camera);
+ for(let k=0;k<scene.children.length;k++){
+  const root=scene.children[k];for(const mesh of root.children.length?root.children:[root]){
+   const source=mesh.userData.cadFacingSources||matrices.map((_,i)=>i),expected=source.filter(i=>mayFaceCamera(parts[k],camera.clone().applyMatrix4(matrices[i].clone().invert())));
+   assert.equal(mesh.count,expected.length,'Each instance uses its own proven backface mask');
+   expected.forEach((i,j)=>assert.deepEqual(Array.from(mesh.instanceMatrix.array.subarray(j*16,j*16+16)),Array.from(new Float32Array(matrices[i].elements)),'Cached transforms remain exact through camera changes'));
+  }
+ }
+}
+const single=await createFacingBatch(new T.Scene(),g,material,[new T.Matrix4()],budget);single.update(new T.Vector3(0,0,0));assert.equal(single.stats().triangles,single.stats().fullTriangles);
 const reflected=await createFacingBatch(new T.Scene(),g,material,[new T.Matrix4().makeScale(-1,1,1)],budget);reflected.update(new T.Vector3(100,100,100));assert.equal(reflected.stats().triangles,reflected.stats().fullTriangles);
 assert.equal(await createFacingBatch(new T.Scene(),g,new T.MeshStandardMaterial({side:T.DoubleSide}),matrices,budget),null);
 console.log(JSON.stringify({pass:true,originalTriangles:g.index.count/3,instances:80,fullTriangles:stats.fullTriangles,drawnTriangles:stats.triangles,provenBackfaceGroups:proven,allVerticesAndTrianglesPreserved:true}));

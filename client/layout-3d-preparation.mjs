@@ -50,6 +50,7 @@ function* spatializeInstanceSteps(scene,cell=20){
   for(const indices of cells.values()){
    const child=new THREE.InstancedMesh(mesh.geometry,mesh.material,indices.length);
    for(let j=0;j<indices.length;j++){const i=indices[j];child.instanceMatrix.array.set(mesh.instanceMatrix.array.subarray(i*16,i*16+16),j*16);if(mesh.instanceColor){child.setColorAt(j,new THREE.Color().fromArray(mesh.instanceColor.array,i*3));}if((j&255)===255)yield;}
+   if(mesh.userData.cadFacing)child.userData.cadFacingSources=indices;
    child.computeBoundingSphere();child.computeBoundingBox();yield;child.name=mesh.name;mesh.add(child);
   }
   mesh.count=0;mesh.frustumCulled=false;

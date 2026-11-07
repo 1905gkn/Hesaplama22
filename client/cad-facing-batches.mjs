@@ -37,7 +37,21 @@ export async function createFacingBatch(scene,geometry,material,matrices,budget)
  if(material.side!==THREE.FrontSide)return null;
  const parts=await cadFacingParts(geometry,budget);if(!parts)return null;
  const inverse=matrices.map(m=>m.determinant()>0?m.clone().invert():null),cameraPoints=inverse.map(()=>new THREE.Vector3()),meshes=[];
- for(const part of parts){const mesh=new THREE.InstancedMesh(part.geometry,material,matrices.length);await populateInstances(mesh,matrices,budget);mesh.userData.cadFacing=true;scene.add(mesh);meshes.push(mesh);}
+ for(const part of parts){const mesh=new THREE.InstancedMesh(part.geometry,material,matrices.length);await populateInstances(mesh,matrices,budget);mesh.computeBoundingSphere();mesh.userData.cadFacing=true;scene.add(mesh);meshes.push(mesh);}
  const last=new THREE.Vector3(Infinity,Infinity,Infinity);
- return {update(camera){if(last.equals(camera))return;last.copy(camera);for(let i=0;i<inverse.length;i++)if(inverse[i])cameraPoints[i].copy(camera).applyMatrix4(inverse[i]);for(let k=0;k<parts.length;k++){let visible=false;for(let i=0;i<inverse.length;i++)if(!inverse[i]||mayFaceCamera(parts[k],cameraPoints[i])){visible=true;break;}meshes[k].visible=visible;}},stats(){return {batches:meshes.length,visible:meshes.filter(m=>m.visible).length,triangles:meshes.reduce((sum,m)=>sum+(m.visible?m.geometry.index.count/3*matrices.length:0),0),fullTriangles:(geometry.index?.count??geometry.attributes.position.count)/3*matrices.length};}};
+ const allIndices=matrices.map((_,i)=>i),previous=new WeakMap();
+ const targets=mesh=>mesh.children.length?mesh.children:[mesh];
+ return {update(camera){
+  if(last.equals(camera))return;last.copy(camera);
+  for(let i=0;i<inverse.length;i++)if(inverse[i])cameraPoints[i].copy(camera).applyMatrix4(inverse[i]);
+  for(let k=0;k<parts.length;k++)for(const mesh of targets(meshes[k])){
+   const source=mesh.userData.cadFacingSources||allIndices,visible=[];
+   for(const i of source)if(!inverse[i]||mayFaceCamera(parts[k],cameraPoints[i]))visible.push(i);
+   const before=previous.get(mesh);if(before&&before.length===visible.length&&before.every((i,j)=>i===visible[j]))continue;
+   // Positions are immutable. Copy cached transforms only when the visibility
+   // mask changes; never rebuild racks, products or layout on camera movement.
+   for(let j=0;j<visible.length;j++)mesh.instanceMatrix.array.set(matrices[visible[j]].elements,j*16);
+   mesh.count=visible.length;mesh.instanceMatrix.needsUpdate=true;previous.set(mesh,visible);
+  }
+ },stats(){const drawn=meshes.flatMap(targets);return {batches:drawn.length,visible:drawn.filter(m=>m.count>0).length,triangles:drawn.reduce((sum,m)=>sum+m.geometry.index.count/3*m.count,0),fullTriangles:(geometry.index?.count??geometry.attributes.position.count)/3*matrices.length};}};
 }
