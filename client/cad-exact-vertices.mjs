@@ -6,9 +6,12 @@ export function* compactCadVertexSteps(geometry,{threshold=100000}={}){
  const attributes=Object.entries(geometry.attributes),count=geometry.attributes.position?.count||0;
  if(count<threshold||Object.keys(geometry.morphAttributes).length||attributes.some(([,a])=>a.isInterleavedBufferAttribute||a.count!==count||a.array.BYTES_PER_ELEMENT!==4))return geometry;
  const streams=attributes.map(([,a])=>({words:new Uint32Array(a.array.buffer,a.array.byteOffset,a.array.byteLength/4),size:a.itemSize}));
+ const used=geometry.userData.renderCopy&&geometry.index?new Uint8Array(count):null;
+ if(used)for(const index of geometry.index.array)used[index]=1;
  let capacity=1;while(capacity<count*1.5)capacity*=2;
  const table=new Uint32Array(capacity),remap=new Uint32Array(count),representatives=new Uint32Array(count),mask=capacity-1;let total=0;
  for(let i=0;i<count;i++){
+  if(used&&!used[i])continue;
   let hash=2166136261;
   for(const {words,size}of streams)for(let k=0;k<size;k++)hash=Math.imul(hash^words[i*size+k],16777619);
   let slot=hash&mask;
