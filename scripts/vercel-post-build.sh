@@ -387,3 +387,7 @@ node scripts/consistent-preview-v527.mjs
 node scripts/verify-consistent-preview-v527.mjs
 
 node scripts/konsol-label-controls-v529.mjs
+
+
+node scripts/runtime-consistency-v530.mjs
+node scripts/verify-runtime-consistency-v530.mjs

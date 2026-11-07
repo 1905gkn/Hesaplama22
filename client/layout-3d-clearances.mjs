@@ -9,8 +9,8 @@ export function readRackClearances(state,id,{walls,gaps}){
  const scale=Number(state.scale);if(!(scale>0))return [];const rack=state.racks.find(r=>String(r.id)===String(id));if(!rack)return [];
  const unit=1/(scale*1000),out=[];
  const add=(key,label,mm,x1,y1,x2,y2,ids)=>{if(!finite(mm,x1,y1,x2,y2)||Number(mm)<0)return;out.push({key,kind:key.startsWith('wall:')?'wall':'pair',label:labelMm(mm),mm:Number(mm),rackIds:ids.map(String),a:[Number(x1)*unit,.12,Number(y1)*unit],b:[Number(x2)*unit,.12,Number(y2)*unit]});};
- if(planWallSegments(state).length){let measures={};try{measures=walls(rack)||{}}catch{}
-  for(const [direction,m] of Object.entries(measures)){if(!directions[direction])continue;const endpoint=direction==='left'||direction==='top'?[m.x1,m.y1]:[m.x2,m.y2];if(!wallAt(state,...endpoint))continue;add('wall:'+id+':'+direction,directions[direction],Math.round(m.px/scale),m.x1,m.y1,m.x2,m.y2,[id]);}
+ {const measures=walls(rack)||{};
+  for(const [direction,m] of Object.entries(measures)){if(!directions[direction])continue;const endpoint=direction==='left'||direction==='top'?[m.x1,m.y1]:[m.x2,m.y2];add('wall:'+id+':'+direction,directions[direction],Math.round(m.px/scale),m.x1,m.y1,m.x2,m.y2,[id]);}
  }
  let relations=[];try{relations=gaps(rack)||[]}catch{}
  for(const gap of relations){const other=gap.other?.id;if(other==null||String(other)===String(id))continue;

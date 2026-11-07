@@ -83,7 +83,7 @@ async function proxyApi(request) {
   // that Response through verbatim can make browsers reject an otherwise-200
   // API call as `TypeError: Failed to fetch`. Rebuild the small API response
   // body and forward only headers that are valid for the Vercel origin.
-  const body = request.method === "HEAD" ? null : await upstream.arrayBuffer();
+  const body = request.method === "HEAD" ? null : upstream.body;
   return new Response(body, {
     status: upstream.status,
     statusText: upstream.statusText,

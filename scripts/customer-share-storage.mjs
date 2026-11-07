@@ -6,7 +6,7 @@ export async function customerShareStorage(request,{proxyApi}){
  const url=new URL(request.url);
  if(request.method==='POST'&&url.pathname==='/api/customer-shares'){
   const data=await request.clone().json().catch(()=>null);
-  if(data?.imageCount===1&&Array.isArray(data.views)&&data.views.length===1){
+  if(!data?.snapshot&&data?.imageCount===1&&Array.isArray(data.views)&&data.views.length===1){
    const body={...data,imageCount:2,views:[...data.views,{kind:'plan',label:'Yerleşim önizlemesi'}]};
    return proxyApi(new Request(request.url,{method:request.method,headers:request.headers,body:JSON.stringify(body)}));
   }
