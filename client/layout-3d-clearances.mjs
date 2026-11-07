@@ -5,12 +5,12 @@ const directions={left:'SOL DUVAR',right:'SAĞ DUVAR',top:'ÜST DUVAR',bottom:'A
 function wallAt(state,x,y){
  for(const {a,b} of planWallSegments(state)){const dx=b.x-a.x,dy=b.y-a.y,length=dx*dx+dy*dy;if(!length)continue;const t=Math.max(0,Math.min(1,((x-a.x)*dx+(y-a.y)*dy)/length));if(Math.hypot(x-a.x-t*dx,y-a.y-t*dy)<=1.1)return true;}return false;
 }
-export function readRackClearances(state,id,{walls,gaps}){
+export function readRackClearances(state,id,{walls,gaps,authoritative=false}){
  const scale=Number(state.scale);if(!(scale>0))return [];const rack=state.racks.find(r=>String(r.id)===String(id));if(!rack)return [];
  const unit=1/(scale*1000),out=[];
  const add=(key,label,mm,x1,y1,x2,y2,ids)=>{if(!finite(mm,x1,y1,x2,y2)||Number(mm)<0)return;out.push({key,kind:key.startsWith('wall:')?'wall':'pair',label:labelMm(mm),mm:Number(mm),rackIds:ids.map(String),a:[Number(x1)*unit,.12,Number(y1)*unit],b:[Number(x2)*unit,.12,Number(y2)*unit]});};
- {const measures=walls(rack)||{};
-  for(const [direction,m] of Object.entries(measures)){if(!directions[direction])continue;const endpoint=direction==='left'||direction==='top'?[m.x1,m.y1]:[m.x2,m.y2];add('wall:'+id+':'+direction,directions[direction],Math.round(m.px/scale),m.x1,m.y1,m.x2,m.y2,[id]);}
+ if(authoritative||planWallSegments(state).length){const measures=walls(rack)||{};
+  for(const [direction,m] of Object.entries(measures)){if(!directions[direction])continue;const endpoint=direction==='left'||direction==='top'?[m.x1,m.y1]:[m.x2,m.y2];if(!authoritative&&!wallAt(state,...endpoint))continue;add('wall:'+id+':'+direction,directions[direction],Math.round(m.px/scale),m.x1,m.y1,m.x2,m.y2,[id]);}
  }
  let relations=[];try{relations=gaps(rack)||[]}catch{}
  for(const gap of relations){const other=gap.other?.id;if(other==null||String(other)===String(id))continue;
