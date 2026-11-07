@@ -18,10 +18,18 @@ export function addKonsolDimensions(THREE,root,items){
   const a=new THREE.Vector3(...item.a),b=new THREE.Vector3(...item.b),line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([a,b]),material);line.renderOrder=100;group.add(line);
   for(const p of [a,b]){const tick=new THREE.Line(new THREE.BufferGeometry().setFromPoints([p.clone().add(new THREE.Vector3(-55,0,0)),p.clone().add(new THREE.Vector3(55,0,0))]),material);tick.renderOrder=100;group.add(tick);}
   const canvas=document.createElement('canvas');canvas.width=512;canvas.height=64;const c=canvas.getContext('2d');
-  c.fillStyle='rgba(5,40,72,.98)';c.beginPath();c.roundRect(0,0,512,64,10);c.fill();c.strokeStyle='#3e8fb2';c.lineWidth=2;c.stroke();c.fillStyle='#fff';c.font='bold 36px Arial';c.textAlign='center';c.textBaseline='middle';
+  c.fillStyle='rgba(173,216,245,.58)';c.beginPath();c.roundRect(0,0,512,64,10);c.fill();c.strokeStyle='rgba(90,155,195,.55)';c.lineWidth=2;c.stroke();c.fillStyle='#123e5a';c.font='bold 36px Arial';c.textAlign='center';c.textBaseline='middle';
   c.fillText(item.label+' · '+Math.round(item.value).toLocaleString('tr-TR')+' mm',256,32,492);
   const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
   const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,depthTest:false,sizeAttenuation:false}));sprite.position.copy(a).add(b).multiplyScalar(.5);sprite.position.x+=item.side==='right'?900:-900;if(item.label==='Zemin → taban')sprite.position.y-=400;sprite.scale.set(.26,.036,1);sprite.renderOrder=101;group.add(sprite);
+  const anchor=sprite.position.clone();
+  sprite.onBeforeRender=(renderer,scene,camera)=>{
+   const width=Math.max(1,renderer.domElement.clientWidth),height=Math.max(1,renderer.domElement.clientHeight),pixels=Math.min(36,width*.42/8),scale=pixels*2*Math.tan(camera.fov*Math.PI/360)/height;
+   sprite.scale.set(scale*8,scale,1);
+   const screen=anchor.clone().applyMatrix4(group.matrixWorld).project(camera),margin=(pixels*8+16)/width;
+   screen.x=Math.max(-1+margin,Math.min(1-margin,screen.x));
+   sprite.position.copy(group.worldToLocal(screen.unproject(camera)));sprite.updateMatrixWorld(true);
+  };
  }
  root.add(group);return group;
 }

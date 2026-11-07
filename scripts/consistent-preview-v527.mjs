@@ -19,15 +19,15 @@ export function transform(html){
  const anchor='computed=rows?rows.reduce((sum,r)=>sum+r.distance,0)+Number(gap.value):';
  if(!html.includes(anchor))throw Error('v527 height anchor');
  html=html.replace(anchor,"computed=rows?rows.reduce((sum,r)=>sum+r.distance,0)+rows.length*(Number(el('konsolArmProfile')?.value.match(/\\d+/)?.[0])||80)+(Number(el('konsolUprightProfile')?.value.match(/\\d+/)?.[0])||160)+Number(gap.value):");
- const css=`#page#page[data-rafex-common-active="1"] :is(#m2Front,.mr-canvas-wrap,#konsolCanvas){height:900px!important;min-height:900px!important;max-height:900px!important;box-sizing:border-box!important}
+ const css=`#page#page[data-rafex-common-active="1"] :is(#m2Front,.mr-canvas-wrap,#konsolCanvas){height:clamp(660px,calc(100vh - 276px),1100px)!important;min-height:clamp(660px,calc(100vh - 276px),1100px)!important;max-height:clamp(660px,calc(100vh - 276px),1100px)!important;box-sizing:border-box!important}
  #page#page[data-rafex-common-active="1"] #m2Front canvas{height:100%!important;min-height:0!important;max-height:100%!important}
- #page#page[data-rafex-common-active="1"] .mr-view-card{height:auto!important;align-self:start!important;grid-template-rows:auto 900px!important}
+ #page#page[data-rafex-common-active="1"] .mr-view-card{height:auto!important;align-self:start!important;grid-template-rows:auto clamp(660px,calc(100vh - 276px),1100px)!important}
  @media(max-width:600px){#page#page[data-rafex-common-active="1"] :is(#m2Front,.mr-canvas-wrap,#konsolCanvas){height:660px!important;min-height:660px!important;max-height:660px!important}#page#page[data-rafex-common-active="1"] .mr-view-card{grid-template-rows:auto 660px!important}}`;
  const end=html.lastIndexOf('</body>');return html.slice(0,end)+'<style data-consistent-preview="v527">'+css+'</style>'+html.slice(end);
 }
 if(process.argv[2]==='source'){
  const p='client/konsol-viewer.entry.js';fs.writeFileSync(p,sourceTransform(fs.readFileSync(p,'utf8')));
- const mr='client/mr-viewer.entry.js';fs.writeFileSync(mr,fs.readFileSync(mr,'utf8').replaceAll('rgba(5,40,72,.96)','rgba(5,40,72,.98)'));
+ const mr='client/mr-viewer.entry.js';fs.writeFileSync(mr,fs.readFileSync(mr,'utf8').replaceAll('rgba(5,40,72,.96)','rgba(173,216,245,.58)').replaceAll('#3e8fb2','rgba(90,155,195,.55)').replaceAll('context.fillStyle = "#fff"','context.fillStyle = "#123e5a"').replaceAll("context.fillStyle = '#fff'","context.fillStyle = '#123e5a'"));
 }else if(process.argv[1]?.endsWith('consistent-preview-v527.mjs'))for(const p of ['dist/index.html','dist/server/index.js']){
  let s=fs.readFileSync(p,'utf8');if(p.endsWith('.html'))s=transform(s);else{const m=s.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1/);s=s.replace(m[0],m[0].replace(m[2],Buffer.from(transform(Buffer.from(m[2],'base64').toString())).toString('base64')));}fs.writeFileSync(p,s);
 }
