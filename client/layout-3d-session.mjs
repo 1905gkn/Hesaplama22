@@ -4,7 +4,12 @@ const revisions=new WeakMap();
 export function layoutRevision(layout){
  if(!revisions.has(layout)){
   const {selectedId,getClearances,areas,activeAreaId,...source}=layout;
-  revisions.set(layout,JSON.stringify(source));
+  revisions.set(layout,JSON.stringify(source,(_,value)=>{
+   // Area save/restore can reorder properties and round-trip pixel/metre values.
+   // Ignore sub-micron numeric noise, while preserving real geometry changes.
+   if(typeof value==='number'&&Number.isFinite(value)&&!Number.isInteger(value))return Number(value.toFixed(8));
+   return value&&typeof value==='object'&&!Array.isArray(value)?Object.fromEntries(Object.keys(value).sort().map(k=>[k,value[k]])):value;
+  }));
  }
  return revisions.get(layout);
 }
@@ -24,14 +29,19 @@ export function sceneBufferBytes(scene){
  return [...buffers].reduce((n,b)=>n+b.byteLength,textureBytes);
 }
 
+function changedPaths(before,after){
+ const paths=[];
+ const walk=(a,b,path)=>{if(paths.length>=12||a===b)return;if(a&&b&&typeof a==='object'&&typeof b==='object'){for(const key of new Set([...Object.keys(a),...Object.keys(b)]))walk(a[key],b[key],path?path+'.'+key:key);}else paths.push(path);};
+ try{walk(JSON.parse(before),JSON.parse(after),'');}catch{}return paths;
+}
 export function createPreparedSceneSession({create,activate,deactivate,disposeSurface=()=>{},maxEntries=8,maxBytes=256*1024*1024}){
- const entries=new Map();let current=null,epoch=0,queue=Promise.resolve(),disposed=false,valid=null,builds=0,reuses=0;
+ const entries=new Map();let current=null,epoch=0,queue=Promise.resolve(),disposed=false,valid=null,builds=0,reuses=0,sourceChanges=[];
  const remove=id=>{const entry=entries.get(id);if(!entry)return;if(current===entry){deactivate(entry.value);current=null;}entries.delete(id);entry.value.dispose();};
  const bytes=()=>[...entries.values()].reduce((n,e)=>n+e.bytes,0);
  const trim=()=>{while(entries.size>maxEntries||bytes()>maxBytes){const id=[...entries.keys()].find(id=>entries.get(id)!==current);if(id===undefined)break;remove(id);}};
  const hide=()=>{epoch++;if(current){deactivate(current.value);current=null;}};
  return {
-  retain(pairs){valid=new Map(pairs);for(const [id,e] of entries)if(valid.get(id)!==e.revision)remove(id);},
+  retain(pairs){valid=new Map(pairs);for(const [id,e] of entries)if(valid.get(id)!==e.revision){sourceChanges=changedPaths(e.revision,valid.get(id));remove(id);}},
   show(id,revision,source){
    if(disposed)return Promise.resolve(null);
    const ticket=++epoch;if(current){deactivate(current.value);current=null;}
@@ -51,7 +61,7 @@ export function createPreparedSceneSession({create,activate,deactivate,disposeSu
    const result=queue.then(job,job);queue=result.catch(()=>{});return result;
   },
   hide,
-  stats(){return {builds,reuses,entries:entries.size,bytes:bytes(),maxBytes};},
+  stats(){return {builds,reuses,entries:entries.size,bytes:bytes(),maxBytes,sourceChanges};},
   dispose(){if(disposed)return;disposed=true;hide();for(const id of [...entries.keys()])remove(id);queue.finally(disposeSurface);}
  };
 }

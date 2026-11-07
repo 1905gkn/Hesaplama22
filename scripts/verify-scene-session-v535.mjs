@@ -14,12 +14,15 @@ const makeHarness=options=>{
 };
 const source={racks:[{id:'A',x:1,height:5,color:'ral5010'}],columns:[{x:3,z:4}],visibleClearances:[{label:'100 mm'}],selectedId:'A'};
 assert.equal(layoutRevision(source),layoutRevision({...source,selectedId:'B'}));
+assert.equal(layoutRevision(source),layoutRevision({visibleClearances:source.visibleClearances,columns:source.columns,racks:[{color:'ral5010',height:5,x:1,id:'A'}]}));
+assert.equal(layoutRevision({x:.1+.2}),layoutRevision({x:.3}));
+assert.notEqual(layoutRevision({x:.3}),layoutRevision({x:.3001}));
 for(const delta of [{columns:[]},{racks:[{...source.racks[0],x:2}]},{racks:[{...source.racks[0],height:6}]},{visibleClearances:[]}])assert.notEqual(layoutRevision(source),layoutRevision({...source,...delta}));
 const h=makeHarness(),a={id:'A'},b={id:'B'};h.cache.retain([['A','v1'],['B','v1']]);
 const first=await h.cache.show('A','v1',a);first.value.camera.x=42;h.cache.hide();
 const second=await h.cache.show('A','v1',a);assert.equal(second.reused,true);assert.equal(second.value,first.value);assert.equal(second.value.camera.x,42);
 await h.cache.show('B','v1',b);assert.equal((await h.cache.show('A','v1',a)).value,first.value);
-assert.deepEqual(h.cache.stats(),{builds:2,reuses:2,entries:2,bytes:20,maxBytes:256*1024*1024});
+assert.deepEqual(h.cache.stats(),{builds:2,reuses:2,entries:2,bytes:20,maxBytes:256*1024*1024,sourceChanges:[]});
 h.cache.retain([['A','v2']]);assert.equal(h.objects[0].disposed,1);assert.equal(h.objects[1].disposed,1);
 assert.equal((await h.cache.show('A','v2',{id:'A updated'})).reused,false);
 h.cache.dispose();h.cache.dispose();await Promise.resolve();await Promise.resolve();assert.equal(h.contexts(),1);assert(h.objects.every(v=>v.disposed===1));
