@@ -1,6 +1,12 @@
 import fs from 'node:fs';import vm from 'node:vm';import {fileURLToPath} from 'node:url';import assert from 'node:assert/strict';
 import {MeshoptEncoder} from './vendor/meshopt_encoder.mjs';
 import {MeshoptDecoder} from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import {gunzipSync} from 'node:zlib';
+export function readMekikSource(){
+ const packed='assets/mekik-front-src/mekik-front-ayak.glb.gz';
+ // The production asset is embedded in the worker, not emitted into dist.
+ return fs.existsSync(packed)?gunzipSync(fs.readFileSync(packed)):fs.readFileSync('dist/mekik-front-ayak.glb');
+}
 const types={5120:Int8Array,5121:Uint8Array,5122:Int16Array,5123:Uint16Array,5125:Uint32Array,5126:Float32Array},sizes={SCALAR:1,VEC2:2,VEC3:3,VEC4:4};let dracoPromise;
 async function decoder(){if(!dracoPromise)dracoPromise=(async()=>{const root=new URL('../examples/jsm/libs/draco/gltf/',import.meta.resolve('three')),ctx=vm.createContext({console,WebAssembly,TextDecoder,TextEncoder,setTimeout,clearTimeout});vm.runInContext(fs.readFileSync(new URL('draco_wasm_wrapper.js',root),'utf8'),ctx);return ctx.DracoDecoderModule({wasmBinary:fs.readFileSync(new URL('draco_decoder.wasm',root))});})();return dracoPromise;}
 export function readGlb(bytes){const json=JSON.parse(bytes.subarray(20,20+bytes.readUInt32LE(12))),bin=bytes.subarray(28+bytes.readUInt32LE(12));return {json,bin};}
@@ -29,5 +35,5 @@ export async function optimizeGlb(bytes){
  const rawBin=Buffer.concat(chunks),binPad=Buffer.alloc((4-rawBin.length%4)%4),rawJson=Buffer.from(JSON.stringify(output)),jsonPad=Buffer.alloc((4-rawJson.length%4)%4,32),j=Buffer.concat([rawJson,jsonPad]),b=Buffer.concat([rawBin,binPad]),header=Buffer.alloc(20),bh=Buffer.alloc(8);header.writeUInt32LE(0x46546c67,0);header.writeUInt32LE(2,4);header.writeUInt32LE(28+j.length+b.length,8);header.writeUInt32LE(j.length,12);header.writeUInt32LE(0x4e4f534a,16);bh.writeUInt32LE(b.length,0);bh.writeUInt32LE(0x004e4942,4);return {bytes:Buffer.concat([header,j,bh,b]),report:{beforeBytes:bytes.length,afterBytes:28+j.length+b.length,beforeVertices,afterVertices,triangles,bitExact:true}};
 }
 if(fileURLToPath(import.meta.url)===process.argv[1]){
- const reports=[];for(const [source,target]of [['dist/mekik-front-ayak.glb','dist/layout-mekik-post.glb']]){const result=await optimizeGlb(fs.readFileSync(source));assert(result.bytes.length<fs.statSync(source).size,'Optimized asset must be smaller');fs.writeFileSync(target,result.bytes);reports.push({source,target,...result.report});}fs.writeFileSync('dist/cad-gpu-assets-v532.json',JSON.stringify(reports));console.log('PASS exact CAD compression, vertex reuse and GPU index ordering:',JSON.stringify(reports));
+ const source='assets/mekik-front-src/mekik-front-ayak.glb.gz',target='dist/layout-mekik-post.glb',bytes=readMekikSource(),result=await optimizeGlb(bytes);assert(result.bytes.length<bytes.length,'Optimized asset must be smaller');fs.writeFileSync(target,result.bytes);const reports=[{source,target,...result.report}];fs.writeFileSync('dist/cad-gpu-assets-v532.json',JSON.stringify(reports));console.log('PASS exact CAD compression, vertex reuse and GPU index ordering:',JSON.stringify(reports));
 }
