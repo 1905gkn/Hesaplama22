@@ -16,7 +16,19 @@ export async function loadLayoutCad(racks){
   })().catch(e=>{cache.delete(name);throw e}));return [name,await cache.get(name)];
  })));
 }
-export function cadPlanarFaces(g,axis){const p=g.attributes.position,ix=g.index,planes=new Map(),v=[new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3()];for(let i=0;i<(ix?ix.count:p.count);i+=3){v.forEach((q,n)=>q.fromBufferAttribute(p,ix?ix.getX(i+n):i+n));if(Math.max(...v.map(q=>q[axis]))-Math.min(...v.map(q=>q[axis]))>.00001)continue;const area=new THREE.Vector3().subVectors(v[1],v[0]).cross(new THREE.Vector3().subVectors(v[2],v[0])).length()/2;if(area<1e-10)continue;const key=(Math.round(v[0][axis]*100000)/100000).toFixed(5),f=planes.get(key)||{at:Number(key),area:0,center:new THREE.Vector3(),min:new THREE.Vector3(Infinity,Infinity,Infinity),max:new THREE.Vector3(-Infinity,-Infinity,-Infinity)};f.area+=area;for(const q of v){f.center.addScaledVector(q,area/3);f.min.min(q);f.max.max(q)}planes.set(key,f);}return [...planes.values()].map(f=>({...f,center:f.center.divideScalar(f.area)})).sort((a,b)=>b.area-a.area);}
+// Scan CAD contact planes without allocating vectors/arrays per triangle.
+export function cadPlanarFaces(g,axis){
+ const p=g.attributes.position,ix=g.index,planes=new Map(),v=[new THREE.Vector3(),new THREE.Vector3(),new THREE.Vector3()],ab=new THREE.Vector3(),ac=new THREE.Vector3();
+ for(let i=0,count=ix?ix.count:p.count;i<count;i+=3){
+  for(let n=0;n<3;n++)v[n].fromBufferAttribute(p,ix?ix.getX(i+n):i+n);
+  const a=v[0][axis],b=v[1][axis],c=v[2][axis];if(Math.max(a,b,c)-Math.min(a,b,c)>.00001)continue;
+  const area=ab.subVectors(v[1],v[0]).cross(ac.subVectors(v[2],v[0])).length()/2;if(area<1e-10)continue;
+  const key=(Math.round(a*100000)/100000).toFixed(5);let f=planes.get(key);
+  if(!f){f={at:Number(key),area:0,center:new THREE.Vector3(),min:new THREE.Vector3(Infinity,Infinity,Infinity),max:new THREE.Vector3(-Infinity,-Infinity,-Infinity)};planes.set(key,f);}
+  f.area+=area;for(let n=0;n<3;n++){const q=v[n];f.center.addScaledVector(q,area/3);f.min.min(q);f.max.max(q);}
+ }
+ return [...planes.values()].map(f=>({...f,center:f.center.divideScalar(f.area)})).sort((a,b)=>b.area-a.area);
+}
 export function deepBeamScale(r,post,beam){const pitch=(r.width-r.foot)/r.bays,bodyWidth=(post?.bodyWidthX||.1)*(r.system==='drive'?r.foot/(post?.width||.141):r.foot/.1);return (pitch-bodyWidth)/(2*(beam?.mountHalfSpan||(r.system==='drive'?1.35:.675)));}
 export function prepareCad(scene,name){
  scene.updateMatrixWorld(true);const axis=name==='mrBeam'?new THREE.Matrix4().makeBasis(new THREE.Vector3(0,0,1),new THREE.Vector3(1,0,0),new THREE.Vector3(0,-1,0)):new THREE.Matrix4().makeRotationX(name.startsWith('b2b')?Math.PI/2:-Math.PI/2),source=[],names=[],finishes=[],profileBounds=new THREE.Box3();
