@@ -395,3 +395,8 @@ node scripts/verify-runtime-consistency-v530.mjs
 node scripts/preparation-v531.mjs
 node scripts/verify-scene-preparation-v531.mjs
 node scripts/verify-calculation-boot-v531.mjs
+
+node scripts/cad-gpu-assets-v532.mjs
+node scripts/preparation-v532.mjs
+node scripts/verify-cad-facing-v532.mjs
+node scripts/verify-cad-gpu-asset-v532.mjs

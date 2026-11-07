@@ -11,7 +11,7 @@ export async function loadLayoutCad(racks){
  return Object.fromEntries(await Promise.all([...names].map(async name=>{
   if(!cache.has(name))cache.set(name,(async()=>{
    const loader=new GLTFLoader(),draco=new DRACOLoader();draco.setDecoderPath('/draco/');draco.setDecoderConfig({type:'wasm'});loader.setDRACOLoader(draco);loader.setMeshoptDecoder(MeshoptDecoder);
-   const paths={b2bFrame:'/b2b-ayak.glb',b2bBeam:'/b2b-travers.glb',mrBeam:'/mr-zs-travers.glb',drivePost:'/drive-in/drive-in-ayak-top.glb',mekikPost:'/mekik-front-ayak.glb',mekikBeam:'/mekik-front-travers.glb'};
+   const paths={b2bFrame:'/b2b-ayak.glb',b2bBeam:'/b2b-travers.glb',mrBeam:'/mr-zs-travers.glb',drivePost:'/drive-in/drive-in-ayak-top.glb',mekikPost:'/layout-mekik-post.glb',mekikBeam:'/mekik-front-travers.glb'};
    try{const gltf=await loader.loadAsync(paths[name]+'?v=layout445');return prepareCad(gltf.scene,name)}finally{draco.dispose()}
   })().catch(e=>{cache.delete(name);throw e}));return [name,await cache.get(name)];
  })));
