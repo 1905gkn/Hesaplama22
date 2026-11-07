@@ -1,0 +1,7 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
+import {konsolDimensions} from '../client/konsol-dimensions.mjs';
+const source=fs.readFileSync('client/konsol-viewer.entry.js','utf8');
+const fn=source.slice(source.indexOf('function konsolLevelGeometry('),source.indexOf("import * as THREE"));
+const context={};vm.runInNewContext(fn+';this.geometry=konsolLevelGeometry',context);
+for(const arm of [80,120,180]){const rows=context.geometry([{distance:1000,depth:800},{distance:1000,depth:800},{distance:1250,depth:800}],1000,arm,160);assert.equal(rows[0].top-arm-160,1000);assert.equal(rows[1].top-arm-rows[0].top,1000);assert.equal(rows[2].top-arm-rows[1].top,1250);const dims=konsolDimensions({baseDepth:1200,armThickness:arm},rows,160,6000,6000,100);assert.deepEqual(dims.filter(d=>d.side==='right').map(d=>d.value),[160,1000,1000,1250]);assert.equal(dims.filter(d=>d.label==='Kat derinliği').length,1);assert.equal(dims.filter(d=>d.side==='depth').length,2);}
+const html=fs.readFileSync('dist/index.html','utf8');assert.ok(html.includes('data-consistent-preview="v527"'));assert.ok(html.includes('konsolLevelGeometry(s.levelRows,s.gap,a.heightMm,u.heightMm)'));for(const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g))if(!/src=|application\/json/.test(m[1]))new vm.Script(m[2]);console.log('PASS v527: actual profile thickness added to clear gaps, unequal gaps, one common arm-depth label, permanent base label, consistent preview sizing and runtime syntax.');

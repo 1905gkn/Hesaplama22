@@ -10,7 +10,7 @@ assert.deepEqual(dims.filter(d=>d.side==='depth').map(d=>d.value),[1200,800,1500
 assert.equal(dims.find(d=>d.label==='Ayak boyu').value,4500);
 const source=fs.readFileSync('client/konsol-viewer.entry.js','utf8');
 assert.ok(source.includes('konsol-preview-v526'));
-const ctx=vm.createContext({THREE,structuredClone,window:{dispatchEvent(){}},CustomEvent:class{},document:{createElement:()=>({width:0,height:0,getContext:()=>({fillRect(){},strokeRect(){},fillText(){}})})}});
+const ctx=vm.createContext({THREE,structuredClone,window:{dispatchEvent(){}},CustomEvent:class{},document:{createElement:()=>({width:0,height:0,getContext:()=>({fillRect(){},strokeRect(){},fillText(){},beginPath(){},roundRect(){},fill(){},stroke(){}})})}});
 vm.runInContext(source.replace(/^import .*;\s*$/gm,'')+'\nwindow.TestViewer=KonsolViewer;window.setTestViewer=v=>savedMainViewer=v;',ctx);
 const viewer=Object.create(ctx.window.TestViewer.prototype);viewer.canvas={id:'konsolCanvas'};viewer.scene=new THREE.Scene();viewer.options={};viewer.root=new THREE.Group();viewer.fitPerspective=()=>{};
 viewer.update({uprightCount:5,spacing:1500,height:4500,armLength:1000,baseDepth:1200,levels:3,levelRows:rows.map((r,i)=>({depth:r.depth,distance:r.top-(rows[i-1]?.top||0),load:500})),loadType:'unpacked'},false);

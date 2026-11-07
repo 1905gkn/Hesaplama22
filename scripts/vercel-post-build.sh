@@ -97,6 +97,7 @@ node scripts/verify-dimension-drag.mjs
 node scripts/verify-stable-rack-catalog.mjs dist/server/index.js
 node scripts/verify-common-performance.mjs dist/server/index.js
 node scripts/konsol-preview-v526.mjs
+node scripts/consistent-preview-v527.mjs source
 node scripts/build-shared-three.mjs
 node scripts/patch-free-selection-v145.mjs
 node scripts/verify-free-selection-v145.mjs
@@ -380,3 +381,6 @@ node scripts/verify-shared-depth-support-v524.mjs
 node scripts/layout-reliability-v525.mjs
 node scripts/verify-layout-reliability-v525.mjs
 node scripts/verify-konsol-preview-v526.mjs
+
+node scripts/consistent-preview-v527.mjs
+node scripts/verify-consistent-preview-v527.mjs
