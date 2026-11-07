@@ -403,3 +403,6 @@ node scripts/verify-cad-gpu-asset-v532.mjs
 
 node scripts/drive-native-v534.mjs
 node scripts/verify-drive-native-v534.mjs
+
+node scripts/scene-session-v535.mjs
+node scripts/verify-scene-session-v535.mjs
