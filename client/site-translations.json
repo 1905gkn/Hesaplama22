@@ -7078,5 +7078,50 @@
     "Son hata",
     "Last error",
     "Dernière erreur"
+  ],
+  [
+    "Aç",
+    "Open",
+    "Ouvrir"
+  ],
+  [
+    "Tam ekran",
+    "Full Screen",
+    "Plein écran"
+  ],
+  [
+    "Önce projeyi açın.",
+    "Open the project first.",
+    "Ouvrez d’abord le projet."
+  ],
+  [
+    "Sunucu yanıtı alınamadı. Yeniden deneyin.",
+    "No response from the server. Please try again.",
+    "Le serveur n’a pas répondu. Réessayez."
+  ],
+  [
+    "Onay işlemi tamamlanamadı.",
+    "Approval could not be completed.",
+    "L’approbation n’a pas pu être finalisée."
+  ],
+  [
+    "Bağlantının süresi dolmuş veya erişimi iptal edilmiş.",
+    "This link has expired or access has been revoked.",
+    "Ce lien a expiré ou son accès a été révoqué."
+  ],
+  [
+    "Görüntüleme izni sona erdi.",
+    "Viewing access has expired.",
+    "L’autorisation de consultation a expiré."
+  ],
+  [
+    "Seçimi İptal Et",
+    "Cancel Selection",
+    "Annuler la sélection"
+  ],
+  [
+    "Kayıtlı rapor",
+    "Saved report",
+    "Rapport enregistré"
   ]
 ]
