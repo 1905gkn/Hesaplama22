@@ -7,10 +7,14 @@ export function createInterfaceTranslator(rows) {
  return function translate(source,language='tr'){
   if(typeof source!=='string'||!maps[language])return source;
   const input=source.trim(),map=maps[language],fr=language==='fr';
+  if(/^[+−-]?[\d\s.,%°]+$/.test(input))return source;
   const exact=map.get(normalize(input));if(exact)return source.replace(input,exact);
   const replace=(pattern,render)=>{const m=input.match(pattern);return m?source.replace(input,render(m)):null};
   let result;
   const patterns=[
+   [/^([⧉◯▣])\s*(.+)$/,m=>m[1]+' '+translate(m[2],language)],
+   [/^(AÇI|Sağa\/Sola|Yukarı\/Aşağı)\s*°$/,m=>translate(m[1],language)+' °'],
+   [/^Kaynak proje #(\d+)$/,m=>(fr?'Projet source n°':'Source project #')+m[1]],
    [/^“([\s\S]+)”$/,m=>'“'+translate(m[1],language)+'”'],
    [/^Raftan rafa:\s*(Açık|Kapalı)$/,m=>translate('Raftan rafa',language)+': '+(fr?(m[1]==='Açık'?'Activé':'Désactivé'):(m[1]==='Açık'?'On':'Off'))],
    [/^(.+) ara$/i,m=>(fr?'Rechercher : ':'Search: ')+translate(m[1],language)],

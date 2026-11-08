@@ -157,7 +157,7 @@ Yeni yorum|New comment|Nouveau commentaire
 Not kapatıldı|Note closed|Note clôturée
 Müşteri tarafından onaylandı|Approved by customer|Approuvé par le client
 size bir not atadı.|assigned you a note.|vous a attribué une note.
-nota yorum ekledi.|commented on the note.|a commenté la note.
+nota yorum ekledi.|added a comment to the note.|a ajouté un commentaire à la note.
 notu kendi listesinde kapattı.|closed the note in their list.|a clôturé la note dans sa liste.
 projeyi onayladı.|approved the project.|a approuvé le projet.
 Bildirimler yüklenemedi.|Notifications could not be loaded.|Impossible de charger les notifications.
@@ -243,7 +243,7 @@ MODÜLLER|MODULES|MODULES
 Seçili Raf Tipini Varsayılana Döndür|Restore Default for Selected Rack Type|Rétablir les valeurs par défaut du type sélectionné
 Kayıtlı raflarda kullanılabilir raf tipi bulunamadı.|No usable saved rack type found.|Aucun type de rayonnage enregistré utilisable.
 Kayıtlı Raflar içindeki raf tipleri burada görünür. Her tipin perspektifi ayrı kaydedilir.|Saved rack types appear here. Each type’s perspective is saved separately.|Les types enregistrés apparaissent ici. La perspective de chaque type est enregistrée séparément.
-Kayıtlı raf tipini seç; perspektif, ölçüler, palet görünümü ve modül dağılımını ayrı ayrı kaydet.|Select a saved rack type; save its perspective, dimensions, pallet visibility and module arrangement separately.|Sélectionnez un type enregistré ; enregistrez séparément sa perspective, ses cotes, la visibilité des palettes et la disposition des modules.
+Kayıtlı raf tipini seç; perspektif, ölçüler, palet görünümü ve modül dağılımını ayrı ayrı kaydet.|Select a saved rack type; save the perspective, dimensions, pallet display and module layout separately.|Sélectionnez un type de rayonnage enregistré ; enregistrez séparément la perspective, les cotes, l’affichage des palettes et la disposition des modules.
 Kayıtlı raf tipini seç; çıktının standart perspektif açısını, konumunu, büyüklüğünü ve görünecek 4–3–2–1 modüllerini belirle.|Select a saved rack type and set the output perspective, position, size and visible 4–3–2–1 modules.|Sélectionnez un type enregistré et définissez la perspective, la position, la taille et les modules 4–3–2–1 visibles dans la sortie.
 Tekli sıra hangi tarafa eklensin?|Which side should the single row be added to?|De quel côté ajouter la rangée simple ?
 Çiftli sıranın üst veya alt sırasını seç.|Select the upper or lower row of the double row.|Sélectionnez la rangée supérieure ou inférieure de la double rangée.
@@ -398,7 +398,7 @@ Henüz ürün yok|No products yet|Aucun produit pour le moment
 Ürün dökümünü ayraç adlarına göre ayırır; ayraç dışındaki ürünler ayrı listelenir.|Groups the bill of materials by zone name; products outside zones are listed separately.|Regroupe la nomenclature par nom de zone ; les produits hors zones sont listés séparément.
 Boş çizim alanı ve yeni proje kimliğiyle başla|Start with an empty layout and a new project ID|Commencer avec une zone vide et un nouvel identifiant de projet
 Taslak kaydet|Save Draft|Enregistrer le brouillon
-Hatalı veya eksik çizimi de bu tarayıcıda saklar|Also saves incomplete or invalid drawings in this browser|Enregistre aussi les plans incomplets ou invalides dans ce navigateur
+Hatalı veya eksik çizimi de bu tarayıcıda saklar|Also saves incomplete or invalid drawings in this browser|Enregistre également les plans incomplets ou invalides dans ce navigateur
 GÜNÜN SÖZLERI|DAILY QUOTES|CITATIONS DU JOUR
 Türkçe çeviri|Translation|Traduction
 Kaynak metinden Türkçe çeviri|Translated from the source|Traduit du texte source
@@ -522,3 +522,32 @@ PDF veya fotoğraf seçerek başlayabilirsin.|Start by selecting a PDF or photo.
 Uyarıları gördüm. Çakışan gözleri bekleterek mevcut çizimin yerine uygula.|I have reviewed the warnings. Replace the current drawing, leaving conflicting bays pending.|J’ai pris connaissance des avertissements. Remplacer le plan actuel en laissant les travées en conflit en attente.
 Son doğrulanmış kur|Last verified exchange rate|Dernier taux de change vérifié
 bağlantı bekleniyor|awaiting connection|connexion en attente
+Raf Ekle|Add Rack|Ajouter un rayonnage
+Seçim|Selection|Sélection
+Çizimden Yerleşim|Layout from Drawing|Implantation à partir d’un plan
+Görsel|Image|Image
+Daire|Circle|Cercle
+Çizimden Kopyala|Copy from Drawing|Copier depuis le plan
+Kolon|Column|Poteau
+Kare / Dikdörtgen|Square / Rectangle|Carré / Rectangle
+En (mm)|Width (mm)|Largeur (mm)
+Boy (mm)|Length (mm)|Longueur (mm)
+Kaydet ve Ekle|Save and Add|Enregistrer et ajouter
+Korumaları Sil|Delete Guards|Supprimer les protections
+Müşteriyle Paylaş|Share with Customer|Partager avec le client
+ÖLÇÜ YAZISI|DIMENSION TEXT|TEXTE DES COTES
+AÇI|ANGLE|ANGLE
+Sağa/Sola|Left/Right|Gauche/Droite
+Yukarı/Aşağı|Up/Down|Haut/Bas
+Yatay açı|Horizontal angle|Angle horizontal
+Raf tipi yok|No rack type|Aucun type de rayonnage
+Kayıtlı raf tipini seç; perspektif ve ölçü görünümünü raf tipine göre ayrı ayrı kaydet.|Select a saved rack type; save the perspective and dimension views separately for each rack type.|Sélectionnez un type de rayonnage enregistré ; enregistrez séparément les vues en perspective et les vues cotées pour chaque type.
+Taslak dosyasını içe aktar|Import Draft File|Importer un fichier brouillon
+TASLAK|DRAFT|BROUILLON
+TASLAK kodları proje numarası değildir. Yalnızca bu tarayıcıda saklanır; tarayıcı verileri temizlenirse silinir. Taslağı açmak yeni bir çalışma oluşturur, gerçek proje kaydını değiştirmez.|DRAFT codes are not project numbers. Drafts are stored only in this browser and are deleted if browser data is cleared. Opening a draft creates a new workspace without changing the saved project.|Les codes de brouillon ne sont pas des numéros de projet. Les brouillons sont conservés uniquement dans ce navigateur et supprimés si ses données sont effacées. Ouvrir un brouillon crée un nouvel espace de travail sans modifier le projet enregistré.
+Yeni çalışma olarak aç|Open as New Workspace|Ouvrir comme nouvel espace de travail
+Taslak dosyasını indir|Download Draft File|Télécharger le fichier brouillon
+Bu kullanıcı için yerel taslak yok.|No local drafts for this user.|Aucun brouillon local pour cet utilisateur.
+Dosya seç|Choose File|Choisir un fichier
+Dosya seçilmedi|No file selected|Aucun fichier sélectionné
+Son hata|Last error|Dernière erreur

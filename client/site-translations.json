@@ -3746,8 +3746,8 @@
   ],
   [
     "nota yorum ekledi.",
-    "commented on the note.",
-    "a commenté la note."
+    "added a comment to the note.",
+    "a ajouté un commentaire à la note."
   ],
   [
     "notu kendi listesinde kapattı.",
@@ -4166,8 +4166,8 @@
   ],
   [
     "Kayıtlı raf tipini seç; perspektif, ölçüler, palet görünümü ve modül dağılımını ayrı ayrı kaydet.",
-    "Select a saved rack type; save its perspective, dimensions, pallet visibility and module arrangement separately.",
-    "Sélectionnez un type enregistré ; enregistrez séparément sa perspective, ses cotes, la visibilité des palettes et la disposition des modules."
+    "Select a saved rack type; save the perspective, dimensions, pallet display and module layout separately.",
+    "Sélectionnez un type de rayonnage enregistré ; enregistrez séparément la perspective, les cotes, l’affichage des palettes et la disposition des modules."
   ],
   [
     "Kayıtlı raf tipini seç; çıktının standart perspektif açısını, konumunu, büyüklüğünü ve görünecek 4–3–2–1 modüllerini belirle.",
@@ -6732,7 +6732,7 @@
   [
     "Hatalı veya eksik çizimi de bu tarayıcıda saklar",
     "Also saves incomplete or invalid drawings in this browser",
-    "Enregistre aussi les plans incomplets ou invalides dans ce navigateur"
+    "Enregistre également les plans incomplets ou invalides dans ce navigateur"
   ],
   [
     "İlk kat yüksekliği (mm)",
@@ -6933,5 +6933,150 @@
     "bağlantı bekleniyor",
     "awaiting connection",
     "connexion en attente"
+  ],
+  [
+    "Raf Ekle",
+    "Add Rack",
+    "Ajouter un rayonnage"
+  ],
+  [
+    "Seçim",
+    "Selection",
+    "Sélection"
+  ],
+  [
+    "Çizimden Yerleşim",
+    "Layout from Drawing",
+    "Implantation à partir d’un plan"
+  ],
+  [
+    "Görsel",
+    "Image",
+    "Image"
+  ],
+  [
+    "Daire",
+    "Circle",
+    "Cercle"
+  ],
+  [
+    "Çizimden Kopyala",
+    "Copy from Drawing",
+    "Copier depuis le plan"
+  ],
+  [
+    "Kolon",
+    "Column",
+    "Poteau"
+  ],
+  [
+    "Kare / Dikdörtgen",
+    "Square / Rectangle",
+    "Carré / Rectangle"
+  ],
+  [
+    "En (mm)",
+    "Width (mm)",
+    "Largeur (mm)"
+  ],
+  [
+    "Boy (mm)",
+    "Length (mm)",
+    "Longueur (mm)"
+  ],
+  [
+    "Kaydet ve Ekle",
+    "Save and Add",
+    "Enregistrer et ajouter"
+  ],
+  [
+    "Korumaları Sil",
+    "Delete Guards",
+    "Supprimer les protections"
+  ],
+  [
+    "Müşteriyle Paylaş",
+    "Share with Customer",
+    "Partager avec le client"
+  ],
+  [
+    "ÖLÇÜ YAZISI",
+    "DIMENSION TEXT",
+    "TEXTE DES COTES"
+  ],
+  [
+    "AÇI",
+    "ANGLE",
+    "ANGLE"
+  ],
+  [
+    "Sağa/Sola",
+    "Left/Right",
+    "Gauche/Droite"
+  ],
+  [
+    "Yukarı/Aşağı",
+    "Up/Down",
+    "Haut/Bas"
+  ],
+  [
+    "Yatay açı",
+    "Horizontal angle",
+    "Angle horizontal"
+  ],
+  [
+    "Raf tipi yok",
+    "No rack type",
+    "Aucun type de rayonnage"
+  ],
+  [
+    "Kayıtlı raf tipini seç; perspektif ve ölçü görünümünü raf tipine göre ayrı ayrı kaydet.",
+    "Select a saved rack type; save the perspective and dimension views separately for each rack type.",
+    "Sélectionnez un type de rayonnage enregistré ; enregistrez séparément les vues en perspective et les vues cotées pour chaque type."
+  ],
+  [
+    "Taslak dosyasını içe aktar",
+    "Import Draft File",
+    "Importer un fichier brouillon"
+  ],
+  [
+    "TASLAK",
+    "DRAFT",
+    "BROUILLON"
+  ],
+  [
+    "TASLAK kodları proje numarası değildir. Yalnızca bu tarayıcıda saklanır; tarayıcı verileri temizlenirse silinir. Taslağı açmak yeni bir çalışma oluşturur, gerçek proje kaydını değiştirmez.",
+    "DRAFT codes are not project numbers. Drafts are stored only in this browser and are deleted if browser data is cleared. Opening a draft creates a new workspace without changing the saved project.",
+    "Les codes de brouillon ne sont pas des numéros de projet. Les brouillons sont conservés uniquement dans ce navigateur et supprimés si ses données sont effacées. Ouvrir un brouillon crée un nouvel espace de travail sans modifier le projet enregistré."
+  ],
+  [
+    "Yeni çalışma olarak aç",
+    "Open as New Workspace",
+    "Ouvrir comme nouvel espace de travail"
+  ],
+  [
+    "Taslak dosyasını indir",
+    "Download Draft File",
+    "Télécharger le fichier brouillon"
+  ],
+  [
+    "Bu kullanıcı için yerel taslak yok.",
+    "No local drafts for this user.",
+    "Aucun brouillon local pour cet utilisateur."
+  ],
+  [
+    "Dosya seç",
+    "Choose File",
+    "Choisir un fichier"
+  ],
+  [
+    "Dosya seçilmedi",
+    "No file selected",
+    "Aucun fichier sélectionné"
+  ],
+  [
+    "Son hata",
+    "Last error",
+    "Dernière erreur"
   ]
 ]
