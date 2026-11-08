@@ -6923,5 +6923,15 @@
     "Döviz alış",
     "Foreign exchange buying rate",
     "Cours d’achat des devises"
+  ],
+  [
+    "Son doğrulanmış kur",
+    "Last verified exchange rate",
+    "Dernier taux de change vérifié"
+  ],
+  [
+    "bağlantı bekleniyor",
+    "awaiting connection",
+    "connexion en attente"
   ]
 ]
