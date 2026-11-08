@@ -273,6 +273,8 @@ Tablo derinliği|Table depth|Profondeur du tableau
 EN İNCE UYGUN TAVA|THINNEST SUITABLE PANEL|PLATEAU ADAPTÉ LE PLUS FIN
 Tek tava kapasitesi|Single panel capacity|Capacité d’un plateau
 Sonuç|Result|Résultat
+Döviz satış|Foreign exchange selling rate|Cours de vente des devises
+Döviz alış|Foreign exchange buying rate|Cours d’achat des devises
 Değiştir|Change|Modifier
 Blok|Block|Bloc
 Sistem|System|Système
