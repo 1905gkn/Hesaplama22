@@ -4,3 +4,21 @@
 
 
 #measureBetween[aria-pressed="true"]{background:#fff2d9;border-color:#d58a0b;color:#6e4600;font-weight:bold}#measurementResult{flex-basis:100%;font-weight:bold;color:#735000;padding:4px 2px;min-height:0}#measurementResult:empty{display:none}
+
+/* Large customer block details: keep both technical views readable. */
+#detailsDialog{width:96vw;max-width:none;height:94dvh;max-height:94dvh;overflow:hidden}
+#detailsDialog[open]{display:flex;flex-direction:column}
+#detailsDialog>div:first-child{flex-shrink:0}
+#detailsDialog #blockDetail{flex:1;min-height:0;display:flex;flex-direction:column}
+#detailsDialog .block-meta{flex-shrink:0}
+#detailsDialog .block-technical{flex:1;min-height:280px;grid-template-columns:repeat(2,minmax(0,1fr))}
+#detailsDialog .block-technical>div{display:flex;flex-direction:column;min-width:0;min-height:0}
+#detailsDialog .block-technical strong{flex-shrink:0;margin-bottom:8px}
+#detailsDialog .block-technical img{flex:1;min-height:0;height:100%;object-fit:contain}
+#detailsDialog .block-preview{flex:1}
+@media(max-width:650px){
+ #detailsDialog{width:98vw;height:96dvh;max-height:96dvh}
+ #detailsDialog #blockDetail{padding:8px}
+ #detailsDialog .block-technical{flex:none;grid-template-columns:1fr}
+ #detailsDialog .block-technical>div{height:70dvh;min-height:320px}
+}
