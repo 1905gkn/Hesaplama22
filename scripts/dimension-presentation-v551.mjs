@@ -58,6 +58,9 @@ export function transform(html){
  if(!html.includes(rack))throw Error('v551 rack pointer missing');html=html.split(rack).join('(window.rafexRackNodeAtV551?.(event)||'+rack+')');
  replace('const dimensionNode = event.target.closest?.("[data-dimension-key]"),','const dimensionNode = rackNode&&m2LayoutTool!=="dimension"?null:event.target.closest?.("[data-dimension-key]"),');
  replace('window.rafexPinRulerV221?.();','window.rafexPinRulerV221?.();window.rafexDimensionLayoutV499?.(node);');
+ replace("if(size>0)set(node,'font-size',size+'px');","if(size>0&&!node.dataset.screenFont551)set(node,'font-size',size+'px');");
+ replace("else if(node.dataset.rafexDimensionFontSize){delete node.dataset.rafexDimensionFontSize;node.style.removeProperty('font-size');}","else if(node.dataset.rafexDimensionFontSize){delete node.dataset.rafexDimensionFontSize;if(!node.dataset.screenFont551)node.style.removeProperty('font-size');}");
+ replace("if(!Number(node.dataset.rafexDimensionFontSize))if(!node.dataset.rafexPdfGapV286)set(node,'font-size','12px');","if(!node.dataset.screenFont551&&!Number(node.dataset.rafexDimensionFontSize))if(!node.dataset.rafexPdfGapV286)set(node,'font-size','12px');");
  html=html.replaceAll('Math.round(parseFloat(getComputedStyle(dimensionNode).fontSize))','Number(dimensionNode.dataset.screenFont551)||Math.round(parseFloat(getComputedStyle(dimensionNode).fontSize))');
  const css='<style data-dimension-presentation="v551">#page #m2LayoutSvg:not(.m2-dimension-editing) :is(text[data-dimension-key],.m2-measure-hit,.rafex-gap-side-hit-v350){pointer-events:none!important}#page #m2LayoutSvg.m2-dimension-editing text[data-dimension-key]{pointer-events:bounding-box!important}.rafex-dimension-units-v551{display:block;margin:6px 0;color:#496354;font:12px/1.4 Arial,sans-serif;pointer-events:none}</style>';
  const end=html.lastIndexOf('</body>');if(end<0)throw Error('v551 body missing');
