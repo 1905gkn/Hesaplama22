@@ -14,6 +14,9 @@ export function directionalWalls552(box,edges){
   if(![a?.x,a?.y,b?.x,b?.y].every(Number.isFinite))continue;
   for(const vertical of [false,true]){
    const transverse=vertical?'x':'y',axis=vertical?'y':'x',delta=b[transverse]-a[transverse];
+   // Use the wall's facing direction. A shallow CAD slope is still a
+   // top/bottom wall; clipping its touching corner must not invent a side wall.
+   if(Math.abs(b[axis]-a[axis])>Math.abs(delta)+1e-10)continue;
    if(Math.abs(delta)<1e-10)continue;
    const lo=vertical?box.left:box.top,hi=vertical?box.right:box.bottom;
    const t0=Math.max(0,Math.min((lo-a[transverse])/delta,(hi-a[transverse])/delta));

@@ -5,6 +5,16 @@ import {directionalWalls552,transform} from './wall-distance-v552.mjs';
 const box={left:20,right:60,top:30,bottom:50,cx:40,cy:40};
 const walls=[{a:{x:0,y:0},b:{x:100,y:10}},{a:{x:100,y:10},b:{x:100,y:100}},{a:{x:100,y:100},b:{x:0,y:100}},{a:{x:0,y:100},b:{x:0,y:0}}];
 let w=directionalWalls552(box,walls);assert.equal(w.top,6);assert.equal(w.topAt,60);assert.equal(w.left,0);assert.equal(w.right,100);assert.equal(w.bottom,100);
+const touchingBottom=[walls[3],{a:{x:0,y:49.8},b:{x:100,y:50.8}}];
+assert.equal(directionalWalls552(box,touchingBottom).left,0,'Touching a skew bottom wall must not turn the separate left-wall clearance into zero.');
+assert.equal(directionalWalls552(box,touchingBottom).bottom,50,'The same bottom contact remains a genuine zero bottom clearance.');
+for(let turns=0;turns<4;turns++){
+ const rotate=p=>{for(let n=0;n<turns;n++)p={x:100-p.y,y:p.x};return p;};
+ const points=[{x:box.left,y:box.top},{x:box.right,y:box.bottom}].map(rotate),rb={left:Math.min(...points.map(p=>p.x)),right:Math.max(...points.map(p=>p.x)),top:Math.min(...points.map(p=>p.y)),bottom:Math.max(...points.map(p=>p.y))};
+ const found=directionalWalls552(rb,touchingBottom.map(e=>({a:rotate(e.a),b:rotate(e.b)})));
+ const gaps=[rb.left-found.left,found.right-rb.right,rb.top-found.top,found.bottom-rb.bottom].filter(Number.isFinite).sort((a,b)=>a-b);
+ assert.equal(gaps.length,2);assert(Math.abs(gaps[0])<1e-8);assert(Math.abs(gaps[1]-20)<1e-8,'Contact must not zero the perpendicular clearance at rotation '+turns*90);
+}
 assert.equal(directionalWalls552(box,[{a:{x:25,y:20},b:{x:30,y:20}}]).top,20,'Narrow obstacle outside the centre ray is still measured.');
 assert.equal(directionalWalls552(box,[{a:{x:70,y:20},b:{x:80,y:20}}]).top,-Infinity,'Unaligned obstacles do not create dimensions.');
 assert.equal(directionalWalls552(box,walls.map(e=>({a:e.b,b:e.a}))).top,6,'Wall drawing direction must not change clearance.');
@@ -33,4 +43,3 @@ for(const direction of ['left','right','top','bottom']){
 }
 if(file==='after.html')fs.writeFileSync('after552.html',html);
 console.log('PASS v552: reproduced skew-wall freeze, zero/positive offsets on all four sides, full moving row, narrow columns, reversed walls, owner binding, undo and genuine obstruction protection.');
-
