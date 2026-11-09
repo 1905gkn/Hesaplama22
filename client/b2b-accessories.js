@@ -76,7 +76,8 @@
   function collectionOptions(options,state) {
     if(!state?.collectionLevels?.enabled)return options;
     const plan=b2bCollectionPlanV109(state);
-    const out={...options,firstPalletPosition:'traverse',firstFloorGap:plan.totalHeight,collectionFloors:plan.floors};
+    let out={...options,firstPalletPosition:'traverse',firstFloorGap:plan.totalHeight,collectionLevels:state.collectionLevels,collectionFloors:plan.floors};
+    if(state.manualLevelSpecs?.length)out=window.rafexManualOptionsV121(out,state.manualLevelSpecs);
     out.footHeight=state.footHeightMode==='manual'&&Number(state.footHeight)>0?Number(state.footHeight):b2bHeightV109(out).automatic;
     return out;
   }
@@ -203,6 +204,7 @@
     f.error='';f.savedMessage='Kat görsele eklendi.';notify();render();
   };
   window.rafexTrayPlan = trayPlan;
+  window.rafexB2BCollectionStateV549=()=>normalizeCollection(appliedCollection);
   window.rafexCollectionFootLoads=()=>{
     const plan=collectionPlan();
     return {enabled:appliedCollection.enabled&&plan.floors.length>0,load:plan.floors.reduce((sum,f)=>sum+Math.max(0,Number(f.load)||0),0),firstSupportHeight:plan.floors.length?plan.totalHeight+(Number(window.b2bTraverseHeight?.())||140):0,missing:plan.floors.some(f=>!(Number(f.load)>0))};
@@ -227,7 +229,9 @@
     hook('b2bVerticalLayout',(previous)=>function(...args){
       const out=previous.apply(this,args);if(!appliedCollection.enabled)return out;
       const plan=collectionPlan(),firstLoadBottom=plan.totalHeight+out.traverseHeight;
-      const automaticFootHeight=Math.ceil((firstLoadBottom+(out.levels-1)*out.levelStep+Number(typeof b2bLastPalletOverlap==='number'?b2bLastPalletOverlap:out.palletHeight/2))/50)*50;
+      const rows=window.rafexMainManualRowsV549?.()||[];
+      const physical=rows.length?window.rafexManualOptionsV121({...out,traverseHeight:out.traverseHeight,lastPalletOverlap:Number(typeof b2bLastPalletOverlap==='number'?b2bLastPalletOverlap:out.palletHeight/2),firstPalletPosition:'traverse',firstFloorGap:plan.totalHeight,collectionLevels:normalizeCollection(appliedCollection),collectionFloors:plan.floors},rows):null;
+      const automaticFootHeight=physical?b2bHeightV109(physical).automatic:Math.ceil((firstLoadBottom+(out.levels-1)*out.levelStep+Number(typeof b2bLastPalletOverlap==='number'?b2bLastPalletOverlap:out.palletHeight/2))/50)*50;
       const input=document.getElementById('b2bFootHeight'),manual=document.getElementById('b2bFootHeightMode')?.value==='manual';
       if(input)input.disabled=!manual;
       return {...out,firstLoadBottom,groundPallet:false,traverseLevels:out.levels,automaticFootHeight,footHeight:manual&&Number(input?.value)>0?Number(input.value):automaticFootHeight};
@@ -359,3 +363,4 @@
     installViewerAccessoryPlacementFix();
   });
 })();
+

@@ -16,6 +16,10 @@ export const helpers=String.raw`
       }
       function b2bHeightV109(options) {
         const levels=Math.max(1,Number(options.levels)||1),beam=Number(options.traverseHeight)||140;
+        if(Array.isArray(options.traverseBottoms)&&options.traverseBottoms.length){
+          const i=options.traverseBottoms.length-1,top=Number(options.traverseBottoms[i])+(Number(options.traverseHeights?.[i])||beam);
+          return {minimum:Math.max(500,top),automatic:Math.max(500,Math.ceil((top+Number(options.lastPalletOverlap??(Number(options.palletHeight)||1200)/2))/50)*50)};
+        }
         let top=options.firstPalletPosition==='traverse'?Math.max(0,Number(options.firstFloorGap)||0)+beam:0;
         for(let i=0;i<levels-1;i++)top+=(Number(options.palletHeights?.[i])||Number(options.palletHeight)||1200)+(Number(options.levelClearances?.[i]??options.palletTraverseGap)||0)+beam;
         return {minimum:Math.max(500,top),automatic:Math.max(500,Math.ceil((top+Number(options.lastPalletOverlap??(Number(options.palletHeight)||1200)/2))/50)*50)};
@@ -89,3 +93,4 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
   const html=transform(Buffer.from(m[3],'base64').toString('utf8'));
   fs.writeFileSync(file,source.replace(m[0],m[1]+m[2]+Buffer.from(html).toString('base64')+m[2]));
 }
+
