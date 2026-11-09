@@ -12,6 +12,12 @@
           if(lastKind==="feet"&&remaining<=100){railOverhang=remaining;break;}
           // Continue with the last available foot/tie sizes beyond the anchor's end.
           const part=parts[index++]||{kind:lastKind==="feet"?"braces":"feet",length:lastKind==="feet"?Number(braces.at(-1)||feet.at(-1)):Number(feet.at(-1))};
+          // A joined shuttle can end inside the next anchor frame. Keep the
+          // completed frames and finish with one upright profile, not a frame
+          // extending beyond the last pallet. Drive-In retains its own frame rule.
+          if(part.kind==="feet"&&remaining<part.length-.001&&plan.feet.length&&anchor.rafexSystem!=="drive"){
+            plan.braces[plan.braces.length-1]+=remaining;remaining=0;lastKind="braces";break;
+          }
           const length=part.kind==="feet"?part.length:Math.min(remaining,part.length);
           if(!Number.isFinite(length)||length<=0)return null;
           plan[part.kind].push(length);remaining-=length;lastKind=part.kind;
@@ -103,6 +109,26 @@
   if(m2UndoHistory.length>before){Object.assign(m2UndoHistory.at(-1),{joinCatalogV523:catalog,joinCatalogSelectedV523:selected});m2ClearMultiSelection();document.getElementById('m2LayoutSvg')?.classList.remove('m2-multi-selecting');m2RenderLayout();}
  };
  m2UndoLastAction=function(){const s=m2UndoHistory.at(-1);if(s?.joinSavedRackTypes){m2SavedRackTypes=structuredClone(s.joinSavedRackTypes);m2SelectedSavedType=s.joinSelectedSavedType;}if(s?.joinCatalogV523){window.rafexProjectTypesV133=structuredClone(s.joinCatalogV523);window.rafexSelectedCatalogKey=s.joinCatalogSelectedV523;}const result=undoAction.apply(this,arguments);m2RenderSavedRackTypes();return result;};
+ // Repair only legacy generated joins that unnecessarily extended a complete
+ // final frame beyond the last pallet. Keep the entry edge, names and custom
+ // floor settings; standalone/manual layouts are never rewritten.
+ const renderJoined=m2RenderLayout;
+ m2RenderLayout=function(){
+  for(const rack of m2LayoutState.racks){
+   if(!rack.joinReferenceId||!rack.joinGroup||rack.hasExtra||rack.plan?.manual||m2DepthJoinSystem(rack)!=='mekik2')continue;
+   const first=m2LayoutState.racks.find(r=>r.id===rack.joinReferenceId&&r.joinGroup===rack.joinGroup);
+   const palletEnd=Number(rack.palletPositions?.at(-1))+Number(rack.palD);
+   if(!first||!(Number(rack.depthMm)>palletEnd+100))continue;
+   const next=m2DepthJoinDrawing(first,rack);
+   if(!next?.hasExtra||!(next.depthMm<rack.depthMm-.1))continue;
+   const delta=(next.h-rack.h)/2,angle=Number(rack.angle||0)*Math.PI/180;
+   rack.x-=Math.sin(angle)*delta;rack.y+=(Math.cos(angle)-1)*delta;
+   for(const key of ['plan','hasExtra','railOverhang','supportLength','depthMm','railLength','h','straightProfileCount','straightProfileLength','deepestFoot','deepestBrace','railLengthMeters','footLoad'])rack[key]=next[key];
+   delete rack.rackDetail;
+  }
+  return renderJoined.apply(this,arguments);
+ };
  window.rafexDepthJoinV523={plan:m2JoinedDepthPlan,drawing:m2DepthJoinDrawing};
 
 })();
+

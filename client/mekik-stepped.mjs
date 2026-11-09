@@ -27,6 +27,9 @@ export function mekikStepped(r) {
    // Only shortened boundaries receive terminal supports and a 100 mm rail tail.
    // Standard full-depth levels retain their original entry/exit connections.
    const cutStart=loads[0]>positions[0]+1,cutEnd=loads.at(-1)+pd<positions.at(-1)+pd-1;
+   // A terminal profile belongs to the full-depth exit. Keep its rail and
+   // traverse even when the last pallet ends before that profile.
+   if(r.hasExtra&&run.lastFrame===frames.length-1&&!cutEnd)run.end=Math.max(run.end,length);
    const terminalSupports=[];
    if(cutStart){const terminal=candidates.filter(p=>p.at<=loads[0]+1).at(-1);if(terminal){run.start=terminal.at-100;terminalSupports.push(terminal);}}
    if(cutEnd){const terminal=candidates.find(p=>p.at>=loads.at(-1)+pd-1);if(terminal){run.end=terminal.at+100;terminalSupports.push(terminal);}}
@@ -56,8 +59,13 @@ export function mekikStepped(r) {
 // Customer links contain an immutable 3D snapshot. Upgrade old derived geometry
 // once during preparation without changing the source project or saved slots.
 export function upgradeMekikStepped(r){
- const s=r?.mekikStepped;if(r?.system!=='mekik2'||!s||s.version>=517)return r;
+ const s=r?.mekikStepped;if(r?.system!=='mekik2'||!s)return r;
+ // Some v517 shared snapshots trimmed the rail before their terminal profile.
+ // Repair that derived snapshot once; retain immutable source and idempotence.
+ const terminal=r.depth*1000-r.foot*500;
+ if(s.version>=517&&(!r.hasExtra||s.floors?.every(f=>f.runs.every(run=>run.lastFrame!==s.frames.length-1||run.stations.some(at=>Math.abs(at-terminal)<.1)))))return r;
  const frames=s.frames,floors=s.floors;if(!frames?.length||!floors?.length)return r;
  const raw={levels:s.levels,depth:s.depth,bays:r.bays,palD:r.palletDepth*1000,palW:r.palletWidth*1000,palletHeight:r.palletHeight*1000,railLength:r.depth*1000,totalWidth:r.width*1000,footType:r.foot*1000,firstRailHeight:floors[0].y,levelH:floors.length>1?floors[1].y-floors[0].y:1580,systemType:r.systemType||'fifo',hasExtra:r.hasExtra,palletPositions:s.positions,plan:{feet:frames.map(f=>f.depth),braces:frames.slice(0,-1).map((f,i)=>frames[i+1].start-f.end)},mekikCustomizationV514:{depths:floors.map(f=>f.count),heightMode:'manual',uprightHeight:s.height,frameLevels:frames.map(f=>f.limit),frameHeights:frames.map(f=>f.height)}};
  return {...r,mekikStepped:mekikStepped(raw)};
 }
+

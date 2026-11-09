@@ -63,10 +63,10 @@ export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScal
    }
   }
  }else if(r.system==='drive'||r.system==='mekik2'){
-  const pitch=(r.width-r.foot)/r.bays,stations=r.footZ.length?r.footZ:[0,r.depth];
+  const pitch=(r.width-r.foot)/r.bays,stations=[...new Set([...(r.footZ.length?r.footZ:[0,r.depth]),...(r.system==='mekik2'&&r.hasExtra?[r.depth]:[])])];
   if(!simple&&!(cad&&r.system==='drive'))for(let lane=0;lane<=r.bays;lane++)for(const [start,end] of (r.footFrames?.length?r.footFrames:[[0,r.depth]])){
-   const x=-r.width/2+r.foot/2+lane*pitch,z1=Math.max(r.foot/2,start)-r.depth/2,z2=Math.min(r.depth-r.foot/2,end)-r.depth/2,span=z2-z1;let y=.15,index=0;
-   while(y<r.height-.15){const top=Math.min(y+.6,r.height-.15);box('brace',x,(top+y)/2,(z1+z2)/2,.03,Math.hypot(top-y,span),.025,Math.atan2((index%2?-1:1)*span,top-y));y=top;index++;}
+   const x=-r.width/2+r.foot/2+lane*pitch,z1=Math.max(r.foot/2,start)-r.depth/2,z2=Math.min(r.depth-r.foot/2,end)-r.depth/2;
+   panelBracing(x,z1,z2,r.height,false);
 
   }
   for(let lane=0;lane<=r.bays;lane++){const x=-r.width/2+r.foot/2+lane*pitch;for(const zz of [...new Set(stations)])post(x,Math.max(r.foot/2,Math.min(r.depth-r.foot/2,zz))-r.depth/2);}
@@ -87,6 +87,9 @@ export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScal
    }
   }
  }
+ // The terminal support is a single profile: no frame or diagonal bay.
+ // CAD posts are supplied separately by cadPlacements.
+ if(r.system==='mekik2'&&r.mekikStepped&&r.hasExtra){const pitch=(r.width-r.foot)/r.bays;for(let lane=0;lane<=r.bays;lane++)post(-r.width/2+r.foot/2+lane*pitch,(r.depth-r.foot)/2);}
  if(simple&&r.system==='b2b'){
   const {depth:fd,centers}=b2bFrameLayout(r);
   for(const z of centers){
@@ -100,4 +103,5 @@ export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScal
  }
  return parts.filter(p=>!(['foot','brace','tie'].includes(p.kind)&&isSharedDepthMember(r,p.x,p.z,p.kind)));
 }
+
 

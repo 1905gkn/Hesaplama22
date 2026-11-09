@@ -72,9 +72,9 @@ export function cadPlacements(r,templates){
   if(r.hasExtra)for(let lane=0;lane<=r.bays;lane++)add('mekikPost',-r.width/2+r.foot/2+lane*pitch,0,r.depth/2-r.foot/2,r.foot/.1,r.height/t.height,1);
   for(let lane=0;lane<r.bays;lane++)for(const floor of s.floors)for(const run of floor.runs){const stations=run.stations.map(p=>p/1000);for(const zz of stations){add('mekikBeam',-r.width/2+r.foot/2+(lane+.5)*pitch,floor.y/1000-(r.railHeight||.17)-(beam.railBearings?.[0]?.y??-.146),Math.max(r.foot/2,Math.min(r.depth-r.foot/2,zz))-r.depth/2+(t.postCenters?.[0]??.02)-.002,deepBeamScale(r,t,beam),1,1);out.at(-1).ry=Math.PI;}}
  }else if(r.system==='mekik2'||r.system==='drive'){
-  const postName=r.system==='drive'?'drivePost':'mekikPost',t=templates[postName],pitch=(r.width-r.foot)/r.bays,stations=r.footZ.length?r.footZ:[0,r.depth];
+  const postName=r.system==='drive'?'drivePost':'mekikPost',t=templates[postName],pitch=(r.width-r.foot)/r.bays,stations=[...new Set([...(r.footZ.length?r.footZ:[0,r.depth]),...(r.system==='mekik2'&&r.hasExtra?[r.depth]:[])])];
   if(r.system==='drive'){for(let lane=0;lane<=r.bays;lane++)for(const [start,end] of (r.footFrames.length?r.footFrames:[[0,r.depth]]))add(postName,-r.width/2+r.foot/2+lane*pitch,0,(start+end)/2-r.depth/2,r.foot/t.width,r.height/t.height,(end-start)/t.depth);}else for(let lane=0;lane<=r.bays;lane++)for(const zz of [...new Set(stations)])add(postName,-r.width/2+r.foot/2+lane*pitch,0,Math.max(r.foot/2,Math.min(r.depth-r.foot/2,zz))-r.depth/2,r.foot/.1,r.height/t.height,1);
-  const postMounts=r.system==='drive'?(r.footFrames.length?r.footFrames:[[0,r.depth]]).flatMap(([start,end])=>(t.postHoleFaces?.length?t.postHoleFaces:[{at:-t.depth/2,sign:-1},{at:t.depth/2,sign:1}]).map(face=>({z:(start+end)/2-r.depth/2+face.at*(end-start)/t.depth,side:face.sign}))):[...new Set(stations)].map(zz=>({z:Math.max(r.foot/2,Math.min(r.depth-r.foot/2,zz))-r.depth/2+(t.postCenters?.[0]??.02),side:-1}));
+   const postMounts=r.system==='drive'?(r.footFrames.length?r.footFrames:[[0,r.depth]]).flatMap(([start,end])=>(t.postHoleFaces?.length?t.postHoleFaces:[{at:-t.depth/2,sign:-1},{at:t.depth/2,sign:1}]).map(face=>({z:(start+end)/2-r.depth/2+face.at*(end-start)/t.depth,side:face.sign}))):stations.map(zz=>({z:Math.max(r.foot/2,Math.min(r.depth-r.foot/2,zz))-r.depth/2+(t.postCenters?.[0]??.02),side:-1}));
   const beamName=r.system==='drive'?'b2bBeam':'mekikBeam',beam=templates[beamName],sy=r.system==='drive'?.14/(beam.referenceHeight||.12):1,bearingY=beam.railBearings?.[0]?.y??-.146,ys=r.system==='drive'?[r.height-(beam.topY??.18)*sy]:r.floors.map(y=>y-(r.railHeight||.17)-bearingY);
   for(let lane=0;lane<r.bays;lane++)for(const y of ys)for(const mount of postMounts){add(beamName,-r.width/2+r.foot/2+(lane+.5)*pitch,y,r.system==='drive'?mount.z-mount.side*(beam.connectorContactZ??beam.connectorMinZ??-(beam.depth||.063)/2)+mount.side*.0002:mount.z-.002,deepBeamScale(r,t,beam),sy,1);out.at(-1).ry=r.system==='drive'?(mount.side<0?Math.PI:0):Math.PI;}
 
@@ -82,3 +82,4 @@ export function cadPlacements(r,templates){
  }
  return out.filter(p=>!(['mekikPost','drivePost'].includes(p.name)&&isSharedDepthMember(r,p.x,p.z)));
 }
+

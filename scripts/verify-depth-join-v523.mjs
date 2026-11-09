@@ -47,11 +47,16 @@ for(const system of ['mekik2','drive'])for(const angle of [0,90,180,270]){
   const profile=ctx.m2JoinedDepthPlan(anchor,1301);
   assert.equal(profile.hasExtra,true);assert.equal(profile.supportLength,1301);assert.equal(profile.railOverhang,0);
   const frame=ctx.m2JoinedDepthPlan(anchor,2600);
-  assert.deepEqual(Array.from(frame.plan.feet),[1200,1200]);assert.equal(frame.depthMm,3600,'Do not cut the next anchor frame to 200 mm');
+  assert.deepEqual(Array.from(frame.plan.feet),[1200]);assert.deepEqual(Array.from(frame.plan.braces),[1400]);assert.equal(frame.depthMm,2600,'Finish with a profile inside the next anchor frame');assert.equal(frame.hasExtra,true);
   anchor.palD=800;anchor.palletPositions=[0,1000,1850,2700,3700];
   const next=ctx.m2DepthJoinDrawing(anchor,added);
   assert.deepEqual(Array.from(next.palletPositions),[0,1000,1850]);assert.equal(next.palD,800);assert.equal(next.depth,3);
-  assert.equal(next.depthMm,3600);assert.equal(next.h,360);
+  assert.equal(next.depthMm,2650);assert.equal(next.h,265);
+}
+for(const angle of [0,90,180,270]){
+ const {ctx,anchor,added}=setup('mekik2',angle);Object.assign(anchor,{joinGroup:'old'});Object.assign(added,{joinGroup:'old',joinReferenceId:anchor.id,palD:800,palletPositions:[0,1000,1850],plan:{feet:[1200,1200],braces:[1200]},mekikCustomizationV514:{depths:[3,3,2],heightMode:'manual',uprightHeight:5000}});
+ const radians=angle*Math.PI/180,front=r=>(r.x+r.w/2)*-Math.sin(radians)+(r.y+r.h/2)*Math.cos(radians)-r.h/2,before=front(added),custom=JSON.stringify(added.mekikCustomizationV514);
+ anchor.palD=800;anchor.palletPositions=[0,1000,1850,2700,3700];ctx.m2RenderLayout();assert.equal(added.depthMm,2650);assert.equal(added.hasExtra,true);assert.equal(added.typeName,'B');assert.equal(JSON.stringify(added.mekikCustomizationV514),custom);assert(Math.abs(front(added)-before)<1e-8);const fixed=JSON.stringify(added);ctx.m2RenderLayout();assert.equal(JSON.stringify(added),fixed,'Old join migration runs only once');
 }
 for(const failure of ['wall','system','direction','group']){
   const {ctx,anchor,added}=setup();
@@ -65,3 +70,4 @@ for(const failure of ['wall','system','direction','group']){
 console.log('Depth joins passed: 5+3 pallets, both systems, four rotations, naming, tail profile, extension, persistence and rejected placements.');
 
 for(const f of ['dist/index.html','dist/server/index.js'])if(fs.existsSync(f)){const body=fs.readFileSync(f,'utf8');const data=f.endsWith('.html')?body:Buffer.from(body.match(/HTML_BASE64\s*=\s*["']([A-Za-z0-9+/=]+)/)[1],'base64').toString();assert.ok(data.includes('/* depth-join-v523 */'),f+' must include the final join override');}
+
