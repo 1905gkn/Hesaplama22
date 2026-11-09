@@ -420,4 +420,5 @@ node scripts/verify-localization-v542.mjs
 
 node scripts/mekik-support-v546.mjs
 node scripts/verify-mekik-support-v546.mjs
+node scripts/mekik-controls-v547.mjs
 
