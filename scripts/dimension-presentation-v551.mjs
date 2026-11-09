@@ -10,7 +10,7 @@ export function rackContains551(r,p){
  return Math.abs(dx*c+dy*s)<=r.w/2&&Math.abs(-dx*s+dy*c)<=r.h/2;
 }
 export function runtime551(){
- const selector='text[data-dimension-key]:not([data-dimension-key^="mark-label:"]),text.m2-area-dimension,text.m2-free-measure-label,text.m2-between-text';
+ const selector='text[data-dimension-key]:not([data-dimension-key^="mark-label:"]),text.m2-area-dimension,text.m2-free-measure-label,text.m2-between-text,text.m2-b2b-auto-guide-label';
  const unitText=lang=>({tr:'Çizimdeki tüm ölçüler milimetre (mm) cinsindedir.',en:'All drawing dimensions are in millimetres (mm).',fr:'Toutes les cotes du dessin sont en millimètres (mm).'})[String(lang||'tr').slice(0,2)]||'Çizimdeki tüm ölçüler milimetre (mm) cinsindedir.';
  function strip(root){for(const label of root.querySelectorAll(selector)){const walker=document.createTreeWalker(label,4);let node;while(node=walker.nextNode()){const next=node.nodeValue.replace(/\s*\bmm\b/gi,'');if(next!==node.nodeValue)node.nodeValue=next;}}}
  function notice(){const svg=document.getElementById('m2LayoutSvg');if(!svg)return;let note=document.getElementById('rafexDimensionUnitsV551');if(!note){note=document.createElement('small');note.id='rafexDimensionUnitsV551';note.className='rafex-dimension-units-v551';(svg.closest('.m2-floor-canvas-wrap')||svg).after(note);}const text=unitText(document.documentElement.lang);if(note.textContent!==text)note.textContent=text;}
