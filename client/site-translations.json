@@ -7123,5 +7123,20 @@
     "Kayıtlı rapor",
     "Saved report",
     "Rapport enregistré"
+  ],
+  [
+    "Uygulanacak sıra · palet kanalı",
+    "Apply to rows · pallet channels",
+    "Rangées concernées · canaux de palettes"
+  ],
+  [
+    "Seçilen kanallar",
+    "Selected channels",
+    "Canaux sélectionnés"
+  ],
+  [
+    "Düzenlemek için kanal seçin.",
+    "Select a channel to edit.",
+    "Sélectionnez un canal à modifier."
   ]
 ]

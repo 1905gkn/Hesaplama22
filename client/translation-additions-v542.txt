@@ -561,3 +561,7 @@ Görüntüleme izni sona erdi.|Viewing access has expired.|L’autorisation de c
 Seçimi İptal Et|Cancel Selection|Annuler la sélection
 Kayıtlı rapor|Saved report|Rapport enregistré
 İNTERAKTİF 3D|INTERACTIVE 3D|3D INTERACTIVE
+Uygulanacak sıra · palet kanalı|Apply to rows · pallet channels|Rangées concernées · canaux de palettes
+Seçilen kanallar|Selected channels|Canaux sélectionnés
+Düzenlemek için kanal seçin.|Select a channel to edit.|Sélectionnez un canal à modifier.
+Ayak boyu modu|Upright height mode|Mode de hauteur des montants

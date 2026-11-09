@@ -3,6 +3,24 @@ export function mekikStepped(r) {
  const c=r?.mekikCustomizationV514;if(!c)return null;
  const n=(v,f)=>v!==null&&v!==''&&Number.isFinite(Number(v))?Number(v):f;
  const levels=Math.max(1,Math.min(30,Math.round(n(r.levels,1)))),depth=Math.max(1,Math.round(n(r.depth,1))),pd=n(r.palD,800),ph=n(r.palletHeight,1200),first=n(r.firstRailHeight,430),gap=n(r.levelH,ph+380),length=n(r.railLength||r.depthMm,depth*(pd+50)-50),bays=Math.max(1,n(r.bays,1));
+ if(c.lanes?.some(v=>v&&Object.keys(v).length)){
+  const pitch=(n(r.totalWidth||r.widthMm,0)-n(r.footType,100))/bays,base={...c};delete base.lanes;
+  const lanes=Array.from({length:bays},(_,index)=>({index,model:mekikStepped({...r,bays:1,totalWidth:pitch+n(r.footType,100),widthMm:pitch+n(r.footType,100),joinGroup:null,sharedFootWith:null,depthSharedSupport:null,mekikCustomizationV514:{...base,...c.lanes[index],lanes:undefined}})}));
+  const adjacent=row=>lanes.filter(l=>l.index===row-1||l.index===row).map(l=>l.model),firstModel=lanes[0].model;
+  const frameRows=Array.from({length:bays+1},(_,row)=>firstModel.frames.map((frame,index)=>{const values=adjacent(row).map(m=>m.frames[index]);return {...frame,height:Math.max(...values.map(f=>f.height)),levels:Math.max(...values.map(f=>f.levels)),minimum:Math.max(...values.map(f=>f.minimum))};}));
+  const shared=(typeof window!=='undefined'&&window.rafexDepthSharedV524?.(r))||r.depthSharedSupport||{feet:[],braces:[],extra:false};
+  const sharedRow=row=>shared.side===(row===0?'left':row===bays?'right':null),rows=[],groups=new Map(),fmt=v=>new Intl.NumberFormat('tr-TR',{maximumFractionDigits:2}).format(v);
+  const add=(name,qty,spec='',unit=name==='Ayak takımı'?'takım':'adet')=>{if(!(qty>0))return;const key=JSON.stringify([name,spec,unit]);const old=groups.get(key);if(old)old.qty+=qty;else{const row={name,qty,spec,unit};groups.set(key,row);rows.push(row);}};
+  for(const lane of lanes)for(const row of lane.model.rows)if(!['Ayak takımı','Ayak Profili','Düz arabağ'].includes(row.name))add(row.name,row.qty,row.spec,row.unit);
+  for(let row=0;row<=bays;row++){
+   for(const f of frameRows[row])if(!(sharedRow(row)&&shared.feet.includes(f.index)))add('Ayak takımı',1,(r.footProfile?r.footProfile+' · ':'')+'Yükseklik '+fmt(f.height)+' mm · Derinlik '+fmt(f.depth)+' mm');
+   const ties=new Set();for(const model of adjacent(row))for(const floor of model.floors)for(const run of floor.runs)for(let j=run.firstFrame;j<run.lastFrame;j++)ties.add(j+':'+floor.index);
+   for(const key of ties){const j=Number(key.split(':')[0]);if(!(sharedRow(row)&&shared.braces.includes(j)))add('Düz arabağ',1,fmt(n(r.plan.braces[j],0))+' mm');}
+   if(r.hasExtra&&!(sharedRow(row)&&shared.extra))add('Ayak Profili',1,'L '+fmt(Math.max(...adjacent(row).map(m=>m.height)))+' mm');
+  }
+  const frames=firstModel.frames.map((f,i)=>({...f,height:Math.max(...frameRows.map(row=>row[i].height)),levels:Math.max(...frameRows.map(row=>row[i].levels)),minimum:Math.max(...frameRows.map(row=>row[i].minimum))}));
+  return {...firstModel,version:547,lanes,frameRows,laneOverrides:JSON.parse(JSON.stringify(c.lanes)),frames,height:Math.max(...lanes.map(l=>l.model.height)),automatic:Math.max(...lanes.map(l=>l.model.automatic)),minimum:Math.max(...lanes.map(l=>l.model.minimum)),capacity:lanes.reduce((sum,l)=>sum+l.model.capacity,0),rows,errors:lanes.flatMap(l=>l.model.errors.map(e=>(l.index+1)+'. kanal: '+e))};
+ }
  let positions=(r.palletPositions||[]).slice(0,depth).map(Number);if(positions.length!==depth){positions=[];let at=0;for(let i=0;i<depth;i++){positions.push(at);at+=pd+(i===0||r.systemType==='fifo'&&i===depth-2?n(r.firstPalletGap,200):n(r.palletGap,50));}}
  const frames=[];let cursor=0;for(let i=0;i<(r.plan?.feet||[]).length;i++){const d=n(r.plan.feet[i],0);frames.push({index:i,start:cursor,end:cursor+d,depth:d,limit:Math.max(1,Math.min(levels,Math.round(n(c.frameLevels?.[i],levels))))});cursor+=d+n(r.plan.braces?.[i],0);}
  if(!frames.length)throw Error('Mekik ayak yerleşimi eksik.');

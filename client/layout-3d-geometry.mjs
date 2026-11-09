@@ -54,9 +54,9 @@ export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScal
   }
  }else if(r.system==='mekik2'&&r.mekikStepped){
   const s=r.mekikStepped,pitch=(r.width-r.foot)/r.bays;
-  for(let lane=0;lane<=r.bays;lane++)for(const f of s.frames){const x=-r.width/2+r.foot/2+lane*pitch,z1=Math.max(r.foot/2,f.start/1000)-r.depth/2,z2=Math.min(r.depth-r.foot/2,f.end/1000)-r.depth/2;post(x,z1,f.height/1000);post(x,z2,f.height/1000);if(f.levels>0)panelBracing(x,z1,z2,f.height/1000,false);}
+  for(let lane=0;lane<=r.bays;lane++)for(const f of s.frameRows?.[lane]||s.frames){const x=-r.width/2+r.foot/2+lane*pitch,z1=Math.max(r.foot/2,f.start/1000)-r.depth/2,z2=Math.min(r.depth-r.foot/2,f.end/1000)-r.depth/2;post(x,z1,f.height/1000);post(x,z2,f.height/1000);if(f.levels>0)panelBracing(x,z1,z2,f.height/1000,false);}
   for(let lane=0;lane<r.bays;lane++){const x=-r.width/2+r.foot/2+(lane+.5)*pitch;
-   for(const floor of s.floors){const y=floor.y/1000;
+   for(const floor of s.lanes?.[lane]?.model.floors||s.floors){const y=floor.y/1000;
     for(const run of floor.runs)for(const side of [-1,1]){const bearing=railBearings?.[side<0?1:0],sx=railScaleX||((pitch-r.foot)/1.35),seat=bearing?-bearing.x:(railSeats||[-.47925,.47925])[side<0?0:1],rx=x+seat*sx,w=(bearing?.width||.0575)*sx,h=r.railHeight||.17,t=.003,z=(run.start+run.end)/2000-r.depth/2,d=(run.end-run.start)/1000,webX=rx+side*(w-t)/2,cap=Math.min(.025,w);box('rail',rx,y-h+t/2,z,w,t,d);box('rail',webX,y-h/2,z,t,h,d);box('rail',webX-side*(cap-t)/2,y-t/2,z,cap,t,d);}
     if(!cad)for(const run of floor.runs)for(const p of run.stations)box('beam',x,y-.1,p/1000-r.depth/2,pitch-r.foot,.1,.08);
     for(const p of floor.positions)pallet(x,y,p/1000+r.palletDepth/2-r.depth/2,Math.min(r.palletWidth,pitch-r.foot-.06),r.palletDepth,r.palletHeights[floor.index]);
@@ -89,7 +89,7 @@ export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScal
  }
  // The terminal support is a single profile: no frame or diagonal bay.
  // CAD posts are supplied separately by cadPlacements.
- if(r.system==='mekik2'&&r.mekikStepped&&r.hasExtra){const pitch=(r.width-r.foot)/r.bays;for(let lane=0;lane<=r.bays;lane++)post(-r.width/2+r.foot/2+lane*pitch,(r.depth-r.foot)/2);}
+ if(r.system==='mekik2'&&r.mekikStepped&&r.hasExtra){const s=r.mekikStepped,pitch=(r.width-r.foot)/r.bays;for(let row=0;row<=r.bays;row++){const heights=s.lanes?.filter(l=>l.index===row-1||l.index===row).map(l=>l.model.height/1000);post(-r.width/2+r.foot/2+row*pitch,(r.depth-r.foot)/2,heights?Math.max(...heights):r.height);}}
  if(simple&&r.system==='b2b'){
   const {depth:fd,centers}=b2bFrameLayout(r);
   for(const z of centers){
