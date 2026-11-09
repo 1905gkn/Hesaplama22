@@ -2,8 +2,8 @@ import fs from 'node:fs';
 export function transform(html){
  if(html.includes('/* original-letter-tunnel-v307 */'))return html;
  const rep=(a,b)=>{if(!html.includes(a))throw Error('Missing v307 anchor: '+a.slice(0,100));html=html.replace(a,b);};
- rep('const main=Math.min(12*ratio,height*.32,width/Math.max(.65,name.textContent.length*.65)),small=Math.min(8*ratio,main*.7,width/Math.max(.65,detail.length*.65));','/* original-letter-tunnel-v307 */ const main=12*ratio,small=Math.min(10*ratio,width/Math.max(.65,detail.length*.65));');
- rep('const gap=(main+small)*.7+Math.min(3*ratio,height*.1),top=y-gap/2/scale,bottom=y+gap/2/scale;','const gap=16*ratio,top=y-gap/2/scale,bottom=y+gap/2/scale;');
+ rep('const main=Math.min(12*ratio,height*.32,width/Math.max(.65,name.textContent.length*.65)),small=Math.min(8*ratio,main*.7,width/Math.max(.65,detail.length*.65));','/* original-letter-tunnel-v307 */ const main=(window.rafexRackLabelSizeV554?.(rack.w,rack.h,ratio)||Math.min(12,Math.min(rack.w,rack.h)*.48)*ratio)*scale,small=Math.min(main*5/6,width/Math.max(.65,detail.length*.65));');
+ rep('const gap=(main+small)*.7+Math.min(3*ratio,height*.1),top=y-gap/2/scale,bottom=y+gap/2/scale;','const gap=main*4/3,top=y-gap/2/scale,bottom=y+gap/2/scale;');
  rep('session={values:JSON.stringify(values()),rackId:m2CustomizeRackId,saved:structuredClone(m2SavedRackTypes)};', 'session={values:JSON.stringify(values()),rackId:m2CustomizeRackId,saved:structuredClone(m2SavedRackTypes),original:structuredClone(m2LayoutState.racks.find(r=>r.id===m2CustomizeRackId))};');
  rep('session?.rackId===r.id&&JSON.stringify(values())===session.values&&Number(r.b2b?.tunnelHeight||0)!==Number(previous?.b2b?.tunnelHeight||0)',`session?.rackId===r.id&&Number(r.b2b?.tunnelHeight||0)!==Number(session.original?.b2b?.tunnelHeight||0)&&(
     JSON.stringify(values())===session.values||(

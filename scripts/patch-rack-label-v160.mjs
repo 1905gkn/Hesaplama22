@@ -1,9 +1,15 @@
 import fs from 'node:fs';
+export function rackLabelSize554(width,height,ratio=1){
+ const side=Math.max(.01,Math.min(Number(width)||1,Number(height)||1));
+ return Math.min(12,side*.48)*Math.max(.1,Math.min(2,Number(ratio)||1));
+}
 export function transform(html){
  if(html.includes('/* rack-label-v171 */'))return html;
  const start=html.indexOf('  function decorateGroup(group){'),end=html.indexOf('  function decorate(){var node=svg();',start);
  if(start<0||end<0)throw Error('Rack label decorator missing');
- html=html.slice(0,start)+`  function decorateGroup(group){
+ html=html.slice(0,start)+`  ${rackLabelSize554.toString()}
+  window.rafexRackLabelSizeV554=rackLabelSize554;
+  function decorateGroup(group){
     const rack=m2LayoutState?.racks?.find(r=>String(r.id)===group.getAttribute('data-rack'));if(!rack)return;
     group.querySelectorAll('.rafex-single-line-letter-v58').forEach(n=>n.remove());
     const system=String(rack.rafexSystem||rack.__rafexSystem||rack.systemType||'').toLowerCase();
@@ -19,10 +25,11 @@ export function transform(html){
     // Model coordinates may already include that translation and would apply it twice.
     const frame=group.querySelector(':scope > .m2-layout-rack');
     const coord=(key,fallback)=>{const value=frame?.getAttribute(key);return value!=null&&Number.isFinite(Number(value))?Number(value):Number(fallback)};
-    const x=coord('x',rack.x)+coord('width',rack.w)/2,y=coord('y',rack.y)+coord('height',rack.h)/2-(tunnel?8*ratio/scale:0);
-    const size=12*ratio/scale,small=10*ratio/scale,gap=12*ratio/scale;
+    const size=rackLabelSize554(coord('width',rack.w),coord('height',rack.h),ratio);
+    const x=coord('x',rack.x)+coord('width',rack.w)/2,y=coord('y',rack.y)+coord('height',rack.h)/2-(tunnel?size*2/3:0);
+    const small=size*5/6,gap=size;
     const color=m2TypeColor(name);
-    const signature=[name,label,color,x,y,scale,ratio,tunnel].join('|');
+    const signature=[name,label,color,x,y,size,ratio,tunnel].join('|');
     let mark=group.querySelector('.rafex-rack-label-v160');
     if(mark?.getAttribute('data-signature')===signature)return;
     if(!mark){mark=document.createElementNS(NS,'g');mark.setAttribute('class','rafex-rack-label-v160');mark.setAttribute('pointer-events','none');group.appendChild(mark);}

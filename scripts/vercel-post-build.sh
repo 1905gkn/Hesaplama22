@@ -432,3 +432,5 @@ node scripts/verify-dimension-presentation-v551.mjs
 
 node scripts/wall-distance-v552.mjs
 node scripts/verify-wall-distance-v552.mjs
+
+node scripts/verify-rack-label-size-v554.mjs
