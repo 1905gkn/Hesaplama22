@@ -437,4 +437,6 @@ node scripts/verify-rack-label-size-v554.mjs
 node scripts/free-wall-edit-v555.mjs
 node scripts/project-viewers-v555.mjs
 node scripts/verify-editor-workflow-v555.mjs
+node scripts/rack-endpoint-alignment-v556.mjs
+node scripts/verify-rack-endpoint-alignment-v556.mjs
 
