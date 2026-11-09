@@ -424,5 +424,8 @@ node scripts/mekik-controls-v547.mjs
 node scripts/verify-mekik-channels-v547.mjs
 node scripts/b2b-consistency-v549.mjs
 node scripts/verify-b2b-consistency-v549.mjs
+node scripts/dimension-presentation-v551.mjs
+node scripts/verify-dimension-presentation-v551.mjs
+
 
 
