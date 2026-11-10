@@ -35,7 +35,7 @@ export function transform(html){
  const preview=m2PreviewRackCustomization;m2PreviewRackCustomization=window.m2PreviewRackCustomization=function(){const e=entry();if(e){const d=m2B2BRecordV108(structuredClone(e.__rafexSnapshot||e.drawing));return window.RafexB2BViewer?.update(m2Rack3DOptions(d));}return preview.apply(this,arguments);};
  const apply=m2ApplyRackCustomization;m2ApplyRackCustomization=window.m2ApplyRackCustomization=function(){const value=selected();if(!value)return apply.apply(this,arguments);try{window.rafexReplaceSingleRack563(m2CustomizeRackId,value);m2CloseCustomizeModal();}catch(error){alert(error.message||'Tip değiştirilemedi.');}};
  let scheduled=false;function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;decorate();});}
- new MutationObserver(records=>{if(records.some(r=>r.target.id==='m2CustomizeModal'||r.target.id==='page'))schedule();}).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden']});
+ new MutationObserver(records=>{if(records.some(r=>r.target.id==='m2CustomizeModal'&&r.attributeName==='hidden')){const w=document.querySelector('[data-single-type563]');if(w)delete w.dataset.rackId;}if(records.some(r=>r.target.id==='m2CustomizeModal'||r.target.id==='page'))schedule();}).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden']});
  document.addEventListener('click',event=>{const button=event.target.closest?.('#m2CustomizeModal .m2-customize-actions button');if(!button||!String(button.getAttribute('onclick')).includes('m2ApplyRackCustomization')||!selected())return;event.preventDefault();event.stopImmediatePropagation();try{window.rafexReplaceSingleRack563(m2CustomizeRackId,selected());m2CloseCustomizeModal();}catch(error){alert(error.message||'Tip değiştirilemedi.');}},true);
 })();`;
  const at=html.lastIndexOf('</body>');return html.slice(0,at)+'<script>'+code+'</script>'+html.slice(at);
@@ -43,6 +43,7 @@ export function transform(html){
 if(/[\\/]single-rack-type-v563\.mjs$/.test(process.argv[1]||''))for(const file of ['dist/index.html','dist/server/index.js'])if(fs.existsSync(file)){
  let s=fs.readFileSync(file,'utf8');if(file.endsWith('.html'))s=transform(s);else{const m=s.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1/);if(!m)throw Error('HTML missing');s=s.replace(m[0],m[0].replace(m[2],Buffer.from(transform(Buffer.from(m[2],'base64').toString())).toString('base64')));}fs.writeFileSync(file,s);
 }
+
 
 
 
