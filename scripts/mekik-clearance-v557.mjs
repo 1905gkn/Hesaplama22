@@ -15,6 +15,7 @@ export function transform(html){
  if(html.includes('data-mekik-clearance="557"'))return html;
  const replace=(a,b)=>{if(!html.includes(a))throw Error('557 missing '+a.slice(0,100));html=html.replace(a,b);};
  replace('<b>İki palet arası mesafe</b>','<b>Kat arası mesafe</b>');
+ html=html.replace('["İki palet arası mesafe","Distance between two pallets","Distance entre deux palettes"]','["Kat arası mesafe","Level spacing","Espacement entre niveaux"],["Palet arası boşluk","Pallet clearance","Jeu entre palettes"],["Boşluk (mm)","Clearance (mm)","Jeu (mm)"]');
  replace('m2ActiveModule === "drive" ? 1350 : 1580','m2ActiveModule === "drive" ? 1350 : 1610');
  replace('<section class="m2-spacing-section"><b>Kat arası mesafe</b>', '${m2ActiveModule === "mekik2" ? `<section class="m2-spacing-section"><b>Palet arası boşluk</b><small>En alt kat hariç palet üstü ile üst katın travers bölümü arasındaki net boşluk.</small><label>Boşluk (mm)<input id="m2PalletClearance557" type="number" min="0" max="3000" step="10" value="150" oninput="drawMekik2(event)" onchange="drawMekik2(event)"></label></section>` : ""}<section class="m2-spacing-section"><b>Kat arası mesafe</b>');
  replace('requestedLevelH = m2Number("m2LevelSpacing", 380, 5000),','requestedLevelH = m2ActiveModule === "mekik2" ? window.rafexSyncMekikSpacing557(event,palletHeight,railHeight) : m2Number("m2LevelSpacing", 380, 5000),');
