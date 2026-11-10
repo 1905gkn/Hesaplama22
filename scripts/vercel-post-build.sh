@@ -452,3 +452,5 @@ node scripts/verify-target-placement-v559.mjs
 
 node scripts/area-copy-modal-v560.mjs
 node scripts/verify-area-copy-modal-v560.mjs
+
+node scripts/column-edit-lock-v561.mjs
