@@ -25,7 +25,8 @@ export function transform(html){
     // Model coordinates may already include that translation and would apply it twice.
     const frame=group.querySelector(':scope > .m2-layout-rack');
     const coord=(key,fallback)=>{const value=frame?.getAttribute(key);return value!=null&&Number.isFinite(Number(value))?Number(value):Number(fallback)};
-    const size=rackLabelSize554(coord('width',rack.w),coord('height',rack.h),ratio);
+    const rowHeight564=rack.b2b&&!rack.b2b.mr&&Number(rack.b2bLayout?.rowCount)>1?coord('height',rack.h)*(Number(rack.b2bLayout.palletDepth)>0&&Number(rack.depthMm)>0?Math.min(1,Number(rack.b2bLayout.palletDepth)/Number(rack.depthMm)):1/Number(rack.b2bLayout.rowCount)):coord('height',rack.h);
+    const size=rackLabelSize554(coord('width',rack.w),rowHeight564,ratio);
     const x=coord('x',rack.x)+coord('width',rack.w)/2,y=coord('y',rack.y)+coord('height',rack.h)/2-(tunnel?size*2/3:0);
     const small=size*5/6,gap=size;
     const color=m2TypeColor(name);

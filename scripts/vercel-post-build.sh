@@ -458,3 +458,4 @@ node scripts/autofill-size-v562.mjs
 
 node scripts/single-rack-type-v563.mjs
 node scripts/verify-single-rack-type-v563.mjs dist/index.html
+node scripts/row-label-size-v564.mjs
