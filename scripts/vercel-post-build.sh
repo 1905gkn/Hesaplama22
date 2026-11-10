@@ -443,3 +443,6 @@ node scripts/verify-rack-endpoint-alignment-v556.mjs
 
 node scripts/mekik-clearance-v557.mjs
 node scripts/verify-mekik-clearance-v557.mjs
+
+node scripts/initial-placement-v558.mjs
+node scripts/verify-initial-placement-v558.mjs
