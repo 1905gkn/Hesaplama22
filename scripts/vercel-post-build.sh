@@ -454,3 +454,4 @@ node scripts/area-copy-modal-v560.mjs
 node scripts/verify-area-copy-modal-v560.mjs
 
 node scripts/column-edit-lock-v561.mjs
+node scripts/autofill-size-v562.mjs
