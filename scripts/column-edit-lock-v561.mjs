@@ -8,7 +8,7 @@ export function transform(html){
  replace('m2LayoutSymbols.filter((symbol)=>selected.has(symbol.rackId)||','m2LayoutSymbols.filter((symbol)=>(symbol.type!=="column"||m2LayoutState.mode==="draw"||m2LayoutState.areaEditMode)&&(selected.has(symbol.rackId)||');
  replace('symbol.y+symbol.h/2<=bottom)).map((symbol)=>symbol.id)','symbol.y+symbol.h/2<=bottom))).map((symbol)=>symbol.id)');
  html=html.replace('if(!columnEditing561){','document.getElementById("m2LayoutSvg")?.setAttribute("data-area-edit561",String(Boolean(columnEditing561)));if(!columnEditing561){');
- return html.replace('</body>','<style>#m2LayoutSvg[data-area-edit561="false"] .m2-floor-point,#m2LayoutSvg[data-area-edit561="false"] [data-resume-point]{display:none!important;pointer-events:none!important}[data-column-locked561],[data-column-locked561] *{pointer-events:none!important;cursor:default!important}</style></body>');
+ const at=html.lastIndexOf('</body>');return html.slice(0,at)+'<style data-column-lock561>#m2LayoutSvg[data-area-edit561="false"] .m2-floor-point,#m2LayoutSvg[data-area-edit561="false"] [data-resume-point]{display:none!important;pointer-events:none!important}[data-column-locked561],[data-column-locked561] *{pointer-events:none!important;cursor:default!important}</style>'+html.slice(at);
 }
 if(/[\\/]column-edit-lock-v561\.mjs$/.test(process.argv[1]||''))for(const file of ['dist/index.html','dist/server/index.js'])if(fs.existsSync(file)){
  let s=fs.readFileSync(file,'utf8');if(file.endsWith('.html'))s=transform(s);else{const m=s.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1/);if(!m)throw Error('HTML missing');s=s.replace(m[0],m[0].replace(m[2],Buffer.from(transform(Buffer.from(m[2],'base64').toString())).toString('base64')));}fs.writeFileSync(file,s);
