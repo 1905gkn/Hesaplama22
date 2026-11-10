@@ -9,7 +9,7 @@ export function transform(html){
  if(html.includes('/* row-label-size-v564 */'))return html;
  const replace=(a,b)=>{if(!html.includes(a))throw Error('564 missing '+a.slice(0,100));html=html.replace(a,b);};
  replace('function m2RenderLayout() {','function m2RackLabelHeight564(rack,height){return ('+rowLabelHeight564.toString()+')(rack,height);}\n      function m2RenderLayout() { /* row-label-size-v564 */');
- replace('window.rafexRackLabelSizeV554?.(rack.w,rack.h,ratio)','window.rafexRackLabelSizeV554?.(rack.w,m2RackLabelHeight564(rack,rack.h),ratio)');
+ replace('window.rafexRackLabelSizeV554?.(rack.w,rack.h,ratio)','window.rafexRackLabelSizeV554?.(rack.w,m2RackLabelHeight564(rack,rack.h),ratio)*(rack.b2b&&!rack.b2b.mr?1.75:1)');
  return html;
 }
 if(/[\\/]row-label-size-v564\.mjs$/.test(process.argv[1]||''))for(const file of ['dist/index.html','dist/server/index.js'])if(fs.existsSync(file)){
