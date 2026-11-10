@@ -455,3 +455,6 @@ node scripts/verify-area-copy-modal-v560.mjs
 
 node scripts/column-edit-lock-v561.mjs
 node scripts/autofill-size-v562.mjs
+
+node scripts/single-rack-type-v563.mjs
+node scripts/verify-single-rack-type-v563.mjs dist/index.html
