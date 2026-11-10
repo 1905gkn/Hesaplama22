@@ -440,3 +440,6 @@ node scripts/verify-editor-workflow-v555.mjs
 node scripts/rack-endpoint-alignment-v556.mjs
 node scripts/verify-rack-endpoint-alignment-v556.mjs
 
+
+node scripts/mekik-clearance-v557.mjs
+node scripts/verify-mekik-clearance-v557.mjs
