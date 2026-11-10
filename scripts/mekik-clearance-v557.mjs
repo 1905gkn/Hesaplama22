@@ -4,6 +4,7 @@ export function sync557(event,pallet,rail){
  const total=document.getElementById('m2LevelSpacing'),gap=document.getElementById('m2PalletClearance557');
  if(!total)return Number(pallet)+(Number(rail)===170?280:260)+150;
  const assembly=Number(rail)===170?280:260,id=event?.target?.id;
+ if(id==='m2PalletClearance557'||id==='m2LevelSpacing'&&event?.isTrusted!==false)total.dataset.rafexLevelSpacingManual='1';
  if(id==='m2PalletClearance557'&&gap?.value!=='')total.value=String(Number(pallet)+assembly+Math.max(0,Number(gap.value)||0));
  else if(id==='m2LevelH'&&total.dataset.netClearance557!==undefined)total.value=String(Number(pallet)+assembly+Number(total.dataset.netClearance557));
  const value=Math.max(Number(pallet)+assembly,Number(total.value)||Number(pallet)+assembly+150),net=value-Number(pallet)-assembly;

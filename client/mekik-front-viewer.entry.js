@@ -786,7 +786,7 @@ function syncMekikLevelSpacing(panel, selectedTraverse) {
   const traverseHeight = traverseProfileHeight(selectedTraverse);
   // İki paletin aynı kot referansı arasındaki standart mesafe:
   // palet yüksekliği + 100 mm + travers yüksekliği + 60 mm + ray yüksekliği.
-  const palletGap = 100 + traverseHeight + 60 + railHeight;
+  const palletGap = (railHeight === 170 ? 280 : 260) + 150;
   const automaticSpacing = palletHeight + palletGap;
   const previousAutomatic = Number(levelInput.dataset.rafexAutomaticSpacing);
   const current = Number(levelInput.value);
@@ -802,7 +802,7 @@ function syncMekikLevelSpacing(panel, selectedTraverse) {
   const modal = levelInput.closest(".m2-spacing-modal");
   const footer = modal?.querySelector(".m2-spacing-dialog-foot span");
   if (footer) {
-    footer.textContent = `Standart: ${palletHeight} palet + 100 + ${traverseHeight} travers + 60 + ${railHeight} ray = ${automaticSpacing} mm. Elle değiştirilebilir.`;
+    footer.textContent = `Standart: ${palletHeight} palet + ${railHeight === 170 ? 280 : 260} travers/ray bölümü + 150 palet arası boşluk = ${automaticSpacing} mm. Elle değiştirilebilir.`;
   }
 }
 
