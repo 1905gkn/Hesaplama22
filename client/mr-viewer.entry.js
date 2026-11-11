@@ -113,7 +113,7 @@ class MRViewer {
     this.center = new THREE.Vector3(1200, 1650, 400);
     this.onResize = this.onResize.bind(this);
     this.animate = this.animate.bind(this);
-    this.renderDirty567=true;this.inViewport567=true;this.invalidate567=()=>{this.renderDirty567=true};
+    this.__rafexLifecycleV30=true;this.renderDirty567=true;this.inViewport567=true;this.invalidate567=()=>{this.renderDirty567=true};
     this.onCanvasClick = this.onCanvasClick.bind(this);
     this.onCanvasPointerMove = this.onCanvasPointerMove.bind(this);
 
@@ -417,7 +417,7 @@ class MRViewer {
     this.camera.updateProjectionMatrix();
   }
   animate() { if (!this.destroyed) { this.frame567=requestAnimationFrame(this.animate);if(document.hidden||!this.inViewport567)return;const changed=this.controls.update();if(!changed&&!this.renderDirty567&&!this.controls.autoRotate)return;this.renderDirty567=false; this.dimensionLabels.forEach(label=>{label.getWorldPosition(this.dimensionWorldPosition).applyMatrix4(this.camera.matrixWorldInverse);const depth=Math.max(1,-this.dimensionWorldPosition.z),height=2*depth*Math.tan(THREE.MathUtils.degToRad(this.camera.fov/2))*28*this.config.dimensionScale/Math.max(1,this.canvas.clientHeight);label.scale.set(height*(label.userData.savedAspect||1),height,1)});this.renderer.render(this.scene, this.camera); } }
-  destroy() { this.destroyed = true;cancelAnimationFrame(this.frame567);this.visibility567?.disconnect();this.controls.removeEventListener('change',this.invalidate567);this.canvas.removeEventListener('pointermove',this.invalidate567);this.canvas.removeEventListener('click',this.invalidate567); this.loadToken += 1; this.disposeDimensions(); this.canvas.removeEventListener("click", this.onCanvasClick); this.canvas.removeEventListener("pointermove", this.onCanvasPointerMove); this.resizeObserver.disconnect(); this.controls.dispose(); this.ground.geometry.dispose(); this.ground.material.dispose(); this.renderer.dispose(); }
+  destroy() { if(this.destroyed)return;this.destroyed = true;cancelAnimationFrame(this.frame567);this.visibility567?.disconnect();this.controls.removeEventListener('change',this.invalidate567);this.canvas.removeEventListener('pointermove',this.invalidate567);this.canvas.removeEventListener('click',this.invalidate567); this.loadToken += 1; this.disposeDimensions(); this.canvas.removeEventListener("click", this.onCanvasClick); this.canvas.removeEventListener("pointermove", this.onCanvasPointerMove); this.resizeObserver.disconnect(); this.controls.dispose(); this.ground.geometry.dispose(); this.ground.material.dispose(); this.root.clear();this.renderer.renderLists?.dispose();this.renderer.dispose(); }
 }
 
 let active = null;
