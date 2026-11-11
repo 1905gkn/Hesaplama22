@@ -9,6 +9,7 @@ export async function prepareNativeBatches(byRack){
   if(!cache.has(parts)){
    const groups=new Map();
    for(const p of parts){
+    if(p.matrices)continue; // Keep repeated CAD on the GPU as instances.
     const g=p.geometry;if(Object.keys(g.morphAttributes).length)continue;
     const schema=Object.entries(g.attributes).map(([k,a])=>[k,a.itemSize,a.normalized,a.array.constructor.name]);
     const key=JSON.stringify([p.color,p.roughness,p.metalness,!!p.load,!!g.index,schema]);

@@ -1,3 +1,4 @@
+import {nativeInstanceSnapshot} from './native-instance-snapshot.mjs';
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
@@ -111,6 +112,7 @@ class MRViewer {
     this.center = new THREE.Vector3(1200, 1650, 400);
     this.onResize = this.onResize.bind(this);
     this.animate = this.animate.bind(this);
+    this.renderDirty567=true;this.inViewport567=true;this.invalidate567=()=>{this.renderDirty567=true};
     this.onCanvasClick = this.onCanvasClick.bind(this);
     this.onCanvasPointerMove = this.onCanvasPointerMove.bind(this);
 
@@ -126,6 +128,10 @@ class MRViewer {
     this.camera = new THREE.PerspectiveCamera(32, 1, 1, 200000);
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
+    this.controls.addEventListener('change',this.invalidate567);
+    this.canvas.addEventListener('pointermove',this.invalidate567);
+    this.canvas.addEventListener('click',this.invalidate567);
+    this.visibility567=new IntersectionObserver(entries=>{this.inViewport567=entries.some(e=>e.isIntersecting);if(this.inViewport567)this.renderDirty567=true});this.visibility567.observe(canvas);
     this.controls.dampingFactor = 0.07;
     this.controls.screenSpacePanning = true;
     this.controls.minDistance = 50;
@@ -209,6 +215,7 @@ class MRViewer {
   }
 
   async build(config = {}) {
+    this.renderDirty567=true;
     if(this.canvas?.id==='mrCanvas')config=window.rafexCopiedDetailV135?.('mr')||config;
     this.config = this.cleanConfig(config);
     const signature = JSON.stringify(this.config);
@@ -280,7 +287,7 @@ class MRViewer {
       const gridSize = Math.max(1800, this.size.x, this.size.z) * 2.2;
       this.grid.scale.setScalar(gridSize / 12000);
       this.ground.scale.set(gridSize, gridSize, 1);
-      this.setView(this.view);
+      this.renderDirty567=true;this.setView(this.view);
       this.configSignature = signature;
       const detail = { label: `${modules} modül · ${levels} kat`, config: this.config };
       this.canvas.dispatchEvent(new CustomEvent("mr-viewer-model", { detail }));
@@ -398,8 +405,9 @@ class MRViewer {
     this.camera.updateProjectionMatrix();
     this.controls.update();
   }
-  setAutoRotate(enabled) { this.controls.autoRotate = Boolean(enabled); this.controls.autoRotateSpeed = 0.75; }
+  setAutoRotate(enabled) { this.renderDirty567=true;this.controls.autoRotate = Boolean(enabled); this.controls.autoRotateSpeed = 0.75; }
   onResize() {
+    this.renderDirty567=true;
     const rect = this.canvas.getBoundingClientRect();
     const width = Math.max(1, Math.round(rect.width));
     const height = Math.max(1, Math.round(rect.height));
@@ -407,15 +415,15 @@ class MRViewer {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
   }
-  animate() { if (!this.destroyed) { this.controls.update(); this.dimensionLabels.forEach(label=>{label.getWorldPosition(this.dimensionWorldPosition).applyMatrix4(this.camera.matrixWorldInverse);const depth=Math.max(1,-this.dimensionWorldPosition.z),height=2*depth*Math.tan(THREE.MathUtils.degToRad(this.camera.fov/2))*28*this.config.dimensionScale/Math.max(1,this.canvas.clientHeight);label.scale.set(height*(label.userData.savedAspect||1),height,1)});this.renderer.render(this.scene, this.camera); requestAnimationFrame(this.animate); } }
-  destroy() { this.destroyed = true; this.loadToken += 1; this.disposeDimensions(); this.canvas.removeEventListener("click", this.onCanvasClick); this.canvas.removeEventListener("pointermove", this.onCanvasPointerMove); this.resizeObserver.disconnect(); this.controls.dispose(); this.ground.geometry.dispose(); this.ground.material.dispose(); this.renderer.dispose(); }
+  animate() { if (!this.destroyed) { this.frame567=requestAnimationFrame(this.animate);if(document.hidden||!this.inViewport567)return;const changed=this.controls.update();if(!changed&&!this.renderDirty567&&!this.controls.autoRotate)return;this.renderDirty567=false; this.dimensionLabels.forEach(label=>{label.getWorldPosition(this.dimensionWorldPosition).applyMatrix4(this.camera.matrixWorldInverse);const depth=Math.max(1,-this.dimensionWorldPosition.z),height=2*depth*Math.tan(THREE.MathUtils.degToRad(this.camera.fov/2))*28*this.config.dimensionScale/Math.max(1,this.canvas.clientHeight);label.scale.set(height*(label.userData.savedAspect||1),height,1)});this.renderer.render(this.scene, this.camera); } }
+  destroy() { this.destroyed = true;cancelAnimationFrame(this.frame567);this.visibility567?.disconnect();this.controls.removeEventListener('change',this.invalidate567);this.canvas.removeEventListener('pointermove',this.invalidate567);this.canvas.removeEventListener('click',this.invalidate567); this.loadToken += 1; this.disposeDimensions(); this.canvas.removeEventListener("click", this.onCanvasClick); this.canvas.removeEventListener("pointermove", this.onCanvasPointerMove); this.resizeObserver.disconnect(); this.controls.dispose(); this.ground.geometry.dispose(); this.ground.material.dispose(); this.renderer.dispose(); }
 }
 
 let active = null;
 window.RafexMRViewer = {
   async layoutAccessoryGeometry(config){
     const model=Object.create(MRViewer.prototype);let failure=null;Object.assign(model,{canvas:{id:'layout-accessories',dispatchEvent(e){if(e.type==='mr-viewer-error')failure=e.detail?.message;}},root:new THREE.Group(),bounds:new THREE.Box3(),center:new THREE.Vector3(),size:new THREE.Vector3(),loadToken:0,configSignature:'',destroyed:false,grid:{scale:{setScalar(){}}},ground:{scale:{set(){}}},disposeDimensions(){},addDimensions(){},setView(){}});
-    await model.build(config);if(failure)throw Error(failure);model.root.updateMatrixWorld(true);const result=[];model.root.traverse(m=>{if(!m.isMesh)return;const g=m.geometry.clone().applyMatrix4(m.matrixWorld);if(m.matrixWorld.determinant()<0){if(!g.index)g.setIndex(Array.from({length:g.attributes.position.count},(_,i)=>i));const ix=g.index.array;for(let i=0;i<ix.length;i+=3){const a=ix[i+1];ix[i+1]=ix[i+2];ix[i+2]=a;}g.index.needsUpdate=true;}g.scale(.001,.001,.001);g.computeBoundingBox();g.computeBoundingSphere();const mat=Array.isArray(m.material)?m.material[0]:m.material;result.push({geometry:g,color:mat?.color?.getHex?.()??0xaeb8bd,roughness:mat?.roughness??.42,metalness:mat?.metalness??.4,name:m.name||'MR kayıtlı parça'});});model.root.clear();return result;
+    await model.build(config);if(failure)throw Error(failure);const result=nativeInstanceSnapshot(model.root);model.root.clear();return result;
   },
 
   getSavedDetail() { return active?.canvas?.id === 'mrCanvas' ? JSON.parse(JSON.stringify(active.config)) : null; },
