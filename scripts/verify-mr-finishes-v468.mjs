@@ -3,6 +3,8 @@ import path from 'node:path';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
+import {nativeInstanceSnapshot} from '../client/native-instance-snapshot.mjs';
+import {prepareCadRenderCopy} from '../client/cad-render-copy.mjs';
 import {nativeRenderBatches} from '../client/layout-3d-batching.mjs';
 
 const assetRoot=process.env.MR_ASSET_DIR||'dist/mr';
@@ -23,7 +25,7 @@ for(const [kind,names] of Object.entries({upright:['mr-ayak-top.glb'],traverse:[
 const source=fs.readFileSync('client/mr-viewer.entry.js','utf8').replace(/^import .*;\r?\n/gm,'');
 class Loader {setDRACOLoader(){return this}setMeshoptDecoder(){return this}async loadAsync(url){return assets.get(url.includes('ayak')?'upright':url.includes('travers')?'traverse':'tray')}}
 class Draco {setDecoderPath(){}dispose(){}}
-const context=vm.createContext({THREE,GLTFLoader:Loader,DRACOLoader:Draco,MeshoptDecoder:{},window:{dispatchEvent(){}},CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail}},console});
+const context=vm.createContext({THREE,nativeInstanceSnapshot,prepareCadRenderCopy,GLTFLoader:Loader,DRACOLoader:Draco,MeshoptDecoder:{},window:{dispatchEvent(){}},CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail}},console});
 const {api,finished,finishes}=vm.runInContext(source+';({api:window.RafexMRViewer,finished:loadFinishedPart,finishes:FINISHES})',context);
 const meshes=object=>{const out=[];object.traverse(p=>{if(p.isMesh)out.push(p)});return out};
 const before=meshes(assets.get('upright').scene).map(m=>({geometry:m.geometry,position:Array.from(m.geometry.attributes.position.array),color:m.material.color.getHex()}));
