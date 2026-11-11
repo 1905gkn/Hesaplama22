@@ -1,3 +1,4 @@
+import {prepareCadRenderCopy} from './cad-render-copy.mjs';
 import {nativeInstanceSnapshot} from './native-instance-snapshot.mjs';
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -423,7 +424,7 @@ let active = null;
 window.RafexMRViewer = {
   async layoutAccessoryGeometry(config){
     const model=Object.create(MRViewer.prototype);let failure=null;Object.assign(model,{canvas:{id:'layout-accessories',dispatchEvent(e){if(e.type==='mr-viewer-error')failure=e.detail?.message;}},root:new THREE.Group(),bounds:new THREE.Box3(),center:new THREE.Vector3(),size:new THREE.Vector3(),loadToken:0,configSignature:'',destroyed:false,grid:{scale:{setScalar(){}}},ground:{scale:{set(){}}},disposeDimensions(){},addDimensions(){},setView(){}});
-    await model.build(config);if(failure)throw Error(failure);const result=nativeInstanceSnapshot(model.root);model.root.clear();return result;
+    await model.build(config);if(failure)throw Error(failure);const result=nativeInstanceSnapshot(model.root);for(const part of result){if(!/MRD\d/i.test(part.name))continue;const prepared=await prepareCadRenderCopy({cadKind:'mrPost',geometries:[part.geometry]});part.geometry=prepared.geometries[0];}model.root.clear();return result;
   },
 
   getSavedDetail() { return active?.canvas?.id === 'mrCanvas' ? JSON.parse(JSON.stringify(active.config)) : null; },
