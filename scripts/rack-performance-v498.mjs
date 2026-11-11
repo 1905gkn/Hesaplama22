@@ -76,7 +76,8 @@ export function transformMR(code){
   code=code.replace(/this\.frameDirty=(?:!0|true)/g,'this.invalidateV498()');
   const cameraWake=code.match(/this\.controls=new [\w$]+\(this\.camera,[\w$]+\),/)?.[0];if(!cameraWake)throw Error('v498 missing MR camera wake');
   code=replaceOnce(code,cameraWake,cameraWake+'this.controls.addEventListener("change",()=>this.requestFrameV498()),','MR camera wake');
-  code=replaceOnce(code,'setAutoRotate(e){this.controls.autoRotate=!!e,this.controls.autoRotateSpeed=.75}', 'setAutoRotate(e){this.controls.autoRotate=!!e,this.controls.autoRotateSpeed=.75,this.requestFrameV498()}','MR programmatic rotation wake');
+  const rotate=code.match(/setAutoRotate\((\w+)\)\{this\.controls\.autoRotate=!!\1,this\.controls\.autoRotateSpeed=\.75\}/)?.[0];if(!rotate)throw Error('v498 missing MR programmatic rotation wake');
+  code=replaceOnce(code,rotate,rotate.slice(0,-1)+',this.requestFrameV498()}','MR programmatic rotation wake');
   const dirty=code.match(/this\.controls\.update\(\),([\w$]+)\(this\)&&\(/);if(!dirty)throw Error('v498 missing MR dirty frame');
   code=replaceOnce(code,dirty[0],'this.controls.update();const changedV498='+dirty[1]+'(this);changedV498&&(','MR dirty frame');
   code=replaceOnce(code,'this.animationFrame=requestAnimationFrame(this.animate)}}destroy(){','(changedV498||this.controls.autoRotate)&&this.requestFrameV498()}}requestFrameV498(){if(this.renderer&&this.controls&&!this.destroyed&&!document.hidden&&this.visibilityV147?.visible!==false&&this.animationFrame==null)this.animationFrame=requestAnimationFrame(()=>this.animate())}invalidateV498(){this.frameDirty=true;this.requestFrameV498()}destroy(){','MR stop idle frames');
