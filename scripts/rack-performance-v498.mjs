@@ -74,10 +74,11 @@ export function transformMekik(code){
 export function transformMR(code){
   if(code.includes(marker))return code;
   code=code.replace(/this\.frameDirty=(?:!0|true)/g,'this.invalidateV498()');
-  code=replaceOnce(code,'this.controls=new ke(this.camera,e),','this.controls=new ke(this.camera,e),this.controls.addEventListener("change",()=>this.requestFrameV498()),','MR camera wake');
+  const cameraWake=code.match(/this\.controls=new [\w$]+\(this\.camera,[\w$]+\),/)?.[0];if(!cameraWake)throw Error('v498 missing MR camera wake');
+  code=replaceOnce(code,cameraWake,cameraWake+'this.controls.addEventListener("change",()=>this.requestFrameV498()),','MR camera wake');
   code=replaceOnce(code,'setAutoRotate(e){this.controls.autoRotate=!!e,this.controls.autoRotateSpeed=.75}', 'setAutoRotate(e){this.controls.autoRotate=!!e,this.controls.autoRotateSpeed=.75,this.requestFrameV498()}','MR programmatic rotation wake');
-  const before='this.controls.update(),Za(this)&&(';
-  code=replaceOnce(code,before,'this.controls.update();const changedV498=Za(this);changedV498&&(','MR dirty frame');
+  const dirty=code.match(/this\.controls\.update\(\),([\w$]+)\(this\)&&\(/);if(!dirty)throw Error('v498 missing MR dirty frame');
+  code=replaceOnce(code,dirty[0],'this.controls.update();const changedV498='+dirty[1]+'(this);changedV498&&(','MR dirty frame');
   code=replaceOnce(code,'this.animationFrame=requestAnimationFrame(this.animate)}}destroy(){','(changedV498||this.controls.autoRotate)&&this.requestFrameV498()}}requestFrameV498(){if(this.renderer&&this.controls&&!this.destroyed&&!document.hidden&&this.visibilityV147?.visible!==false&&this.animationFrame==null)this.animationFrame=requestAnimationFrame(()=>this.animate())}invalidateV498(){this.frameDirty=true;this.requestFrameV498()}destroy(){','MR stop idle frames');
   code=replaceOnce(code,'this.root.updateMatrixWorld(!0),this.bounds.setFromObject(this.root)', 'this.canvas.id==="mrCanvas"&&batchMrPartsV498(this.root),this.root.updateMatrixWorld(!0),this.bounds.setFromObject(this.root)','MR identical part batching');
   code=replaceOnce(code,'this.disposeDimensions(),this.root.clear();','this.disposeDimensions(),disposeMrInstancesV498(this.root),this.root.clear();','MR instance buffers on rebuild');
