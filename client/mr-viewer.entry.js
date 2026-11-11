@@ -405,7 +405,7 @@ class MRViewer {
     this.camera.updateProjectionMatrix();
     this.controls.update();
   }
-  setAutoRotate(enabled) { this.renderDirty567=true;this.controls.autoRotate = Boolean(enabled); this.controls.autoRotateSpeed = 0.75; }
+  setAutoRotate(enabled) { this.controls.autoRotate = Boolean(enabled); this.controls.autoRotateSpeed = 0.75; }
   onResize() {
     this.renderDirty567=true;
     const rect = this.canvas.getBoundingClientRect();
