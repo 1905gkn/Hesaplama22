@@ -4,13 +4,13 @@ const cache=new WeakMap();
 // The envelope and original contact metadata remain unchanged. Original CAD positions, normals, contact planes and
 // dimensions remain authoritative. This is independent of camera distance.
 export async function prepareCadRenderCopy(template,budget){
- if(!['drivePost','mekikPost'].includes(template.cadKind))return template;
+ if(!['drivePost','mekikPost','mekikBeam','b2bBeam'].includes(template.cadKind))return template;
  if(cache.has(template))return cache.get(template);
  const pending=(async()=>{const {MeshoptSimplifier}=await import('./cad-render-simplifier.mjs');await MeshoptSimplifier.ready;const geometries=[];
  for(const source of template.geometries){
   const tolerance=['drivePost','mekikPost'].includes(template.cadKind)?.001:.0001;
   const position=source.attributes.position,normal=source.attributes.normal,index=source.index;
-  if(!index||index.count<300000||!normal||Object.keys(source.morphAttributes).length){geometries.push(source);continue;}
+  if(!index||index.count<(['drivePost','mekikPost'].includes(template.cadKind)?300000:3000)||!normal||Object.keys(source.morphAttributes).length){geometries.push(source);continue;}
   source.computeBoundingBox();const {min,max}=source.boundingBox,locks=new Uint8Array(position.count);
   // Pin six envelope representatives. Pinning every coplanar point would lock
   // the entire perforated profile face and defeat render-only simplification.
