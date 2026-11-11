@@ -4,6 +4,7 @@ import {viewerFrameChanged} from './viewer-frame-budget.mjs';
 for (const name of ['b2b','mr']) {
   const file=`client/${name}-viewer.entry.js`;
   let source=fs.readFileSync(file,'utf8');
+  if(name==='mr'&&source.includes('renderDirty567'))continue; // MR owns its visibility and idle lifecycle.
   if(source.includes('function viewerVisibleV147('))continue;
   const anchor=name==='b2b'?'  animate() {\n    if (this.destroyed) return;':'  animate() { if (!this.destroyed) {';
   if(!source.includes(anchor))throw Error('v147 missing animation anchor '+name);
