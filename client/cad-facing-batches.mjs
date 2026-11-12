@@ -51,7 +51,11 @@ export function mayFaceCamera(part,point){
 }
 export async function createFacingBatch(scene,geometry,material,matrices,budget){
  if(material.side!==THREE.FrontSide)return null;
- const parts=await cadFacingParts(geometry,budget,{threshold:geometry.userData.renderCopy?50000:100000});if(!parts)return null;
+ // A modest CAD part repeated thousands of times can dominate GPU work too.
+ // Judge the repeated draw cost, not only the size of one prototype.
+ const triangles=(geometry.index?.count??geometry.attributes.position.count)/3;
+ const repeatedHeavy=triangles>=2000&&triangles*matrices.length>=1000000;
+ const parts=await cadFacingParts(geometry,budget,{threshold:repeatedHeavy?2000:geometry.userData.renderCopy?50000:100000});if(!parts)return null;
  const inverse=matrices.map(m=>m.determinant()>0?m.clone().invert():null),cameraPoints=inverse.map(()=>new THREE.Vector3()),meshes=[];
  if(!geometry.boundingBox)geometry.computeBoundingBox();
  const worldBounds=matrices.map(m=>geometry.boundingBox.clone().applyMatrix4(m)),inView=new Uint8Array(matrices.length),lastPlanes=new Float64Array(24).fill(Infinity);
