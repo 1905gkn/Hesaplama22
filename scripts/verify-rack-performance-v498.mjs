@@ -27,6 +27,7 @@ function frameTest(code,name){
   const queue=new Map();let seq=0,renders=0,dirty=true;
   const context={requestAnimationFrame:fn=>{queue.set(++seq,fn);return seq},cancelAnimationFrame:id=>queue.delete(id),document:{hidden:false},Za:()=>{const value=dirty;dirty=false;return value},$a:()=>true,ke:o=>{if(o.renderDirty){renders++;o.renderDirty=false;return true}return !!o.controls.autoRotate}};
   context.console=console;
+  if(name==='MR'){const visibleName=methods.match(/this\.animationFrame=null,!([\w$]+)\(this\)/)?.[1];assert.ok(visibleName);context[visibleName]=()=>true;}
   if(name==='MR'){const dirtyName=methods.match(/this\.changedV498=([\w$]+)\(this\)/)?.[1];assert.ok(dirtyName);context[dirtyName]=context.Za;}
   if(name==='Konsol'){const frameName=methods.match(/([\w$]+)\(this\)&&this.requestFrameV498/)?.[1];assert.ok(frameName);context[frameName]=context.ke;}
   const C=vm.runInNewContext('(class Harness{'+methods+'})',context),v=new C();
