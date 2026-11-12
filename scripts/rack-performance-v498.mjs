@@ -1,3 +1,4 @@
+import {transformSync} from 'esbuild';
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -133,7 +134,7 @@ export function apply(root=process.cwd()){
   const serverFile=path.join(root,'dist/server/index.js');
   let server=fs.existsSync(serverFile)?fs.readFileSync(serverFile,'utf8'):null;
   for(const [name,transform,constant] of [['mekik-front',transformMekik,'RAFEX_MEKIK_FRONT_VIEWER_BASE64'],['mr',transformMR,'MR_VIEWER_BASE64'],['konsol',transformKonsol,'KONSOL_VIEWER_BASE64']]){
-    const file=path.join(root,'dist',name+'-viewer.js'),code=transform(fs.readFileSync(file,'utf8'));try{new vm.Script(code,{filename:name+'-viewer-v498.js'});}catch(error){console.error('v498 parse failure in '+name);console.error('MR animation fragment: '+code.slice(code.indexOf('animate(){'),code.indexOf('animate(){')+3000));throw error;}fs.writeFileSync(file,code);
+    const file=path.join(root,'dist',name+'-viewer.js'),code=transform(fs.readFileSync(file,'utf8'));try{new vm.Script(code,{filename:name+'-viewer-v498.js'});}catch(error){console.error('v498 parse failure in '+name);try{transformSync(code,{loader:'js'});}catch(parsed){for(const e of parsed.errors||[]){const p=e.location;console.error(JSON.stringify({viewer:name,text:e.text,line:p?.line,column:p?.column,near:p?.lineText?.slice(Math.max(0,p.column-180),p.column+180)}));}}console.error('MR animation fragment: '+code.slice(code.indexOf('animate(){'),code.indexOf('animate(){')+3000));throw error;}fs.writeFileSync(file,code);
     if(server){const re=new RegExp('(const '+constant+' = ["\x27])([A-Za-z0-9+/=]+)(["\x27])');if(!re.test(server))throw Error('v498 missing '+constant);server=server.replace(re,(_,a,b,c)=>a+Buffer.from(code).toString('base64')+c);}
   }
   for(const relative of ['dist/index.html']){const file=path.join(root,relative);if(fs.existsSync(file)){const html=transformHtml(fs.readFileSync(file,'utf8'));validateHtml(html);fs.writeFileSync(file,html);}}
