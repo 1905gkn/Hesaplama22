@@ -143,6 +143,7 @@ node scripts/patch-lane-contour-v210.mjs
 node scripts/patch-b2b-contour-v211.mjs
 node scripts/patch-common-perf-v212.mjs
 node scripts/patch-mr-speed-v213.mjs
+node scripts/verify-mr-speed-safe-replacement-v567.mjs
 node scripts/patch-floating-tools-v214.mjs
 node scripts/patch-seismic-color-v215.mjs
 node scripts/patch-tool-menus-v216.mjs

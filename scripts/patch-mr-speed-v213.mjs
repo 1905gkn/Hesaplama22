@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-export function viewerTransform(s){if(s.includes('mr-speed-v213'))return s;const rep=(a,b)=>{if(!s.includes(a))throw Error('MR anchor '+a);s=s.replace(a,b)};
+export function viewerTransform(s){if(s.includes('mr-speed-v213'))return s;const rep=(a,b)=>{if(!s.includes(a))throw Error('MR anchor '+a);s=s.replace(a,()=>b)};
  const loader=s.match(/await Promise\.all\(\[([\w$]+)\("upright"/);if(!loader)throw Error('MR preload loader anchor');
  rep('window.RafexMRViewer={','window.RafexMRViewer={preload(){return Promise.all(['+loader[1]+'("upright"),'+loader[1]+'("traverse"),'+loader[1]+'("tray")]);},');
  const mount=s.match(/return ([\w$]+)\?\.destroy\(\),\1=new ([\w$]+)\(([\w$]+),([\w$]+)\),\1/);if(!mount)throw Error('MR mount anchor');const [,active,Viewer,canvas,options]=mount;
