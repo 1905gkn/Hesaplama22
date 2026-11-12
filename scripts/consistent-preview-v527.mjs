@@ -19,6 +19,7 @@ export function transform(html){
  const anchor='computed=rows?rows.reduce((sum,r)=>sum+r.distance,0)+Number(gap.value):';
  if(!html.includes(anchor))throw Error('v527 height anchor');
  html=html.replace(anchor,"computed=rows?rows.reduce((sum,r)=>sum+r.distance,0)+rows.length*(Number(el('konsolArmProfile')?.value.match(/\\d+/)?.[0])||80)+(Number(el('konsolUprightProfile')?.value.match(/\\d+/)?.[0])||160)+Number(gap.value):");
+ html=html.replace("if(mode.value==='auto')h.value=String(computed);","if(mode.value==='auto')h.value=String(Math.ceil(computed/50)*50);");
  const css=`#page#page[data-rafex-common-active="1"] :is(#m2Front,.mr-canvas-wrap,#konsolCanvas){height:clamp(660px,calc(100vh - 276px),1100px)!important;min-height:clamp(660px,calc(100vh - 276px),1100px)!important;max-height:clamp(660px,calc(100vh - 276px),1100px)!important;box-sizing:border-box!important}
  #page#page[data-rafex-common-active="1"] #m2Front canvas{height:100%!important;min-height:0!important;max-height:100%!important}
  #page#page[data-rafex-common-active="1"] .mr-view-card{height:auto!important;align-self:start!important;grid-template-rows:auto clamp(660px,calc(100vh - 276px),1100px)!important}
