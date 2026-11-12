@@ -19,9 +19,9 @@
   const input=el('femProductLength');if(!input||el('konsolProductLengthAuto'))return;
   const label=input.closest('label');if(!label)return;
   productLengthMode=pendingProduct?(pendingProduct.productLengthMode||(Number(pendingProduct.productLength)>0?'manual':'auto')):'auto';if(pendingProduct?.productLength)input.value=String(pendingProduct.productLength);pendingProduct=null;
-  const button=document.createElement('button');button.type='button';button.id='konsolProductLengthAuto';button.textContent='Otomatik hesapla';button.addEventListener('click',()=>{productLengthMode='auto';syncProductLength();});
+  const button=document.createElement('button');button.type='button';button.id='konsolProductLengthAuto';button.textContent='Otomatik hesapla';button.addEventListener('click',()=>{productLengthMode='auto';syncProductLength();refresh();});
   const note=document.createElement('small');note.id='konsolProductLengthNote';label.append(button,note);
-  input.addEventListener('input',()=>{if(writingLength)return;if(Number(input.value)!==Math.round(num('konsolUprightCount',5)*num('konsolSpacing',1500)))productLengthMode='manual';syncProductLength();});
+  input.addEventListener('input',()=>{if(writingLength)return;if(Number(input.value)!==Math.round(num('konsolUprightCount',5)*num('konsolSpacing',1500)))productLengthMode='manual';syncProductLength();refresh();});
   for(const id of ['konsolUprightCount','konsolSpacing','konsolSpacingSelect']){const node=el(id);node?.addEventListener('input',syncProductLength);node?.addEventListener('change',syncProductLength);}
   syncProductLength();
  }
