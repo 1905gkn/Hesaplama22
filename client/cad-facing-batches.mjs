@@ -49,13 +49,33 @@ export function mayFaceCamera(part,point){
  const maximum=along*part.cosine+Math.sqrt(Math.max(0,length*length-along*along))*part.sine;
  return maximum+part.sphere.radius>=-1e-5;
 }
+const planeOnlyCache=new WeakMap();
+function planeOnlyParts(geometry,parts){
+ if(planeOnlyCache.has(geometry))return planeOnlyCache.get(geometry);
+ const exact=[],remaining=[];
+ for(const p of parts){
+  if(p.geometry.drawRange.count===0){exact.push(p);continue;}
+  const a=p.axis;
+  if(a&&p.cosine===1&&Math.abs(a.x)+Math.abs(a.y)+Math.abs(a.z)===1)exact.push(p);else remaining.push(p);
+ }
+ if(remaining.length){const g=new THREE.BufferGeometry();for(const [name,a]of Object.entries(geometry.attributes))g.setAttribute(name,a);
+  const indices=new Uint32Array(remaining.reduce((sum,p)=>sum+p.geometry.index.count,0));let offset=0;
+  for(const p of remaining){indices.set(p.geometry.index.array,offset);offset+=p.geometry.index.count;}
+  g.setIndex(new THREE.BufferAttribute(indices,1));g.boundingBox=geometry.boundingBox.clone();g.boundingSphere=geometry.boundingSphere.clone();
+  exact.push({geometry:g,axis:null,cosine:0,sine:1,box:g.boundingBox,sourceBox:geometry.boundingBox,sphere:g.boundingSphere});
+ }
+ planeOnlyCache.set(geometry,exact);return exact;
+}
 export async function createFacingBatch(scene,geometry,material,matrices,budget){
  if(material.side!==THREE.FrontSide)return null;
  // A modest CAD part repeated thousands of times can dominate GPU work too.
  // Judge the repeated draw cost, not only the size of one prototype.
  const triangles=(geometry.index?.count??geometry.attributes.position.count)/3;
  const repeatedHeavy=triangles>=2000&&triangles*matrices.length>=1000000;
- const parts=await cadFacingParts(geometry,budget,{threshold:repeatedHeavy?2000:geometry.userData.renderCopy?50000:100000});if(!parts)return null;
+ let parts=await cadFacingParts(geometry,budget,{threshold:repeatedHeavy?2000:geometry.userData.renderCopy?50000:100000});if(!parts)return null;
+ // Repeated medium prototypes favour a few exact plane batches over many normal cones.
+ // Curved surfaces remain together and are always drawn, retaining every detail.
+ if(repeatedHeavy&&triangles<50000)parts=planeOnlyParts(geometry,parts);
  const inverse=matrices.map(m=>m.determinant()>0?m.clone().invert():null),cameraPoints=inverse.map(()=>new THREE.Vector3()),meshes=[];
  if(!geometry.boundingBox)geometry.computeBoundingBox();
  const worldBounds=matrices.map(m=>geometry.boundingBox.clone().applyMatrix4(m)),inView=new Uint8Array(matrices.length),lastPlanes=new Float64Array(24).fill(Infinity);
