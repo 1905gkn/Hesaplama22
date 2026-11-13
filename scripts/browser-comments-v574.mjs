@@ -3,8 +3,8 @@ export function transform(html){
  if(html.includes('data-browser-comments="v574"'))return html;
  const css=`
  /* Keep MR's full drawing row immediately above the save controls. */
- #page#page[data-rafex-common-active="1"] .mr-view-card{display:flex!important;flex-direction:column!important;gap:0!important;align-self:start!important;height:auto!important}
- #page#page[data-rafex-common-active="1"] .mr-canvas-wrap{flex:0 0 clamp(660px,calc(100vh - 276px),1100px)!important;width:100%!important;height:clamp(660px,calc(100vh - 276px),1100px)!important;min-height:clamp(660px,calc(100vh - 276px),1100px)!important;max-height:none!important;margin:0!important;box-sizing:border-box!important}
+ #page#page[data-rafex-common-active="1"] .mr-view-card{display:flex!important;flex-direction:column!important;gap:0!important;align-self:stretch!important;height:auto!important;min-height:0!important}
+ #page#page#page[data-rafex-common-active="1"] .mr-canvas-wrap{flex:1 0 clamp(660px,calc(100vh - 276px),1100px)!important;width:100%!important;height:auto!important;min-height:clamp(660px,calc(100vh - 276px),1100px)!important;max-height:none!important;margin:0!important;box-sizing:border-box!important}
  #page#page .mr-canvas-wrap #mrCanvas{display:block!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important}
  #page#page .mr-view-card>.mr-rack-save{margin-top:0!important;flex-shrink:0!important}
  /* All toolbar groups participate in layout, including long translations. */
