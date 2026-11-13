@@ -571,3 +571,10 @@ Ayak boyu modu|Upright height mode|Mode de hauteur des montants
 Ölçü yazılarını kadraja almak için uzaklaştırın.|Zoom out to include dimension labels in the capture.|Élargissez le cadrage pour inclure les libellés des cotes.
 YAZI BÜYÜKLÜĞÜ|TEXT SIZE|TAILLE DU TEXTE
 Çıktıdan çıkar|Exclude from output|Exclure de la sortie
+Taban–ilk kol net mesafesi (mm)|Base-to-first-arm clear distance (mm)|Distance libre entre l’embase et le premier bras (mm)
+3D görünüm hazır|3D view ready|Vue 3D prête
+Ölçü yazısını küçült|Decrease dimension text size|Réduire le texte des cotes
+Ölçü yazısını büyüt|Increase dimension text size|Agrandir le texte des cotes
+Konsol ölçü yazısı boyutu (%)|Cantilever dimension text size (%)|Taille du texte des cotes cantilever (%)
+Raf Tipini Kaydet|Save rack type|Enregistrer le type de rayonnage
+En hafif uygun ayak–kol çifti|Lightest suitable upright–arm pair|Paire montant–bras adaptée la plus légère

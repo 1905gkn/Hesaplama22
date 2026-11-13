@@ -69,6 +69,10 @@
     if(extended&&extended!==source)return extended;
     const fr = language === 'fr';
     const cantileverPatterns = [
+      [/^([\d.,\s]+) kg\/kat ÷ (\d+) kol = ([\d.,\s]+) kg\/kol$/i,m=>fr?m[1]+' kg/niveau ÷ '+m[2]+' bras = '+m[3]+' kg/bras':m[1]+' kg/level ÷ '+m[2]+' arms = '+m[3]+' kg/arm'],
+      [/^(İlk kat|Gerçek ayak|Kapasite hesabı) ([\d.,\s]+ mm)$/i,m=>({'İlk kat':fr?'Premier niveau':'First level','Gerçek ayak':fr?'Hauteur réelle du montant':'Actual upright height','Kapasite hesabı':fr?'Hauteur de calcul':'Calculation height'}[m[1]])+' '+m[2]],
+      [/^(Ayak|Kol|Montant|Bras) kullanım %([\d.,]+)$/i,m=>(fr?'Utilisation '+(/Ayak|Montant/i.test(m[1])?'du montant':'des bras'):'Utilisation of '+(/Ayak|Montant/i.test(m[1])?'upright':'arms'))+' '+m[2]+' %'],
+      [/^Toplam sehim ([\d.,]+) \/ ([\d.,]+ mm)$/i,m=>(fr?'Flèche totale':'Total deflection')+' '+m[1]+' / '+m[2]],
       [/^(\d+)\.\s*→\s*(\d+)\. kol$/i,m=>fr?'Bras '+m[1]+' → bras '+m[2]:'Arm '+m[1]+' → arm '+m[2]],
       [/^(\d+)\. kol derinliği$/i,m=>fr?'Profondeur du bras '+m[1]:'Arm '+m[1]+' depth'],
       [/^(\d+) ayak → (.+)$/i,m=>m[1]+' '+(fr?'montants':'uprights')+' → '+m[2].replace(/(\d+) ayaklı set/gi,(_,n)=>fr?'jeu pour '+n+' montants':n+'-upright set')],

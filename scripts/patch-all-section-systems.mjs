@@ -32,7 +32,7 @@ export function transform(html){
  replace('    const mr = type?.system === "mr" || isMrDrawing(seed?.drawing);', `    const konsol=type?.system==='konsol';
     const mr = !konsol&&(type?.system === "mr" || isMrDrawing(seed?.drawing));
     await ensureViewer(konsol?'konsol':mr?'mr':'b2b');
-    if(konsol){const signature=JSON.stringify({drawing:seed?.drawing,settings});if(!force&&previewCache.get(key)?.signature===signature)return previewCache.get(key).src;const src=await captureKonsolSection(seed.drawing,settings);previewCache.set(key,{signature,src});trimPreviewCache();return src;}`);
+    if(konsol){const signature=JSON.stringify({reportLanguage:document.getElementById('m2ReportLanguage')?.value||'tr',drawing:seed?.drawing,settings});if(!force&&previewCache.get(key)?.signature===signature)return previewCache.get(key).src;const src=await captureKonsolSection(seed.drawing,settings);previewCache.set(key,{signature,src});trimPreviewCache();return src;}`);
  // Pallet-count controls only apply to B2B; other systems keep their saved geometry.
  replace('    const requestKey = activeKey;', '    const requestKey = activeKey;\n    stage.querySelector(".rafex-placement-art")?.remove();');
  replace('    const src = await capturePerspective(requestKey, draft, force);', '    const src = await capturePerspective(requestKey, draft, force).catch(error=>{console.error("Kesit görüntüsü hazırlanamadı",error);return null;});');

@@ -17,7 +17,7 @@ export function transform(html){
  let script=match[2];
  const replace=(a,b)=>{if(!script.includes(a))throw Error('v575 missing '+a);script=script.replace(a,b);};
  replace('      scale: clamp(number(value.scale, defaults.scale), 0.35, 2.5),','      captureZoom: clamp(number(value.captureZoom, 1), .2, 2),\n      scale: clamp(number(value.scale, defaults.scale), 0.35, 2.5),');
- replace('azimuth:settings.azimuth, elevation:settings.elevation, showPallets:settings.showPallets','captureZoom:settings.captureZoom, azimuth:settings.azimuth, elevation:settings.elevation, showPallets:settings.showPallets');
+ replace('azimuth:settings.azimuth, elevation:settings.elevation, showPallets:settings.showPallets','reportLanguage:document.getElementById("m2ReportLanguage")?.value||"tr",captureZoom:settings.captureZoom, azimuth:settings.azimuth, elevation:settings.elevation, showPallets:settings.showPallets');
  replace('azimuth:settings.azimuth, elevation:settings.elevation, pixelRatio:1.5','captureZoom:settings.captureZoom, azimuth:settings.azimuth, elevation:settings.elevation, pixelRatio:1.5');
  replace('    if (zoom) zoom.textContent = `${Math.round(value.scale * 100)}%`;','    if (zoom) zoom.textContent = `${Math.round(value.scale * 100)}%`;\n    const cameraZoom=document.querySelector("[data-rafex-camera-zoom]");if(cameraZoom)cameraZoom.textContent=`${Math.round(value.captureZoom*100)}%`;');
  replace('  function changeScale(delta) {',`  function changeCaptureZoom(delta){if(!activeKey)return;const value=ensureSetting(activeKey);value.captureZoom=clamp(Math.round((value.captureZoom+delta)*100)/100,.2,2);previewCache.delete(activeKey);updateArtwork();schedulePreview(true,100);}
