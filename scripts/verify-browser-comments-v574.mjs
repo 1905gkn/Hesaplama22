@@ -42,4 +42,8 @@ const captions=[];globalThis.window={rafexDimensionText:translate};globalThis.do
 const root=new THREE.Group(),items=[{a:[0,0,0],b:[0,5500,0],value:5500,label:'Ayak boyu',side:'left'}];
 addKonsolDimensions(THREE,root,items);assert(captions.at(-1).startsWith('Ayak boyu'));
 document.documentElement={lang:'tr'};addKonsolDimensions(THREE,root,items,1,'fr');assert(captions.at(-1).startsWith('Hauteur du montant'));
+// A hidden front pane must still mount when the user switches to it later.
+const perf=fs.readFileSync('scripts/rack-performance-v498.mjs','utf8'),setupStart=perf.indexOf('const setup=`')+'const setup=`'.length,setup=perf.slice(setupStart,perf.indexOf('`;',setupStart));
+let mounted=false;const form={},mountContext={calls:0,document:{getElementById:()=>({dataset:{rafexCommonSystem:'mekik2'}}),querySelector:s=>s==='#page .m2-form'?form:mounted?{}:null,querySelectorAll:()=>[]}};
+vm.runInNewContext(setup+'calls++;}',mountContext);mountContext.mn();assert.equal(mountContext.calls,1);mountContext.mn();assert.equal(mountContext.calls,2);mounted=true;mountContext.mn();assert.equal(mountContext.calls,2);
 console.log('PASS v574: 23 comments, dynamic summaries, EN/FR/TR, engineering codes, drawing localization, MR/toolbar patch and Drive-In script compilation');
