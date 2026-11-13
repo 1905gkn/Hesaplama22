@@ -3,7 +3,7 @@ export function sourceTransform(s){
  if(s.includes('/* konsol-label-controls-v529 */'))return s;
  const replace=(a,b)=>{if(!s.includes(a))throw Error('v529 missing '+a);s=s.replace(a,b);};
  replace('      levels: clamp(Math.round(Number(next.levels) || 4), 1, 12),','      dimensionScale:clamp(Number(next.dimensionScale)||1,.5,2),\n      levels: clamp(Math.round(Number(next.levels) || 4), 1, 12),');
- replace('visualUprightHeight,width,uprightDepth));','visualUprightHeight,width,uprightDepth),o.dimensionScale);');
+ replace('visualUprightHeight,width,uprightDepth));','visualUprightHeight,width,uprightDepth),o.dimensionScale,this.dimensionLanguage);');
  replace('if(this.selectedLoadType)next={...next,loadType:this.selectedLoadType};','if(this.selectedLoadType)next={...next,loadType:this.selectedLoadType};if(this.selectedDimensionScale)next={...next,dimensionScale:this.selectedDimensionScale};');
  replace('  getSavedDetail() {',`  setDimensionScale(value){const v=savedMainViewer;if(!v||v.destroyed)return false;v.selectedDimensionScale=clamp(Number(value)||1,.5,2);v.update({...v.options,dimensionScale:v.selectedDimensionScale},false);return true;},
   getSavedDetail() {`);

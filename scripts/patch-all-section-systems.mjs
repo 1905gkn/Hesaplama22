@@ -7,7 +7,7 @@ async function captureKonsolSection(drawing,settings){
  const canvas=document.createElement('canvas');canvas.style.cssText='width:100%;height:100%';host.appendChild(canvas);document.body.appendChild(host);
  let viewer;
  try{
-  viewer=window.RafexKonsolViewer.createDetached(canvas,{...options,loadType:settings.showPallets===false?'unpacked':options.loadType,dimensions:settings.dimensions});
+  viewer=window.RafexKonsolViewer.createDetached(canvas,{...options,language:document.getElementById('m2ReportLanguage')?.value||'tr',loadType:settings.showPallets===false?'unpacked':options.loadType,dimensions:settings.dimensions});
   viewer.setView('perspective');viewer.controls.enableDamping=false;
   const target=viewer.controls.target,radius=viewer.camera.position.distanceTo(target),az=settings.azimuth*Math.PI/180,el=settings.elevation*Math.PI/180;
   viewer.camera.position.set(target.x+radius*Math.cos(el)*Math.sin(az),target.y+radius*Math.sin(el),target.z+radius*Math.cos(el)*Math.cos(az));viewer.controls.update();

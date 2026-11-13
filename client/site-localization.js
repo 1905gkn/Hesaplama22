@@ -1,6 +1,6 @@
 /* site-localization-v202 */
 (() => {
-  const rows = (/* TRANSLATION_ROWS */ []).concat([
+  const rows = (/* TRANSLATION_ROWS */ []).concat([["Otomatik ayak profili","Automatic upright profile","Profil de montant automatique"],["Otomatik kol profili","Automatic arm profile","Profil de bras automatique"],["Kol rengi","Arm colour","Couleur des bras"],["Kat adedi","Number of levels","Nombre de niveaux"],["Ayak yüksekliği (mm)","Upright height (mm)","Hauteur du montant (mm)"],["Ayak adedi","Number of uprights","Nombre de montants"],["Her katın ürün ağırlığı (kg)","Load per level (kg)","Charge par niveau (kg)"],["Ürün uzunluğu (mm)","Product length (mm)","Longueur du produit (mm)"],["Otomatik hesapla","Calculate automatically","Calculer automatiquement"],["GELİŞMİŞ STATİK ANALİZ","ADVANCED STRUCTURAL ANALYSIS","ANALYSE STRUCTURELLE AVANCÉE"],["Çapraz set dağılımı ve ayak profili","Bracing set distribution and upright profile","Répartition des contreventements et profil des montants"],["ÇAPRAZ SET DAĞILIMI","BRACING SET DISTRIBUTION","RÉPARTITION DES CONTREVENTEMENTS"],["KOLLARIN ÜZERİNDEKİ ÜRÜN","PRODUCT ON THE ARMS","PRODUIT SUR LES BRAS"],["KUTU PROFİL","BOX SECTION","PROFILÉ TUBULAIRE"],["PALETSİZ","UNPALLETISED","SANS PALETTE"],["3D ürün görünümü","3D product view","Vue 3D du produit"],["Ayak boyu","Upright height","Hauteur du montant"],["Taban derinliği","Base depth","Profondeur de l’embase"],["Kat derinliği","Level depth","Profondeur du niveau"],["Ayak aralığı","Upright spacing","Espacement des montants"],["Zemin → taban","Ground → base","Sol → embase"],["Taban → 1. kol","Base → arm 1","Embase → bras 1"],["Toplam uzunluk","Total length","Longueur totale"],["KOLON ARALIĞI","COLUMN SPACING","ESPACEMENT DES COLONNES"],["Sağ/sol taşma","Left/right overhang","Porte-à-faux gauche/droite"],["tabandaki profil ayrı bir parça değildir; ayağın devamı gibi aynı galvaniz renkte çizilir. Tek taraflı sistemde tek yöne, çift taraflı sistemde iki yöne devam eder.","The base profile continues the upright in the same galvanised finish. It extends in one direction for a single-sided system and both directions for a double-sided system.","Le profil de l’embase prolonge le montant avec la même finition galvanisée. Il se prolonge dans un sens pour un système simple face et dans les deux sens pour un système double face."],["Raf gerçek alan sınırları içinde yerleştirildi; duvar ve çakışma sınırları aktif.","Rack placed within the actual area boundaries; wall and collision limits are active.","Le rayonnage est placé dans les limites réelles de la zone ; les contrôles des murs et des collisions sont actifs."],["Ekstra profil yok","No additional profile","Aucun profil supplémentaire"],["hazır","ready","prêt"]]).concat([
  ['Tava Hesabı','Shelf Panel Calculation','Calcul des plateaux'],
  ['HAZIRLAYAN','PREPARED BY','PRÉPARÉ PAR'],['Hazırlayan','Prepared by','Préparé par'],
  ['YAN GÖRÜNÜŞ','SIDE VIEW','VUE LATÉRALE'],['ÖNDEN TEKNİK GÖRÜNÜŞ','TECHNICAL FRONT VIEW','VUE TECHNIQUE DE FACE'],
@@ -68,6 +68,22 @@
     const extended=window.rafexTranslateExtended542?.(source,language);
     if(extended&&extended!==source)return extended;
     const fr = language === 'fr';
+    const cantileverPatterns = [
+      [/^(\d+)\.\s*→\s*(\d+)\. kol$/i,m=>fr?'Bras '+m[1]+' → bras '+m[2]:'Arm '+m[1]+' → arm '+m[2]],
+      [/^(\d+)\. kol derinliği$/i,m=>fr?'Profondeur du bras '+m[1]:'Arm '+m[1]+' depth'],
+      [/^(\d+) ayak → (.+)$/i,m=>m[1]+' '+(fr?'montants':'uprights')+' → '+m[2].replace(/(\d+) ayaklı set/gi,(_,n)=>fr?'jeu pour '+n+' montants':n+'-upright set')],
+      [/^([\d.,]+) mm ayak boyunda$/i,m=>fr?'Montants de '+m[1]+' mm':m[1]+' mm upright height'],
+      [/^toplam (\d+) set$/i,m=>fr?m[1]+' jeu(x) au total':m[1]+' set(s) total'],
+      [/^(\d+) ayak kapsanıyor\.$/i,m=>fr?m[1]+' montants couverts.':m[1]+' uprights covered.'],
+      [/^(\d+) ayak\s*×\s*([\d.,]+ mm)\s*=\s*([\d.,]+ mm)$/i,m=>m[1]+' '+(fr?'montants':'uprights')+' × '+m[2]+' = '+m[3]],
+      [/^En yakın raf arası (\d+)(.*)$/i,m=>(fr?'Distance au rayonnage le plus proche ':'Nearest rack gap ')+m[1]+(m[2]?translate(m[2],language):'')],
+      [/^(\d+) (göz|kat|palet derinlik)$/i,m=>m[1]+' '+({göz:fr?'travée(s)':'bay(s)',kat:fr?'niveaux':'levels','palet derinlik':fr?'palettes en profondeur':'pallets deep'}[m[2].toLocaleLowerCase('tr')])],
+      [/^(Zemin|Sol)\s*\+\s*(\d+) (kat|niveaux|levels)$/i,m=>(fr?'Sol':'Ground')+' + '+m[2]+' '+(fr?'niveaux':'levels')],
+      [/^(Palet|Ayak|Kol) ([^·|]+)$/i,m=>({palet:fr?'Palette':'Pallet',ayak:fr?'Montant':'Upright',kol:fr?'Bras':'Arm'}[m[1].toLocaleLowerCase('tr')])+' '+m[2]],
+      [/^([\d.,]+) kg\/ayak$/i,m=>m[1]+' kg/'+(fr?'montant':'upright')]
+    ];
+    for(const [pattern,render] of cantileverPatterns){const match=trimmed.match(pattern);if(match)return source.replace(trimmed,render(match));}
+
     const engineering = trimmed.match(/^(.+?)\s+([\d.,]+(?:\s*[×x]\s*[\d.,]+)*(?:\s*(?:mm|m|kg))?)$/);
     const engineeringLabels = ['AYAK','ARABAĞ','RAY','TRAVERS','KOL','GÖZ','TOPLAM','YÜKSEKLİK','DERİNLİK','GENİŞLİK','PALET','KAT ARASI','TOPLAM GENİŞLİK','TOPLAM DERİNLİK','TOPLAM UZUNLUK','SON PALET YÜKSEKLİĞİ','AYAK UZUNLUĞU','V TEKRARI','İLK DÜĞÜM'];
     if (engineering && engineeringLabels.includes(engineering[1].toLocaleUpperCase('tr'))) return source.replace(trimmed, `${translate(engineering[1].toLocaleUpperCase('tr'), language)} ${engineering[2]}`);

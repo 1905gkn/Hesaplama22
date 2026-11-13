@@ -6327,7 +6327,7 @@
   [
     "Ayak boyu modu",
     "Upright height mode",
-    "Mode de hauteur du montant"
+    "Mode de hauteur des montants"
   ],
   [
     "Manuel ayak boyu (mm)",
@@ -7138,5 +7138,140 @@
     "Düzenlemek için kanal seçin.",
     "Select a channel to edit.",
     "Sélectionnez un canal à modifier."
+  ],
+  [
+    "Otomatik ayak profili",
+    "Automatic upright profile",
+    "Profil de montant automatique"
+  ],
+  [
+    "Otomatik kol profili",
+    "Automatic arm profile",
+    "Profil de bras automatique"
+  ],
+  [
+    "Kol rengi",
+    "Arm colour",
+    "Couleur des bras"
+  ],
+  [
+    "Kat adedi",
+    "Number of levels",
+    "Nombre de niveaux"
+  ],
+  [
+    "Ayak yüksekliği (mm)",
+    "Upright height (mm)",
+    "Hauteur du montant (mm)"
+  ],
+  [
+    "Ayak adedi",
+    "Number of uprights",
+    "Nombre de montants"
+  ],
+  [
+    "Her katın ürün ağırlığı (kg)",
+    "Load per level (kg)",
+    "Charge par niveau (kg)"
+  ],
+  [
+    "Ürün uzunluğu (mm)",
+    "Product length (mm)",
+    "Longueur du produit (mm)"
+  ],
+  [
+    "Otomatik hesapla",
+    "Calculate automatically",
+    "Calculer automatiquement"
+  ],
+  [
+    "GELİŞMİŞ STATİK ANALİZ",
+    "ADVANCED STRUCTURAL ANALYSIS",
+    "ANALYSE STRUCTURELLE AVANCÉE"
+  ],
+  [
+    "Çapraz set dağılımı ve ayak profili",
+    "Bracing set distribution and upright profile",
+    "Répartition des contreventements et profil des montants"
+  ],
+  [
+    "ÇAPRAZ SET DAĞILIMI",
+    "BRACING SET DISTRIBUTION",
+    "RÉPARTITION DES CONTREVENTEMENTS"
+  ],
+  [
+    "KOLLARIN ÜZERİNDEKİ ÜRÜN",
+    "PRODUCT ON THE ARMS",
+    "PRODUIT SUR LES BRAS"
+  ],
+  [
+    "KUTU PROFİL",
+    "BOX SECTION",
+    "PROFILÉ TUBULAIRE"
+  ],
+  [
+    "PALETSİZ",
+    "UNPALLETISED",
+    "SANS PALETTE"
+  ],
+  [
+    "3D ürün görünümü",
+    "3D product view",
+    "Vue 3D du produit"
+  ],
+  [
+    "Ayak boyu",
+    "Upright height",
+    "Hauteur du montant"
+  ],
+  [
+    "Taban derinliği",
+    "Base depth",
+    "Profondeur de l’embase"
+  ],
+  [
+    "Kat derinliği",
+    "Level depth",
+    "Profondeur du niveau"
+  ],
+  [
+    "Ayak aralığı",
+    "Upright spacing",
+    "Espacement des montants"
+  ],
+  [
+    "Zemin → taban",
+    "Ground → base",
+    "Sol → embase"
+  ],
+  [
+    "Taban → 1. kol",
+    "Base → arm 1",
+    "Embase → bras 1"
+  ],
+  [
+    "Toplam uzunluk",
+    "Total length",
+    "Longueur totale"
+  ],
+  [
+    "Sağ/sol taşma",
+    "Left/right overhang",
+    "Porte-à-faux gauche/droite"
+  ],
+  [
+    "tabandaki profil ayrı bir parça değildir; ayağın devamı gibi aynı galvaniz renkte çizilir. Tek taraflı sistemde tek yöne, çift taraflı sistemde iki yöne devam eder.",
+    "The base profile continues the upright in the same galvanised finish. It extends in one direction for a single-sided system and both directions for a double-sided system.",
+    "Le profil de l’embase prolonge le montant avec la même finition galvanisée. Il se prolonge dans un sens pour un système simple face et dans les deux sens pour un système double face."
+  ],
+  [
+    "Raf gerçek alan sınırları içinde yerleştirildi; duvar ve çakışma sınırları aktif.",
+    "Rack placed within the actual area boundaries; wall and collision limits are active.",
+    "Le rayonnage est placé dans les limites réelles de la zone ; les contrôles des murs et des collisions sont actifs."
+  ],
+  [
+    "hazır",
+    "ready",
+    "prêt"
   ]
 ]

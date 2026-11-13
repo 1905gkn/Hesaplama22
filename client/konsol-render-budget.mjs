@@ -12,9 +12,10 @@ export function renderKonsolFrame(viewer) {
   viewer.controls.update();
   const c=viewer.camera;
   const key=[c.position.x,c.position.y,c.position.z,c.quaternion.x,c.quaternion.y,c.quaternion.z,c.quaternion.w,c.zoom,c.fov,c.aspect].join(',');
-  if(viewer.renderDirty||viewer.renderCameraKey!==key){
+  const language=viewer.dimensionLanguage||document.documentElement?.lang||'tr';
+  if(viewer.renderDirty||viewer.renderCameraKey!==key||viewer.renderLanguage!==language){
     viewer.renderer.render(viewer.scene,c);
-    viewer.renderCameraKey=key;viewer.renderDirty=false;
+    viewer.renderCameraKey=key;viewer.renderLanguage=language;viewer.renderDirty=false;
   }
   return true;
 }

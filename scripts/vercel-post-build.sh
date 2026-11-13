@@ -462,3 +462,5 @@ node scripts/verify-single-rack-type-v563.mjs dist/index.html
 node scripts/row-label-size-v564.mjs
 
 node scripts/viewer-version-v566.mjs
+node scripts/browser-comments-v574.mjs
+node scripts/verify-browser-comments-v574.mjs

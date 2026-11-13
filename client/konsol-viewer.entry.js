@@ -29,6 +29,7 @@ function cylinderBetween(a, b, radius, material) {
 class KonsolViewer {
   constructor(canvas, options = {}) {
     this.canvas = canvas;
+    this.dimensionLanguage = options.language;
     this.options = {};
     this.sectionAngle = 35;
     this.destroyed = false;

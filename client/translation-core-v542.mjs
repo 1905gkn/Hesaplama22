@@ -12,6 +12,18 @@ export function createInterfaceTranslator(rows) {
   const replace=(pattern,render)=>{const m=input.match(pattern);return m?source.replace(input,render(m)):null};
   let result;
   const patterns=[
+      [/^(\d+)\.\s*→\s*(\d+)\. kol$/i,m=>fr?'Bras '+m[1]+' → bras '+m[2]:'Arm '+m[1]+' → arm '+m[2]],
+      [/^(\d+)\. kol derinliği$/i,m=>fr?'Profondeur du bras '+m[1]:'Arm '+m[1]+' depth'],
+      [/^(\d+) ayak → (.+)$/i,m=>m[1]+' '+(fr?'montants':'uprights')+' → '+m[2].replace(/(\d+) ayaklı set/gi,(_,n)=>fr?'jeu pour '+n+' montants':n+'-upright set')],
+      [/^([\d.,]+) mm ayak boyunda$/i,m=>fr?'Montants de '+m[1]+' mm':m[1]+' mm upright height'],
+      [/^toplam (\d+) set$/i,m=>fr?m[1]+' jeu(x) au total':m[1]+' set(s) total'],
+      [/^(\d+) ayak kapsanıyor\.$/i,m=>fr?m[1]+' montants couverts.':m[1]+' uprights covered.'],
+      [/^(\d+) ayak\s*×\s*([\d.,]+ mm)\s*=\s*([\d.,]+ mm)$/i,m=>m[1]+' '+(fr?'montants':'uprights')+' × '+m[2]+' = '+m[3]],
+      [/^En yakın raf arası (\d+)(.*)$/i,m=>(fr?'Distance au rayonnage le plus proche ':'Nearest rack gap ')+m[1]+(m[2]?translate(m[2],language):'')],
+      [/^(\d+) (göz|kat|palet derinlik)$/i,m=>m[1]+' '+({göz:fr?'travée(s)':'bay(s)',kat:fr?'niveaux':'levels','palet derinlik':fr?'palettes en profondeur':'pallets deep'}[m[2].toLocaleLowerCase('tr')])],
+      [/^(Zemin|Sol)\s*\+\s*(\d+) (kat|niveaux|levels)$/i,m=>(fr?'Sol':'Ground')+' + '+m[2]+' '+(fr?'niveaux':'levels')],
+      [/^(Palet|Ayak|Kol) ([^·|]+)$/i,m=>({palet:fr?'Palette':'Pallet',ayak:fr?'Montant':'Upright',kol:fr?'Bras':'Arm'}[m[1].toLocaleLowerCase('tr')])+' '+m[2]],
+      [/^([\d.,]+) kg\/ayak$/i,m=>m[1]+' kg/'+(fr?'montant':'upright')],
    [/^([⧉◯▣])\s*(.+)$/,m=>m[1]+' '+translate(m[2],language)],
    [/^(AÇI|Sağa\/Sola|Yukarı\/Aşağı)\s*°$/,m=>translate(m[1],language)+' °'],
    [/^Kaynak proje #(\d+)$/,m=>(fr?'Projet source n°':'Source project #')+m[1]],
@@ -26,7 +38,7 @@ export function createInterfaceTranslator(rows) {
    [/^(Zemin)\s*\+\s*(\d+)\s+kat$/i,m=>(fr?'Sol':'Ground')+' + '+m[2]+' '+(fr?'niveaux':'levels')],
    [/^(\d+)\s+ayak\s*\/\s*(\d+)\s+düz arabağ$/i,m=>m[1]+' '+(fr?'échelles':'frames')+' / '+m[2]+' '+(fr?'entretoises droites':'straight spacers')],
    [/^(\d+)\s+ayak$/i,m=>m[1]+' '+(fr?'échelles':'frames')],
-   [/^(Palet|Ayak|kapasite|tablo yüksekliği)\s+([\dA-Z][\s\S]*)$/,m=>translate(m[1],language)+' '+m[2]],
+   [/^(Palet|Ayak|kapasite|tablo yüksekliği)\s+([\dA-Z][^·|]*)$/,m=>translate(m[1],language)+' '+m[2]],
    [/^([\d.,]+)\s*kg\/ayak$/,m=>m[1]+' kg/'+(fr?'échelle':'frame')],
    [/^([\d.,–-]+)\s*kg palet ağırlığı aralığı$/,m=>m[1]+' kg '+translate('palet ağırlığı aralığı',language)],
    [/^(\d+)\. travers üst kotu$/,m=>fr?`Cote supérieure de la lisse ${m[1]}`:`Beam ${m[1]} top elevation`],
