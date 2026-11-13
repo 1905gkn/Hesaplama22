@@ -565,3 +565,9 @@ Uygulanacak sıra · palet kanalı|Apply to rows · pallet channels|Rangées con
 Seçilen kanallar|Selected channels|Canaux sélectionnés
 Düzenlemek için kanal seçin.|Select a channel to edit.|Sélectionnez un canal à modifier.
 Ayak boyu modu|Upright height mode|Mode de hauteur des montants
+Çekim yakınlığı|Capture zoom|Zoom de prise de vue
+Çekimde uzaklaştır|Zoom out capture|Élargir le cadrage
+Çekimde yakınlaştır|Zoom in capture|Resserrer le cadrage
+Ölçü yazılarını kadraja almak için uzaklaştırın.|Zoom out to include dimension labels in the capture.|Élargissez le cadrage pour inclure les libellés des cotes.
+YAZI BÜYÜKLÜĞÜ|TEXT SIZE|TAILLE DU TEXTE
+Çıktıdan çıkar|Exclude from output|Exclure de la sortie

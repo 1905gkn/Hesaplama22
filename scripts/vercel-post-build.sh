@@ -99,6 +99,7 @@ node scripts/verify-common-performance.mjs dist/server/index.js
 node scripts/konsol-preview-v526.mjs
 node scripts/consistent-preview-v527.mjs source
 node scripts/konsol-label-controls-v529.mjs source
+node scripts/section-camera-zoom-v575.mjs source
 node scripts/build-shared-three.mjs
 node scripts/patch-free-selection-v145.mjs
 node scripts/verify-free-selection-v145.mjs
@@ -464,3 +465,5 @@ node scripts/row-label-size-v564.mjs
 node scripts/viewer-version-v566.mjs
 node scripts/browser-comments-v574.mjs
 node scripts/verify-browser-comments-v574.mjs
+node scripts/section-camera-zoom-v575.mjs
+node scripts/verify-section-camera-zoom-v575.mjs

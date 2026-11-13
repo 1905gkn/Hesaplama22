@@ -14,7 +14,7 @@ assert.equal(translate('3. → 4. kol','fr'),'Bras 3 → bras 4');
 assert.equal(translate('En yakın raf arası 2','fr'),'Distance au rayonnage le plus proche 2');
 for(const code of ['RAL-1007','IPE 160','NPI 80','HR90.80.2,0','ASD'])for(const lang of ['en','fr'])assert.equal(translate(code,lang),code);
 const html=presentation('<html><body><script src="/konsol-viewer.js?v=1"></script></body></html>');
-assert(html.includes('/konsol-viewer.js?v=574'));assert.equal(presentation(html),html);
+assert(html.includes('/konsol-viewer.js?v=575'));assert.equal(presentation(html),html);
 // Exercise the actual localization entry point as well as its extended translator.
 const local=fs.readFileSync('client/site-localization.js','utf8');
 const prefix=local.slice(0,local.indexOf('  // Translate new SVG labels'))+'})();';

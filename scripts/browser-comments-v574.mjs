@@ -16,7 +16,7 @@ export function transform(html){
  #page#page .rafex-plan-toolbar-v150 .rafex-type-letter-row input{width:48px!important;min-width:0!important}
  @media(max-width:600px){#page#page[data-rafex-common-active="1"] .mr-canvas-wrap{flex-basis:660px!important;height:660px!important;min-height:660px!important}}
  `;
- html=html.replace(/\/(konsol-viewer|mekik-front-viewer|drive-in-viewer)\.js\?v=[\w.-]+/g,'/$1.js?v=574');
+ html=html.replace(/\/(b2b-viewer|mr-viewer|konsol-viewer|mekik-front-viewer|drive-in-viewer)\.js\?v=[\w.-]+/g,'/$1.js?v=575');
  const end=html.lastIndexOf('</body>');if(end<0)throw Error('Missing closing body');
  return html.slice(0,end)+'<style data-browser-comments="v574">'+css+'</style>'+html.slice(end);
 }
