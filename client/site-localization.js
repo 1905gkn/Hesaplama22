@@ -85,7 +85,7 @@
       [/^En yakın raf arası (\d+)(.*)$/i,m=>(fr?'Distance au rayonnage le plus proche ':'Nearest rack gap ')+m[1]+(m[2]?translate(m[2],language):'')],
       [/^(\d+) (göz|kat|palet derinlik)$/i,m=>m[1]+' '+({göz:fr?'travée(s)':'bay(s)',kat:fr?'niveaux':'levels','palet derinlik':fr?'palettes en profondeur':'pallets deep'}[m[2].toLocaleLowerCase('tr')])],
       [/^(Zemin|Sol)\s*\+\s*(\d+) (kat|niveaux|levels)$/i,m=>(fr?'Sol':'Ground')+' + '+m[2]+' '+(fr?'niveaux':'levels')],
-      [/^(Palet|Ayak|Kol) ([^·|]+)$/i,m=>({palet:fr?'Palette':'Pallet',ayak:fr?'Montant':'Upright',kol:fr?'Bras':'Arm'}[m[1].toLocaleLowerCase('tr')])+' '+m[2]],
+      [/^(Palet|Ayak|Kol) ([\dA-Z][^·|]*)$/,m=>({palet:fr?'Palette':'Pallet',ayak:fr?'Montant':'Upright',kol:fr?'Bras':'Arm'}[m[1].toLocaleLowerCase('tr')])+' '+m[2]],
       [/^([\d.,\s]+) kg\/ayak$/i,m=>m[1]+' kg/'+(fr?'montant':'upright')]
     ];
     for(const [pattern,render] of cantileverPatterns){const match=trimmed.match(pattern);if(match)return source.replace(trimmed,render(match));}
