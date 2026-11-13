@@ -3,6 +3,8 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import {createInterfaceTranslator} from '../client/translation-core-v542.mjs';
 import {transform as presentation} from './browser-comments-v574.mjs';
+import {transformSync} from 'esbuild';
+import {transformKonsolFrame} from './rack-performance-v498.mjs';
 const rows=JSON.parse(fs.readFileSync('client/site-translations.json','utf8'));
 const translate=createInterfaceTranslator(rows);
 const cases=[
@@ -25,4 +27,11 @@ for(const source of cases)assert.notEqual(context.window.rafexDimensionText(sour
 const drive=fs.readFileSync('scripts/patch-drive-in-mekik-v1.mjs','utf8');
 const runtime=drive.slice(drive.indexOf('const runtime = String.raw`')+'const runtime = String.raw`'.length,drive.indexOf('`;',drive.indexOf('const runtime = String.raw`')));
 for(const match of runtime.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g))new vm.Script(match[1]);
+// Verify the production minifier still preserves language changes and idle sleep.
+const budget=transformKonsolFrame(transformSync(fs.readFileSync('client/konsol-render-budget.mjs','utf8'),{format:'iife',globalName:'Budget',minify:true,target:'es2022'}).code);
+const renderContext={document:{hidden:false,documentElement:{lang:'fr'},addEventListener(){}},IntersectionObserver:class{observe(){}},MutationObserver:class{observe(){}}};
+vm.runInNewContext(budget,renderContext);
+let draws=0;const viewer={renderVisibility:{visible:true},camera:{position:{},quaternion:{}},controls:{update(){}},renderer:{render(){draws++;}}};
+assert.equal(renderContext.Budget.renderKonsolFrame(viewer),true);assert.equal(renderContext.Budget.renderKonsolFrame(viewer),false);assert.equal(draws,1);
+renderContext.document.documentElement.lang='en';assert.equal(renderContext.Budget.renderKonsolFrame(viewer),true);assert.equal(draws,2);assert.equal(renderContext.Budget.renderKonsolFrame(viewer),false);
 console.log('PASS v574: 23 comments, dynamic summaries, EN/FR/TR, engineering codes, drawing localization, MR/toolbar patch and Drive-In script compilation');

@@ -68,7 +68,9 @@ export function transformMekik(code){
   if(start<0)throw Error('v498 missing Mekik controls');
   const setup=`function mekikControlKeyV498(){const page=document.getElementById('page');return JSON.stringify([page?.dataset?.rafexCommonSystem,...Array.from(document.querySelectorAll('#page .m2-form input,#page .m2-form select,#page .m2-traverse-placeholder select,#page .m2-traverse-placeholder button')).map(node=>[node.id,node.value,node.checked,node.getAttribute('aria-pressed')])]);}let mekikControlsHostV498=null,mekikControlsKeyV498='';function mn(){const hostV498=document.querySelector('#page .m2-form'),keyV498=mekikControlKeyV498();if(hostV498===mekikControlsHostV498&&keyV498===mekikControlsKeyV498)return;mnUncachedV498();mekikControlsHostV498=hostV498;mekikControlsKeyV498=mekikControlKeyV498();}function mnUncachedV498(){`;
   code=code.slice(0,start)+code.slice(start).replace('function mn(){',setup);
-  code=replaceOnce(code,'let i=document.getElementById("m2Front");if(!i)return;if(Tn()', 'let i=document.getElementById("m2Front");if(!i||!i.getClientRects().length)return;if(Tn()','Mekik hidden preview guard');
+  const preview=code.match(/(?:let|const|var) ([\w$]+)=document.getElementById\("m2Front"\);if\(!\1\)return;if\([\w$]+\(\)/);
+  if(!preview)throw Error('v498 missing Mekik hidden preview guard');
+  code=replaceOnce(code,preview[0],preview[0].replace('if(!'+preview[1]+')','if(!'+preview[1]+'||!'+preview[1]+'.getClientRects().length)'),'Mekik hidden preview guard');
   return `/* ${marker} */\n${clearMekikResourcesV498.toString()}\n`+code;
 }
 
@@ -88,11 +90,14 @@ export function transformMR(code){
   return `/* ${marker} */\n${batchMrPartsV498.toString()}\n${disposeMrInstancesV498.toString()}\n`+code;
 }
 
+export function transformKonsolFrame(code){
+  const dirtyFrame=/\(([\w$]+)\.renderDirty\|\|\1\.renderCameraKey!==([\w$]+)\)&&\(\1\.renderer\.render\(\1\.scene,([\w$]+)\),\1\.renderCameraKey=\2,\1\.renderDirty=!1\),!0}/;
+  if(!dirtyFrame.test(code))throw Error('v498 missing Konsol stop idle frames');
+  return code.replace(dirtyFrame,(_,v,key,camera)=>'('+v+'.changedV498='+v+'.renderDirty||'+v+'.renderCameraKey!=='+key+','+v+'.changedV498&&('+v+'.renderer.render('+v+'.scene,'+camera+'),'+v+'.renderCameraKey='+key+','+v+'.renderDirty=!1),!!('+v+'.changedV498||'+v+'.controls.autoRotate))}');
+}
 export function transformKonsol(code){
   if(code.includes(marker))return code;
-  const dirtyFrame=/return\(([\w$]+)\.renderDirty\|\|\1\.renderCameraKey!==([\w$]+)\)&&\(\1\.renderer\.render\(\1\.scene,([\w$]+)\),\1\.renderCameraKey=\2,\1\.renderDirty=!1\),!0}/;
-  if(!dirtyFrame.test(code))throw Error('v498 missing Konsol stop idle frames');
-  code=code.replace(dirtyFrame,(_,v,key,camera)=>'const changedV498='+v+'.renderDirty||'+v+'.renderCameraKey!=='+key+';return changedV498&&('+v+'.renderer.render('+v+'.scene,'+camera+'),'+v+'.renderCameraKey='+key+','+v+'.renderDirty=!1),!!(changedV498||'+v+'.controls.autoRotate)}');
+  code=transformKonsolFrame(code);
   code=code.replace(/this\.renderDirty=!0/g,'this.invalidateV498()');
   const cameraWake=code.match(/this\.controls=new [\w$]+\(this\.camera,[\w$]+\),/)?.[0];if(!cameraWake)throw Error('v498 missing Konsol controls');
   code=replaceOnce(code,cameraWake,cameraWake+'this.controls.addEventListener("change",()=>this.requestFrameV498()),observeKonsolDetachV498(this),','Konsol camera wake');
