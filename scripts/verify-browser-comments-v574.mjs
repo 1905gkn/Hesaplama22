@@ -5,6 +5,8 @@ import {createInterfaceTranslator} from '../client/translation-core-v542.mjs';
 import {transform as presentation} from './browser-comments-v574.mjs';
 import {transformSync} from 'esbuild';
 import {transformKonsolFrame} from './rack-performance-v498.mjs';
+import * as THREE from 'three';
+import {addKonsolDimensions} from '../client/konsol-dimensions.mjs';
 const rows=JSON.parse(fs.readFileSync('client/site-translations.json','utf8'));
 const translate=createInterfaceTranslator(rows);
 const cases=[
@@ -34,4 +36,9 @@ vm.runInNewContext(budget,renderContext);
 let draws=0;const viewer={renderVisibility:{visible:true},camera:{position:{},quaternion:{}},controls:{update(){}},renderer:{render(){draws++;}}};
 assert.equal(renderContext.Budget.renderKonsolFrame(viewer),true);assert.equal(renderContext.Budget.renderKonsolFrame(viewer),false);assert.equal(draws,1);
 renderContext.document.documentElement.lang='en';assert.equal(renderContext.Budget.renderKonsolFrame(viewer),true);assert.equal(draws,2);assert.equal(renderContext.Budget.renderKonsolFrame(viewer),false);
+// Draw actual Three.js label textures with independent report/UI languages.
+const captions=[];globalThis.window={rafexDimensionText:translate};globalThis.document={createElement:()=>({getContext:()=>({beginPath(){},roundRect(){},fill(){},stroke(){},clearRect(){},fillText(text){captions.push(text);}})})};
+const root=new THREE.Group(),items=[{a:[0,0,0],b:[0,5500,0],value:5500,label:'Ayak boyu',side:'left'}];
+addKonsolDimensions(THREE,root,items);assert(captions.at(-1).startsWith('Ayak boyu'));
+document.documentElement={lang:'tr'};addKonsolDimensions(THREE,root,items,1,'fr');assert(captions.at(-1).startsWith('Hauteur du montant'));
 console.log('PASS v574: 23 comments, dynamic summaries, EN/FR/TR, engineering codes, drawing localization, MR/toolbar patch and Drive-In script compilation');
