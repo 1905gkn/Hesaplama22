@@ -11,7 +11,7 @@ export function konsolDimensions(o,rows,baseTop,height,width,uprightDepth){
  else rows.forEach((r,i)=>add([left,r.top,uprightDepth/2],[left,r.top,uprightDepth/2+r.depth],r.depth,(i+1)+'. kol derinliği','depth'));
  const start=-width/2;
  add([start,height+650,z+350],[start+o.spacing,height+650,z+350],o.spacing,'Ayak aralığı','width');
- add([start,height+1350,z+1100],[width/2,height+1350,z+1100],width,'Toplam uzunluk','width');
+ add([start,height+1350,z+350],[width/2,height+1350,z+350],width,'Toplam uzunluk','width');
  return result;
 }
 export function addKonsolDimensions(THREE,root,items,dimensionScale=1,language){
