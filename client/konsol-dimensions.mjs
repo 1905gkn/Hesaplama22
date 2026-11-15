@@ -10,8 +10,8 @@ export function konsolDimensions(o,rows,baseTop,height,width,uprightDepth){
  if(equal)add([left,baseTop+1100,uprightDepth/2],[left,baseTop+1100,uprightDepth/2+rows[0].depth],rows[0].depth,'Kat derinliği','depth');
  else rows.forEach((r,i)=>add([left,r.top,uprightDepth/2],[left,r.top,uprightDepth/2+r.depth],r.depth,(i+1)+'. kol derinliği','depth'));
  const start=-width/2;
- add([start,-650,z+350],[start+o.spacing,-650,z+350],o.spacing,'Ayak aralığı','width');
- add([start,-1350,z+1100],[width/2,-1350,z+1100],width,'Toplam uzunluk','width');
+ add([start,height+650,z+350],[start+o.spacing,height+650,z+350],o.spacing,'Ayak aralığı','width');
+ add([start,height+1350,z+1100],[width/2,height+1350,z+1100],width,'Toplam uzunluk','width');
  return result;
 }
 export function addKonsolDimensions(THREE,root,items,dimensionScale=1,language){
@@ -30,7 +30,7 @@ export function addKonsolDimensions(THREE,root,items,dimensionScale=1,language){
   if(item.label==='Ayak boyu')anchor.copy(b);
   sprite.onBeforeRender=(renderer,scene,camera)=>{
    const next=caption();if(next.text!==rendered.text){c.clearRect(0,0,512,64);c.fillStyle='rgba(173,216,245,.58)';c.beginPath();c.roundRect(0,0,512,64,10);c.fill();c.stroke();c.fillStyle='#123e5a';c.fillText(next.text,256,32,492);texture.needsUpdate=true;rendered=next;}
-   const width=Math.max(1,renderer.domElement.clientWidth),height=Math.max(1,renderer.domElement.clientHeight),pixels=Math.min(36*group.userData.labelScale,width*.42/8),scale=pixels*2*Math.tan(camera.fov*Math.PI/360)/height;
+   const width=Math.max(1,renderer.domElement.clientWidth),height=Math.max(1,renderer.domElement.clientHeight),pixels=Math.min(18*group.userData.labelScale,width*.42/8),scale=pixels*2*Math.tan(camera.fov*Math.PI/360)/height;
    sprite.scale.set(scale*8,scale,1);
    const screen=anchor.clone().applyMatrix4(group.matrixWorld).project(camera),margin=(pixels*8+16)/width;
    screen.x=Math.max(-1+margin,Math.min(1-margin,screen.x));
