@@ -19,7 +19,7 @@ export function transform(html){
  #page#page .rafex-plan-toolbar-v150 .rafex-type-letter-row{grid-template-columns:minmax(0,1fr) 24px 44px 10px 24px!important;gap:4px!important;min-width:0!important}
  #page#page .rafex-plan-toolbar-v150 .rafex-type-letter-label{white-space:normal!important;overflow-wrap:anywhere}
  #page#page .rafex-plan-toolbar-v150 .rafex-type-letter-row button{width:24px!important;padding:4px!important}
- #page#page .rafex-plan-toolbar-v150 .rafex-type-letter-row input{width:44px!important;min-width:0!important}
+ #page#page .rafex-plan-toolbar-v150 .rafex-type-letter-row input{width:44px!important;min-width:0!important;padding:5px 2px!important;font-size:11px!important}
  @container rafex-plan-controls (max-width:1300px){
   #page#page .rafex-plan-toolbar-v150{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   #page#page .rafex-plan-toolbar-v150>.rafex-menu-center-v219{grid-column:1/-1!important;grid-row:1!important;flex-wrap:wrap!important}
