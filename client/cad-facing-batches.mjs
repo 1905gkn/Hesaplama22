@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {populateInstances} from './layout-3d-budget.mjs';
+import {prepareScreenLod,projectedCadError} from './cad-screen-lod.mjs';
 // Conservative object-space backface culling. All original triangles/attributes
 // remain intact. Only batches proven entirely back-facing can be skipped.
 const cache=new WeakMap(),directions=[];
@@ -66,38 +67,46 @@ function planeOnlyParts(geometry,parts){
  }
  planeOnlyCache.set(geometry,exact);return exact;
 }
-export async function createFacingBatch(scene,geometry,material,matrices,budget){
+export async function createFacingBatch(scene,geometry,material,matrices,budget,options={}){
  if(material.side!==THREE.FrontSide)return null;
  // A modest CAD part repeated thousands of times can dominate GPU work too.
  // Judge the repeated draw cost, not only the size of one prototype.
  const triangles=(geometry.index?.count??geometry.attributes.position.count)/3;
- const repeatedHeavy=triangles>=2000&&triangles*matrices.length>=1000000;
- let parts=await cadFacingParts(geometry,budget,{threshold:repeatedHeavy?2000:geometry.userData.renderCopy?50000:100000});if(!parts)return null;
+ const repeatedHeavy=triangles>=128&&triangles*matrices.length>=500000;
+ let parts=await cadFacingParts(geometry,budget,{threshold:repeatedHeavy?128:geometry.userData.renderCopy?50000:100000});if(!parts)return null;
  // Repeated medium prototypes favour a few exact plane batches over many normal cones.
  // Curved surfaces remain together and are always drawn, retaining every detail.
  if(repeatedHeavy&&triangles<50000)parts=planeOnlyParts(geometry,parts);
+ const lod=options.screenLod&&!material.map&&!material.vertexColors&&(repeatedHeavy||triangles>=50000)?await prepareScreenLod(geometry,budget):null;
+ const lods=lod?[lod]:[];
+ if(options.screenLod&&!material.map&&!material.vertexColors&&(repeatedHeavy||triangles>=50000))for(const tolerance of [.02,.08]){const previous=lods.at(-1);if(previous&&previous.geometry.index.count<3000)break;const next=await prepareScreenLod(previous?.geometry||geometry,budget,{tolerance});if(next){const error=next.error+(previous?.error||0);lods.push({...next,error});}}
  const inverse=matrices.map(m=>m.determinant()>0?m.clone().invert():null),cameraPoints=inverse.map(()=>new THREE.Vector3()),meshes=[];
  if(!geometry.boundingBox)geometry.computeBoundingBox();
  const worldBounds=matrices.map(m=>geometry.boundingBox.clone().applyMatrix4(m)),inView=new Uint8Array(matrices.length),lastPlanes=new Float64Array(24).fill(Infinity);
  for(const part of parts){const mesh=new THREE.InstancedMesh(part.geometry,material,matrices.length);await populateInstances(mesh,matrices,budget);mesh.computeBoundingSphere();mesh.userData.cadFacing=true;scene.add(mesh);meshes.push(mesh);}
+ const coarse=new Uint8Array(matrices.length),worldSpheres=lods.length?matrices.map(m=>geometry.boundingSphere.clone().applyMatrix4(m)):[],scales=lods.length?matrices.map(m=>m.getMaxScaleOnAxis()):[];
+ const coarseMeshes=[];let lastProjection='';for(const level of lods){const mesh=new THREE.InstancedMesh(level.geometry,material,matrices.length);await populateInstances(mesh,matrices,budget);mesh.userData.cadFacing=true;mesh.computeBoundingSphere();scene.add(mesh);mesh.count=0;coarseMeshes.push(mesh);}
  const last=new THREE.Vector3(Infinity,Infinity,Infinity);
  const allIndices=matrices.map((_,i)=>i),previous=new WeakMap();
  const targets=mesh=>mesh.children.length?mesh.children:[mesh];
- return {update(camera,frustum){
+ return {update(camera,frustum,view){
   let changed=!last.equals(camera);
+  const projection=view?view.viewportHeight+':'+view.camera.fov+':'+view.camera.aspect+':'+(view.maxPixelError??.35):'';if(projection!==lastProjection){lastProjection=projection;changed=true;}
   if(frustum)for(let i=0;i<6;i++){const p=frustum.planes[i],values=[p.normal.x,p.normal.y,p.normal.z,p.constant];for(let j=0;j<4;j++){const k=i*4+j;if(values[j]!==lastPlanes[k])changed=true;lastPlanes[k]=values[j];}}
   else if(lastPlanes[0]!==Infinity){lastPlanes.fill(Infinity);changed=true;}
   if(!changed)return;last.copy(camera);
   for(let i=0;i<worldBounds.length;i++)inView[i]=!frustum||frustum.intersectsBox(worldBounds[i]);
-  for(let i=0;i<inverse.length;i++)if(inverse[i])cameraPoints[i].copy(camera).applyMatrix4(inverse[i]);
+  coarse.fill(0);if(view)for(let i=0;i<coarse.length;i++)if(inverse[i])for(let level=lods.length-1;level>=0;level--)if(projectedCadError(lods[level].error,scales[i],worldSpheres[i],view.camera,view.viewportHeight)<=(view.maxPixelError??.35)){coarse[i]=level+1;break;}
+  for(let i=0;i<inverse.length;i++)if(inverse[i]&&!coarse[i])cameraPoints[i].copy(camera).applyMatrix4(inverse[i]);
   for(let k=0;k<parts.length;k++)for(const mesh of targets(meshes[k])){
    const source=mesh.userData.cadFacingSources||allIndices,visible=[];
-   for(const i of source)if(inView[i]&&(!inverse[i]||mayFaceCamera(parts[k],cameraPoints[i])))visible.push(i);
+   for(const i of source)if(inView[i]&&!coarse[i]&&(!inverse[i]||mayFaceCamera(parts[k],cameraPoints[i])))visible.push(i);
    const before=previous.get(mesh);if(before&&before.length===visible.length&&before.every((i,j)=>i===visible[j]))continue;
    // Positions are immutable. Copy cached transforms only when the visibility
    // mask changes; never rebuild racks, products or layout on camera movement.
    for(let j=0;j<visible.length;j++)mesh.instanceMatrix.array.set(matrices[visible[j]].elements,j*16);
    mesh.count=visible.length;mesh.instanceMatrix.needsUpdate=true;previous.set(mesh,visible);
   }
- },stats(){const drawn=meshes.flatMap(targets);return {batches:drawn.length,visible:drawn.filter(m=>m.count>0).length,triangles:drawn.reduce((sum,m)=>sum+Math.min(m.geometry.index.count,m.geometry.drawRange.count)/3*m.count,0),fullTriangles:(geometry.index?.count??geometry.attributes.position.count)/3*matrices.length};}};
+  for(let level=0;level<coarseMeshes.length;level++)for(const mesh of targets(coarseMeshes[level])){const source=mesh.userData.cadFacingSources||allIndices,visible=source.filter(i=>inView[i]&&coarse[i]===level+1),before=previous.get(mesh);if(before&&before.length===visible.length&&before.every((i,j)=>i===visible[j]))continue;for(let j=0;j<visible.length;j++)mesh.instanceMatrix.array.set(matrices[visible[j]].elements,j*16);mesh.count=visible.length;mesh.instanceMatrix.needsUpdate=true;previous.set(mesh,visible);}
+ },stats(){const drawn=[...meshes,...coarseMeshes].flatMap(targets);return {batches:drawn.length,visible:drawn.filter(m=>m.count>0).length,coarseInstances:coarseMeshes.flatMap(targets).reduce((sum,m)=>sum+m.count,0),triangles:drawn.reduce((sum,m)=>sum+Math.min(m.geometry.index.count,m.geometry.drawRange.count)/3*m.count,0),fullTriangles:(geometry.index?.count??geometry.attributes.position.count)/3*matrices.length};}};
 }

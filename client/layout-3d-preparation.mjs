@@ -1,10 +1,13 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import {prepareCadRenderCopy} from './cad-render-copy.mjs';
+import {createPreparationBudget} from './layout-3d-budget.mjs';
+import {compactCadVerticesAsync} from './cad-exact-vertices.mjs';
 
 // Yield between independent templates without changing geometry or display resolution.
 export const yieldPreparation=()=>new Promise(resolve=>setTimeout(resolve,0));
 export async function prepareNativeBatches(byRack){
- const cache=new Map(),originals=new Set();
+ const cache=new Map(),originals=new Set(),budget=createPreparationBudget();
  for(const [id,parts] of byRack){
   if(!cache.has(parts)){
    const groups=new Map();
@@ -28,7 +31,14 @@ export async function prepareNativeBatches(byRack){
     if(merged){merged.computeBoundingBox();merged.computeBoundingSphere();const {matrices,...first}=group[0];next.push({...first,geometry:merged});for(const p of group){replaced.add(p);originals.add(p.geometry);}}
     await yieldPreparation();
    }
-   cache.set(parts,[...parts.filter(p=>!replaced.has(p)),...next]);
+   const prepared=[...parts.filter(p=>!replaced.has(p)),...next];
+   // Native MR used to bypass the CAD render preparation entirely. Its repeated
+   // perforated frames dominated GPU vertex work even though they were instanced.
+   for(const part of prepared){if(part.renderSystem!=='mr'||part.load)continue;
+    const result=await prepareCadRenderCopy({cadKind:'mrPost',geometries:[part.geometry]},budget);
+    if(result.geometries[0]!==part.geometry){originals.add(part.geometry);const renderCopy=result.geometries[0];part.geometry=await compactCadVerticesAsync(renderCopy,budget,{threshold:0});if(part.geometry!==renderCopy)renderCopy.dispose();}
+   }
+   cache.set(parts,prepared);
   }
   byRack.set(id,cache.get(parts));
  }

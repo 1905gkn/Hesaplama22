@@ -467,3 +467,8 @@ node scripts/browser-comments-v574.mjs
 node scripts/verify-browser-comments-v574.mjs
 node scripts/section-camera-zoom-v575.mjs
 node scripts/verify-section-camera-zoom-v575.mjs
+node scripts/local-performance-v577.mjs
+node scripts/output-performance-v578.mjs
+node scripts/output-performance-v579.mjs
+node scripts/viewer-version-v580.mjs
+node scripts/column-position-v580.mjs

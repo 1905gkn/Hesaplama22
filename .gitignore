@@ -1,3 +1,16 @@
 node_modules/
 dist/
 .vercel/
+project122.fixture.json
+prepare-local.mjs
+local-review/*.html
+local-review/layout-3d.js
+local-review/cad-simplify-worker.js
+local-review/asset-cache/
+local-review/mr/
+local-review/*.jpg
+local-review/layout-speed-baseline.js
+local-review/column-*.json
+
+local-review/
+project122.fixture*.json

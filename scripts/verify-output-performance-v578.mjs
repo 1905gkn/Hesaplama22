@@ -1,0 +1,18 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
+import {transform} from './output-performance-v578.mjs';
+const html=transform(fs.readFileSync((process.argv[2] || (fs.existsSync('local-review/baseline.html') ? 'local-review/baseline.html' : 'dist/index.html')),'utf8'));assert.equal(transform(html),html);
+for(const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g))if(!/src=|application\/json/.test(m[1]))new vm.Script(m[2]);
+const marker='await window.rafexRenderAreaOutput(target,async(options={})=>{',start=html.indexOf(marker),end=html.indexOf('      });',start);
+assert(start>=0&&end>start);const source=html.slice(start+marker.length,end);
+let sections=0,rebuilds=0,observed=[];
+const window={__rafexOutputSectionsNeeded578:'before',__rafexOutputSharedOnly578:'before',rafexRebuildSectionsV230:()=>rebuilds++,rafexSyncSectionLabelsV230:()=>{}};
+const context=vm.createContext({window,type:'corporate',base:{m2RenderCorporateReport:async()=>observed.push([window.__rafexOutputSectionsNeeded578,window.__rafexOutputSharedOnly578]),rafexRenderSelectedB2BSections:async()=>sections++},wait:async()=>{},token:1,generation:1,p:{isConnected:true},owner:'project',key:()=> 'project'});
+const run=vm.runInContext('(async(options={})=>{'+source+'})',context);
+await run({sections:false});assert.equal(rebuilds,0);assert.equal(sections,0);assert.deepEqual(observed.pop(),[false,false]);
+await run({sharedOnly:true});assert.equal(rebuilds,1);assert.equal(sections,1);assert.deepEqual(observed.pop(),[true,true]);
+assert.equal(window.__rafexOutputSectionsNeeded578,'before');assert.equal(window.__rafexOutputSharedOnly578,'before');
+context.base.m2RenderCorporateReport=async()=>{throw Error('test failure')};await assert.rejects(run({sections:false}),/test failure/);
+assert.equal(window.__rafexOutputSectionsNeeded578,'before');assert.equal(window.__rafexOutputSharedOnly578,'before');
+assert(html.includes('restore(layout,false);await new Promise(requestAnimationFrame);await render({sharedOnly:true});'));
+assert(html.includes('const floorSource=window.__rafexOutputSharedOnly578?null:'));
+console.log('PASS output stages: discarded per-area sections skipped; shared sections rendered once; merged 2D paint skipped; flags restored on failure; all inline scripts parse.');

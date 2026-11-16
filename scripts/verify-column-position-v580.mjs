@@ -1,0 +1,10 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';import {transform} from './column-position-v580.mjs';
+const html=transform(fs.readFileSync((process.argv[2] || (fs.existsSync('local-review/baseline.html') ? 'local-review/baseline.html' : 'dist/index.html')),'utf8'));assert.equal(transform(html),html);
+for(const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g))if(!/src=|application\/json/.test(m[1]))new vm.Script(m[2]);
+const scripts=[...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)],normalizer=scripts.find(m=>m[2].includes('function normalize(symbols)'))[2],helper=scripts.find(m=>m[1].includes('data-saved-column-position'))[2];
+let migrations=0;const window={rafexCadGeometryV362:{points:s=>{migrations++;return s.cadElement.points.map(p=>({x:p.x+15,y:p.y+25}));}}};const context=vm.createContext({window});vm.runInContext(helper,context);vm.runInContext(normalizer,context);
+const column={id:'saved-column',type:'column',cadImported:true,x:100,y:200,w:20,h:30,angle:15,cadElement:{type:'column',closed:true,points:[{x:100,y:200},{x:120,y:200},{x:120,y:230},{x:100,y:230}]}};
+const saved=structuredClone(column);window.rafexKeepSavedColumns580([saved]);for(let i=0;i<5;i++)window.rafexCadDistancesV363.normalize([saved]);assert.equal(migrations,0);assert.equal(saved.x,column.x);assert.equal(saved.y,column.y);assert.equal(saved.w,column.w);assert.equal(saved.h,column.h);assert.deepEqual(saved.cadElement,column.cadElement);
+saved.x+=50;window.rafexCadDistancesV363.normalize([saved]);assert.equal(saved.x,150,'explicit user edits are retained');
+const imported=structuredClone(column);window.rafexCadDistancesV363.normalize([imported]);assert.equal(migrations,1,'new CAD imports still receive their initial normalization');
+console.log('PASS saved column geometry remains authoritative through repeated normalization; explicit moves survive; new imports retain repair; inline scripts parse.');

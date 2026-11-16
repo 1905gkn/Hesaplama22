@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import fs from 'node:fs';
+import {transform} from './local-performance-v577.mjs';
+const html=transform(fs.readFileSync((process.argv[2] || (fs.existsSync('local-review/baseline.html') ? 'local-review/baseline.html' : 'dist/index.html')),'utf8'));
+assert.equal(transform(html),html);
+for(const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g))if(!/src=|application\/json/.test(match[1]))new vm.Script(match[2]);
+const hook=html.match(/<script data-performance="v577">([\s\S]*?)<\/script>/)[1];
+let frames=[],opens=0;const window={rafexProjectIdentityV133:{uuid:'a'},rafexOpenLayoutScreenV370:()=>{opens++;}};
+const context={window,requestAnimationFrame:fn=>frames.push(fn),m2ApplyProjectRecord:()=>true};
+vm.createContext(context);vm.runInContext(hook,context);
+const drain=()=>{while(frames.length)frames.shift()();};
+context.m2ApplyProjectRecord({payload:{areas:[{layout:{racks:[{id:1}]}}]}});drain();assert.equal(opens,1);
+context.m2ApplyProjectRecord({payload:{layout:{racks:[]}}});drain();assert.equal(opens,1,'empty projects keep type editor');
+context.m2ApplyProjectRecord({payload:{layout:{racks:[{id:2}]}}});window.rafexProjectIdentityV133={uuid:'b'};drain();assert.equal(opens,1,'obsolete restore cannot switch another project');
+console.log('PASS all inline scripts parse; repeated transform stable; restored layouts open; empty and obsolete projects stay unchanged.');
