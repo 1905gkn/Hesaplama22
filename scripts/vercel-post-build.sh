@@ -472,3 +472,7 @@ node scripts/output-performance-v578.mjs
 node scripts/output-performance-v579.mjs
 node scripts/viewer-version-v580.mjs
 node scripts/column-position-v580.mjs
+
+node scripts/product-pagination-v581.mjs
+node scripts/mr-label-size-v582.mjs
+node scripts/verify-label-read-batch-v583.mjs

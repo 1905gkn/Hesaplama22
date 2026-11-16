@@ -24,6 +24,11 @@ for(zoom of [.1,1,2,8]){
  assert.equal(mark.children[0].textContent,'A');
 }
 ctx.window.rafexCommonTypeLetterScaleV65=()=>1.5;ctx.decorateGroup(group);assert.equal(Number(mark.children[0].attrs['font-size']),baseline*1.5);
+// Thin MR blocks use a larger baseline while preserving manual scaling and zoom.
+rack.rafexSystem='mr';rack.b2b={mr:true};frame.getAttribute=k=>({x:'10',y:'20',width:'26',height:'4'})[k];
+ctx.window.rafexCommonTypeLetterScaleV65=()=>1;ctx.decorateGroup(group);
+const mrFont=Number(mark.children[0].attrs['font-size']);assert.equal(mrFont,rackLabelSize554(26,4)*2);
+ctx.window.rafexCommonTypeLetterScaleV65=()=>1.5;ctx.decorateGroup(group);assert.equal(Number(mark.children[0].attrs['font-size']),mrFont*1.5);
 const tunnel=fs.readFileSync(new URL('./patch-original-letter-tunnel-v307.mjs',import.meta.url),'utf8');assert.match(tunnel,/rafexRackLabelSizeV554/);assert.match(tunnel,/const gap=main\*4\/3/);
 for(const m of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))new vm.Script(m[1]);
 console.log('PASS v554: B2B/Mekik/Drive-In/MR/Cantilever label sizing, rack-relative cap, 80x zoom, stable reselection, manual ratio, unchanged label text and shared tunnel sizing.');

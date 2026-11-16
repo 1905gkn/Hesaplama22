@@ -2,10 +2,18 @@ export function combineProductPages(target){
   const sources=[...target.querySelectorAll(':scope>.m2-corporate-page')].filter(page=>page.querySelector('.m2-corporate-bom-card'));
   if(!sources.length)return;
   const measure=document.createElement('div');
-  const width=Math.max(320,Math.min(1120,target.getBoundingClientRect().width||target.parentElement?.getBoundingClientRect().width||1120));
+  const oldStyle=target.getAttribute('style');
+  let width;
+  try{target.style.setProperty('display','block','important');target.style.setProperty('visibility','hidden','important');width=target.getBoundingClientRect().width;}
+  finally{if(oldStyle===null)target.removeAttribute('style');else target.setAttribute('style',oldStyle);}
+  if(!width){const preview=document.getElementById('m2CorporatePreview');width=preview?.getBoundingClientRect().width;}
+  if(!width){let parent=target.parentElement;while(parent&&!width){const box=parent.getBoundingClientRect(),css=getComputedStyle(parent);width=box.width-parseFloat(css.paddingLeft||0)-parseFloat(css.paddingRight||0);parent=parent.parentElement;}}
+  width=Math.max(320,Math.min(1120,width||960));
   measure.style.cssText='position:fixed;left:-100000px;top:0;width:'+width+'px;visibility:hidden;pointer-events:none';
-  document.body.appendChild(measure);
+  (target.parentElement||document.body).appendChild(measure);
+  const expectedRows=sources.reduce((n,p)=>n+p.querySelectorAll('.m2-corporate-bom-row').length,0);
   const pages=[];let body;
+  function overflows(row){const bounds=body.getBoundingClientRect(),last=row.getBoundingClientRect();return last.bottom>bounds.bottom-2;}
   function newPage(){
     const page=sources[0].cloneNode(false);page.removeAttribute('id');page.className='m2-corporate-page rafex-product-flow-page';page.dataset.rafexArea='shared-products';
     const header=sources[0].querySelector('.m2-corporate-page-header')?.cloneNode(true);
@@ -26,13 +34,16 @@ export function combineProductPages(target){
         let card=newCard();
         for(const row of rows){
           card.appendChild(row);
-          if(body.scrollHeight>body.clientHeight+1){
+          if(overflows(row)){
             row.remove();const continuing=!!card.querySelector('.m2-corporate-bom-row');if(!continuing)card.remove();
             newPage();card=newCard(continuing);card.appendChild(row);
           }
         }
       }
     }
+    const actualRows=pages.reduce((n,p)=>n+p.querySelectorAll('.m2-corporate-bom-row').length,0);
+    if(actualRows!==expectedRows)throw Error('Ürün listesi sayfalanamadı: satır sayısı değişti.');
+    target.dataset.productRows581=String(actualRows);target.dataset.productPages581=String(pages.length);
     sources[0].before(...pages);sources.forEach(page=>page.remove());
   }finally{measure.remove();}
 }

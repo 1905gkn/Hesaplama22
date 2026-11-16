@@ -9,15 +9,16 @@ export function transform(html){
  if(start<0||end<0)throw Error('Rack label decorator missing');
  html=html.slice(0,start)+`  ${rackLabelSize554.toString()}
   window.rafexRackLabelSizeV554=rackLabelSize554;
+  let labelMatrixBatch583=null,labelRackIndex583=null;
   function decorateGroup(group){
-    const rack=m2LayoutState?.racks?.find(r=>String(r.id)===group.getAttribute('data-rack'));if(!rack)return;
+    const rack=labelRackIndex583?.get(group.getAttribute('data-rack'))||m2LayoutState?.racks?.find(r=>String(r.id)===group.getAttribute('data-rack'));if(!rack)return;
     group.querySelectorAll('.rafex-single-line-letter-v58').forEach(n=>n.remove());
     const system=String(rack.rafexSystem||rack.__rafexSystem||rack.systemType||'').toLowerCase();
     const names={b2b:'B2B',mr:'MR',mekik:'Mekik',mekik2:'Mekik',fifo:'Mekik',filo:'Mekik',drive:'Drive-In','drive-in':'Drive-In',drivein:'Drive-In',konsol:'Konsol Kollu'};
     const name=String(rack.rafexGlobalTypeLetter||rack.typeName||'').trim();
     const systemName=names[system]||(rack.b2b?.mr?'MR':rack.b2b?'B2B':rack.konsol?'Konsol Kollu':'Mekik');
     const label=['Drive-In','Mekik'].includes(systemName)?systemName:'';
-    const matrix=group.getScreenCTM(),scale=Math.hypot(matrix?.a||1,matrix?.b||0)||1;
+    const matrix=labelMatrixBatch583?.get(group)||group.getScreenCTM(),scale=Math.hypot(matrix?.a||1,matrix?.b||0)||1;
     /* rack-label-v171 */
     const ratio=Math.max(.1,Math.min(2,Number(window.rafexCommonTypeLetterScaleV65?.())||1));
     const tunnel=Number(rack.b2b?.tunnelHeight)>0;
@@ -26,7 +27,7 @@ export function transform(html){
     const frame=group.querySelector(':scope > .m2-layout-rack');
     const coord=(key,fallback)=>{const value=frame?.getAttribute(key);return value!=null&&Number.isFinite(Number(value))?Number(value):Number(fallback)};
     const rowHeight564=rack.b2b&&!rack.b2b.mr&&Number(rack.b2bLayout?.rowCount)>1?coord('height',rack.h)*(Number(rack.b2bLayout.palletDepth)>0&&Number(rack.depthMm)>0?Math.min(1,Number(rack.b2bLayout.palletDepth)/Number(rack.depthMm)):1/Number(rack.b2bLayout.rowCount)):coord('height',rack.h);
-    const size=rackLabelSize554(coord('width',rack.w),rowHeight564,ratio)*(rack.b2b&&!rack.b2b.mr?1.75:1);
+    const size=rackLabelSize554(coord('width',rack.w),rowHeight564,ratio)*((rack.b2b?.mr||system==='mr')?2:(rack.b2b&&!rack.b2b.mr?1.75:1));
     const x=coord('x',rack.x)+coord('width',rack.w)/2,y=coord('y',rack.y)+coord('height',rack.h)/2-(tunnel?size*2/3:0);
     const small=size*5/6,gap=size;
     const color=m2TypeColor(name);
@@ -43,6 +44,7 @@ export function transform(html){
     }
   }
 `+html.slice(end);
+ html=html.replace('node.querySelectorAll("[data-rack]").forEach(decorateGroup);', '/* label-read-batch-v583 */ const labelGroups583=Array.from(node.querySelectorAll("[data-rack]"));labelMatrixBatch583=new WeakMap();labelRackIndex583=new Map((m2LayoutState?.racks||[]).map(r=>[String(r.id),r]));for(const group of labelGroups583)labelMatrixBatch583.set(group,group.getScreenCTM());try{labelGroups583.forEach(decorateGroup);}finally{labelMatrixBatch583=null;labelRackIndex583=null;}');
  html=html.replace('  function schedule(){clearTimeout(pending);', '  window.addEventListener("resize",()=>requestAnimationFrame(decorate));\n  function schedule(){clearTimeout(pending);');
  const css='<style data-rack-label="v164">#m2LayoutSvg [data-rack] .m2-rack-nameplate,#m2LayoutSvg [data-rack] .m2-rack-pallet-count,#m2LayoutSvg [data-rack] .m2-rack-name,#m2LayoutSvg [data-rack] .m2-b2b-plan-label,#m2LayoutSvg [data-rack] .rafex-single-line-letter-v58{display:none!important}.rafex-rack-label-v160{opacity:1!important;pointer-events:none}</style>';
  const at=html.lastIndexOf('</body>');return html.slice(0,at)+css+html.slice(at);
