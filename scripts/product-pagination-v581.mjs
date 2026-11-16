@@ -1,4 +1,4 @@
-import fs from 'node:fs';import {pathToFileURL} from 'node:url';import {combineProductPages} from './combine-product-pages.mjs';
+import fs from 'node:fs';import {pathToFileURL} from 'node:url';import {combineProductPages} from './combine-product-pages-v581.mjs';
 export function transform(html){
  const start=html.indexOf('window.rafexCombineProductPages='),end=html.indexOf(';window.rafexNamespaceAreaSvg=',start);
  if(start<0||end<0)throw Error('Missing product pagination anchor');
