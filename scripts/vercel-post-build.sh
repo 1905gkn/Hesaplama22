@@ -476,3 +476,5 @@ node scripts/column-position-v580.mjs
 node scripts/product-pagination-v581.mjs
 node scripts/mr-label-size-v582.mjs
 node scripts/verify-label-read-batch-v583.mjs
+node scripts/collection-only-v584.mjs
+node scripts/verify-collection-only-v584.mjs

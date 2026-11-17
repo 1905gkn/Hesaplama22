@@ -1,3 +1,4 @@
+import {transformViewerSource as collectionOnly584} from './collection-only-v584.mjs';
 import {transformViewerSource as manualPalletWeightSource} from './manual-pallet-weight-v398.mjs';
 import {transformViewerSource as katWireSource} from './kat-wire-v392.mjs';
 import {transformViewerSource as elevatedAccessoryLabels} from './elevated-accessory-labels-v390.mjs';
@@ -28,6 +29,7 @@ for(const [entry,file,constant] of [
  ['client/drive-in-viewer.entry.js','drive-in-viewer.js','DRIVE_IN_VIEWER_BASE64']]){
   if(file==='b2b-viewer.js')fs.writeFileSync(entry,katWireSource(elevatedAccessoryLabels(accessoryLabelPosition(collectionAccessorySource(accessoryFloorsSource(accessoryLabelsSource(transformViewerSource(fs.readFileSync(entry,'utf8')))))))));
   if(file==='b2b-viewer.js')fs.writeFileSync(entry,manualPalletWeightSource(fs.readFileSync(entry,'utf8')));
+  if(file==='b2b-viewer.js')fs.writeFileSync(entry,collectionOnly584(fs.readFileSync(entry,'utf8')));
   if(file==='konsol-viewer.js')fs.writeFileSync(entry,fs.readFileSync(entry,'utf8').replaceAll('globalThis.__rafexKonsolLoadType || next.loadType','next.loadType || globalThis.__rafexKonsolLoadType').replace('const visualUprightHeight = visualTopArmSupport + visualTopExtension;','const visualUprightHeight = Math.max(o.height, visualTopArmSupport);'));
   const result=await build({absWorkingDir:root,entryPoints:[entry],bundle:true,format:'iife',minify:true,target:'es2022',write:false,plugins:[plugin]});
   const code=result.outputFiles[0].text;new vm.Script(code);
