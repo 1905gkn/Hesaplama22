@@ -24,7 +24,7 @@ assert.ok(lodRuntime.includes('const templates=await loadViewerCad(data),parts=a
 assert.ok(lodRuntime.includes('rackParts(r,{cad:true,')&&!lodRuntime.includes('simple:options.customerPerformance'),'Never replace customer rack detail by a simplified model');
 assert.ok(!lodRuntime.includes('createDetailController'),'Zooming must not replace or remove CAD detail');
 assert.ok(lodRuntime.includes('if(paused||disposed)return;'),'Hidden layout must not render');
-assert.ok(runtime.includes('view?.pause(true);dialog.showModal()'),'Opening details pauses the main layout');
+assert.match(runtime,/view\?\.pause\(true\);(?:if\(!dialog\.open\))?dialog\.showModal\(\)/,'Opening or switching details pauses the main layout before opening the dialog');
 assert.ok(runtime.includes('view?.pause(selected!=='),'Closing details restores layout visibility state');
 const {rackParts:customerParts}=await import('../client/layout-3d-geometry.mjs');
 const proxyRack={system:'b2b',width:2.88,depth:1.2,height:4.9,foot:.09,beam:.12,rows:1,rowGap:.2,frameDepth:1.1,frameHeights:[],floors:[0,1.4,2.8,4.2],beamYs:[null,1.28,2.68,4.08],palletHeights:[1.2,1.2,1.2,1.2],palletWidth:.8,palletDepth:1.2,pallets:3,collectionFloors:[],accessories:[]};
