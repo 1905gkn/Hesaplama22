@@ -53,7 +53,7 @@ export async function prepareNativeBatches(byRack){
 export function spatializeInstances(scene,cell=20){for(const step of spatializeInstanceSteps(scene,cell)){} }
 export async function spatializeInstancesAsync(scene,cell=20,budget){for(const step of spatializeInstanceSteps(scene,cell)){const pending=budget.checkpoint();if(pending)await pending;}}
 function* spatializeInstanceSteps(scene,cell=20){
- const targets=[];scene.traverse(m=>{if(m.isInstancedMesh&&m.count>=8&&!m.userData.environmentKind&&(m.material.isMeshStandardMaterial||m.material.isMeshLambertMaterial))targets.push(m)});
+ const targets=[];scene.traverse(m=>{if(m.isInstancedMesh&&m.count>=8&&!m.userData.environmentKind&&(m.material.isMeshStandardMaterial||m.material.isMeshLambertMaterial||m.material.userData?.fixedGalvanized593))targets.push(m)});
  const matrix=new THREE.Matrix4(),center=new THREE.Vector3();
  for(const mesh of targets){
   const cells=new Map();if(!mesh.geometry.boundingSphere)mesh.geometry.computeBoundingSphere();
