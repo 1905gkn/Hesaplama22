@@ -5,14 +5,18 @@ import * as THREE from 'three';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {DRACOLoader} from 'three/examples/jsm/loaders/DRACOLoader.js';
 import {MeshoptDecoder} from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-const cache=new Map();
+const cache=new Map();let sharedLoader;
+function cadLoader(){
+ if(!sharedLoader){const draco=new DRACOLoader();draco.setDecoderPath('/draco/');draco.setDecoderConfig({type:'wasm'});draco.setWorkerLimit(2);sharedLoader=new GLTFLoader();sharedLoader.setDRACOLoader(draco);sharedLoader.setMeshoptDecoder(MeshoptDecoder);}
+ return sharedLoader;
+}
 export async function loadLayoutCad(racks){
  const names=new Set();for(const r of racks){if(r.system==='b2b'){names.add('b2bFrame');names.add('b2bBeam');}if(r.system==='mr')names.add('mrBeam');if(r.system==='mekik2'){names.add('mekikPost');names.add('mekikBeam')}if(r.system==='drive'){names.add('drivePost');names.add('b2bBeam')}}
  return Object.fromEntries(await Promise.all([...names].map(async name=>{
   if(!cache.has(name))cache.set(name,(async()=>{
-   const loader=new GLTFLoader(),draco=new DRACOLoader();draco.setDecoderPath('/draco/');draco.setDecoderConfig({type:'wasm'});loader.setDRACOLoader(draco);loader.setMeshoptDecoder(MeshoptDecoder);
+   const loader=cadLoader();
    const paths={b2bFrame:'/b2b-ayak.glb',b2bBeam:'/b2b-travers.glb',mrBeam:'/mr-zs-travers.glb',drivePost:'/drive-in/drive-in-ayak-top.glb',mekikPost:'/layout-mekik-post.glb',mekikBeam:'/mekik-front-travers.glb'};
-   try{const gltf=await loader.loadAsync(paths[name]+'?v=layout445');return prepareCad(gltf.scene,name)}finally{draco.dispose()}
+   const gltf=await loader.loadAsync(paths[name]+'?v=layout445');return prepareCad(gltf.scene,name);
   })().catch(e=>{cache.delete(name);throw e}));return [name,await cache.get(name)];
  })));
 }

@@ -483,3 +483,5 @@ node scripts/detail-text-controls-v586.mjs
 node scripts/verify-type-editor-v586.mjs dist/index.html
 node scripts/verify-adaptive-render-v585.mjs
 node scripts/verify-motion-budget-v580.mjs
+node scripts/lazy-3d-areas-v587.mjs
+node scripts/verify-collection-layout-v587.mjs

@@ -18,7 +18,8 @@ export function layoutSnapshot(state,optionsFor=()=>({})){
  return {selectedId:state.selected,showAreaDimensions:!!state.showAreaDimensions,edgeDimensions:[...(state.edgeDimensions||[])],points:(state.points||[]).map(p=>({x:p.x*unit,z:p.y*unit})),closed:!!state.closed,breaks:[...(state.pathBreaks||[])],racks:(state.racks||[]).map(r=>{
   const system=rackSystem(r),o=optionsFor(r,system)||{};const depthSharedSupportData=depthSharedSupport(r,state.racks);if(system==='mekik2'||system==='drive')r={...r,...o,depthSharedSupport:depthSharedSupportData,id:r.id,x:r.x,y:r.y,w:r.w,h:r.h,angle:r.angle};const b=r.b2b||{},k=r.konsol||r.spec||{},l=r.b2bLayout||{};
   const width=(system==='b2b'&&Number(o.sectionWidth)>0?Number(o.sectionWidth)+2*pos(o.footWidth,pos(r.footType,100)):pos(r.widthMm,pos(r.totalWidth,r.w/scale)))/1000,depth=pos(r.depthMm,pos(r.railLength,r.h/scale))/1000;
-  const levels=count(o.levels||k.levels||r.levels||b.levels,4,30),palletHeight=pos(o.palletHeight,pos(r.palletHeight,pos(b.palletHeight,1200)))/1000;
+  const rawLevels=o.levels??k.levels??r.levels??b.levels,collectionOnly=system==='b2b'&&rawLevels!==null&&rawLevels!==''&&Number(rawLevels)===0&&!!o.collectionFloors?.length;
+  const levels=collectionOnly?0:count(rawLevels,4,30),palletHeight=pos(o.palletHeight,pos(r.palletHeight,pos(b.palletHeight,1200)))/1000;
   let height=system==='drive'?driveInUprightHeight(r)/1000:pos(system==='konsol'?o.height||k.height:o.uprightHeight||o.footHeight,pos(r.sideUprightHeight,pos(r.totalRackHeight,pos(b.footHeight,5000))))/1000;
   const foot=pos(o.footWidth,pos(r.footType,system==='mr'?60:100))/1000,beam=pos(o.traverseHeight,pos(r.traverseHeight,system==='mr'?75:100))/1000;
   if(system==='mekik2'||system==='mr')height=Math.ceil(height*1000/50)*50/1000;

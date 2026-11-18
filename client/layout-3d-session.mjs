@@ -35,13 +35,13 @@ function changedPaths(before,after){
  try{walk(JSON.parse(before),JSON.parse(after),'');}catch{}return paths;
 }
 export function createPreparedSceneSession({create,activate,deactivate,disposeSurface=()=>{},maxEntries=8,maxBytes=256*1024*1024}){
- const entries=new Map();let current=null,epoch=0,queue=Promise.resolve(),disposed=false,valid=null,builds=0,reuses=0,sourceChanges=[];
+ const entries=new Map();let current=null,epoch=0,queue=Promise.resolve(),disposed=false,valid=null,partial=false,builds=0,reuses=0,sourceChanges=[];
  const remove=id=>{const entry=entries.get(id);if(!entry)return;if(current===entry){deactivate(entry.value);current=null;}entries.delete(id);entry.value.dispose();};
  const bytes=()=>[...entries.values()].reduce((n,e)=>n+e.bytes,0);
  const trim=()=>{while(entries.size>maxEntries||bytes()>maxBytes){const id=[...entries.keys()].find(id=>entries.get(id)!==current);if(id===undefined)break;remove(id);}};
  const hide=()=>{epoch++;if(current){deactivate(current.value);current=null;}};
  return {
-  retain(pairs){valid=new Map(pairs);for(const [id,e] of entries)if(valid.get(id)!==e.revision){sourceChanges=changedPaths(e.revision,valid.get(id));remove(id);}},
+  retain(pairs,options={}){valid=new Map(pairs);partial=options.partial===true;const ids=options.ids&&new Set(options.ids);for(const [id,e] of entries)if((ids&&!ids.has(id))||((!partial||valid.has(id))&&valid.get(id)!==e.revision)){sourceChanges=changedPaths(e.revision,valid.get(id));remove(id);}},
   show(id,revision,source){
    if(disposed)return Promise.resolve(null);
    const ticket=++epoch;if(current){deactivate(current.value);current=null;}
@@ -51,7 +51,7 @@ export function createPreparedSceneSession({create,activate,deactivate,disposeSu
     if(entry&&!reused){remove(id);entry=null;}
     if(!entry){
      const value=await create(source);builds++;
-     if(disposed||(valid&&valid.get(id)!==revision)){value.dispose();return null;}
+     if(disposed||(valid&&(!partial||valid.has(id))&&valid.get(id)!==revision)){value.dispose();return null;}
      entry={revision,value,bytes:value.bytes||0};entries.set(id,entry);
     }
     if(ticket!==epoch){trim();return null;}

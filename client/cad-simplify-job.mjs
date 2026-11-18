@@ -1,9 +1,10 @@
 // Keep the synchronous WASM solver away from pointer/keyboard processing.
 // Copy only job inputs: authoritative CAD buffers must never be transferred.
+import {memoizeCadJobs} from './cad-job-cache.mjs';
 let worker=null,sequence=0;
 const pending=new Map();
 function fail(error){for(const job of pending.values())job.reject(error);pending.clear();worker?.terminate();worker=null;}
-export async function simplifyCad(args){
+async function computeCad(args){
  if(typeof Worker==='undefined'){
   const {MeshoptSimplifier}=await import('./cad-render-simplifier.mjs');
   await MeshoptSimplifier.ready;
@@ -18,3 +19,4 @@ export async function simplifyCad(args){
  const copied=args.map(a=>ArrayBuffer.isView(a)?a.slice():a),id=++sequence;
  return new Promise((resolve,reject)=>{pending.set(id,{resolve,reject});try{worker.postMessage({id,args:copied},copied.filter(ArrayBuffer.isView).map(a=>a.buffer));}catch(error){pending.delete(id);reject(error);}});
 }
+export const simplifyCad=memoizeCadJobs(computeCad);
