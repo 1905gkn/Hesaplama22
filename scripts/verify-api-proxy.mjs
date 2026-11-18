@@ -21,6 +21,7 @@ try{
   const source=fs.readFileSync(new URL('../api/index.js',import.meta.url),'utf8')
     .replace('import worker from "../dist/server/index.js";','const worker = {};')
     .replace("'../scripts/customer-share-storage.mjs'",JSON.stringify(new URL('./customer-share-storage.mjs',import.meta.url).href))
+    .replace("'../scripts/customer-bootstrap-v592.mjs'",JSON.stringify(new URL('./customer-bootstrap-v592.mjs',import.meta.url).href))
     .replace("'../scripts/customer-view-page.mjs'",JSON.stringify(new URL('./customer-view-page.mjs',import.meta.url).href))
     .replace("'../scripts/wire-gzip-v244.mjs'",JSON.stringify(new URL('./wire-gzip-v244.mjs',import.meta.url).href))
     .replace("'../scripts/exchange-rates-v326.mjs'",JSON.stringify(new URL('./exchange-rates-v326.mjs',import.meta.url).href))
