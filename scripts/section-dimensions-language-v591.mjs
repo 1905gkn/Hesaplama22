@@ -11,9 +11,9 @@ export function transformViewerSource(source,system='b2b'){
   replace('window.rafexDimensionText?.(line,language())||line','translateAccessoryText591(window.rafexDimensionText?.(line,language())||line,language())');
  }else{
   replace('markers: config.dimensions?.markers !== false,','markers: config.dimensions?.markers !== false,\n        topPallet: config.dimensions?.topPallet ?? (config.dimensions?.markers !== false),\n        uprightHeight: config.dimensions?.uprightHeight ?? (config.dimensions?.markers !== false),');
-  replace('if (this.config.dimensions.markers) {','if (this.config.dimensions.topPallet || this.config.dimensions.uprightHeight) {');
-  replace('const topTraverse = levelYs.at(-1) || 0; this.addVerticalDimension','const topTraverse = levelYs.at(-1) || 0; if(this.config.dimensions.topPallet)this.addVerticalDimension');
-  replace('this.addDimensionLabel(layer, totalWidth+510, uprightHeight,','if(this.config.dimensions.uprightHeight)this.addDimensionLabel(layer, totalWidth+510, uprightHeight,');
+  // MR has no pallet-top marker. Its production preparation keeps only the
+  // upright measure and may move that label to the left of the section.
+  replace('if (this.config.dimensions.markers) {','if (this.config.dimensions.uprightHeight) {');
   source=source.replaceAll('window.rafexDimensionText?.(text, this.config.language || document.documentElement.lang) || text','translateAccessoryText591(window.rafexDimensionText?.(text, this.config.language || document.documentElement.lang) || text,this.config.language || document.documentElement.lang)').replaceAll('window.rafexDimensionText?.(text, language) || text','translateAccessoryText591(window.rafexDimensionText?.(text, language) || text,language)');
  }
  return "/* section-dimensions-v591 */\nimport {translateAccessoryText591} from '../client/report-accessory-language-v591.mjs';\n"+source;

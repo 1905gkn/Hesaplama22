@@ -9,6 +9,8 @@ for(const lang of ['en','fr'])for(const text of ['Tavalı','H travers','Palet da
 assert.equal(tr('SEWS TYPE B · HR90.80.2,0','en'),'SEWS TYPE B · HR90.80.2,0');assert.equal(tr('Kat teli\nToplama katı','fr'),'Platelage grillagé\nNiveau de picking');
 const source=fs.readFileSync('client/b2b-viewer.entry.js','utf8').replace('levels: clamp(Math.round(Number(next.levels) || 4), 1, 15),','levels: clamp(Math.round(Number(next.levels) || 4), 1, 25),');
 const b2b=transformViewerSource(labels(collection(source))),mr=transformViewerSource(fs.readFileSync('client/mr-viewer.entry.js','utf8'),'mr');
+const mrProduction=fs.readFileSync('client/mr-viewer.entry.js','utf8').replace(/    if \(this.config.dimensions.markers\) \{[\s\S]*?\n    \}/,'    if (this.config.dimensions.markers) {\n      this.addDimensionLabel(layer, x-420, uprightHeight, z, `AYAK BOYU · ${this.dimensionValue(uprightHeight)}`, 760, "uprightHeight");\n    }');
+assert(transformViewerSource(mrProduction,'mr').includes('if (this.config.dimensions.uprightHeight) {'));
 assert.equal(transformViewerSource(b2b),b2b);
 const start=b2b.indexOf('    const topPallet ='),end=b2b.indexOf('    const eyeStart =',start),block=b2b.slice(start,end);
 for(const topPallet of [false,true])for(const uprightHeight of [false,true])for(const levels of [0,3]){
