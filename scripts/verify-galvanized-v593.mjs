@@ -12,6 +12,7 @@ const fixed=fixedGalvanizedMaterial593({side:THREE.DoubleSide,polygonOffset:true
 const scene=new THREE.Scene(),instances=new THREE.InstancedMesh(g,fixed,20);for(let i=0;i<20;i++)instances.setMatrixAt(i,new THREE.Matrix4().makeTranslation(i<10?0:50,0,0));scene.add(instances);spatializeInstances(scene);assert.equal(instances.count,0);assert.equal(instances.children.length,2);assert.equal(instances.children.reduce((sum,m)=>sum+m.count,0),20);assert(instances.children.every(m=>m.material===fixed),'Unlit galvanizing keeps spatial culling and instancing');
 for(const system of ['b2b','mr','drive-in','mekik-front','konsol']){
  const source=fs.readFileSync('client/'+system+'-viewer.entry.js','utf8'),changed=transformViewerSource593(source,system);assert.equal(transformViewerSource593(changed,system),changed);
+ if(system==='mr')assert(transformViewerSource593(source.replace('this.addDimensions(levelYs, totalWidth, depth, uprightHeight);','this.addDimensions(levelYs, totalWidth, footprintDepth, uprightHeight);'),system).includes('stabilizeGalvanizedObject593(this.root);this.addDimensions'));
  await build({stdin:{contents:changed,resolveDir:process.cwd()+'/client'},bundle:true,write:false,target:'es2022',format:'iife',logLevel:'silent'});
 }
 const layout=fs.readFileSync('client/layout-3d.entry.js','utf8');assert(layout.includes('if(isGalvanizedColor593(params.color))return fixedGalvanizedMaterial593(params)'));
