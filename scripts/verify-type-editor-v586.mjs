@@ -1,0 +1,21 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
+import {transform} from './type-editor-preserve-v586.mjs';import {transform as textTransform} from './detail-text-controls-v586.mjs';
+const input=fs.readFileSync(process.argv[2]||'local-review/index.html','utf8'),html=textTransform(transform(input));assert.equal(transform(html),html);assert.equal(textTransform(html),html);
+for(const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g))if(!/src=|application\/json/.test(m[1]))new vm.Script(m[2]);
+const hooks=html.slice(html.indexOf('  window.rafexCheckpointAreas586='),html.indexOf('  window.rafexAreaDocument=()=>',html.indexOf('  window.rafexCheckpointAreas586=')));
+const engine=html.slice(html.indexOf('  function renderEngine(system,continued){'),html.indexOf('  function enterFreeDrawing(){',html.indexOf('  function renderEngine(system,continued){')));
+const doc={activeAreaId:'b',areas:[{id:'a',name:'One',layout:{racks:[{id:1}],points:[{x:4,y:7}]}},{id:'b',name:'Two',layout:{racks:[{id:2}],symbols:[{id:9,type:'column',x:5,y:3}],dimensionOffsets:{key:{x:2,y:4}}}}]};
+let captured=0,fail=false,changeOwner=false;
+const c={window:{rafexProjectIdentityV133:{uuid:'p'}},owner:'p',documentState:structuredClone(doc),sessions:new Map(),restoring:false,output:false,common:()=>true,clone:structuredClone,current:()=>c.documentState.areas.find(a=>a.id===c.documentState.activeAreaId),remember:()=>{c.current().layout=structuredClone(c.live);},restore:layout=>{c.live=structuredClone(layout);},draw(){},live:structuredClone(doc.areas[1].layout),free:{currentEngine:'b2b'},SUPPORTED:new Set(['b2b','mr','drive']),captureEngine:()=>captured++,restoreEngine:()=>{c.live={racks:[]};},document:{getElementById:()=>null},decoratePage(){},renderMR(){},renderDrive(){},renderMekik2(){},renderKonsolCommon(){}};
+c.renderB2B=()=>{c.remember();if(changeOwner)c.window.rafexProjectIdentityV133={uuid:'new'};if(fail)throw Error('render failed');};
+vm.createContext(c);vm.runInContext(hooks+engine,c);
+vm.runInContext("renderEngine('b2b',true)",c);assert.equal(captured,1,'Same-engine reopen must capture the current placement');assert.deepEqual(c.documentState,doc);assert.deepEqual(c.live,doc.areas[1].layout);
+// Simulate a new type and further placement edits, then return to the same engine.
+c.live.racks.push({id:3});vm.runInContext("renderEngine('b2b',true)",c);assert.equal(c.documentState.areas[1].layout.racks.length,2);assert.equal(c.documentState.areas[0].layout.racks.length,1);
+const expected=structuredClone(c.documentState);fail=true;assert.throws(()=>vm.runInContext("renderEngine('b2b',true)",c),/render failed/);assert.deepEqual(c.documentState,expected);assert.deepEqual(c.live,expected.areas[1].layout);
+fail=false;changeOwner=true;vm.runInContext("renderEngine('b2b',true)",c);assert.equal(c.live.racks.length,0,'Never restore the previous project over an explicitly new project');
+const scale={x:20,y:10,z:1,set(x,y,z){Object.assign(this,{x,y,z});}},label={scale,isSprite:true};let submitted=[];
+const viewer={dimensionLabels:[label],renderer:{render(){submitted.push([scale.x,scale.y,scale.z]);}},scene:{},camera:{},canvas:{addEventListener(){}}};
+const textContext={window:{},localStorage:{getItem:()=>150},WeakMap,Promise,DOMParser:class{},XMLSerializer:class{}};vm.runInNewContext(fs.readFileSync('client/detail-text-controls-v586.js','utf8'),textContext);
+textContext.window.rafexBindDetailText586(viewer,{});viewer.renderer.render(viewer.scene,viewer.camera);assert.deepEqual(submitted,[[30,15,1],[30,15,1]]);assert.deepEqual([scale.x,scale.y,scale.z],[20,10,1],'Text scaling never accumulates or alters source labels');
+console.log('PASS same-engine and cross-render placement preservation, all areas/columns/dimensions, failure recovery, new-project isolation, actual native label scale, unchanged source and full inline syntax.');

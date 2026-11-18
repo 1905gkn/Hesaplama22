@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {adaptiveRenderQuality} from '../client/adaptive-render-quality.mjs';
+import {createRenderGpuTimer} from '../client/render-gpu-timer.mjs';
+let ratio=2,renders=0,sequence=0;const timers=new Map(),changes=[];
+const renderer={domElement:{dataset:{}},getPixelRatio:()=>ratio,setPixelRatio:v=>{ratio=v;changes.push(v);}};
+const env={devicePixelRatio:2,setTimeout:fn=>{timers.set(++sequence,fn);return sequence;},clearTimeout:id=>timers.delete(id)};
+const q=adaptiveRenderQuality({renderer,render:()=>renders++,env});q.pause(false);assert.equal(ratio,1.5);
+q.move();assert.equal(ratio,1);assert.equal(q.pixelError(),1.5);
+for(let i=0;i<20;i++){q.move();q.frame(i*40);q.cost(40,null);}
+assert.equal(ratio,.7);assert(q.pixelError()>1.5);assert.equal(q.stats().frameP95Ms,40);
+assert.equal(timers.size,1);timers.values().next().value();timers.clear();assert.equal(ratio,1.5);assert.equal(q.pixelError(),.35);
+q.move();q.frame(1000);q.frame(2000);assert.equal(q.stats().frameSamples,0,'Idle/event gaps are not reported as slow rendered frames');
+q.pause(true);const before=changes.length;q.move();assert.equal(timers.size,0);assert.equal(changes.length,before,'Hidden cached area must not resize shared renderer');
+q.pause(false);assert.equal(ratio,1.5);q.move();q.dispose();assert.equal(timers.size,0);
+const weak=adaptiveRenderQuality({renderer,env:{...env,devicePixelRatio:.5}});weak.pause(false);weak.move();for(let i=0;i<100;i++){weak.frame(i*40);weak.cost(40,null);}assert.equal(ratio,.5,'Never increase low-DPR drawing buffer');weak.dispose();
+const noGpu=createRenderGpuTimer(renderer);noGpu.begin();noGpu.end();assert.equal(noGpu.stats().gpuTimingSupported,false);noGpu.dispose();
+const events=adaptiveRenderQuality({renderer,env});events.pause(false);events.move();for(let i=0;i<25;i++)events.frame(i*100);assert.equal(ratio,1,'Sparse input events alone must not lower quality');
+for(let i=0;i<25;i++)events.cost(2,40,1);assert.equal(ratio,1,'A stale GPU sample must not repeatedly lower quality');
+for(let i=2;i<=9;i++)events.cost(2,40,i);assert.equal(ratio,.85,'Fresh expensive GPU samples lower motion resolution');events.dispose();
+let available=false,disjoint=false,deleted=0,started=0,ended=0;
+const gl={QUERY_RESULT_AVAILABLE:1,QUERY_RESULT:2,CURRENT_QUERY:3,getExtension:()=>({GPU_DISJOINT_EXT:4,TIME_ELAPSED_EXT:5}),getParameter:()=>disjoint,getQuery:()=>null,createQuery:()=>({}),beginQuery:()=>started++,endQuery:()=>ended++,deleteQuery:()=>deleted++,getQueryParameter:(_,key)=>key===1?available:12000000};
+const gpu=createRenderGpuTimer({getContext:()=>gl});gpu.begin();gpu.end();assert.equal(started,1);assert.equal(ended,1);assert.equal(deleted,0);
+available=true;gpu.begin();gpu.end();assert.equal(gpu.stats().gpuMs,12);assert.equal(deleted,1);
+for(let i=0;i<11;i++){gpu.begin();gpu.end();}disjoint=true;gpu.begin();gpu.end();assert.equal(gpu.stats().gpuMs,null);gpu.dispose();
+const source=fs.readFileSync('client/layout-3d.entry.js','utf8');assert(source.includes('mobileQuality.frame(rafTime)'));assert(source.includes('maxPixelError:mobileQuality.pixelError()'));assert(source.includes('mobileQuality.pause(paused)'));assert(source.includes('gpuTimer.dispose()'));
+console.log('PASS adaptive motion resolution, slow-frame response, idle restoration, cached-area isolation, low DPR, disposal and asynchronous GPU timing.');

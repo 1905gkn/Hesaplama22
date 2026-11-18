@@ -478,3 +478,6 @@ node scripts/mr-label-size-v582.mjs
 node scripts/verify-label-read-batch-v583.mjs
 node scripts/collection-only-v584.mjs
 node scripts/verify-collection-only-v584.mjs
+node scripts/type-editor-preserve-v586.mjs
+node scripts/detail-text-controls-v586.mjs
+node scripts/verify-type-editor-v586.mjs dist/index.html
