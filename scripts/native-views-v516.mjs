@@ -33,9 +33,14 @@ export function transform(html){
 if(/[\\/]native-views-v516\.mjs$/.test(process.argv[1]||''))for(const file of ['dist/index.html','dist/server/index.js'])if(fs.existsSync(file)){let s=fs.readFileSync(file,'utf8');if(file.endsWith('.html'))s=transform(s);else{const m=s.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1/);if(!m)throw Error('Missing server HTML');s=s.replace(m[0],m[0].replace(m[2],Buffer.from(transform(Buffer.from(m[2],'base64').toString())).toString('base64')));}fs.writeFileSync(file,s);console.log('PASS native views v516: '+file);}
 
 export function transformFront(source){
- const a='this.root.add(y);let E=this.models.pallet.root.clone(!0);',b='this.root.add(y);if(e.showPallets===false)continue;let E=this.models.pallet.root.clone(!0);';
- if(source.includes(b))return source;if(!source.includes(a))throw Error('v516 native GLB pallet anchor missing');
- return source.replace(a,b).replace('Math.max(150,m+(c-1)*T,Number(i?.sideUprightHeight)||m+(c-1)*T+p/2)','Math.ceil(Math.max(150,m+(c-1)*T,Number(i?.sideUprightHeight)||m+(c-1)*T+p/2)/50)*50');
+ const visibility=/this\.root\.add\(([\w$]+)\);let ([\w$]+)=this\.models\.pallet\.root\.clone\(!0\);/;
+ const already=/this\.root\.add\([\w$]+\);if\([\w$]+\.showPallets===false\)continue;let [\w$]+=this\.models\.pallet\.root\.clone\(!0\);/;
+ if(!already.test(source)){
+  const config=source.slice(source.indexOf('rebuild(){')).match(/let ([\w$]+)=this\.config,/)?.[1];if(!config||!visibility.test(source))throw Error('v516 native GLB pallet anchor missing');
+  source=source.replace(visibility,(_,beam,pallet)=>`this.root.add(${beam});if(${config}.showPallets===false)continue;let ${pallet}=this.models.pallet.root.clone(!0);`);
+ }
+ const height=source.match(/Math\.max\(150,([\w$]+)\+\(([\w$]+)-1\)\*([\w$]+),Number\(([\w$]+)\?\.sideUprightHeight\)\|\|\1\+\(\2-1\)\*\3\+[\w$]+\/2\)/)?.[0];
+ if(height&&!source.includes('Math.ceil('+height+'/50)*50'))source=source.replace(height,'Math.ceil('+height+'/50)*50');return source;
 }
 if(/[\\/]native-views-v516\.mjs$/.test(process.argv[1]||'')){
  const file='dist/mekik-front-viewer.js';if(fs.existsSync(file)){const code=transformFront(fs.readFileSync(file,'utf8'));fs.writeFileSync(file,code);const serverFile='dist/server/index.js';if(fs.existsSync(serverFile)){let server=fs.readFileSync(serverFile,'utf8');server=server.replace(/(const RAFEX_MEKIK_FRONT_VIEWER_BASE64 = ["'])([A-Za-z0-9+/=]+)(["'])/,(_,a,b,c)=>a+Buffer.from(code).toString('base64')+c);fs.writeFileSync(serverFile,server);}}

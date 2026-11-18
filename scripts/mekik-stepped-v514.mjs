@@ -25,7 +25,12 @@ export function transform(html){
  for(const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g))if(!/src=|application\/json/.test(m[1]))new vm.Script(m[2]);
  return html;
 }
-export function transformFront(source){const a='Math.max(150,m+(c-1)*T+p/2,Number(i?.sideUprightHeight)||0)',b='Math.max(150,m+(c-1)*T,Number(i?.sideUprightHeight)||m+(c-1)*T+p/2)';if(source.includes(b))return source;if(!source.includes(a))throw Error('v514 front height anchor missing');return source.replace(a,b);}
+export function transformFront(source){
+ const old=/Math\.max\(150,([\w$]+)\+\(([\w$]+)-1\)\*([\w$]+)\+([\w$]+)\/2,Number\(([\w$]+)\?\.sideUprightHeight\)\|\|0\)/;
+ const updated=/Math\.max\(150,([\w$]+)\+\(([\w$]+)-1\)\*([\w$]+),Number\(([\w$]+)\?\.sideUprightHeight\)\|\|\1\+\(\2-1\)\*\3\+[\w$]+\/2\)/;
+ if(updated.test(source))return source;if(!old.test(source))throw Error('v514 front height anchor missing');
+ return source.replace(old,(_,first,levels,gap,pallet,drawing)=>`Math.max(150,${first}+(${levels}-1)*${gap},Number(${drawing}?.sideUprightHeight)||${first}+(${levels}-1)*${gap}+${pallet}/2)`);
+}
 if(/[\\/]mekik-stepped-v514\.mjs$/.test(process.argv[1]||'')){
  for(const file of ['dist/index.html','dist/server/index.js'])if(fs.existsSync(file)){let source=fs.readFileSync(file,'utf8');if(file.endsWith('.html'))source=transform(source);else{const m=source.match(/const\s+HTML_BASE64\s*=\s*(["'])([A-Za-z0-9+/=]+)\1/);if(!m)throw Error('v514 HTML missing');source=source.replace(m[0],m[0].replace(m[2],Buffer.from(transform(Buffer.from(m[2],'base64').toString())).toString('base64')));}fs.writeFileSync(file,source);console.log('PASS v514: '+file);}
  const file='dist/mekik-front-viewer.js';if(fs.existsSync(file)){const code=transformFront(fs.readFileSync(file,'utf8'));fs.writeFileSync(file,code);const serverFile='dist/server/index.js';if(fs.existsSync(serverFile)){let server=fs.readFileSync(serverFile,'utf8');server=server.replace(/(const RAFEX_MEKIK_FRONT_VIEWER_BASE64 = ["'])([A-Za-z0-9+/=]+)(["'])/,(_,a,b,c)=>a+Buffer.from(code).toString('base64')+c);fs.writeFileSync(serverFile,server);}}
