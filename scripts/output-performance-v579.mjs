@@ -27,7 +27,7 @@ export function transform(html){
     if (previewPending.has(key)) {`);
  replace('      const src = await capture.call(mr ?', '      const captureStarted579=performance.now();\n      const src = await capture.call(mr ?');
  replace('      if (src) { previewCache.set(key, { signature, src }); trimPreviewCache(); }',`      const report579=document.getElementById('m2CorporatePreview');if(report579){const timings=JSON.parse(report579.dataset.sectionTimings579||'[]');timings.push({key,ms:Math.round(performance.now()-captureStarted579)});report579.dataset.sectionTimings579=JSON.stringify(timings.slice(-40));}
-      if (src) { await window.rafexSectionImageCache579?.put(durableKey579,src);rememberCapture579(renderSignature579,src);previewCache.set(key, { signature, src }); trimPreviewCache(); }`);
+      if (src) { void Promise.resolve(window.rafexSectionImageCache579?.put(durableKey579,src)).catch(()=>{});rememberCapture579(renderSignature579,src);previewCache.set(key, { signature, src }); trimPreviewCache(); }`);
  // Smaller discarded section passes need no 400ms section repair window.
  replace('      await wait(400);','      await wait(options.sections===false?64:400);');
  replace('      for(const type of types){\n        if(settingFor(type.key,source).excluded)continue;\n        const src=await capturePerspective',`      let captureIndex579=0;

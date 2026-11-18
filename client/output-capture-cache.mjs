@@ -14,14 +14,14 @@ export function browserCaptureStorage(env=globalThis){
  const open=()=>database??=(new Promise(resolve=>{
   if(!env.indexedDB){resolve(null);return;}let settled=false;
   const finish=value=>{if(settled){value?.close();return;}settled=true;env.clearTimeout(timer);resolve(value);};
-  const timer=env.setTimeout(()=>finish(null),1500),request=env.indexedDB.open('rafex-section-captures-v579',1);
+  const timer=env.setTimeout(()=>finish(null),250),request=env.indexedDB.open('rafex-section-captures-v579',1);
   request.onupgradeneeded=()=>{for(const name of ['images','meta'])if(!request.result.objectStoreNames.contains(name))request.result.createObjectStore(name);};
   request.onsuccess=()=>finish(request.result);request.onerror=request.onblocked=()=>finish(null);
  })).catch(()=>null);
  return {
   async read(key){const db=await open();if(!db)return null;return new Promise(resolve=>{
    const tx=db.transaction(['images','meta']),image=tx.objectStore('images').get(key),meta=tx.objectStore('meta').get(key);let done=false;
-   const timer=env.setTimeout(()=>{done=true;resolve(null);},1500);
+   const timer=env.setTimeout(()=>{done=true;resolve(null);},100);
    const finish=value=>{if(done)return;done=true;env.clearTimeout(timer);resolve(value);};
    tx.oncomplete=()=>finish(meta.result&&typeof image.result==='string'?{...meta.result,src:image.result}:null);tx.onabort=tx.onerror=()=>finish(null);
   });},

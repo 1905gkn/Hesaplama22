@@ -1,4 +1,5 @@
 import {transformViewerSource as collectionOnly584} from './collection-only-v584.mjs';
+import {transformViewerSource as sectionDimensions591} from './section-dimensions-language-v591.mjs';
 import {transformViewerSource as manualPalletWeightSource} from './manual-pallet-weight-v398.mjs';
 import {transformViewerSource as katWireSource} from './kat-wire-v392.mjs';
 import {transformViewerSource as elevatedAccessoryLabels} from './elevated-accessory-labels-v390.mjs';
@@ -30,8 +31,13 @@ for(const [entry,file,constant] of [
   if(file==='b2b-viewer.js')fs.writeFileSync(entry,katWireSource(elevatedAccessoryLabels(accessoryLabelPosition(collectionAccessorySource(accessoryFloorsSource(accessoryLabelsSource(transformViewerSource(fs.readFileSync(entry,'utf8')))))))));
   if(file==='b2b-viewer.js')fs.writeFileSync(entry,manualPalletWeightSource(fs.readFileSync(entry,'utf8')));
   if(file==='b2b-viewer.js')fs.writeFileSync(entry,collectionOnly584(fs.readFileSync(entry,'utf8')));
+  if(file==='b2b-viewer.js'||file==='mr-viewer.js'){
+    const localized=sectionDimensions591(fs.readFileSync(entry,'utf8'),file==='b2b-viewer.js'?'b2b':'mr');
+    if(file==='mr-viewer.js'){fs.mkdirSync('dist',{recursive:true});fs.writeFileSync('dist/mr-viewer.patched.entry.js',localized);}else fs.writeFileSync(entry,localized);
+  }
   if(file==='konsol-viewer.js')fs.writeFileSync(entry,fs.readFileSync(entry,'utf8').replaceAll('globalThis.__rafexKonsolLoadType || next.loadType','next.loadType || globalThis.__rafexKonsolLoadType').replace('const visualUprightHeight = visualTopArmSupport + visualTopExtension;','const visualUprightHeight = Math.max(o.height, visualTopArmSupport);'));
-  const result=await build({absWorkingDir:root,entryPoints:[entry],bundle:true,format:'iife',minify:true,target:'es2022',write:false,plugins:[plugin]});
+  const input591=file==='mr-viewer.js'?{stdin:{contents:fs.readFileSync('dist/mr-viewer.patched.entry.js','utf8'),resolveDir:root+'/client',sourcefile:'mr-viewer.entry.js'}}:{entryPoints:[entry]};
+  const result=await build({absWorkingDir:root,...input591,bundle:true,format:'iife',minify:true,target:'es2022',write:false,plugins:[plugin]});
   const code=result.outputFiles[0].text;new vm.Script(code);
   versionHash.update(code);
   if(code.includes('Multiple instances of Three.js'))throw Error('Three was still bundled: '+file);

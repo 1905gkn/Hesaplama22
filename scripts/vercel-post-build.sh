@@ -485,3 +485,12 @@ node scripts/verify-adaptive-render-v585.mjs
 node scripts/verify-motion-budget-v580.mjs
 node scripts/lazy-3d-areas-v587.mjs
 node scripts/verify-collection-layout-v587.mjs
+node scripts/barrier-selection-v588.mjs
+node scripts/verify-barrier-selection-v588.mjs
+node scripts/seismic-bounds-v589.mjs
+node scripts/verify-seismic-bounds-v589.mjs dist/index.html
+node scripts/output-timings-v590.mjs
+node scripts/verify-product-flow-v590.mjs
+node scripts/verify-output-capture-cache-v579.mjs
+node scripts/section-dimensions-language-v591.mjs
+node scripts/verify-section-language-v591.mjs dist/index.html
