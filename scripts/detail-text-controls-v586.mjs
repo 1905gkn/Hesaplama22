@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 export function transform(html){
+ html=html.replace(/\/(layout-3d|customer-view)\.js\?v=\d+/g,'/$1.js?v=586');
  if(html.includes('data-detail-text-controls="586"'))return html;
  for(const anchor of ['modal.hidden=false;if(sys===','detailViewer=viewer;'])if(!html.includes(anchor))throw Error('v586 detail anchor '+anchor);
  html=html.replace('modal.hidden=false;if(sys===','window.rafexInstallDetailText586(modal);modal.hidden=false;if(sys===');

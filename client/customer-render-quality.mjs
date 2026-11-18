@@ -3,7 +3,7 @@ import {adaptiveRenderQuality} from './adaptive-render-quality.mjs';
 export function customerRenderQuality({renderer,controls,render=()=>{},enabled=false,env=globalThis}){
  if(!enabled)return {dispose(){}};
  const quality=adaptiveRenderQuality({renderer,render,env});
- const start=()=>{quality.move();render();};
+ const start=()=>{const before=quality.stats().pixelRatio;quality.move();if(before!==quality.stats().pixelRatio)render();};
  const change=start,end=()=>quality.move();
  // Native block viewers have real shadow maps; the layout renderer has none.
  renderer.shadowMap.enabled=false;
