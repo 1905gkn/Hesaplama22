@@ -1,4 +1,5 @@
 import {dimensionNumber,dimensionUnitNotice} from './dimension-units.mjs';
+import {isGalvanizedColor593,fixedGalvanizedMaterial593} from './galvanized-material-v593.mjs';
 import {normalizeCollectionOnlyLayout} from './collection-only-layout-v587.mjs';
 import {createPreparedSceneSession,layoutRevision,sceneBufferBytes} from './layout-3d-session.mjs';
 import {DRIVE_RENDER_VERSION} from './drive-render-version.mjs';
@@ -41,7 +42,7 @@ async function makeViewer(host,data,templates,accessoryGeometries=new Map(),opti
  const scene=new THREE.Scene();scene.background=new THREE.Color('#f0f5f3');
  const camera=new THREE.PerspectiveCamera(45,1,.05,10000),ownsRenderer=!options.renderer,renderer=options.renderer||new THREE.WebGLRenderer({antialias:true});if(ownsRenderer)renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.domElement.setAttribute('aria-label','Serbest yerleşimin üç boyutlu önizlemesi');host.append(renderer.domElement);
  const controls=new OrbitControls(camera,renderer.domElement);controls.enabled=!paused;controls.maxPolarAngle=Math.PI/2-.01;controls.screenSpacePanning=true;
- function Surface(params){if(!options.customerPerformance)return new THREE.MeshStandardMaterial(params);const {roughness,metalness,...simple}=params;return new THREE.MeshLambertMaterial(simple);}
+ function Surface(params){if(isGalvanizedColor593(params.color))return fixedGalvanizedMaterial593(params);if(!options.customerPerformance)return new THREE.MeshStandardMaterial(params);const {roughness,metalness,...simple}=params;return new THREE.MeshLambertMaterial(simple);}
  const geometries=[],materials=[],parts={},geometry=new THREE.BoxGeometry(1,1,1);geometries.push(geometry);
  const colors={ral5010:'#005078',ral5015:'#287ab5',pgv:'#aeb8bd',galvanized:'#aeb8bd',ral1007:'#e5bd00',ral1023:'#f2c500',ral2004:'#e25318',timber:'#a67b45',load:'#d6b47b',product:'#75838a',shelf:'#b8c3c5',rail:'#bbc3c6'};
  const dummy=new THREE.Object3D(),parent=new THREE.Object3D(),palletMeshes=[],timberGroups=new Map(),partCache=new Map(),placementCache=new Map();let lastYield=performance.now();

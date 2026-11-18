@@ -29,6 +29,7 @@ const COLORS = {
   ral2004: 0xe25318,
 };
 let sharedModelsPromise = null;
+let layoutAssetWarmup592=null;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -948,6 +949,14 @@ async function captureB2BViews(options = {}, settings = {}) {
 
 let active = null;
 window.RafexB2BViewer = {
+  preloadLayoutAssets(){
+    if(!layoutAssetWarmup592)layoutAssetWarmup592=(async()=>{
+      const model=Object.create(B2BViewer.prototype);
+      Object.assign(model,{destroyed:false,options:model.normalizeOptions({}),emit(){},update(){}});
+      await model.load();if(!model.models)throw Error('B2B CAD modelleri yüklenemedi.');
+    })().catch(error=>{layoutAssetWarmup592=null;throw error;});
+    return layoutAssetWarmup592;
+  },
   async layoutAccessoryGeometry(options,seating=null){
     const model=Object.create(B2BViewer.prototype),content=new THREE.Group();let failure=null;
     Object.assign(model,{content,canvas:{id:'layout-accessories'},destroyed:false,options:model.normalizeOptions({...options,moduleCount:1,moduleOptions:null,showPallets:false}),emit(name,detail){if(name==='b2b-viewer-error')failure=detail?.message;},addDimensions(){},addGround(){},fitCamera(){}});
@@ -957,7 +966,7 @@ window.RafexB2BViewer = {
     if(seating?.frameDepth>0&&typeof model.centerAccessoryBetweenTraverses==='function'){const nativeCenter=model.centerAccessoryBetweenTraverses;model.centerAccessoryBetweenTraverses=function(object,section,level,depth){return nativeCenter.call(this,object,section,level,/^Tava /.test(object.name)?Math.max(1,seating.frameDepth-(seating.beamDepth||63)):depth);};}
     const result=[];
     try{model.update(model.options,true);content.updateMatrixWorld(true);const frame=new THREE.Box3();content.traverse(m=>{if(m.isMesh&&/AYAK|HRTD|UPRIGHT/i.test(m.name)){const b=new THREE.Box3().setFromObject(m);if(b.max.y-b.min.y>model.options.footHeight*.5)frame.union(b);}});if(frame.isEmpty())frame.setFromObject(content);const center=frame.getCenter(new THREE.Vector3());
-      content.traverse(m=>{if(!m.isMesh)return;let accessory=false,wire=null,tray=null;for(let at=m;at&&at!==content;at=at.parent)if(/Palet Dayama|H Travers|^Tava |Toplama|Kat Teli/i.test(at.name)){accessory=true;if(/Kat Teli/i.test(at.name))wire=at;if(/^Tava /.test(at.name))tray=at;break;}if(!accessory)return;const g=m.geometry.clone().applyMatrix4(m.matrixWorld);g.translate(-center.x,0,-center.z);if((wire||tray)&&seating?.frameDepth>0){const b=new THREE.Box3().setFromObject(wire||tray),z=(b.min.z+b.max.z)/2-center.z,depth=b.max.z-b.min.z,target=(seating.rowCenters||[z]).reduce((a,v)=>Math.abs(v-z)<Math.abs(a-z)?v:a,(seating.rowCenters||[z])[0]);if(depth>0){g.translate(0,0,-z);g.scale(1,1,(tray?Math.max(1,seating.frameDepth-(seating.beamDepth||63)+20):seating.frameDepth)/depth);g.translate(0,0,target);}}g.scale(.001,.001,.001);g.computeBoundingBox();g.computeBoundingSphere();const mat=Array.isArray(m.material)?m.material[0]:m.material;result.push({geometry:g,color:mat?.color?.getHex?.()??0xaeb8bd,name:m.name});});return result;
+      content.traverse(m=>{if(!m.isMesh)return;let accessory=false,wire=null,tray=null;for(let at=m;at&&at!==content;at=at.parent)if(/Palet Dayama|H Travers|^Tava |Toplama|Kat Teli/i.test(at.name)){accessory=true;if(/Kat Teli/i.test(at.name))wire=at;if(/(?:^Tava |Toplama Tava)/i.test(at.name))tray=at;break;}if(!accessory)return;const g=m.geometry.clone().applyMatrix4(m.matrixWorld);if(m.matrixWorld.determinant()<0){if(!g.index)g.setIndex(Array.from({length:g.attributes.position.count},(_,i)=>i));const ix=g.index.array;for(let i=0;i<ix.length;i+=3)[ix[i+1],ix[i+2]]=[ix[i+2],ix[i+1]];}g.translate(-center.x,0,-center.z);if((wire||tray)&&seating?.frameDepth>0){const b=new THREE.Box3().setFromObject(wire||tray),z=(b.min.z+b.max.z)/2-center.z,depth=b.max.z-b.min.z,target=(seating.rowCenters||[z]).reduce((a,v)=>Math.abs(v-z)<Math.abs(a-z)?v:a,(seating.rowCenters||[z])[0]);if(depth>0){g.translate(0,0,-z);g.scale(1,1,(tray?Math.max(1,seating.frameDepth-(seating.beamDepth||63)+20):seating.frameDepth)/depth);g.translate(0,0,target);}}g.scale(.001,.001,.001);g.computeBoundingBox();g.computeBoundingSphere();const mat=Array.isArray(m.material)?m.material[0]:m.material;result.push({geometry:g,color:mat?.color?.getHex?.()??0xaeb8bd,name:m.name,sourceKey:m.geometry.uuid+JSON.stringify([0,1,2,4,5,6,8,9,10].map(i=>m.matrixWorld.elements[i]))+JSON.stringify([!!tray,!!wire,seating?.frameDepth,seating?.beamDepth])});});return result;
     }finally{const gs=new Set(),ms=new Set();content.traverse(m=>{if(m.isMesh){if(!sharedGeometry.has(m.geometry))gs.add(m.geometry);for(const mat of Array.isArray(m.material)?m.material:[m.material])if(!sharedMaterials.has(mat))ms.add(mat);}});gs.forEach(g=>g.dispose());ms.forEach(m=>m.dispose());content.clear();}
   },
 

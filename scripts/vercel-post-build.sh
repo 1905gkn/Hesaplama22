@@ -494,3 +494,6 @@ node scripts/verify-product-flow-v590.mjs
 node scripts/verify-output-capture-cache-v579.mjs
 node scripts/section-dimensions-language-v591.mjs
 node scripts/verify-section-language-v591.mjs dist/index.html
+node scripts/customer-opening-v592.mjs
+node scripts/verify-customer-opening-v592.mjs
+node scripts/verify-galvanized-v593.mjs

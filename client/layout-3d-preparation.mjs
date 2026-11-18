@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {instanceRepeatedAccessories592} from './accessory-instances-v592.mjs';
 import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {prepareCadRenderCopy} from './cad-render-copy.mjs';
 import {createPreparationBudget} from './layout-3d-budget.mjs';
@@ -10,8 +11,9 @@ export async function prepareNativeBatches(byRack){
  const cache=new Map(),originals=new Set(),budget=createPreparationBudget();
  for(const [id,parts] of byRack){
   if(!cache.has(parts)){
+   const instanced592=instanceRepeatedAccessories592(parts);
    const groups=new Map();
-   for(const p of parts){
+   for(const p of instanced592){
     if(p.matrices)continue; // Keep repeated CAD on the GPU as instances.
     const g=p.geometry;if(Object.keys(g.morphAttributes).length)continue;
     const schema=Object.entries(g.attributes).map(([k,a])=>[k,a.itemSize,a.normalized,a.array.constructor.name]);
@@ -31,7 +33,7 @@ export async function prepareNativeBatches(byRack){
     if(merged){merged.computeBoundingBox();merged.computeBoundingSphere();const {matrices,...first}=group[0];next.push({...first,geometry:merged});for(const p of group){replaced.add(p);originals.add(p.geometry);}}
     await yieldPreparation();
    }
-   const prepared=[...parts.filter(p=>!replaced.has(p)),...next];
+   const prepared=[...instanced592.filter(p=>!replaced.has(p)),...next];
    // Native MR used to bypass the CAD render preparation entirely. Its repeated
    // perforated frames dominated GPU vertex work even though they were instanced.
    for(const part of prepared){if(part.renderSystem!=='mr'||part.load)continue;
