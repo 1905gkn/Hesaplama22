@@ -11,7 +11,7 @@ export async function prepareCadRenderCopy(template,budget){
  const pending=(async()=>{const geometries=[];
  for(let source of template.geometries){
   if(source.userData.uprightProfile594){geometries.push(source);continue;}
-  if(['drivePost','mekikPost','b2bFrame','mrPost'].includes(template.cadKind)){
+  if(source.userData.uprightCandidate594&&['drivePost','mekikPost','b2bFrame','mrPost'].includes(template.cadKind)){
    source.computeBoundingBox();const size=source.boundingBox.getSize(new THREE.Vector3());if(size.y>Math.max(size.x,size.z)*8){geometries.push(prepareUprightGeometry594(source));continue;}
   }
   const tolerance=template.cadKind==='mrPost'?.0005:['drivePost','mekikPost'].includes(template.cadKind)?.001:.0001;
