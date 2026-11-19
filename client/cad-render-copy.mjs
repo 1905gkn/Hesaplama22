@@ -10,7 +10,7 @@ export async function prepareCadRenderCopy(template,budget){
  if(cache.has(template))return cache.get(template);
  const pending=(async()=>{const geometries=[];
  for(let source of template.geometries){
-  if(source.userData.uprightProfile594){geometries.push(source);continue;}
+  if(source.userData.uprightProfile594||source.userData.connectorExact596){geometries.push(source);continue;}
   if(source.userData.uprightCandidate594&&['drivePost','mekikPost','b2bFrame','mrPost'].includes(template.cadKind)){
    source.computeBoundingBox();const size=source.boundingBox.getSize(new THREE.Vector3());if(size.y>Math.max(size.x,size.z)*8){geometries.push(prepareUprightGeometry594(source));continue;}
   }

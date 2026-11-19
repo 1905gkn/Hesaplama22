@@ -1,3 +1,4 @@
+import {flatConnectorGeometry596} from './connector-contact-v596.mjs';
 import {prepareUprightGeometry594} from './upright-side-holes-v594.mjs';
 import * as THREE from 'three';
 export const GALVANIZED_COLOR593=0xaeb8bd;
@@ -25,6 +26,7 @@ export function fixedGalvanizedMaterial593(source={}){
 export function stabilizeGalvanizedObject593(root){
  const converted=new Map();root.traverse(mesh=>{
   if(!mesh.isMesh||!mesh.material)return;
+  if(/KONNEKT|BRAKET/i.test(mesh.name||''))mesh.geometry=flatConnectorGeometry596(mesh.geometry);
   if(/MRD\d|AYAK(?:[_\s]+\d+)*[_\s]*-\d+/i.test(mesh.name||'')){
    mesh.geometry.computeBoundingBox();const size=mesh.geometry.boundingBox.getSize(new THREE.Vector3()),heightAxis=size.z>size.y?'z':'y';
    if(size[heightAxis]>Math.max(size.x,heightAxis==='y'?size.z:size.y)*8)mesh.geometry=prepareUprightGeometry594(mesh.geometry,{heightAxis,frontAxis:heightAxis==='z'?'y':'z'});

@@ -1,3 +1,4 @@
+import {connectorContact596,postFront596} from './connector-contact-v596.mjs';
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
@@ -172,6 +173,8 @@ function prepareTemplate(scene, type) {
   return {
     root,
     size: normalizedBounds.getSize(new THREE.Vector3()),
+    contactY: type === "traverse" ? connectorContact596(root) : null,
+    postFrontY: type === "upright" ? postFront596(root) : null,
     topOffset: normalizedBounds.max.z,
     profileBottomOffset: normalizedProfileBounds.min.z,
     source: type === "upright" ? "mekik 3ayak(2).glb" : "mekik 3travers(2).glb",
@@ -323,7 +326,7 @@ class MekikFrontViewer {
     }
 
     const traverseScaleX = config.bayPitch / REFERENCE_BAY_PITCH;
-    const traverseFrontY = Math.max(8, this.models.upright.size.y * 0.5 + 2);
+    const traverseFrontY = (this.models.upright.postFrontY ?? this.models.upright.size.y * .5) + (this.models.traverse.contactY ?? 0) + .2;
     const palletScaleX = config.palletWidth / Math.max(1, this.models.pallet.size.x);
     const palletScaleY = config.palletDepth / Math.max(1, this.models.pallet.size.y);
     const palletBodyHeight = EURO_PALLET_VISUAL_HEIGHT;
@@ -345,6 +348,7 @@ class MekikFrontViewer {
         traverse.name = `Mekik Travers G${bay + 1} K${level + 1}`;
         traverse.traverse((part) => { if (part.isMesh) part.material = traverseMaterial; });
         traverse.scale.set(traverseScaleX, 1, 1);
+        traverse.rotation.z = Math.PI;
         traverse.position.set(bayCenterX, traverseFrontY, supportZ - bracketTopOffset);
         this.root.add(traverse);
 

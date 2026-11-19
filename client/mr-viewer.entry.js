@@ -73,7 +73,12 @@ function normalizedPart(scene, kind) {
   wrapper.updateMatrixWorld(true);
   const size = new THREE.Vector3();
   new THREE.Box3().setFromObject(wrapper).getSize(size);
-  return { object: wrapper, size };
+  let endOverlap=0;
+  if(kind==='upright'){
+    const posts=new THREE.Box3();wrapper.traverse(m=>{if(m.isMesh&&/MRD\d/i.test(m.name))posts.union(new THREE.Box3().setFromObject(m));});
+    if(!posts.isEmpty()){object.position.x-=posts.min.x;object.position.z-=posts.min.z;size.x=posts.max.x-posts.min.x;size.z=posts.max.z-posts.min.z;wrapper.updateMatrixWorld(true);}
+  }else if(kind==='traverse')wrapper.traverse(m=>{if(m.isMesh&&/KONNEKT/i.test(m.name)){const b=new THREE.Box3().setFromObject(m);endOverlap=Math.max(endOverlap,b.max.x-b.min.x);}});
+  return { object: wrapper, size, endOverlap };
 }
 
 function loadNormalizedPart(kind) {
@@ -89,7 +94,7 @@ async function loadFinishedPart(kind, finishKey = "default") {
   const task = loadNormalizedPart(kind).then((template) => {
     const object = finishMaterials(template.object.clone(true));
     applyFinish(object, finishKey === "default" ? "pgv" : finishKey, kind);
-    return { object, size: template.size.clone() };
+    return { object, size: template.size.clone(), endOverlap:template.endOverlap };
   });
   finishedCache.set(key, task);
   return task;
@@ -238,6 +243,7 @@ class MRViewer {
         this.root.add(instance);
       }
       const beamDepth = Math.max(1, traverse.size.z);
+      const beamScaleX=width/Math.max(1,traverse.size.x-2*traverse.endOverlap),connectorOverlap=traverse.endOverlap*beamScaleX;
       const trayAccessories = this.config.accessories.filter((item) => item.type === "tray");
       for (let module = 0; module < modules; module += 1) {
         const moduleX = module * framePitch + uprightWidth;
@@ -245,12 +251,13 @@ class MRViewer {
           const levelY = levelYs[level - 1];
           for (const side of ["front", "back"]) {
             const beam = traverse.object.clone(true);
-            beam.scale.set(width / traverse.size.x, traverseHeight / traverse.size.y, 1);
+            beam.scale.set(beamScaleX, traverseHeight / traverse.size.y, 1);
             if (side === "front") {
-              beam.rotation.y = Math.PI;
-              beam.position.set(moduleX + width, levelY, beamDepth);
+              beam.rotation.y = 0;
+              beam.position.set(moduleX-connectorOverlap, levelY, -.2);
             } else {
-              beam.position.set(moduleX, levelY, Math.max(0, depth - beamDepth));
+              beam.rotation.y = Math.PI;
+              beam.position.set(moduleX + width + connectorOverlap, levelY, depth + .2);
             }
             this.root.add(beam);
           }

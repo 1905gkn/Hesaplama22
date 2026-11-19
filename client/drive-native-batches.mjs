@@ -1,3 +1,4 @@
+import {prepareUprightGeometry594} from './upright-side-holes-v594.mjs';
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {cadFacingParts} from './cad-facing-batches.mjs';
@@ -16,7 +17,7 @@ export async function prepareDriveNativePost(source){
   const groups=new Map(),budget=createPreparationBudget(),output=new THREE.Group();
   source.traverse(mesh=>{
    if(!mesh.isMesh)return;
-   const geometry=mesh.geometry.clone().applyMatrix4(mesh.matrixWorld);
+   const part=isDrivePaintedPost(mesh.name)?prepareUprightGeometry594(mesh.geometry,{heightAxis:'z',frontAxis:'y'}):mesh.geometry;const geometry=part.clone().applyMatrix4(mesh.matrixWorld);
    if(mesh.matrixWorld.determinant()<0){
     if(!geometry.index)geometry.setIndex(Array.from({length:geometry.attributes.position.count},(_,i)=>i));
     const a=geometry.index.array;for(let i=0;i<a.length;i+=3)[a[i+1],a[i+2]]=[a[i+2],a[i+1]];

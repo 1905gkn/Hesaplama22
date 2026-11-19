@@ -69,7 +69,7 @@ function cloneAtPhysicalScale(source, scale, material, orientation = {}) {
 // The source contains a mirrored pair. Its bearing ledge is 59 mm above
 // the bottom; the full 209 mm envelope also includes the upright connector.
 // Scale each bracket uniformly, then change the pair spacing independently.
-function consolePairAtSpan(source, span) {
+function consolePairAtSpan(source, span, uprightWidth=90) {
   const factor = 70 / 59;
   const pair = new THREE.Group();
   const parts = source.children.slice().sort((a, b) => metricsOf(a).center.x - metricsOf(b).center.x);
@@ -78,7 +78,7 @@ function consolePairAtSpan(source, span) {
     origin.add(part.clone(true));
     const width = metricsOf(origin).size.x * factor;
     const bracket = cloneAtPhysicalScale(origin, new THREE.Vector3(factor, factor, factor), technicalMaterials.konsol, { rotateY: false });
-    bracket.position.x = index === 0 ? -span / 2 + width / 2 : span / 2 - width / 2;
+    bracket.position.x = index === 0 ? -span / 2 + uprightWidth / 2 + width / 2 + .2 : span / 2 - uprightWidth / 2 - width / 2 - .2;
     pair.add(bracket);
   });
   return pair;
@@ -276,7 +276,7 @@ class DriveInFrontViewer {
         const left = uprightWidth + bay * bayPitch;
         const right = left + bayClear;
         const centerX = (left + right) / 2;
-        for(const run of runs){const rayPositionY=frontY-(run.start+run.end)/2,scale=new THREE.Vector3(1,(run.end-run.start)/raySize.y,150/raySize.z);this.addPart(this.models.ray,scale,new THREE.Vector3(left+raySize.x/2,rayPositionY,supportTopZ-75),technicalMaterials.ray);this.addPart(this.models.ray,scale,new THREE.Vector3(right-raySize.x/2,rayPositionY,supportTopZ-75),technicalMaterials.ray);for(const at of run.supports)this.addPart(konsolModel,konsolScale,new THREE.Vector3(centerX,frontY-at-konsolSize.y/2,supportTopZ-70+konsolSize.z/2),technicalMaterials.konsol);}
+        for(const run of runs){const rayPositionY=frontY-(run.start+run.end)/2,scale=new THREE.Vector3(1,(run.end-run.start)/raySize.y,150/raySize.z);this.addPart(this.models.ray,scale,new THREE.Vector3(left+raySize.x/2,rayPositionY,supportTopZ-75),technicalMaterials.ray);this.addPart(this.models.ray,scale,new THREE.Vector3(right-raySize.x/2,rayPositionY,supportTopZ-75),technicalMaterials.ray);for(const at of run.supports)this.addPart(konsolModel,konsolScale,new THREE.Vector3(centerX,frontY-at-konsolSize.y/2,supportTopZ-70+konsolSize.z/2),technicalMaterials.konsol,{rotateY:false});}
         const palletSeatZ = supportTopZ;
         const palletPart=this.addPart(this.models.palet, paletScale, new THREE.Vector3(centerX, frontY - firstPallet - c.palletDepth / 2 - 40, palletSeatZ + palletThickness / 2), technicalMaterials.palet, { rotateY: false, rotationZ: -Math.PI / 2 });
         palletPart.visible=c.showPallets;

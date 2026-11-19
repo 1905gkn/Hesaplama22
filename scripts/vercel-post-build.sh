@@ -499,3 +499,5 @@ node scripts/verify-customer-opening-v592.mjs
 node scripts/verify-galvanized-v593.mjs
 
 node scripts/verify-upright-sides-v594.mjs
+
+node scripts/verify-connectors-v596.mjs
