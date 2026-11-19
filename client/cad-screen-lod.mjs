@@ -12,6 +12,9 @@ export function projectedCadError(error,scale,sphere,camera,viewportHeight){
  return error*scale*viewportHeight/(2*Math.tan(camera.fov*Math.PI/360)*depth);
 }
 export async function prepareScreenLod(source,budget=createPreparationBudget(),{tolerance=.003}={}){
+ // Never collapse upright folded walls across holes. Its repaired lateral faces
+ // are already minimal; front holes and section remain the CAD source.
+ if(source.userData?.uprightProfile594)return null;
  let variants=cache.get(source);if(!variants){variants=new Map();cache.set(source,variants);}if(variants.has(tolerance))return variants.get(tolerance);
  const job=(async()=>{
   const p=source.attributes.position,n=source.attributes.normal,index=source.index;

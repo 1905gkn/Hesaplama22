@@ -13,13 +13,14 @@ function* cadRenderSteps(template){
  for(const [i,geometry] of template.geometries.entries()){
   const finish=template.finishes?.[i]||'paint';
   const attributes=Object.entries(geometry.attributes).sort(([a],[b])=>a.localeCompare(b)).map(([name,a])=>[name,a.itemSize,a.normalized,a.array.constructor.name]);
-  const key=JSON.stringify([finish,!!geometry.index,attributes,Object.keys(geometry.morphAttributes)]);
+  const key=JSON.stringify([finish,!!geometry.index,attributes,Object.keys(geometry.morphAttributes),!!geometry.userData.uprightProfile594]);
   if(!groups.has(key))groups.set(key,{finish,geometries:[]});groups.get(key).geometries.push(geometry);
  }
  const parts=[];
  for(const {finish,geometries} of groups.values()){
   // Morph targets are not used by static CAD. Preserve them if a future asset has any.
   let merged=geometries.length>1&&!Object.keys(geometries[0].morphAttributes).length?mergeGeometries(geometries,false):null;
+  if(merged&&geometries.every(g=>g.userData.uprightProfile594))merged.userData.uprightProfile594=geometries[0].userData.uprightProfile594;
   if(merged&&geometries.some(g=>g.userData.renderCopy))merged.userData.renderCopy={prepared:true};
   if(merged){const exact=yield* compactCadVertexSteps(merged);if(exact!==merged){merged.dispose();merged=exact;}else if(!merged.index){const indexed=mergeVertices(merged,1e-9);const bytes=g=>Object.values(g.attributes).reduce((n,a)=>n+a.array.byteLength,0)+(g.index?.array.byteLength||0);if(bytes(indexed)<bytes(merged)){merged.dispose();merged=indexed;}else indexed.dispose();}merged.computeBoundingBox();merged.computeBoundingSphere();parts.push({geometry:merged,finish});}
   else for(const geometry of geometries)parts.push({geometry:yield* compactCadVertexSteps(geometry),finish});

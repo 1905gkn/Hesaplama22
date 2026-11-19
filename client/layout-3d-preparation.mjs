@@ -17,7 +17,7 @@ export async function prepareNativeBatches(byRack){
     if(p.matrices)continue; // Keep repeated CAD on the GPU as instances.
     const g=p.geometry;if(Object.keys(g.morphAttributes).length)continue;
     const schema=Object.entries(g.attributes).map(([k,a])=>[k,a.itemSize,a.normalized,a.array.constructor.name]);
-    const key=JSON.stringify([p.color,p.roughness,p.metalness,!!p.load,!!g.index,schema]);
+    const key=JSON.stringify([p.color,p.roughness,p.metalness,!!p.load,!!g.index,schema,!!g.userData.uprightProfile594]);
     if(!groups.has(key))groups.set(key,[]);groups.get(key).push(p);
    }
    const next=[],replaced=new Set();
@@ -30,7 +30,7 @@ export async function prepareNativeBatches(byRack){
      baked.push(g);
     }
     const merged=mergeGeometries(baked,false);baked.forEach(g=>g.dispose());
-    if(merged){merged.computeBoundingBox();merged.computeBoundingSphere();const {matrices,...first}=group[0];next.push({...first,geometry:merged});for(const p of group){replaced.add(p);originals.add(p.geometry);}}
+    if(merged){if(group[0].geometry.userData.uprightProfile594)merged.userData.uprightProfile594=group[0].geometry.userData.uprightProfile594;merged.computeBoundingBox();merged.computeBoundingSphere();const {matrices,...first}=group[0];next.push({...first,geometry:merged});for(const p of group){replaced.add(p);originals.add(p.geometry);}}
     await yieldPreparation();
    }
    const prepared=[...instanced592.filter(p=>!replaced.has(p)),...next];

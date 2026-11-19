@@ -1,3 +1,4 @@
+import {prepareUprightGeometry594} from './upright-side-holes-v594.mjs';
 import * as THREE from 'three';
 import {simplifyCad} from './cad-simplify-job.mjs';
 const cache=new WeakMap();
@@ -8,7 +9,11 @@ export async function prepareCadRenderCopy(template,budget){
  if(!['drivePost','mekikPost','mekikBeam','b2bBeam','b2bFrame','mrBeam','mrPost'].includes(template.cadKind))return template;
  if(cache.has(template))return cache.get(template);
  const pending=(async()=>{const geometries=[];
- for(const source of template.geometries){
+ for(let source of template.geometries){
+  if(source.userData.uprightProfile594){geometries.push(source);continue;}
+  if(['drivePost','mekikPost','b2bFrame','mrPost'].includes(template.cadKind)){
+   source.computeBoundingBox();const size=source.boundingBox.getSize(new THREE.Vector3());if(size.y>Math.max(size.x,size.z)*8){geometries.push(prepareUprightGeometry594(source));continue;}
+  }
   const tolerance=template.cadKind==='mrPost'?.0005:['drivePost','mekikPost'].includes(template.cadKind)?.001:.0001;
   const position=source.attributes.position,normal=source.attributes.normal,index=source.index;
   if(!index||index.count<(template.cadKind==='mrPost'?100000:['drivePost','mekikPost'].includes(template.cadKind)?300000:3000)||!normal||Object.keys(source.morphAttributes).length){geometries.push(source);continue;}
