@@ -1,3 +1,4 @@
+import {transformMrConnectors596} from './mr-connector-contact-v596.mjs';
 import {transformViewerSource as collectionOnly584} from './collection-only-v584.mjs';
 import {transformViewerSource as sectionDimensions591} from './section-dimensions-language-v591.mjs';
 import {transformViewerSource593} from './galvanized-finish-v593.mjs';
@@ -38,7 +39,7 @@ for(const [entry,file,constant] of [
   }
   if(file==='konsol-viewer.js')fs.writeFileSync(entry,fs.readFileSync(entry,'utf8').replaceAll('globalThis.__rafexKonsolLoadType || next.loadType','next.loadType || globalThis.__rafexKonsolLoadType').replace('const visualUprightHeight = visualTopArmSupport + visualTopExtension;','const visualUprightHeight = Math.max(o.height, visualTopArmSupport);'));
   const selected591=file==='mr-viewer.js'?'dist/mr-viewer.patched.entry.js':entry;
-  const source593=transformViewerSource593(fs.readFileSync(selected591,'utf8'),file.replace('-viewer.js',''));
+  const input596=fs.readFileSync(selected591,'utf8');const source593=transformViewerSource593(file==='mr-viewer.js'?transformMrConnectors596(input596):input596,file.replace('-viewer.js',''));
   const input591={stdin:{contents:source593,resolveDir:root+(selected591.startsWith('dist/')&&file!=='mr-viewer.js'?'/dist':'/client'),sourcefile:file}};
   const result=await build({absWorkingDir:root,...input591,bundle:true,format:'iife',minify:true,target:'es2022',write:false,plugins:[plugin]});
   const code=result.outputFiles[0].text;new vm.Script(code);

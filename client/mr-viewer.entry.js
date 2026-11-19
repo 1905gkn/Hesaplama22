@@ -243,7 +243,6 @@ class MRViewer {
         this.root.add(instance);
       }
       const beamDepth = Math.max(1, traverse.size.z);
-      const beamScaleX=width/Math.max(1,traverse.size.x-2*traverse.endOverlap),connectorOverlap=traverse.endOverlap*beamScaleX;
       const trayAccessories = this.config.accessories.filter((item) => item.type === "tray");
       for (let module = 0; module < modules; module += 1) {
         const moduleX = module * framePitch + uprightWidth;
@@ -251,13 +250,12 @@ class MRViewer {
           const levelY = levelYs[level - 1];
           for (const side of ["front", "back"]) {
             const beam = traverse.object.clone(true);
-            beam.scale.set(beamScaleX, traverseHeight / traverse.size.y, 1);
+            beam.scale.set(width / traverse.size.x, traverseHeight / traverse.size.y, 1);
             if (side === "front") {
-              beam.rotation.y = 0;
-              beam.position.set(moduleX-connectorOverlap, levelY, -.2);
-            } else {
               beam.rotation.y = Math.PI;
-              beam.position.set(moduleX + width + connectorOverlap, levelY, depth + .2);
+              beam.position.set(moduleX + width, levelY, beamDepth);
+            } else {
+              beam.position.set(moduleX, levelY, Math.max(0, depth - beamDepth));
             }
             this.root.add(beam);
           }
