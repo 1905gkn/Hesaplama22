@@ -1042,7 +1042,7 @@ window.rafexMekikFrontGlbV2 = {
       capture.resize();capture.fit(true);capture.render();
       return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1260 760"><image width="1260" height="760" href="'+canvas.toDataURL('image/png')+'"/>'+overlay.innerHTML+'</svg>';
     }finally{
-      capture.destroyed=true;cancelAnimationFrame(capture.pendingResize);capture.resizeObserver.disconnect();capture.renderer.dispose();host.remove();
+      disposePalletWeights599(capture.root);capture.destroyed=true;cancelAnimationFrame(capture.pendingResize);capture.resizeObserver.disconnect();capture.renderer.dispose();host.remove();
     }
   },
   refresh: scheduleMount,
