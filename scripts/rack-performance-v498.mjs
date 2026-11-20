@@ -62,8 +62,8 @@ export function observeKonsolDetachV498(viewer){
 
 export function transformMekik(code){
   if(code.includes(marker))return code;
-  const old='clearRoot(){for(;this.root.children.length;)this.root.remove(this.root.children[0])}';
-  code=replaceOnce(code,old,'clearRoot(){clearMekikResourcesV498.call(this)}','Mekik resource cleanup');
+  const old=code.match(/clearRoot\(\)\{for\(([^;]*);this\.root\.children\.length;\)this\.root\.remove\(this\.root\.children\[0\]\)\}/);if(!old)throw Error('v498 missing Mekik resource cleanup');
+  code=replaceOnce(code,old[0],'clearRoot(){'+(old[1]?old[1]+';':'')+'clearMekikResourcesV498.call(this)}','Mekik resource cleanup');
   // Identify the mount routine by behavior, not its minifier-assigned name.
   const controls=code.match(/function ([\w$]+)\(\)\{if\([\w$]+=0,![\w$]+\(\)\)return;[^{}]{0,300}?document\.getElementById\("m2Front"\)/)?.[1]||(code.includes('function mn(){')?'mn':null);
   const anchor=controls?'function '+controls+'(){':'',start=anchor?code.indexOf(anchor):-1;

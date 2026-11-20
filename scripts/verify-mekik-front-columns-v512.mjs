@@ -8,10 +8,11 @@ const other={...rack,id:2,x:40};state.racks.push(other);const group=c.m2MekikCol
 // Native SVG projection: 1..4 channels are not padded to five, large projects stay representative.
 c.m2Ayak2FrontRaster='';vm.runInContext(cut('m2MekikSetProjection'),c);for(const bays of [1,2,3,4,5,8,50]){const d={bays,levels:3,palW:1200,palletHeight:1200,footType:90,levelH:1580,firstRailHeight:430,sideUprightHeight:5740};const svg=c.m2MekikSetProjection('front',d);assert.equal((svg.match(/class="m2-front-load"/g)||[]).length,Math.min(5,bays)*3);assert.equal(d.bays,bays);}
 // Real GLB rebuild with lightweight scene objects; count actual pallet and upright clones.
-class Obj{constructor(){this.position={set(){}};this.scale={set(){}};this.rotation={x:0,y:0,z:0}}traverse(){}clone(){return new Obj()}updateMatrixWorld(){}setFromPoints(){return this}}
+class Obj{constructor(){this.userData={};this.position={set(){}};this.scale={set(){}};this.rotation={x:0,y:0,z:0}}traverse(){}clone(){return new Obj()}updateMatrixWorld(){}setFromPoints(){return this}}
 const start=viewer.indexOf('rebuild(){'),end=viewer.indexOf('bounds(){',start),method=viewer.slice(start,end);
 const finishName593=method.match(/this\.root\.add\([\w$]+\),([\w$]+)\(this\.root\),this\.root\.updateMatrixWorld/)?.[1];if(finishName593)c[finishName593]=root=>stabilizeGalvanizedObject593({traverse(){}});
 for(const m of method.matchAll(/new ([\w$]+)\(/g))c[m[1]]=Obj;
+for(const m of method.matchAll(/([\w$]+)\(this\.root,([\w$]+)\(this\.root\)\)/g)){c[m[1]]=()=>{};c[m[2]]=()=>[];}
 const color=method.match(/([\w$]+)\([\w$]+\.footColor,"foot"\)/)?.[1];assert(color);c[color]=()=>({});
 for(const [pattern,value]of [[/\.footType\/([\w$]+)/,100],[/:\w+\.bayPitch\/([\w$]+)/,1450],[/=([\w$]+),[\w$]+=[\w$]+\/Math\.max\(1,this\.models\.pallet\.size\.z\)/,140]]){const name=method.match(pattern)?.[1];assert(name,'GLB dimensional constant '+pattern);c[name]=value;}
 c.CustomEvent=class{constructor(){}};const rebuild=vm.runInContext('({'+method+'})',c).rebuild;

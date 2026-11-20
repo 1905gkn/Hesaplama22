@@ -1,3 +1,4 @@
+import {addPalletWeights599,disposePalletWeights599,nativeWeightBoxes599} from './pallet-weight-labels-v599.mjs';
 import {beamProfileGeometry598} from './deep-levels-v598.mjs';
 import {uprightPitchGeometry597} from './upright-pitch-v597.mjs';
 import {nativeJoint597,connectorPhase597} from './hook-hole-joint-v597.mjs';
@@ -107,6 +108,7 @@ function readConfig() {
   const uprightHeight = Math.max(150, firstLevelHeight + (levels - 1) * levelSpacing + palletHeight / 2, Number(drawing?.sideUprightHeight) || 0);
   const bayPitch = palletWidth + sideClearance * 2;
   return {
+    palletWeight:numberFrom("m2PalletWeight",Number(drawing?.palletWeight)||0,0,10000),
     deepLevels:(drawing?.mekikCustomizationV514?globalThis.rafexMekikSteppedV514?.(drawing):null)?.floors,
     bays,
     levels,
@@ -298,7 +300,7 @@ class MekikFrontViewer {
   }
 
   configKey(config = this.config) {
-    return [config.bays, config.levels, config.palletWidth, config.palletDepth, config.palletHeight, config.firstLevelHeight, config.levelSpacing, config.footType, config.footColor, config.traverseColor, config.traverseHeight, config.sideClearance, config.uprightHeight, config.totalWidth,JSON.stringify(config.deepLevels)].join("|");
+    return [config.bays, config.levels, config.palletWidth, config.palletDepth, config.palletHeight, config.firstLevelHeight, config.levelSpacing, config.footType, config.footColor, config.traverseColor, config.traverseHeight, config.sideClearance, config.uprightHeight, config.totalWidth,JSON.stringify([config.deepLevels,config.palletWeight])].join("|");
   }
 
   update() {
@@ -309,6 +311,7 @@ class MekikFrontViewer {
   }
 
   clearRoot() {
+    disposePalletWeights599(this.root);
     while (this.root.children.length) this.root.remove(this.root.children[0]);
   }
 
@@ -369,7 +372,7 @@ class MekikFrontViewer {
 
         if (boxHeight > 0) {
           const box = new THREE.Mesh(new THREE.BoxGeometry(config.palletWidth, config.palletDepth, boxHeight), boxMaterial);
-          box.name = `Mekik Kutu G${bay + 1} K${level + 1}`;
+          box.name = `Mekik Kutu G${bay + 1} K${level + 1}`;box.userData.palletWeight599=config.deepLevels?.[level]?.palletWeight??config.palletWeight;
           box.castShadow = false;
           box.receiveShadow = false;
           box.position.set(bayCenterX, 0, supportZ + palletBodyHeight + boxHeight / 2);
@@ -378,6 +381,7 @@ class MekikFrontViewer {
       }
     }
 
+    addPalletWeights599(this.root,nativeWeightBoxes599(this.root));
     const floorMaterial = new THREE.LineBasicMaterial({ color: 0x50605a, transparent: true, opacity: 0.5 });
     const floor = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints([

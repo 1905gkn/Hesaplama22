@@ -504,3 +504,6 @@ node scripts/verify-connectors-v596.mjs
 
 node scripts/deep-levels-v598.mjs
 node scripts/verify-deep-levels-v598.mjs
+
+node scripts/pallet-weights-v599.mjs
+node scripts/verify-pallet-weights-v599.mjs

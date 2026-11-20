@@ -1,3 +1,4 @@
+import {addPalletWeights599,disposePalletWeights599,nativeWeightBoxes599} from './pallet-weight-labels-v599.mjs';
 import {driveInUprightHeight} from './drive-in-height.mjs';
 import {prepareDriveNativePost,createDriveNativeFacing} from './drive-native-batches.mjs';
 import {batchDriveStaticParts} from './drive-static-parts.mjs';
@@ -146,7 +147,7 @@ class DriveInFrontViewer {
     const specialGapCount = systemType === "filo" ? Math.min(1, gapCount) : Math.min(2, gapCount);
     const railLength = depthPallets * palletDepth + specialGapCount * firstPalletGap + (gapCount - specialGapCount) * palletGap;
     return {
-      deepLevels:next.deepLevels||null,driveStepped:next.driveStepped||null,showPallets:next.showPallets!==false,
+      palletWeight:next.palletWeight??null,deepLevels:next.deepLevels||null,driveStepped:next.driveStepped||null,showPallets:next.showPallets!==false,
       bays: clamp(Math.round(Number(next.bays) || 1), 1, 50),
       totalWidth: Number(next.totalWidth) > 0 ? Number(next.totalWidth) : clamp(Math.round(Number(next.bays) || 1),1,50) * (clamp(Number(next.palletWidth)||1200,300,3000)+240)+90,
       levels: clamp(Math.round(Number(next.levels) || 4), 1, 15),
@@ -166,7 +167,7 @@ class DriveInFrontViewer {
   }
 
   configKey(value = this.config) {
-    return [value.bays, value.levels, value.depthPallets, value.palletWidth, value.palletDepth, value.palletHeight, value.firstLevelHeight, value.levelSpacing, value.systemType, value.firstPalletGap, value.palletGap, value.totalWidth,value.footColor,value.traverseColor,value.showPallets,JSON.stringify([value.driveStepped,value.deepLevels])].join("|");
+    return [value.bays, value.levels, value.depthPallets, value.palletWidth, value.palletDepth, value.palletHeight, value.firstLevelHeight, value.levelSpacing, value.systemType, value.firstPalletGap, value.palletGap, value.totalWidth,value.footColor,value.traverseColor,value.showPallets,JSON.stringify([value.driveStepped,value.deepLevels,value.palletWeight])].join("|");
   }
 
   emit(name, detail = {}) { this.canvas.dispatchEvent(new CustomEvent(name, { detail })); }
@@ -221,9 +222,9 @@ class DriveInFrontViewer {
     return holder;
   }
 
-  addLoadBox(size, position) {
+  addLoadBox(size, position, weight) {
     const mesh = new THREE.Mesh(loadBoxGeometry, technicalMaterials.yuk);
-    mesh.scale.copy(size);
+    mesh.scale.copy(size);mesh.userData.palletWeight599=weight;
     mesh.position.copy(position);
     mesh.visible=this.config.showPallets!==false;this.root.add(mesh);
     return mesh;
@@ -232,6 +233,7 @@ class DriveInFrontViewer {
   rebuild() {
     this.layoutSignature=null;
     this.nativeFacing=null;
+    disposePalletWeights599(this.root);
     this.root.traverse(mesh=>{if(mesh.isInstancedMesh)mesh.dispose();});
     this.root.clear();
     this.visualPalletBottomZ = [];
@@ -288,6 +290,7 @@ class DriveInFrontViewer {
         this.addLoadBox(
           new THREE.Vector3(c.palletWidth * 0.94, c.palletDepth * 0.94, levelPalletHeight598 - palletThickness),
           new THREE.Vector3(centerX, frontY - firstPallet - c.palletDepth / 2 - 40, palletSeatZ + palletThickness + (levelPalletHeight598 - palletThickness) / 2),
+          c.driveStepped?.floors?.[level]?.palletWeight??c.deepLevels?.[level]?.palletWeight??c.palletWeight,
         );
       }
       for (let i = 0; i <= FRONT_DISPLAY_BAYS; i += 1) {
@@ -295,6 +298,7 @@ class DriveInFrontViewer {
         if(!stepped)this.addPart(this.models.arabag, arabagScale, new THREE.Vector3(x, frontY - ayakSize.y - arabagSize.y / 2, supportZ + arabagSize.z / 2), technicalMaterials.arabag);else if(level%2===0)for(const run of runs)for(let fi=run.firstFrame;fi<run.lastFrame;fi++){const a=stepped.frames[fi].end,b=stepped.frames[fi+1].start;if(b>a)this.addPart(this.models.arabag,new THREE.Vector3(uprightWidth/arabagSize.x,(b-a)/arabagSize.y,1),new THREE.Vector3(x,frontY-(a+b)/2,supportZ+arabagSize.z/2),technicalMaterials.arabag);}
       }
     }
+    addPalletWeights599(this.root,nativeWeightBoxes599(this.root));
     this.nativeFacing=createDriveNativeFacing(this.root);
     this.staticBatches=batchDriveStaticParts(this.root);
     if(this.staticTransforms)this.staticTransforms.refresh();else this.staticTransforms=createStaticSceneTransforms(this.scene);

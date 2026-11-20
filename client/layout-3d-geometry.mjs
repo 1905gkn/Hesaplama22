@@ -14,15 +14,16 @@ export function rackParts(r,{cad=false,driveConsole=false,railSeats=null,railBea
   while(y<h-.15){let top=Math.min(y+.6,h-.15);if(!horizontalTies&&h-.15-top<.3)top=h-.15;box('brace',x,(top+y)/2,(z1+z2)/2,.03,Math.hypot(top-y,span),.025,Math.atan2((index%2?-1:1)*span,top-y));y=top;index++;}
   if(horizontalTies)for(let y=.15;y<h;y+=1.2)box('tie',x,y,(z1+z2)/2,.03,.04,span);
  }
- function pallet(x,y,z,w,d,h){
+ function pallet(x,y,z,w,d,h,weight){
+  const load=(...args)=>{box('load',...args);parts.at(-1).palletWeight=weight;};
   if(r.showPallets===false)return;
-  if(simple){box('load',x,y+Math.max(.16,h)/2,z,w,Math.max(.16,h),d);return;}
-  if(palletInstances){parts.push({kind:'palletTimber',x,y,z,w,h:.16,d});if(h>.16)box('load',x,y+.16+(h-.16)/2,z,w*.94,h-.16,d*.94);return;}
+  if(simple){load(x,y+Math.max(.16,h)/2,z,w,Math.max(.16,h),d);return;}
+  if(palletInstances){parts.push({kind:'palletTimber',x,y,z,w,h:.16,d});if(h>.16)load(x,y+.16+(h-.16)/2,z,w*.94,h-.16,d*.94);return;}
   const bw=Math.min(.145,w*.125),bd=Math.min(.145,d*.18),xs=[-(w-bw)/2,0,(w-bw)/2],zs=[-(d-bd)/2,0,(d-bd)/2];
   for(const xx of xs){box('timber',x+xx,y+.0125,z,bw,.025,d);for(const zz of zs)box('timber',x+xx,y+.065,z+zz,bw,.08,bd);}
   for(const zz of zs)box('timber',x,y+.115,z+zz,w,.02,bd);
   const deckWidth=w/5*.85;for(let i=0;i<5;i++)box('timber',x-w/2+deckWidth/2+i*(w-deckWidth)/4,y+.1425,z,deckWidth,.035,d);
-  if(h>.16)box('load',x,y+.16+(h-.16)/2,z,w*.94,h-.16,d*.94);
+  if(h>.16)load(x,y+.16+(h-.16)/2,z,w*.94,h-.16,d*.94);
  }
  if(r.system==='konsol'){
   const count=Math.max(2,r.uprightCount),span=Math.min(r.width-r.foot,(count-1)*r.spacing),spine=r.doubleSided?0:-r.depth/2+.11,sides=r.doubleSided?[-1,1]:[1];
@@ -49,7 +50,7 @@ export function rackParts(r,{cad=false,driveConsole=false,railSeats=null,railBea
     // with the full-width per-level beams used in shuttle racking.
     if(!driveConsole)for(const at of run.supports)for(const side of [-1,1]){const z=at/1000-r.depth/2;box('beam',x+side*(pitch*.35-r.foot/4),y-.12,z,Math.max(.02,pitch*.3-r.foot/2),.1,.08);box('beam',x+side*(pitch/2-r.foot/2-.003),y+.035,z,.006,.21,.05);}
    }
-   for(const at of floor.positions)pallet(x,y,at/1000+r.palletDepth/2-r.depth/2,Math.min(r.palletWidth,pitch-r.foot-.06),r.palletDepth,r.palletHeights[floor.index]);
+   for(const at of floor.positions)pallet(x,y,at/1000+r.palletDepth/2-r.depth/2,Math.min(r.palletWidth,pitch-r.foot-.06),r.palletDepth,r.palletHeights[floor.index],r.palletWeights?.[floor.index]);
    }
   }
  }else if(r.system==='mekik2'&&r.mekikStepped){
@@ -59,7 +60,7 @@ export function rackParts(r,{cad=false,driveConsole=false,railSeats=null,railBea
    for(const floor of s.lanes?.[lane]?.model.floors||s.floors){const y=floor.y/1000;
     for(const run of floor.runs)for(const side of [-1,1]){const bearing=railBearings?.[side<0?1:0],sx=railScaleX||((pitch-r.foot)/1.35),seat=bearing?-bearing.x:(railSeats||[-.47925,.47925])[side<0?0:1],rx=x+seat*sx,w=(bearing?.width||.0575)*sx,h=r.railHeight||.17,t=.003,z=(run.start+run.end)/2000-r.depth/2,d=(run.end-run.start)/1000,webX=rx+side*(w-t)/2,cap=Math.min(.025,w);box('rail',rx,y-h+t/2,z,w,t,d);box('rail',webX,y-h/2,z,t,h,d);box('rail',webX-side*(cap-t)/2,y-t/2,z,cap,t,d);}
     if(!cad)for(const run of floor.runs)for(const p of run.stations)box('beam',x,y-.1,p/1000-r.depth/2,pitch-r.foot,.1,.08);
-    for(const p of floor.positions)pallet(x,y,p/1000+r.palletDepth/2-r.depth/2,Math.min(r.palletWidth,pitch-r.foot-.06),r.palletDepth,r.palletHeights[floor.index]);
+    for(const p of floor.positions)pallet(x,y,p/1000+r.palletDepth/2-r.depth/2,Math.min(r.palletWidth,pitch-r.foot-.06),r.palletDepth,r.palletHeights[floor.index],r.palletWeights?.[floor.index]);
    }
   }
  }else if(r.system==='drive'||r.system==='mekik2'){
@@ -75,7 +76,7 @@ export function rackParts(r,{cad=false,driveConsole=false,railSeats=null,railBea
 
     for(const zz of [...new Set(stations)]){const z=Math.max(.05,Math.min(r.depth-.05,zz))-r.depth/2;if(r.system==='drive'){if(!driveConsole)for(const side of [-1,1]){box('beam',x+side*(pitch*.35-r.foot/4),y-.12,z,Math.max(.02,pitch*.3-r.foot/2),.1,.08);box('beam',x+side*(pitch/2-r.foot/2-.003),y+.035,z,.006,.21,.05);}}else if(!cad)box('beam',x,y-.1,z,pitch-r.foot,.1,.08);}
     const positions=r.positions.length?r.positions:Array.from({length:Math.max(1,Math.floor(r.depth/(r.palletDepth+.05)))},(_,j)=>j*(r.palletDepth+.05));
-    for(const zz of positions)if(zz+r.palletDepth<=r.depth+.02)pallet(x,y,zz+r.palletDepth/2-r.depth/2,Math.min(r.palletWidth,pitch-r.foot-.06),r.palletDepth,r.palletHeights[i]);
+    for(const zz of positions)if(zz+r.palletDepth<=r.depth+.02)pallet(x,y,zz+r.palletDepth/2-r.depth/2,Math.min(r.palletWidth,pitch-r.foot-.06),r.palletDepth,r.palletHeights[i],r.palletWeights?.[i]);
    }
   }
  }else{
@@ -83,7 +84,7 @@ export function rackParts(r,{cad=false,driveConsole=false,railSeats=null,railBea
   for(let row=0;row<rows;row++){const z=centers[row];
    for(const side of [-1,1]){const x=side*(r.width-r.foot)/2,h=Number(r.frameHeights[row]?.[side<0?'left':'right'])/1000||r.height;for(const edge of [-1,1])post(x,z+edge*(fd-r.foot)/2,h);if(!cad){brace(x,z,fd-r.foot,h*.85);for(let y=.5;y<h;y+=1)box('foot',x,y,z,.04,.045,fd);}}
    for(let i=0;i<r.floors.length;i++){const y=r.floors[i];const by=r.beamYs[i];if(r.tunnelHeight>0&&(by===null||by<r.tunnelHeight))continue;if(by!==null&&!cad)for(const edge of [-1,1])box('beam',0,by+r.beam/2,z+edge*(fd-r.foot)/2,r.width-2*r.foot,r.beam,.055);
-    const clear=r.width-2*r.foot,space=(clear-r.pallets*r.palletWidth)/(r.pallets+1);for(let p=0;p<r.pallets;p++)if(!(r.blockedPallets||[]).some(slot=>slot.row===row&&slot.pallet===p))pallet(-clear/2+space+(p+.5)*r.palletWidth+p*space,y,z,r.palletWidth,r.palletDepth,r.palletHeights[i]);
+    const clear=r.width-2*r.foot,space=(clear-r.pallets*r.palletWidth)/(r.pallets+1);for(let p=0;p<r.pallets;p++)if(!(r.blockedPallets||[]).some(slot=>slot.row===row&&slot.pallet===p))pallet(-clear/2+space+(p+.5)*r.palletWidth+p*space,y,z,r.palletWidth,r.palletDepth,r.palletHeights[i],r.palletWeights?.[i]);
    }
   }
  }
