@@ -82,6 +82,7 @@ function isMekikFront() {
 
 function readConfig() {
   const drawing = activeDrawing();
+  const deepModel600=drawing?.mekikCustomizationV514?globalThis.rafexMekikSteppedV514?.(drawing):null;
   const colorValue = (className, fallback) => {
     const nodes = Array.from(document.querySelectorAll(`.${className}`));
     const visible = nodes.filter((node) => node.isConnected && node.getClientRects().length > 0);
@@ -109,7 +110,7 @@ function readConfig() {
   const bayPitch = palletWidth + sideClearance * 2;
   return {
     palletWeight:numberFrom("m2PalletWeight",Number(drawing?.palletWeight)||0,0,10000),
-    deepLevels:(drawing?.mekikCustomizationV514?globalThis.rafexMekikSteppedV514?.(drawing):null)?.floors,
+    deepLevels:deepModel600?.floors,
     bays,
     levels,
     palletWidth,
@@ -122,7 +123,7 @@ function readConfig() {
     traverseColor,
     traverseHeight,
     sideClearance,
-    uprightHeight,
+    uprightHeight:deepModel600?.height??uprightHeight,
     bayPitch,
     totalWidth: Number(drawing?.totalWidth || drawing?.widthMm) || bays * bayPitch + footType,
   };
@@ -1020,6 +1021,7 @@ document.addEventListener("change", () => setTimeout(scheduleMountBurst, 0), tru
 document.addEventListener("click", () => setTimeout(scheduleMountBurst, 0), true);
 window.addEventListener("hashchange", scheduleMountBurst);
 window.addEventListener("load", scheduleMountBurst);
+window.addEventListener('rafex-deep-levels-applied',scheduleMountBurst);
 window.addEventListener('rafex-deep-levels-applied',scheduleMountBurst);
 
 new MutationObserver(scheduleMount).observe(document.documentElement, {
