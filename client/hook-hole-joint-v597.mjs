@@ -1,3 +1,4 @@
+import {beamProfileGeometry598} from './deep-levels-v598.mjs';
 import * as T from 'three';
 export function planeHoles597(g,normalAxis,at,up='y'){
  const across=['x','y','z'].find(k=>k!==normalAxis&&k!==up),p=g.attributes.position,ix=g.index,count=ix?.count??p.count,edges=new Map(),vertices=new Map(),get=(i,k)=>p['get'+k.toUpperCase()](i);g.computeBoundingBox();const span=g.boundingBox.max[up]-g.boundingBox.min[up],q=Math.max(span*1e-8,1e-8),tol=q*20,key=i=>[get(i,across),get(i,up)].map(n=>Math.round(n/q)).join(':');
@@ -12,8 +13,8 @@ export function connectorPhase597(post,beam,postScale,beamY){
  let shift=base+Math.round((nominal-base)/pitch)*pitch-nominal;while(shift>upper+1e-7)shift-=pitch;while(shift<lower-1e-7)shift+=pitch;return shift;
 }
 const beamCache=new WeakMap();
-export function connectorTemplate597(template,dy){
- if(Math.abs(dy)<1e-8)return template;let variants=beamCache.get(template);if(!variants){variants=new Map();beamCache.set(template,variants);}const key=dy.toFixed(8);if(!variants.has(key))variants.set(key,{...template,geometries:template.geometries.map(g=>/KONNEKT/i.test(g.userData.cadPartName||'')?g.clone().translate(0,dy,0):g)});return variants.get(key);
+export function connectorTemplate597(template,dy,height=null){
+ if(Math.abs(dy)<1e-8&&!height)return template;let variants=beamCache.get(template);if(!variants){variants=new Map();beamCache.set(template,variants);}const key=dy.toFixed(8)+':'+height;if(!variants.has(key))variants.set(key,{...template,geometries:template.geometries.map(g=>/KONNEKT/i.test(g.userData.cadPartName||'')?g.clone().translate(0,dy,0):height&&/PROFIL/i.test(g.userData.cadPartName||'')?beamProfileGeometry598(g,height):g)});return variants.get(key);
 }
 // Measurements in metres; root transforms may use native millimetres.
 export function nativeJoint597(root,kind,contactFace=null){

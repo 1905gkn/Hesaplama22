@@ -1,3 +1,4 @@
+import {deepLevelModel598} from './deep-levels-v598.mjs';
 // Millimetres. A single source for stepped shuttle geometry, capacity and BOM.
 export function mekikStepped(r) {
  const c=r?.mekikCustomizationV514;if(!c)return null;
@@ -24,7 +25,7 @@ export function mekikStepped(r) {
  let positions=(r.palletPositions||[]).slice(0,depth).map(Number);if(positions.length!==depth){positions=[];let at=0;for(let i=0;i<depth;i++){positions.push(at);at+=pd+(i===0||r.systemType==='fifo'&&i===depth-2?n(r.firstPalletGap,200):n(r.palletGap,50));}}
  const frames=[];let cursor=0;for(let i=0;i<(r.plan?.feet||[]).length;i++){const d=n(r.plan.feet[i],0);frames.push({index:i,start:cursor,end:cursor+d,depth:d,limit:Math.max(1,Math.min(levels,Math.round(n(c.frameLevels?.[i],levels))))});cursor+=d+n(r.plan.braces?.[i],0);}
  if(!frames.length)throw Error('Mekik ayak yerleşimi eksik.');
- const floors=[];let previous=depth;
+ const manual598=deepLevelModel598(r,c.levelSpecs),floors=[];let previous=depth;
  for(let i=0;i<levels;i++){
   const count=Math.max(1,Math.min(previous,Math.round(n(c.depths?.[i],depth))));previous=count;
   const requested=positions.slice(depth-count),start=requested[0],end=length;
@@ -59,17 +60,17 @@ export function mekikStepped(r) {
    if(r.hasExtra&&run.lastFrame===frames.length-1){const extra=length-n(r.footType,100)/2;if(extra>=run.start&&extra<=run.end)run.stations.push(extra);}
    if(!run.stations.length)run.stations=[run.supports[0]];
   }
-  floors.push({index:i,y:first+i*gap,count,positions:usable,runs});
+  floors.push({index:i,y:first+i*gap,count,positions:usable,runs,...manual598?.floors[i]});
  }
- const top=first+(levels-1)*gap,automatic=Math.ceil((top+ph/2)/50)*50,manual=Math.ceil(n(c.uprightHeight,0)/50)*50,height=c.heightMode==='manual'?manual:automatic,errors=[];
+ const top=manual598?.floors.at(-1).y??first+(levels-1)*gap,automatic=manual598?.automatic??Math.ceil((top+ph/2)/50)*50,manual=Math.ceil(n(c.uprightHeight,0)/50)*50,height=c.heightMode==='manual'?manual:automatic,errors=[...(manual598?.errors||[])];
  if(height<top)errors.push('Ayak boyu son paletin oturduğu kottan ('+top+' mm) kısa olamaz.');
  for(const floor of floors)if(!floor.positions.length)errors.push('K'+(floor.index+1)+' katında kullanılabilir palet yeri kalmadı. Ayak katlarını veya derinliği kontrol edin.');
- for(const f of frames){const supported=floors.filter(l=>l.runs.some(run=>f.index>=run.firstFrame&&f.index<=run.lastFrame));f.levels=supported.length;f.minimum=supported.at(-1)?.y||first;const auto=supported.length===levels?height:supported.length?Math.min(height,Math.ceil((f.minimum+ph/2)/50)*50):Math.min(height,first);f.height=Math.ceil((n(c.frameHeights?.[f.index],0)||auto)/50)*50;if(f.height<f.minimum)errors.push((f.index+1)+'. ayak boyu bağlı olduğu son ray kotundan kısa olamaz.');}
+ for(const f of frames){const supported=floors.filter(l=>l.runs.some(run=>f.index>=run.firstFrame&&f.index<=run.lastFrame));f.levels=supported.length;f.minimum=supported.at(-1)?.y||first;const auto=supported.length===levels?height:supported.length?Math.min(height,Math.ceil((f.minimum+(supported.at(-1)?.palletHeight??ph)/2)/50)*50):Math.min(height,first);f.height=Math.ceil((n(c.frameHeights?.[f.index],0)||auto)/50)*50;if(f.height<f.minimum)errors.push((f.index+1)+'. ayak boyu bağlı olduğu son ray kotundan kısa olamaz.');}
  const shared=(typeof window!=='undefined'&&window.rafexDepthSharedV524?.(r))||r.depthSharedSupport||{feet:[],braces:[],extra:false};
  const rows=[];const add=(name,qty,spec='')=>{if(qty>0)rows.push({name,qty,spec,unit:name==='Ayak takımı'?'takım':'adet'});};
  const fmt=v=>new Intl.NumberFormat('tr-TR',{maximumFractionDigits:2}).format(v),groups=new Map();for(const f of frames){const key=f.depth+'|'+f.height;groups.set(key,(groups.get(key)||0)+bays+1-Number(shared.feet.includes(f.index)));}for(const [key,qty]of groups){const [d,h]=key.split('|').map(Number);add('Ayak takımı',qty,(r.footProfile?r.footProfile+' · ':'')+'Yükseklik '+fmt(h)+' mm · Derinlik '+fmt(d)+' mm');}
  const traverse=typeof r.traverseRecommendation==='string'?r.traverseRecommendation:r.traverseRecommendation?.label||r.traverseType||'',pitch=(n(r.totalWidth||r.widthMm,0)-n(r.footType,100))/bays;
- for(const floor of floors)for(const run of floor.runs){add('Travers',run.stations.length*bays,traverse+' · '+fmt(pitch)+' mm');add('Ray',bays*2,fmt(n(r.railThickness,2.5))+' mm kalınlık · H '+fmt(n(r.railHeight,150))+' mm · L '+fmt(run.end-run.start)+' mm · '+floor.positions.filter(p=>p>=run.start&&p+pd<=run.end+1).length+' derinlik');for(let j=run.firstFrame;j<run.lastFrame;j++)add('Düz arabağ',(bays+1-Number(shared.braces.includes(j))),fmt(n(r.plan.braces[j],0))+' mm');}
+ for(const floor of floors)for(const run of floor.runs){add('Travers',run.stations.length*bays,(floor.traverseType?.replace('|',' ')||traverse)+' · '+fmt(pitch)+' mm');add('Ray',bays*2,fmt(n(r.railThickness,2.5))+' mm kalınlık · H '+fmt(n(r.railHeight,150))+' mm · L '+fmt(run.end-run.start)+' mm · '+floor.positions.filter(p=>p>=run.start&&p+pd<=run.end+1).length+' derinlik');for(let j=run.firstFrame;j<run.lastFrame;j++)add('Düz arabağ',(bays+1-Number(shared.braces.includes(j))),fmt(n(r.plan.braces[j],0))+' mm');}
  const railQty=floors.reduce((a,l)=>a+l.runs.length*bays*2,0),fifo=r.systemType==='fifo';add('Palet yastığı',railQty*(fifo?2:1));add('Forklift stoperi',fifo?railQty*2:bays+1);add('Giriş konsolu',fifo?railQty*2:(bays+1)*levels);if(!fifo)add('Arka stoper',railQty);add('Yatay çapraz seti',bays*Math.floor(levels/2));if(r.hasExtra)add('Ayak Profili',bays+1-Number(shared.extra),'L '+fmt(height)+' mm');
  return {version:517,anchor:'rear',levels,depth,positions,floors,frames,height:Math.max(height,...frames.map(f=>f.height)),minimum:top,automatic,capacity:bays*floors.reduce((s,l)=>s+l.positions.length,0),rows,errors};
 }

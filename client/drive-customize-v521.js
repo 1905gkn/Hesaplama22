@@ -17,7 +17,7 @@
  api.draft=(rack,d)=>{
   if(!current||rack.id!==current.id||!modal.classList.contains('drive-step521'))return d;
   const c=rack.driveCustomizationV521||{},depths=[...document.querySelectorAll('#driveDepths521 input')],frames=[...document.querySelectorAll('#driveFrames521 section')];
-  d.driveCustomizationV521={version:521,anchor:'rear',heightMode:el('driveHeightMode521').value,uprightHeight:Number(el('driveHeight521').value),depths:Array.from({length:d.levels},(_,i)=>Number(depths[i]?.value??c.depths?.[i]??rack.depth)),frameLevels:frames.length?frames.map(f=>f.querySelector('[data-frame-level]').value===''?null:Number(f.querySelector('[data-frame-level]').value)):(c.frameLevels||[]),frameHeights:frames.length?frames.map(f=>Number(f.querySelector('[data-frame-height]').value)||0):(c.frameHeights||[])};
+  d.driveCustomizationV521={version:521,anchor:'rear',levelSpecs:c.levelSpecs?clone(c.levelSpecs):undefined,heightMode:el('driveHeightMode521').value,uprightHeight:Number(el('driveHeight521').value),depths:Array.from({length:d.levels},(_,i)=>Number(depths[i]?.value??c.depths?.[i]??rack.depth)),frameLevels:frames.length?frames.map(f=>f.querySelector('[data-frame-level]').value===''?null:Number(f.querySelector('[data-frame-level]').value)):(c.frameLevels||[]),frameHeights:frames.length?frames.map(f=>Number(f.querySelector('[data-frame-height]').value)||0):(c.frameHeights||[])};
   d.showPallets=el('driveShowPallets521').checked;return d;
  };
  api.render=d=>{

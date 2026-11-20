@@ -1,3 +1,4 @@
+import {deepLevelModel598} from './deep-levels-v598.mjs';
 import {mekikStepped} from './mekik-stepped.mjs';
 
 // Shared rear-anchored placement, with Drive-In height and product rules.
@@ -8,13 +9,13 @@ export function driveStepped(r){
  const n=(v,f=0)=>v!==null&&v!==''&&Number.isFinite(Number(v))?Number(v):f;
  const ceil=v=>Math.ceil(v/50)*50;
  const base=mekikStepped({...r,mekikCustomizationV514:{...c,heightMode:'auto',frameHeights:[]}});
- const ph=n(r.palletHeight,1200),cols=Math.max(1,n(r.bays,1))+1,bays=cols-1;
- const minimum=ceil(base.floors.at(-1).y+ph+220),height=c.heightMode==='manual'?ceil(n(c.uprightHeight)):minimum;
+ const manual598=deepLevelModel598({...r,rafexSystem:'drive'},c.levelSpecs),ph=n(r.palletHeight,1200),cols=Math.max(1,n(r.bays,1))+1,bays=cols-1;
+ const minimum=manual598?.automatic??ceil(base.floors.at(-1).y+ph+220),height=c.heightMode==='manual'?ceil(n(c.uprightHeight)):minimum;
  const errors=base.errors.filter(e=>!e.startsWith('Ayak boyu'));
  if(height<minimum)errors.push('Drive-In ayak boyu üst palet kotu ve 220 mm üst bağlantı payından ('+minimum+' mm) kısa olamaz.');
  for(const f of base.frames){
   const supported=base.floors.filter(l=>l.runs.some(run=>f.index>=run.firstFrame&&f.index<=run.lastFrame));
-  f.levels=supported.length;f.minimum=ceil((supported.at(-1)?.y||base.floors[0].y)+ph+220);
+  f.levels=supported.length;f.minimum=ceil((supported.at(-1)?.y||base.floors[0].y)+(supported.at(-1)?.palletHeight??ph)+220);
   const automatic=supported.length===base.levels?height:Math.min(height,f.minimum);
   f.height=ceil(n(c.frameHeights?.[f.index])||automatic);
   if(f.height<f.minimum)errors.push((f.index+1)+'. Drive-In ayak boyu taşıdığı paletin üst kotu ve üst bağlantı payından kısa olamaz.');
@@ -27,7 +28,7 @@ export function driveStepped(r){
  const profile=typeof r.traverseRecommendation==='string'?r.traverseRecommendation:r.traverseRecommendation?.label||r.traverseType||'';
  const pitch=(n(r.totalWidth||r.widthMm)-n(r.footType,90))/bays;
  for(const floor of base.floors)for(const run of floor.runs){
-  add('Travers',run.stations.length*bays,profile+' · '+fmt(pitch)+' mm');
+  add('Travers',run.stations.length*bays,(floor.traverseType?.replace('|',' ')||profile)+' · '+fmt(pitch)+' mm');
   add('Ray',bays*2,fmt(n(r.railThickness,2.5))+' mm kalınlık · H '+fmt(n(r.railHeight,150))+' mm · L '+fmt(run.end-run.start)+' mm · '+floor.positions.filter(p=>p>=run.start&&p+n(r.palD,800)<=run.end+1).length+' derinlik');
   // Native Drive-In ties occur on alternating levels, including the first.
   if(floor.index%2===0)for(let j=run.firstFrame;j<run.lastFrame;j++)add('Düz arabağ',cols-Number(shared.braces.includes(j)),fmt(n(r.plan.braces[j]))+' mm');

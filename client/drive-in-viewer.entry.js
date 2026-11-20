@@ -146,7 +146,7 @@ class DriveInFrontViewer {
     const specialGapCount = systemType === "filo" ? Math.min(1, gapCount) : Math.min(2, gapCount);
     const railLength = depthPallets * palletDepth + specialGapCount * firstPalletGap + (gapCount - specialGapCount) * palletGap;
     return {
-      driveStepped:next.driveStepped||null,showPallets:next.showPallets!==false,
+      deepLevels:next.deepLevels||null,driveStepped:next.driveStepped||null,showPallets:next.showPallets!==false,
       bays: clamp(Math.round(Number(next.bays) || 1), 1, 50),
       totalWidth: Number(next.totalWidth) > 0 ? Number(next.totalWidth) : clamp(Math.round(Number(next.bays) || 1),1,50) * (clamp(Number(next.palletWidth)||1200,300,3000)+240)+90,
       levels: clamp(Math.round(Number(next.levels) || 4), 1, 15),
@@ -166,7 +166,7 @@ class DriveInFrontViewer {
   }
 
   configKey(value = this.config) {
-    return [value.bays, value.levels, value.depthPallets, value.palletWidth, value.palletDepth, value.palletHeight, value.firstLevelHeight, value.levelSpacing, value.systemType, value.firstPalletGap, value.palletGap, value.totalWidth,value.footColor,value.traverseColor,value.showPallets,JSON.stringify(value.driveStepped)].join("|");
+    return [value.bays, value.levels, value.depthPallets, value.palletWidth, value.palletDepth, value.palletHeight, value.firstLevelHeight, value.levelSpacing, value.systemType, value.firstPalletGap, value.palletGap, value.totalWidth,value.footColor,value.traverseColor,value.showPallets,JSON.stringify([value.driveStepped,value.deepLevels])].join("|");
   }
 
   emit(name, detail = {}) { this.canvas.dispatchEvent(new CustomEvent(name, { detail })); }
@@ -269,7 +269,7 @@ class DriveInFrontViewer {
     }
 
     for (let level = 0; level < c.levels; level += 1) {
-      const supportZ = c.firstLevelHeight + level * c.levelSpacing;const floor=stepped?.floors[level],firstPallet=floor?.positions[0]||0,runs=floor?.runs||[{start:0,end:depth,supports:[0]}];
+      const supportZ = c.driveStepped?.floors?.[level]?.y ?? c.deepLevels?.[level]?.y ?? c.firstLevelHeight + level * c.levelSpacing;const levelPalletHeight598=c.driveStepped?.floors?.[level]?.palletHeight??c.deepLevels?.[level]?.palletHeight??c.palletHeight;const floor=stepped?.floors[level],firstPallet=floor?.positions[0]||0,runs=floor?.runs||[{start:0,end:depth,supports:[0]}];
       // Formdaki ilk kat ve kat aralığı değerleri taşıma üst kotunu belirtir.
       const supportTopZ = supportZ;
       for (let bay = 0; bay < FRONT_DISPLAY_BAYS; bay += 1) {
@@ -286,8 +286,8 @@ class DriveInFrontViewer {
         else this.palletBounds[level].union(palletBounds);
         this.visualPalletBottomZ[level] = this.palletBounds[level].min.z;
         this.addLoadBox(
-          new THREE.Vector3(c.palletWidth * 0.94, c.palletDepth * 0.94, c.palletHeight - palletThickness),
-          new THREE.Vector3(centerX, frontY - firstPallet - c.palletDepth / 2 - 40, palletSeatZ + palletThickness + (c.palletHeight - palletThickness) / 2),
+          new THREE.Vector3(c.palletWidth * 0.94, c.palletDepth * 0.94, levelPalletHeight598 - palletThickness),
+          new THREE.Vector3(centerX, frontY - firstPallet - c.palletDepth / 2 - 40, palletSeatZ + palletThickness + (levelPalletHeight598 - palletThickness) / 2),
         );
       }
       for (let i = 0; i <= FRONT_DISPLAY_BAYS; i += 1) {
@@ -374,7 +374,7 @@ class DriveInFrontViewer {
       bayPitch: this.config.palletWidth + 240,
       totalWidth: this.config.totalWidth,
       displayBays: FRONT_DISPLAY_BAYS,
-      loadTopY: project(0, this.config.firstLevelHeight + (this.config.levels-1)*this.config.levelSpacing + this.config.palletHeight).y,
+      loadTopY: project(0, Math.max(...Array.from({length:this.config.levels},(_,i)=>(this.config.driveStepped?.floors?.[i]?.y??this.config.deepLevels?.[i]?.y??this.config.firstLevelHeight+i*this.config.levelSpacing)+(this.config.driveStepped?.floors?.[i]?.palletHeight??this.config.deepLevels?.[i]?.palletHeight??this.config.palletHeight)))).y,
       width,
       height,
     });

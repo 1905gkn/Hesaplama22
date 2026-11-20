@@ -22,7 +22,7 @@
  api.draft=(rack,d)=>{
   if(!current||rack.id!==current.id||!modal.classList.contains('mekik-step514'))return d;
   const c=config547;
-  d.mekikCustomizationV514={version:547,anchor:'rear',heightMode:c.heightMode||rack.mekikUprightMode||'auto',uprightHeight:Number(c.uprightHeight||rack.sideUprightHeight||5000),depths:Array.from({length:d.levels},(_,i)=>Number(c.depths?.[i]??rack.depth)),frameLevels:c.frameLevels||[],frameHeights:c.frameHeights||[],...(c.lanes?{lanes:clone(c.lanes)}:{})};
+  d.mekikCustomizationV514={version:547,anchor:'rear',levelSpecs:c.levelSpecs?clone(c.levelSpecs):undefined,heightMode:c.heightMode||rack.mekikUprightMode||'auto',uprightHeight:Number(c.uprightHeight||rack.sideUprightHeight||5000),depths:Array.from({length:d.levels},(_,i)=>Number(c.depths?.[i]??rack.depth)),frameLevels:c.frameLevels||[],frameHeights:c.frameHeights||[],...(c.lanes?{lanes:clone(c.lanes)}:{})};
   d.showPallets=el('mekikShowPallets514').getAttribute('aria-pressed')==='true';return d;
  };
  api.render=d=>{

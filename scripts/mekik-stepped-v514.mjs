@@ -1,3 +1,4 @@
+import {deepLevelModel598,deepTraverseCatalog598} from '../client/deep-levels-v598.mjs';
 import fs from 'node:fs';import vm from 'node:vm';import {mekikStepped} from '../client/mekik-stepped.mjs';
 export function transform(html){
  if(html.includes('data-mekik-stepped="v514"'))return html;
@@ -20,7 +21,7 @@ export function transform(html){
  html=html.replaceAll('/layout-3d.js?v=484','/layout-3d.js?v=514');
  html=html.replaceAll('channels=v512','channels=v514');
  const style='<style data-mekik-stepped="v514">#rafexLaneCustomizeV115.mekik-step514 .rsv115-dialog{width:min(1440px,97vw)}#rafexLaneCustomizeV115.mekik-step514 .rsv115-custom-grid{grid-template-columns:340px minmax(0,1fr)}#rafexLaneCustomizeV115.mekik-step514 .rsv115-fields{max-height:75vh;overflow:auto}#rafexLaneCustomizeV115 [data-step514] label{display:grid;grid-template-columns:1fr 110px;align-items:center;gap:8px;margin:8px 0}#rafexLaneCustomizeV115 [data-step514] input,#rafexLaneCustomizeV115 [data-step514] select{min-width:0;width:100%;box-sizing:border-box;padding:8px}#rafexLaneCustomizeV115 [data-step514] p{font-size:13px;line-height:1.5}#mekikFrames514 section{border-top:1px solid #d0ded7;padding:10px 0}#mekikCanvas514 canvas{display:block;width:100%;height:100%}#mekikTechnical514 svg{width:100%;max-height:400px}#rafexLaneCustomizeV115 .step514-tools{display:flex;gap:8px;padding:6px}#rafexLaneCustomizeV115.mekik-step514 .rsv115-live{min-width:0}#rafexLaneCustomizeV115.mekik-step514 .rsv115-save{position:sticky;top:0;background:white;z-index:2}@media(max-width:800px){#rafexLaneCustomizeV115.mekik-step514 .rsv115-custom-grid{grid-template-columns:1fr}#rafexLaneCustomizeV115.mekik-step514 .rsv115-fields{max-height:none}}</style>';
- const code='window.rafexMekikSteppedV514='+mekikStepped.toString()+';\n'+fs.readFileSync(new URL('../client/mekik-customize-v514.js',import.meta.url),'utf8');
+ const code='const deepTraverseCatalog598='+JSON.stringify(deepTraverseCatalog598)+';const deepLevelModel598='+deepLevelModel598.toString()+';window.rafexMekikSteppedV514='+mekikStepped.toString()+';\n'+fs.readFileSync(new URL('../client/mekik-customize-v514.js',import.meta.url),'utf8');
  const at=html.lastIndexOf('</body>');html=html.slice(0,at)+style+'<script>'+code+'</script>'+html.slice(at);
  for(const m of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g))if(!/src=|application\/json/.test(m[1]))new vm.Script(m[2]);
  return html;

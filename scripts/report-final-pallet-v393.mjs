@@ -2,7 +2,7 @@ export function palletRowsV395(types){
  const rows=[],seen=new Set();
  for(const entry of types||[]){
   const d=entry.drawing||entry,b=d.b2b||{},view=d.rackDetail?.views?.b2b||d.b2bViewerOptions||{},count=Number(b.palletCount||d.b2bLayout?.palletCount)||1;
-  const specs=b.manualLevelSpecs?.length?b.manualLevelSpecs:b.customLevels?.length?b.customLevels:null;
+  const deepSpecs=d.driveCustomizationV521?.levelSpecs||d.mekikCustomizationV514?.levelSpecs;const specs=deepSpecs?.length?deepSpecs:b.manualLevelSpecs?.length?b.manualLevelSpecs:b.customLevels?.length?b.customLevels:null;
   const heights=b.palletHeights||d.palletHeights||view.palletHeights||[];
   const levels=Math.max(1,Number(d.levels||b.levels)||specs?.length||heights.length||1);
   const variants=specs||heights.length?Array.from({length:levels},(_,i)=>{const s=specs?.[i]||{};return {palD:Number(s.palletDepth??s.palD??d.palD??b.palletDepth)||0,palW:Number(s.palletWidth??s.palW??d.palW??b.palletWidth)||0,palletHeight:Number(s.palletHeight??heights[i]??d.palletHeight??b.palletHeight)||0,palletWeight:Number(s.palletWeight??(s.weight!=null?Number(s.weight)/(Number(s.palletCount)||count):d.palletWeight??b.palletWeight))||0};}):[{palD:Number(d.palD??b.palletDepth)||0,palW:Number(d.palW??b.palletWidth)||0,palletHeight:Number(d.palletHeight??b.palletHeight)||0,palletWeight:Number(d.palletWeight??b.palletWeight)||0}];

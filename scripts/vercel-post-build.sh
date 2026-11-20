@@ -501,3 +501,6 @@ node scripts/verify-galvanized-v593.mjs
 node scripts/verify-upright-sides-v594.mjs
 
 node scripts/verify-connectors-v596.mjs
+
+node scripts/deep-levels-v598.mjs
+node scripts/verify-deep-levels-v598.mjs

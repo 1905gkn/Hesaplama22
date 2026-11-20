@@ -1,3 +1,4 @@
+import {beamProfileGeometry598} from './deep-levels-v598.mjs';
 import {uprightPitchGeometry597} from './upright-pitch-v597.mjs';
 import {nativeJoint597,connectorPhase597} from './hook-hole-joint-v597.mjs';
 import {connectorContact596,postFront596} from './connector-contact-v596.mjs';
@@ -106,6 +107,7 @@ function readConfig() {
   const uprightHeight = Math.max(150, firstLevelHeight + (levels - 1) * levelSpacing + palletHeight / 2, Number(drawing?.sideUprightHeight) || 0);
   const bayPitch = palletWidth + sideClearance * 2;
   return {
+    deepLevels:(drawing?.mekikCustomizationV514?globalThis.rafexMekikSteppedV514?.(drawing):null)?.floors,
     bays,
     levels,
     palletWidth,
@@ -296,7 +298,7 @@ class MekikFrontViewer {
   }
 
   configKey(config = this.config) {
-    return [config.bays, config.levels, config.palletWidth, config.palletDepth, config.palletHeight, config.firstLevelHeight, config.levelSpacing, config.footType, config.footColor, config.traverseColor, config.traverseHeight, config.sideClearance, config.uprightHeight, config.totalWidth].join("|");
+    return [config.bays, config.levels, config.palletWidth, config.palletDepth, config.palletHeight, config.firstLevelHeight, config.levelSpacing, config.footType, config.footColor, config.traverseColor, config.traverseHeight, config.sideClearance, config.uprightHeight, config.totalWidth,JSON.stringify(config.deepLevels)].join("|");
   }
 
   update() {
@@ -334,7 +336,7 @@ class MekikFrontViewer {
     const palletScaleY = config.palletDepth / Math.max(1, this.models.pallet.size.y);
     const palletBodyHeight = EURO_PALLET_VISUAL_HEIGHT;
     const palletScaleZ = palletBodyHeight / Math.max(1, this.models.pallet.size.z);
-    const boxHeight = Math.max(0, config.palletHeight - palletBodyHeight);
+
     const boxMaterial = new THREE.MeshStandardMaterial({
       color: 0xc58b47,
       metalness: 0.02,
@@ -344,12 +346,13 @@ class MekikFrontViewer {
     // Kullanıcının ilk kat değeri braket tepesi/palet alt kotudur; grup bu kadar aşağı alınır.
     const bracketTopOffset = this.models.traverse.topOffset;
     for (let level = 0; level < config.levels; level += 1) {
-      const supportZ = config.firstLevelHeight + level * config.levelSpacing;
+      const supportZ = config.deepLevels?.[level]?.y ?? config.firstLevelHeight + level * config.levelSpacing;
+      const boxHeight = Math.max(0,(config.deepLevels?.[level]?.palletHeight??config.palletHeight)-palletBodyHeight);
       for (let bay = 0; bay < FRONT_DISPLAY_BAYS; bay += 1) {
         const bayCenterX = (bay + 0.5) * config.bayPitch;
         const traverse = this.models.traverse.root.clone(true);
         traverse.name = `Mekik Travers G${bay + 1} K${level + 1}`;
-        traverse.traverse((part) => { if (part.isMesh) part.material = traverseMaterial; });
+        traverse.traverse((part) => { if (part.isMesh) {part.material = traverseMaterial;const height=config.deepLevels?.[level]?.traverseHeight;if(height&&/PROFIL/i.test(part.name))part.geometry=beamProfileGeometry598(part.geometry,height,'z');} });
         traverse.scale.set(traverseScaleX, 1, 1);
         traverse.rotation.z = 0;
         const connectorShift597=postJoint597&&beamJoint597?connectorPhase597(postJoint597,beamJoint597,uprightScaleZ,(supportZ-bracketTopOffset)/1000)*1000:0;traverse.traverse(part=>{if(part.isMesh&&/KONNEKT/i.test(part.name))part.position.z+=connectorShift597;});
@@ -497,7 +500,7 @@ class MekikFrontViewer {
     // Teknik kotlar yalnız formdaki mühendislik ölçülerinden üretilir.
     // GLB montaj/ofset değerleri ölçü zincirine kesinlikle eklenmez.
     const palletContactZ = (level) => (
-      config.firstLevelHeight
+      config.deepLevels?.[level]?.y ?? config.firstLevelHeight
       + level * config.levelSpacing
     );
     const topY = point(0, uprightTopZ).y;
@@ -560,7 +563,7 @@ class MekikFrontViewer {
     const columnChipWidth = Math.max(150, Math.min(230, firstBayWidthPx - 12));
     const columnChipHeight = 30;
     const columnChipX = firstBayCenterX - columnChipWidth / 2;
-    const topLoadZ = visualPalletBottomZ(config.levels - 1) + config.palletHeight;
+    const topLoadZ = Math.max(...Array.from({length:config.levels},(_,i)=>visualPalletBottomZ(i)+(config.deepLevels?.[i]?.palletHeight??config.palletHeight)));
     const columnChipY = Math.max(8, point(0, topLoadZ).y - 40);
     verticalDimensionAtY(innerRightX, originY, topPalletBottomY, `SON PALET YÜKSEKLİĞİ · ${fmt(topPalletBottom - groundZ)} mm`, "inside");
     verticalDimensionAtY(rightX, originY, topY, `AYAK UZUNLUĞU · ${fmt(uprightTopZ - groundZ)} mm`, "outside");
