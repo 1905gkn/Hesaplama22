@@ -1,3 +1,4 @@
+import {addPalletWeights599,disposePalletWeights599,nativeWeightBoxes599} from '../client/pallet-weight-labels-v599.mjs';
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
@@ -51,7 +52,7 @@ async function source(file){
 }
 const models={};for(const [key,name]of Object.entries({ayak:'ayak-top',ray:'ray',konsol:'konsol',arabag:'arabag',palet:'palet'}))models[key]=await source('dist/drive-in/drive-in-'+name+'.glb');models.ayak=await prepareDriveNativePost(models.ayak);
 const code=fs.readFileSync('client/drive-in-viewer.entry.js','utf8'),body=code.replace(/^import .*;\r?\n/gm,'').split('let active = null;')[0];
-const Viewer=vm.runInNewContext(body+'\nDriveInFrontViewer',{THREE,driveInUprightHeight,prepareDriveNativePost,createDriveNativeFacing,batchDriveStaticParts,createDemandFrame,createStaticSceneTransforms});
+const Viewer=vm.runInNewContext(body+'\nDriveInFrontViewer',{addPalletWeights599,disposePalletWeights599,nativeWeightBoxes599,THREE,driveInUprightHeight,prepareDriveNativePost,createDriveNativeFacing,batchDriveStaticParts,createDemandFrame,createStaticSceneTransforms});
 export function harness(config,Type=Viewer){
  const viewer=Object.create(Type.prototype),queue=clock();Object.assign(viewer,{config:viewer.normalize(config),models,root:new THREE.Group(),scene:new THREE.Scene(),canvas:{dataset:{},getBoundingClientRect:()=>({width:1260,height:760})},destroyed:false,lastWidth:1260,lastHeight:760,cachedBounds:new THREE.Box3(),layoutSignature:null,renderCount:0,layoutEvents:0,boundsScans:0});viewer.scene.add(viewer.root);
  viewer.camera=new THREE.OrthographicCamera(-1,1,1,-1,1,100000);viewer.camera.up.set(0,0,1);viewer.controls={target:new THREE.Vector3(),update(){viewer.renderScene();}};
