@@ -587,7 +587,7 @@ class MekikFrontViewer {
         .dim-text{fill:#073c30;font:700 13px Arial,sans-serif}
         .dim-vertical-text{font-size:12px;letter-spacing:.1px}
         .dim-column-text{fill:#073c30;font:700 12px Arial,sans-serif}
-        .dim-title{fill:#073c30;font:700 12px Arial,sans-serif}
+        .dim-title{fill:#073c30;font:700 13px Arial,sans-serif}
         .dim-chip{fill:#073c30}
         .dim-chip-text{fill:#fff;font:900 18px Arial,sans-serif}
         .dim-warm{fill:#fff1b8;stroke:#d7a900;stroke-width:1}
@@ -595,7 +595,7 @@ class MekikFrontViewer {
         .dim-origin-dot{fill:#d7a900;stroke:#073c30;stroke-width:1}
       </style>
       <circle cx="${originPoint.x}" cy="${originPoint.y}" r="3.2" class="dim-origin-dot"/>
-      <text x="${leftX - 12}" y="${Math.max(20, Math.min(palletGuideY(config.levels - 1), topY) - 20)}" text-anchor="end" textLength="${Math.min(158,leftX - 24)}" lengthAdjust="spacingAndGlyphs" class="dim-title">KOT ARALIKLARI</text>
+      <text x="${leftX - 12}" y="${Math.max(20, Math.min(palletGuideY(config.levels - 1), topY) - 20)}" text-anchor="end" class="dim-title">KOT ARALIKLARI</text>
       ${lineParts.join("")}
       ${labelParts.join("")}
       <g class="dim-column-measure"><text x="${firstBayCenterX}" y="${columnChipY - 5}" text-anchor="middle" class="dim-column-text">KOLON ARALIĞI</text><text x="${firstBayCenterX}" y="${columnChipY + 12}" text-anchor="middle" class="dim-text">${fmt(config.bayPitch)} mm</text><path d="M${firstBayEdgeA} ${columnChipY+20}H${firstBayEdgeB}M${firstBayEdgeA} ${columnChipY+16}v8M${firstBayEdgeB} ${columnChipY+16}v8" class="dim-main"/></g>
