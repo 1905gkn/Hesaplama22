@@ -1,3 +1,4 @@
+import {addPalletWeights599,disposePalletWeights599,nativeWeightBoxes599} from '../client/pallet-weight-labels-v599.mjs';
 import {driveInUprightHeight} from '../client/drive-in-height.mjs';
 import {createDriveNativeFacing} from '../client/drive-native-batches.mjs';
 import {batchDriveStaticParts} from '../client/drive-static-parts.mjs';
@@ -11,7 +12,7 @@ for(const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g))if(matc
 const root=process.argv[3]||'.';
 const mekik=fs.readFileSync(root+'/client/mekik-front-viewer.entry.js','utf8'),drive=fs.readFileSync(root+'/client/drive-in-viewer.entry.js','utf8');
 assert(mekik.includes('const FRONT_DISPLAY_BAYS = 5;'));assert(drive.includes('const FRONT_DISPLAY_BAYS = 5;'));
-const ctx={driveInUprightHeight,createDriveNativeFacing,batchDriveStaticParts,createStaticSceneTransforms,THREE,FRONT_DISPLAY_BAYS:5,REFERENCE_UPRIGHT_WIDTH:100,REFERENCE_BAY_PITCH:1450,EURO_PALLET_VISUAL_HEIGHT:140,finishMaterial:()=>new THREE.MeshBasicMaterial(),CustomEvent:class{constructor(name,options){this.detail=options.detail}},console,Intl,clamp:(n,a,b)=>Math.max(a,Math.min(b,n)),window:{}};vm.createContext(ctx);
+const ctx={addPalletWeights599,disposePalletWeights599,nativeWeightBoxes599,driveInUprightHeight,createDriveNativeFacing,batchDriveStaticParts,createStaticSceneTransforms,THREE,FRONT_DISPLAY_BAYS:5,REFERENCE_UPRIGHT_WIDTH:100,REFERENCE_BAY_PITCH:1450,EURO_PALLET_VISUAL_HEIGHT:140,finishMaterial:()=>new THREE.MeshBasicMaterial(),CustomEvent:class{constructor(name,options){this.detail=options.detail}},console,Intl,clamp:(n,a,b)=>Math.max(a,Math.min(b,n)),window:{}};vm.createContext(ctx);
 vm.runInContext(mekik.slice(mekik.indexOf('class MekikFrontViewer'),mekik.indexOf('\nlet canvas ='))+';globalThis.MekikTest=MekikFrontViewer;',ctx);
 vm.runInContext(drive.slice(drive.indexOf('class DriveInFrontViewer'),drive.indexOf('\nlet active ='))+';globalThis.DriveTest=DriveInFrontViewer;',ctx);
 const model=()=>{const root=new THREE.Group();root.add(new THREE.Mesh(new THREE.BoxGeometry(100,100,100)));return{root,size:new THREE.Vector3(100,100,100),topOffset:0,source:'synthetic'}};
