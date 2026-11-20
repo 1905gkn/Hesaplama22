@@ -2,7 +2,7 @@ import {isSharedDepthMember} from './depth-shared-support.mjs';
 import {upgradeMekikStepped} from './mekik-stepped.mjs';
 import {b2bFrameLayout} from './layout-3d-b2b-placement.mjs';
 // System-specific local geometry in metres. The viewer applies world placement.
-export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScaleX=null,nativeAccessories=false,simple=false,palletInstances=false}={}){
+export function rackParts(r,{cad=false,driveConsole=false,railSeats=null,railBearings=null,railScaleX=null,nativeAccessories=false,simple=false,palletInstances=false}={}){
  r=upgradeMekikStepped(r);
  const parts=[];
  const box=(kind,x,y,z,w,h,d,rx=0,rz=0)=>{if([x,y,z,w,h,d].every(Number.isFinite)&&w>0&&h>0&&d>0)parts.push({kind,x,y,z,w,h,d,rx,rz});};
@@ -47,7 +47,7 @@ export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScal
     for(const side of [-1,1])box('rail',x+side*Math.min(r.palletWidth,pitch-r.foot-.06)*.35,y-.06,z,.075,.12,d);
     // Drive-In console arms carry the rails; never close a forklift channel
     // with the full-width per-level beams used in shuttle racking.
-    for(const at of run.supports)for(const side of [-1,1]){const z=at/1000-r.depth/2;box('beam',x+side*(pitch*.35-r.foot/4),y-.12,z,Math.max(.02,pitch*.3-r.foot/2),.1,.08);box('beam',x+side*(pitch/2-r.foot/2-.003),y+.035,z,.006,.21,.05);}
+    if(!driveConsole)for(const at of run.supports)for(const side of [-1,1]){const z=at/1000-r.depth/2;box('beam',x+side*(pitch*.35-r.foot/4),y-.12,z,Math.max(.02,pitch*.3-r.foot/2),.1,.08);box('beam',x+side*(pitch/2-r.foot/2-.003),y+.035,z,.006,.21,.05);}
    }
    for(const at of floor.positions)pallet(x,y,at/1000+r.palletDepth/2-r.depth/2,Math.min(r.palletWidth,pitch-r.foot-.06),r.palletDepth,r.palletHeights[floor.index]);
    }
@@ -73,7 +73,7 @@ export function rackParts(r,{cad=false,railSeats=null,railBearings=null,railScal
   for(let lane=0;lane<r.bays;lane++){const x=-r.width/2+r.foot/2+(lane+.5)*pitch;
    for(let i=0;i<r.floors.length;i++){const y=r.floors[i];for(const side of [-1,1]){if(r.system==='mekik2'){const bearing=railBearings?.[side<0?1:0],sx=railScaleX||((pitch-r.foot)/1.35),seat=bearing?-bearing.x:(railSeats||[-.47925,.47925])[side<0?0:1],rx=x+seat*sx,w=(bearing?.width||.0575)*sx,h=r.railHeight||.17,t=.003;box('rail',rx,y-h+t/2,0,w,t,r.depth);const webX=rx+side*(w-t)/2,cap=Math.min(.025,w);box('rail',webX,y-h/2,0,t,h,r.depth);box('rail',webX-side*(cap-t)/2,y-t/2,0,cap,t,r.depth);}else box('rail',x+side*Math.min(r.palletWidth,pitch-r.foot-.06)*.35,y-.06,0,.075,.12,r.depth);}
 
-    for(const zz of [...new Set(stations)]){const z=Math.max(.05,Math.min(r.depth-.05,zz))-r.depth/2;if(r.system==='drive'){for(const side of [-1,1]){box('beam',x+side*(pitch*.35-r.foot/4),y-.12,z,Math.max(.02,pitch*.3-r.foot/2),.1,.08);box('beam',x+side*(pitch/2-r.foot/2-.003),y+.035,z,.006,.21,.05);}}else if(!cad)box('beam',x,y-.1,z,pitch-r.foot,.1,.08);}
+    for(const zz of [...new Set(stations)]){const z=Math.max(.05,Math.min(r.depth-.05,zz))-r.depth/2;if(r.system==='drive'){if(!driveConsole)for(const side of [-1,1]){box('beam',x+side*(pitch*.35-r.foot/4),y-.12,z,Math.max(.02,pitch*.3-r.foot/2),.1,.08);box('beam',x+side*(pitch/2-r.foot/2-.003),y+.035,z,.006,.21,.05);}}else if(!cad)box('beam',x,y-.1,z,pitch-r.foot,.1,.08);}
     const positions=r.positions.length?r.positions:Array.from({length:Math.max(1,Math.floor(r.depth/(r.palletDepth+.05)))},(_,j)=>j*(r.palletDepth+.05));
     for(const zz of positions)if(zz+r.palletDepth<=r.depth+.02)pallet(x,y,zz+r.palletDepth/2-r.depth/2,Math.min(r.palletWidth,pitch-r.foot-.06),r.palletDepth,r.palletHeights[i]);
    }

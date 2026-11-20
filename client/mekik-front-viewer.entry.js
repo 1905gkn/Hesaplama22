@@ -1,3 +1,5 @@
+import {uprightPitchGeometry597} from './upright-pitch-v597.mjs';
+import {nativeJoint597,connectorPhase597} from './hook-hole-joint-v597.mjs';
 import {connectorContact596,postFront596} from './connector-contact-v596.mjs';
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
@@ -170,11 +172,12 @@ function prepareTemplate(scene, type) {
   const normalizedProfileBounds = type === "traverse" && profile
     ? new THREE.Box3().setFromObject(profile)
     : normalizedBounds;
+  const contactY596=type==='traverse'?connectorContact596(root):null,joint597=nativeJoint597(root,type,contactY596);if(type==='traverse'){joint597.profileMinY=normalizedProfileBounds.min.z/1000;joint597.profileMaxY=normalizedProfileBounds.max.z/1000;}
   return {
-    root,
+    root,joint597,
     size: normalizedBounds.getSize(new THREE.Vector3()),
     contactY: type === "traverse" ? connectorContact596(root) : null,
-    postFrontY: type === "upright" ? postFront596(root) : null,
+    postFrontY: type === "upright" ? joint597.frontFace : null,
     topOffset: normalizedBounds.max.z,
     profileBottomOffset: normalizedProfileBounds.min.z,
     source: type === "upright" ? "mekik 3ayak(2).glb" : "mekik 3travers(2).glb",
@@ -319,14 +322,14 @@ class MekikFrontViewer {
     for (let index = 0; index <= FRONT_DISPLAY_BAYS; index += 1) {
       const upright = this.models.upright.root.clone(true);
       upright.name = `Mekik Ayak ${index + 1}`;
-      upright.traverse((part) => { if (part.isMesh) part.material = uprightMaterial; });
+      upright.traverse((part) => { if (part.isMesh) {part.material = uprightMaterial;if(/AYAK(?:[_\s]+\d+)*[_\s]*-\d+/i.test(part.name))part.geometry=uprightPitchGeometry597(part.geometry,uprightScaleZ,'z');} });
       upright.scale.set(uprightScaleX, 1, uprightScaleZ);
       upright.position.set(index * config.bayPitch, 0, 0);
       this.root.add(upright);
     }
 
-    const traverseScaleX = config.bayPitch / REFERENCE_BAY_PITCH;
-    const traverseFrontY = (this.models.upright.postFrontY ?? this.models.upright.size.y * .5) + (this.models.traverse.contactY ?? 0) + .2;
+    const postJoint597=this.models.upright.joint597,beamJoint597=this.models.traverse.joint597;const traverseScaleX=postJoint597?.holeXs?.length&&beamJoint597?.hookHalfSpan?(config.bayPitch/2000-Math.min(...postJoint597.holeXs.map(Math.abs))*uprightScaleX)/beamJoint597.hookHalfSpan:config.bayPitch/REFERENCE_BAY_PITCH;
+    const traverseFrontY = (this.models.upright.postFrontY ?? -this.models.upright.size.y * .5) - (this.models.traverse.contactY ?? 0) - .2;
     const palletScaleX = config.palletWidth / Math.max(1, this.models.pallet.size.x);
     const palletScaleY = config.palletDepth / Math.max(1, this.models.pallet.size.y);
     const palletBodyHeight = EURO_PALLET_VISUAL_HEIGHT;
@@ -348,7 +351,8 @@ class MekikFrontViewer {
         traverse.name = `Mekik Travers G${bay + 1} K${level + 1}`;
         traverse.traverse((part) => { if (part.isMesh) part.material = traverseMaterial; });
         traverse.scale.set(traverseScaleX, 1, 1);
-        traverse.rotation.z = Math.PI;
+        traverse.rotation.z = 0;
+        const connectorShift597=postJoint597&&beamJoint597?connectorPhase597(postJoint597,beamJoint597,uprightScaleZ,(supportZ-bracketTopOffset)/1000)*1000:0;traverse.traverse(part=>{if(part.isMesh&&/KONNEKT/i.test(part.name))part.position.z+=connectorShift597;});
         traverse.position.set(bayCenterX, traverseFrontY, supportZ - bracketTopOffset);
         this.root.add(traverse);
 
