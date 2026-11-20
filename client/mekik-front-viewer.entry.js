@@ -1018,9 +1018,9 @@ window.m2ShowView = function rafexMekikFrontShowView(name) {
 document.addEventListener("input", () => setTimeout(scheduleMountBurst, 0), true);
 document.addEventListener("change", () => setTimeout(scheduleMountBurst, 0), true);
 document.addEventListener("click", () => setTimeout(scheduleMountBurst, 0), true);
-window.addEventListener('rafex-deep-levels-applied',scheduleMountBurst);
 window.addEventListener("hashchange", scheduleMountBurst);
 window.addEventListener("load", scheduleMountBurst);
+window.addEventListener('rafex-deep-levels-applied',scheduleMountBurst);
 
 new MutationObserver(scheduleMount).observe(document.documentElement, {
   childList: true,
