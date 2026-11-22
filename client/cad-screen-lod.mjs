@@ -1,3 +1,4 @@
+import {solidInnerPost605} from './inner-post-v605.mjs';
 import * as T from 'three';
 import {simplifyCad} from './cad-simplify-job.mjs';
 import {compactCadVerticesAsync} from './cad-exact-vertices.mjs';
@@ -11,12 +12,23 @@ export function projectedCadError(error,scale,sphere,camera,viewportHeight){
  if(depth<=0)return Infinity;
  return error*scale*viewportHeight/(2*Math.tan(camera.fov*Math.PI/360)*depth);
 }
-export async function prepareScreenLod(source,budget=createPreparationBudget(),{tolerance=.003}={}){
- // Never collapse upright folded walls across holes. Its repaired lateral faces
- // are already minimal; front holes and section remain the CAD source.
- if(source.userData?.uprightProfile594||source.userData?.connectorExact596)return null;
+export async function prepareScreenLod(source,budget=createPreparationBudget(),{tolerance=.003,allowProtected=false}={}){
+ // Protected CAD stays exact by default. Deep-layout views may explicitly opt
+ // into bounded screen-space proxies; near views always restore the source.
+ if(!allowProtected&&(source.userData?.uprightProfile594||source.userData?.connectorExact596))return null;
  let variants=cache.get(source);if(!variants){variants=new Map();cache.set(source,variants);}if(variants.has(tolerance))return variants.get(tolerance);
  const job=(async()=>{
+  if(source.userData.uprightProfile594&&!source.userData.innerPost605){
+   const axis=source.userData.uprightProfile594.heightAxis||'y',solid=solidInnerPost605(source,axis);
+   if(solid!==source){
+    const geometry=await compactCadVerticesAsync(solid,budget,{threshold:0});
+    if(!geometry.index)geometry.setIndex(new T.BufferAttribute(Uint32Array.from({length:geometry.attributes.position.count},(_,i)=>i),1));
+    source.computeBoundingBox();const size=source.boundingBox.getSize(new T.Vector3()),cross=['x','y','z'].filter(k=>k!==axis);
+    // The actual folded section is retained. Its full diagonal conservatively
+    // bounds a removed perforation; height scaling cannot enlarge that error.
+    return {geometry,error:Math.hypot(...cross.map(k=>size[k]))+1e-6,errorAxes:cross};
+   }
+  }
   const p=source.attributes.position,n=source.attributes.normal,index=source.index;
   if(!p||!n||!index||index.count<384||p.isInterleavedBufferAttribute||n.isInterleavedBufferAttribute||Object.keys(source.morphAttributes).length)return null;
   if(!source.boundingBox)source.computeBoundingBox();const {min,max}=source.boundingBox,locks=new Uint8Array(p.count),pinned=new Set();

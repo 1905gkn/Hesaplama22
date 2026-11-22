@@ -67,6 +67,10 @@ function planeOnlyParts(geometry,parts){
  }
  planeOnlyCache.set(geometry,exact);return exact;
 }
+export function cadLodScale607(matrix,lod){
+ if(!lod.errorAxes)return matrix.getMaxScaleOnAxis();
+ return Math.max(...lod.errorAxes.map(axis=>{const j={x:0,y:4,z:8}[axis],e=matrix.elements;return Math.hypot(e[j],e[j+1],e[j+2]);}));
+}
 export async function createFacingBatch(scene,geometry,material,matrices,budget,options={}){
  if(material.side!==THREE.FrontSide)return null;
  // A modest CAD part repeated thousands of times can dominate GPU work too.
@@ -77,14 +81,14 @@ export async function createFacingBatch(scene,geometry,material,matrices,budget,
  // Repeated medium prototypes favour a few exact plane batches over many normal cones.
  // Curved surfaces remain together and are always drawn, retaining every detail.
  if(repeatedHeavy&&triangles<50000)parts=planeOnlyParts(geometry,parts);
- const lod=options.screenLod&&!material.map&&!material.vertexColors&&(repeatedHeavy||triangles>=50000)?await prepareScreenLod(geometry,budget):null;
+ const lod=options.screenLod&&!material.map&&!material.vertexColors&&(repeatedHeavy||triangles>=50000)?await prepareScreenLod(geometry,budget,{allowProtected:!!options.protectedLod}):null;
  const lods=lod?[lod]:[];
- if(options.screenLod&&!material.map&&!material.vertexColors&&(repeatedHeavy||triangles>=50000))for(const tolerance of [.02,.08]){const previous=lods.at(-1);if(previous&&previous.geometry.index.count<3000)break;const next=await prepareScreenLod(previous?.geometry||geometry,budget,{tolerance});if(next){const error=next.error+(previous?.error||0);lods.push({...next,error});}}
+ if(options.screenLod&&!material.map&&!material.vertexColors&&(repeatedHeavy||triangles>=50000))for(const tolerance of [.02,.08]){const previous=lods.at(-1);if(previous&&previous.geometry.index.count<3000)break;const next=await prepareScreenLod(previous?.geometry||geometry,budget,{tolerance,allowProtected:!!options.protectedLod});if(next){const error=next.error+(previous?.error||0);lods.push({...next,error});}}
  const inverse=matrices.map(m=>m.determinant()>0?m.clone().invert():null),cameraPoints=inverse.map(()=>new THREE.Vector3()),meshes=[];
  if(!geometry.boundingBox)geometry.computeBoundingBox();
  const worldBounds=matrices.map(m=>geometry.boundingBox.clone().applyMatrix4(m)),inView=new Uint8Array(matrices.length),lastPlanes=new Float64Array(24).fill(Infinity);
  for(const part of parts){const mesh=new THREE.InstancedMesh(part.geometry,material,matrices.length);await populateInstances(mesh,matrices,budget);mesh.computeBoundingSphere();mesh.userData.cadFacing=true;scene.add(mesh);meshes.push(mesh);}
- const coarse=new Uint8Array(matrices.length),worldSpheres=lods.length?matrices.map(m=>geometry.boundingSphere.clone().applyMatrix4(m)):[],scales=lods.length?matrices.map(m=>m.getMaxScaleOnAxis()):[];
+ const coarse=new Uint8Array(matrices.length),worldSpheres=lods.length?matrices.map(m=>geometry.boundingSphere.clone().applyMatrix4(m)):[],scales=lods.length?lods.map(lod=>matrices.map(m=>cadLodScale607(m,lod))):[];
  const coarseMeshes=[];let lastProjection='';for(const level of lods){const mesh=new THREE.InstancedMesh(level.geometry,material,matrices.length);await populateInstances(mesh,matrices,budget);mesh.userData.cadFacing=true;mesh.computeBoundingSphere();scene.add(mesh);mesh.count=0;coarseMeshes.push(mesh);}
  const last=new THREE.Vector3(Infinity,Infinity,Infinity);
  const allIndices=matrices.map((_,i)=>i),previous=new WeakMap();
@@ -96,7 +100,7 @@ export async function createFacingBatch(scene,geometry,material,matrices,budget,
   else if(lastPlanes[0]!==Infinity){lastPlanes.fill(Infinity);changed=true;}
   if(!changed)return;last.copy(camera);
   for(let i=0;i<worldBounds.length;i++)inView[i]=!frustum||frustum.intersectsBox(worldBounds[i]);
-  coarse.fill(0);if(view)for(let i=0;i<coarse.length;i++)if(inverse[i])for(let level=lods.length-1;level>=0;level--)if(projectedCadError(lods[level].error,scales[i],worldSpheres[i],view.camera,view.viewportHeight)<=(view.maxPixelError??.35)){coarse[i]=level+1;break;}
+  coarse.fill(0);if(view)for(let i=0;i<coarse.length;i++)if(inverse[i])for(let level=lods.length-1;level>=0;level--)if(projectedCadError(lods[level].error,scales[level][i],worldSpheres[i],view.camera,view.viewportHeight)<=(view.maxPixelError??.35)){coarse[i]=level+1;break;}
   for(let i=0;i<inverse.length;i++)if(inverse[i]&&!coarse[i])cameraPoints[i].copy(camera).applyMatrix4(inverse[i]);
   for(let k=0;k<parts.length;k++)for(const mesh of targets(meshes[k])){
    const source=mesh.userData.cadFacingSources||allIndices,visible=[];

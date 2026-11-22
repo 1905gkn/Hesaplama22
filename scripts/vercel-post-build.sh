@@ -516,3 +516,5 @@ node scripts/verify-b2b-frame-depth-v603.mjs
 node scripts/verify-inner-post-v605.mjs
 
 node scripts/verify-end-pallet-weights-v606.mjs
+
+node scripts/verify-deep-screen-detail-v607.mjs
