@@ -12,7 +12,7 @@ class Obj{constructor(){this.userData={};this.position={set(){}};this.scale={set
 const start=viewer.indexOf('rebuild(){'),end=viewer.indexOf('bounds(){',start),method=viewer.slice(start,end);
 const finishName593=method.match(/this\.root\.add\([\w$]+\),([\w$]+)\(this\.root\),this\.root\.updateMatrixWorld/)?.[1];if(finishName593)c[finishName593]=root=>stabilizeGalvanizedObject593({traverse(){}});
 for(const m of method.matchAll(/new ([\w$]+)\(/g))c[m[1]]=Obj;
-for(const m of method.matchAll(/([\w$]+)\(this\.root,([\w$]+)\(this\.root\)\)/g)){c[m[1]]=()=>{};c[m[2]]=()=>[];}
+for(const m of method.matchAll(/([\w$]+)\(this\.root,([\w$]+)\(this\.root\)(?:,\{endOnly:[^}]+\})?\)/g)){c[m[1]]=()=>{};c[m[2]]=()=>[];}
 const color=method.match(/([\w$]+)\([\w$]+\.footColor,"foot"\)/)?.[1];assert(color);c[color]=()=>({});
 for(const [pattern,value]of [[/\.footType\/([\w$]+)/,100],[/:\w+\.bayPitch\/([\w$]+)/,1450],[/=([\w$]+),[\w$]+=[\w$]+\/Math\.max\(1,this\.models\.pallet\.size\.z\)/,140]]){const name=method.match(pattern)?.[1];assert(name,'GLB dimensional constant '+pattern);c[name]=value;}
 c.CustomEvent=class{constructor(){}};const rebuild=vm.runInContext('({'+method+'})',c).rebuild;

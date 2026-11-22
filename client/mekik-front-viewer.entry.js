@@ -382,7 +382,7 @@ class MekikFrontViewer {
       }
     }
 
-    addPalletWeights599(this.root,nativeWeightBoxes599(this.root));
+    addPalletWeights599(this.root,nativeWeightBoxes599(this.root),{endOnly:true});
     const floorMaterial = new THREE.LineBasicMaterial({ color: 0x50605a, transparent: true, opacity: 0.5 });
     const floor = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints([

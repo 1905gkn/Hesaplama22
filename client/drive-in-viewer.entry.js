@@ -303,7 +303,7 @@ class DriveInFrontViewer {
         if(!stepped)this.addPart(this.models.arabag, arabagScale, new THREE.Vector3(x, frontY - ayakSize.y - arabagSize.y / 2, supportZ + arabagSize.z / 2), technicalMaterials.arabag);else if(level%2===0)for(const run of runs)for(let fi=run.firstFrame;fi<run.lastFrame;fi++){const a=stepped.frames[fi].end,b=stepped.frames[fi+1].start;if(b>a)this.addPart(this.models.arabag,new THREE.Vector3(uprightWidth/arabagSize.x,(b-a)/arabagSize.y,1),new THREE.Vector3(x,frontY-(a+b)/2,supportZ+arabagSize.z/2),technicalMaterials.arabag);}
       }
     }
-    addPalletWeights599(this.root,nativeWeightBoxes599(this.root));
+    addPalletWeights599(this.root,nativeWeightBoxes599(this.root),{endOnly:true});
     this.nativeFacing=createDriveNativeFacing(this.root);
     this.staticBatches=batchDriveStaticParts(this.root);
     if(this.staticTransforms)this.staticTransforms.refresh();else this.staticTransforms=createStaticSceneTransforms(this.scene);

@@ -62,7 +62,7 @@ async function makeViewer(host,data,templates,accessoryGeometries=new Map(),opti
   const mesh=new THREE.InstancedMesh(geometry,mat,list.length);await populateInstances(mesh,list,budget);scene.add(mesh);if(key.startsWith('load:'))palletMeshes.push(mesh);
  }
  for(const p of timberGroups.values()){const g=palletTimberGeometry(p.w,p.d),mat=new Surface({color:colors.timber,roughness:.5,metalness:.25});geometries.push(g);materials.push(mat);const group=new THREE.Group();scene.add(group);palletMeshes.push(group);const facing=await createFacingBatch(group,g,mat,p.matrices,budget,{screenLod:true});if(facing)facingBatches.push(facing);else{const mesh=new THREE.InstancedMesh(g,mat,p.matrices.length);await populateInstances(mesh,p.matrices,budget);group.add(mesh);}}
- const weights599=addPalletWeights599(scene,weightBoxes599,{up:'y',unit:.001});palletMeshes.push(weights599);
+ const weights599=addPalletWeights599(scene,weightBoxes599,{up:'y',unit:.001,endOnly:true});palletMeshes.push(weights599);
  partCache.clear();const cadGroups=new Map();
  for(const r of data.racks){if(['mr','konsol'].includes(r.system)&&accessoryGeometries.has(String(r.id)))continue;parent.position.set(r.x,0,r.z);parent.rotation.set(0,r.angle,0);parent.updateMatrix();const geometryKey=geometryKeyFor(r);if(!placementCache.has(geometryKey))placementCache.set(geometryKey,cadPlacements(r,templates));for(const p of placementCache.get(geometryKey)){
   if((++preparedParts&255)===0){const pending=budget.checkpoint();if(pending)await pending;}
