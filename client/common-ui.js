@@ -25,7 +25,7 @@
    p.querySelectorAll('button[onclick^="rafexCollectionSave"]').forEach(el=>text(el,'Katı Görsele Ekle'));
    label('b2bPalletWeight','Palet başına ağırlık (kg)');
    const weight=document.getElementById('b2bPalletWeight'),count=document.getElementById('b2bPalletCount');
-   if(weight&&count){const w=Number(weight.value),n=Number(count.value);help(weight.closest('label'),'common-pallet-load',w>0&&n>0?n+' palet × '+w.toLocaleString('tr-TR')+' kg = '+(w*n).toLocaleString('tr-TR')+' kg / kat':'Palet sayısı ve ağırlığı girildiğinde kat yükü hesaplanır.');}
+   document.getElementById('common-pallet-load')?.remove();
    const list=document.getElementById('b2bAccessoryList');
    if(list?.querySelector('.rack-tray-selection'))help(list,'common-accessory-load','Tava yükü, seçtiğiniz her katın toplam yüküdür. Birden fazla kat seçildiğinde yük katlar arasında bölünmez.');
    if(list&&weight&&count){list.querySelectorAll('.b2b-accessory-card').forEach(card=>{
