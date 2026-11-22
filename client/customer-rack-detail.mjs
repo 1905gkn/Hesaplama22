@@ -1,3 +1,4 @@
+import {innerPostTemplate605} from './inner-post-v605.mjs';
 import * as THREE from 'three';
 import {rackParts} from './layout-3d-geometry.mjs';
 import {cadPlacements,deepBeamScale,loadLayoutCad} from './layout-3d-cad.mjs';
@@ -19,9 +20,10 @@ export async function loadCustomerRackDetail(r){
  }
  const cadGroups=new Map();
  for(const r of data.racks){if(['mr','konsol'].includes(r.system)&&accessoryGeometries.has(String(r.id)))continue;parent.position.set(r.x,0,r.z);parent.rotation.set(0,r.angle,0);parent.updateMatrix();for(const p of cadPlacements(r,templates)){
-  const key=p.name+':'+p.color;if(!cadGroups.has(key))cadGroups.set(key,{template:templates[p.name],color:p.color,matrices:[]});dummy.position.set(p.x,p.y,p.z);dummy.rotation.set(0,p.ry||0,0);dummy.scale.set(p.sx,p.sy,p.sz);dummy.updateMatrix();cadGroups.get(key).matrices.push(new THREE.Matrix4().multiplyMatrices(parent.matrix,dummy.matrix));
+  const key=(p.innerPosts605||'outer')+':'+p.name+':'+p.color;if(!cadGroups.has(key))cadGroups.set(key,{template:innerPostTemplate605(templates[p.name],p.innerPosts605),color:p.color,matrices:[]});dummy.position.set(p.x,p.y,p.z);dummy.rotation.set(0,p.ry||0,0);dummy.scale.set(p.sx,p.sy,p.sz);dummy.updateMatrix();cadGroups.get(key).matrices.push(new THREE.Matrix4().multiplyMatrices(parent.matrix,dummy.matrix));
  }}
- for(const {template,color,matrices} of cadGroups.values()){const material=new Surface({color:colors[color]||'#005078',roughness:.42,metalness:.4});materials.push(material);const galvanized=new Surface({color:colors.galvanized,metalness:.6,roughness:.42});materials.push(galvanized);for(const [index,geometry] of template.geometries.entries()){const mesh=new THREE.InstancedMesh(geometry,template.finishes?.[index]==='galvanized'?galvanized:material,matrices.length);matrices.forEach((matrix,i)=>mesh.setMatrixAt(i,matrix));scene.add(mesh)}}
+ const shared605=new Map();for(const {template,color,matrices} of cadGroups.values())for(const [index,geometry] of template.geometries.entries()){const tint=template.finishes?.[index]==='galvanized'?colors.galvanized:(colors[color]||'#005078'),key=geometry.uuid+':'+tint;if(!shared605.has(key))shared605.set(key,{geometry,tint,matrices:[]});shared605.get(key).matrices.push(...matrices);}
+ for(const {geometry,tint,matrices} of shared605.values()){const material=new Surface({color:tint});materials.push(material);const mesh=new THREE.InstancedMesh(geometry,material,matrices.length);matrices.forEach((matrix,i)=>mesh.setMatrixAt(i,matrix));scene.add(mesh);}
  for(const r of data.racks){const parts=accessoryGeometries.get(String(r.id))||[];if(!parts.length)continue;const group=new THREE.Group();group.position.set(r.x,0,r.z);group.rotation.y=r.angle;for(const p of parts){const mat=new Surface({color:p.color,roughness:r.system==='konsol'?Math.max(.42,p.roughness??.42):.42,metalness:r.system==='konsol'?(p.load?Math.min(.25,p.metalness??.25):.4):r.system==='mr'?.4:.48});materials.push(mat);if(!geometries.includes(p.geometry))geometries.push(p.geometry);const mesh=p.matrices?new THREE.InstancedMesh(p.geometry,mat,p.matrices.length):new THREE.Mesh(p.geometry,mat);if(p.matrices)p.matrices.forEach((matrix,i)=>mesh.setMatrixAt(i,new THREE.Matrix4().fromArray(matrix)));mesh.name=p.name;group.add(mesh);if(p.load)palletMeshes.push(mesh);}scene.add(group);}
 
  return {group:scene,loads(value){palletMeshes.forEach(m=>m.visible=value)},dispose(){geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());scene.traverse(o=>{if(o.isInstancedMesh)o.dispose()});}};

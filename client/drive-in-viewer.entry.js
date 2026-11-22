@@ -193,9 +193,9 @@ class DriveInFrontViewer {
       }
       const [ayak, ray, konsol, arabag, palet] = await sharedModelsPromise;
       if (this.destroyed) return;
-      const optimizedPost=await prepareDriveNativePost(ayak.scene);
+      const optimizedPost=await prepareDriveNativePost(ayak.scene);const innerPosts605={};this.postSource605=ayak.scene;
       if (this.destroyed) return;
-      this.models = { ayak: optimizedPost, ray: ray.scene, konsol: konsol.scene, arabag: arabag.scene, palet: palet.scene };
+      this.models = { innerPosts605, ayak: optimizedPost, ray: ray.scene, konsol: konsol.scene, arabag: arabag.scene, palet: palet.scene };
       this.rebuild();
       this.emit("drive-in-ready", { sources: ["DRIVE IN AYAK TOP", "DRIVE IN RAY BÜKÜMLÜ", "KONSOL", "ARABAĞ DRIVEIN", "DRIVE IN PALET"] });
     } catch (error) {
@@ -230,7 +230,12 @@ class DriveInFrontViewer {
     return mesh;
   }
 
+  ensureInnerPosts605(){
+    if(!this.postSource605||!this.config.driveStepped||this.config.driveStepped.frames.length<2||this.innerPostJob605)return;
+    this.innerPostJob605=(async()=>{for(const mask of [3,1,2]){await new Promise(resolve=>setTimeout(resolve,0));if(this.destroyed)return;this.models.innerPosts605[mask]=await prepareDriveNativePost(this.postSource605,mask);}if(!this.destroyed)this.rebuild();})().catch(error=>{this.innerPostJob605=null;console.error(error);});
+  }
   rebuild() {
+    this.ensureInnerPosts605();
     this.layoutSignature=null;
     this.nativeFacing=null;
     disposePalletWeights599(this.root);
@@ -267,7 +272,7 @@ class DriveInFrontViewer {
 
     for (let i = 0; i <= FRONT_DISPLAY_BAYS; i += 1) {
       const x = uprightWidth / 2 + i * bayPitch;
-      if(stepped){for(const f of stepped.frames)this.addPart(this.models.ayak,new THREE.Vector3(uprightWidth/ayakSize.x,f.depth/ayakSize.y,f.height/ayakSize.z),new THREE.Vector3(x,frontY-(f.start+f.end)/2,f.height/2),technicalMaterials.ayak);}else this.addPart(this.models.ayak, ayakScale, new THREE.Vector3(x, frontY - ayakSize.y / 2, rackHeight / 2), technicalMaterials.ayak);
+      if(stepped){for(const f of stepped.frames)this.addPart(this.models.innerPosts605?.[(f.index<stepped.frames.length-1?1:0)|(f.index>0?2:0)]||this.models.ayak,new THREE.Vector3(uprightWidth/ayakSize.x,f.depth/ayakSize.y,f.height/ayakSize.z),new THREE.Vector3(x,frontY-(f.start+f.end)/2,f.height/2),technicalMaterials.ayak);}else this.addPart(this.models.ayak, ayakScale, new THREE.Vector3(x, frontY - ayakSize.y / 2, rackHeight / 2), technicalMaterials.ayak);
     }
 
     for (let level = 0; level < c.levels; level += 1) {

@@ -4,7 +4,7 @@ import {prepareCadRenderCopy} from './cad-render-copy.mjs';
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
-const cadCache=new WeakMap();
+const cadCache=new WeakMap(),sharedParts605=new WeakMap();
 // Merge only geometries drawn with the same finish and identical attribute layout.
 // Original CAD meshes remain intact for seating/contact metadata and validation.
 function* cadRenderSteps(template){
@@ -18,6 +18,10 @@ function* cadRenderSteps(template){
  }
  const parts=[];
  for(const {finish,geometries} of groups.values()){
+  const signature=finish+':'+geometries.map(g=>g.uuid).join(',');
+  let shared=sharedParts605.get(geometries[0]);if(!shared){shared=new Map();sharedParts605.set(geometries[0],shared);}
+  if(shared.has(signature)){parts.push(...shared.get(signature));continue;}
+  const start=parts.length;
   // Morph targets are not used by static CAD. Preserve them if a future asset has any.
   let merged=geometries.length>1&&!Object.keys(geometries[0].morphAttributes).length?mergeGeometries(geometries,false):null;
   if(merged&&geometries.every(g=>g.userData.connectorExact596))merged.userData.connectorExact596=true;
@@ -25,6 +29,7 @@ function* cadRenderSteps(template){
   if(merged&&geometries.some(g=>g.userData.renderCopy))merged.userData.renderCopy={prepared:true};
   if(merged){const exact=yield* compactCadVertexSteps(merged);if(exact!==merged){merged.dispose();merged=exact;}else if(!merged.index){const indexed=mergeVertices(merged,1e-9);const bytes=g=>Object.values(g.attributes).reduce((n,a)=>n+a.array.byteLength,0)+(g.index?.array.byteLength||0);if(bytes(indexed)<bytes(merged)){merged.dispose();merged=indexed;}else indexed.dispose();}merged.computeBoundingBox();merged.computeBoundingSphere();parts.push({geometry:merged,finish});}
   else for(const geometry of geometries)parts.push({geometry:yield* compactCadVertexSteps(geometry),finish});
+  shared.set(signature,parts.slice(start));
  }
  cadCache.set(template,parts);return parts;
 }

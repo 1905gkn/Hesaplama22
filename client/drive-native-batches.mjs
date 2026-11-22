@@ -1,3 +1,4 @@
+import {solidInnerPost605} from './inner-post-v605.mjs';
 import {prepareUprightGeometry594} from './upright-side-holes-v594.mjs';
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -10,14 +11,17 @@ export const isDrivePaintedPost=name=>/HR[_\s-]*\d+[_\s-]*AYAK/i.test(name);
 
 // Preserve every triangle and the two native finishes; merge the immutable
 // source assembly once, instead of cloning scores of fasteners for every foot.
-export async function prepareDriveNativePost(source){
- if(templates.has(source))return templates.get(source);
+export async function prepareDriveNativePost(source,innerMask=0){
+ let variants=templates.get(source);if(!variants){variants=new Map();templates.set(source,variants);}if(variants.has(innerMask))return variants.get(innerMask);
  const promise=(async()=>{
+  const base=innerMask?await prepareDriveNativePost(source,0):null;
   source.updateMatrixWorld(true);
+  const postCenters=new Map();source.traverse(m=>{if(m.isMesh&&isDrivePaintedPost(m.name))postCenters.set(m,new THREE.Box3().setFromObject(m).getCenter(new THREE.Vector3()).y);});const mid=(Math.min(...postCenters.values())+Math.max(...postCenters.values()))/2;
   const groups=new Map(),budget=createPreparationBudget(),output=new THREE.Group();
+  if(base)for(const mesh of base.children)if(mesh.name==='DRIVE_GALVANIZED')output.add(mesh.clone());
   source.traverse(mesh=>{
-   if(!mesh.isMesh)return;
-   const part=isDrivePaintedPost(mesh.name)?prepareUprightGeometry594(mesh.geometry,{heightAxis:'z',frontAxis:'y'}):mesh.geometry;const geometry=part.clone().applyMatrix4(mesh.matrixWorld);
+   if(!mesh.isMesh||(base&&!isDrivePaintedPost(mesh.name)))return;
+   const inner=isDrivePaintedPost(mesh.name)&&(innerMask&(postCenters.get(mesh)<mid?1:2));const part=isDrivePaintedPost(mesh.name)?(inner?solidInnerPost605(mesh.geometry,'z'):prepareUprightGeometry594(mesh.geometry,{heightAxis:'z',frontAxis:'y'})):mesh.geometry;const geometry=part.clone().applyMatrix4(mesh.matrixWorld);
    if(mesh.matrixWorld.determinant()<0){
     if(!geometry.index)geometry.setIndex(Array.from({length:geometry.attributes.position.count},(_,i)=>i));
     const a=geometry.index.array;for(let i=0;i<a.length;i+=3)[a[i+1],a[i+2]]=[a[i+2],a[i+1]];
@@ -46,8 +50,8 @@ export async function prepareDriveNativePost(source){
    const pending=budget.checkpoint();if(pending)await pending;
   }
   return output;
- })();templates.set(source,promise);
- try{return await promise;}catch(error){templates.delete(source);throw error;}
+ })();variants.set(innerMask,promise);
+ try{return await promise;}catch(error){variants.delete(innerMask);throw error;}
 }
 
 // Orthographic views use parallel rays. A camera-position test would be wrong

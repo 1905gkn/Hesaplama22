@@ -512,3 +512,5 @@ node scripts/verify-deep-preview-v600.mjs
 
 node scripts/b2b-frame-depth-v603.mjs
 node scripts/verify-b2b-frame-depth-v603.mjs
+
+node scripts/verify-inner-post-v605.mjs

@@ -1,3 +1,4 @@
+import {classifyDepthPosts605} from './inner-post-v605.mjs';
 import {planeHoles597,repeatingHoles597,connectorPhase597} from './hook-hole-joint-v597.mjs';
 import {flatConnectorGeometry596} from './connector-contact-v596.mjs';
 import {isSharedDepthMember} from './depth-shared-support.mjs';
@@ -97,6 +98,6 @@ export function cadPlacements(r,templates){
   }
   for(const p of out)if(p.name==='driveConsole')p.consoleSpan=pitch-r.foot;
  }
- return out.filter(p=>!(['mekikPost','drivePost'].includes(p.name)&&isSharedDepthMember(r,p.x,p.z)));
+ return classifyDepthPosts605(out.filter(p=>!(['mekikPost','drivePost'].includes(p.name)&&isSharedDepthMember(r,p.x,p.z))),templates,r.system);
 }
 
