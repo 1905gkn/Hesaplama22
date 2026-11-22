@@ -509,3 +509,6 @@ node scripts/pallet-weights-v599.mjs
 node scripts/verify-pallet-weights-v599.mjs
 
 node scripts/verify-deep-preview-v600.mjs
+
+node scripts/b2b-frame-depth-v603.mjs
+node scripts/verify-b2b-frame-depth-v603.mjs

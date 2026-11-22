@@ -7338,5 +7338,10 @@
     "Üst palet kotu",
     "Top pallet elevation",
     "Cote supérieure de la palette"
+  ],
+  [
+    "Ayak derinliği (mm)",
+    "Frame depth (mm)",
+    "Profondeur du cadre (mm)"
   ]
 ]
