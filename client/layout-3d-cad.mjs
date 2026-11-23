@@ -63,11 +63,19 @@ const mountFace=connectors.flatMap(g=>cadPlanarFaces(g,'x')).sort((a,b)=>b.area-
  const postGeometry=source.find(g=>g.userData.uprightCandidate594),frontFace=postGeometry?cadPlanarFaces(postGeometry,'z').filter(f=>f.area>=(cadPlanarFaces(postGeometry,'z')[0]?.area||0)*.9).sort((a,b)=>Math.abs(b.at-postGeometry.boundingBox.getCenter(new THREE.Vector3()).z)-Math.abs(a.at-postGeometry.boundingBox.getCenter(new THREE.Vector3()).z))[0]:null,holes=frontFace?repeatingHoles597(planeHoles597(postGeometry,'z',frontFace.at)):[],holeXs=[...new Set(holes.map(h=>Math.round(h.x*100000)/100000))],holeYs=[...new Set(holes.map(h=>Math.round(h.y*100000)/100000))].sort((a,b)=>a-b),profileParts=source.filter((g,i)=>names[i].includes('PROFIL'));
  return {consoleBearing,consolePlate,consoleHoles,consoleLip,holeXs,holeBase:postGeometry?.boundingBox.min.y,holeFirstOffset:holes.length?Math.min(...holes.map(h=>h.y))-postGeometry.boundingBox.min.y:null,holePitch:holeYs.length>1?holeYs[1]-holeYs[0]:.05,frontHoleFace:frontFace?.at,hookHalfSpan,hookTopY:hookHoles.length?Math.max(...hookHoles.map(h=>h.y)):null,connectorBottomY:connectors.length?Math.min(...connectors.map(g=>g.boundingBox.min.y)):null,connectorTopY:connectors.length?Math.max(...connectors.map(g=>g.boundingBox.max.y)):null,profileMinY:profileParts.length?Math.min(...profileParts.map(g=>g.boundingBox.min.y)):null,profileMaxY:profileParts.length?Math.max(...profileParts.map(g=>g.boundingBox.max.y)):null,cadKind:name,geometries:source,finishes,connectorContactZ,railSeats,railBearings,innerFaces,outerFaces,connectorMinZ,mountHalfSpan,topY:Math.max(...source.map(g=>g.boundingBox.max.y)),bodyWidthX:uprightBoxes[0]?uprightBoxes[0].max.x-uprightBoxes[0].min.x:null,postHoleFaces:uprightBoxes.map(box=>{const g=source.find(g=>g.boundingBox===box),faces=g?cadPlanarFaces(g,'z'):[],best=faces.filter(f=>f.area>=(faces[0]?.area||0)*.9).sort((a,b)=>Math.abs(b.at-(box.min.z+box.max.z)/2)-Math.abs(a.at-(box.min.z+box.max.z)/2))[0];return {at:best?.at??box.max.z,sign:(best?.at??box.max.z)>(box.min.z+box.max.z)/2?1:-1};}),postCenters:uprightBoxes.map(b=>(b.min.z+b.max.z)/2),postFrontFaces:uprightBoxes.map(b=>b.min.z),referenceHeight:profileBounds.isEmpty()?size.y/1000:profileBounds.getSize(new THREE.Vector3()).y/1000,height:size.y/1000,depth:size.z/1000,width:size.x/1000};
 }
-export function driveVisualLevel609(y,templates){
+function driveConsoleLevel609(y,templates){
  const console=templates.driveConsole,post=templates.drivePost,hole=console?.consoleHoles?.[0];
  if(!hole||console.consoleLip==null||post?.holeFirstOffset==null)return y;
  const pitch=post.holePitch||.05,reference=(post.holeBase||0)+post.holeFirstOffset;
  return reference+Math.round((y-console.consoleLip+hole.y-reference)/pitch)*pitch-hole.y+console.consoleLip;
+}
+export function driveVisualLevel609(y,templates){
+ const level=driveConsoleLevel609(y,templates);
+ const rail=templates.driveRail;
+ if(templates.driveConsole?.consoleLip==null||!rail?.height)return level;
+ // The rail template is normalized to its lowest point. Its load face
+ // sits above the mounting surface by the scaled CAD profile height.
+ return level+(rail.consoleBearing?.at??rail.height)*(.15/rail.height);
 }
 export function cadPlacements(r,templates){
  r=upgradeMekikStepped(r);
@@ -111,7 +119,7 @@ export function cadPlacements(r,templates){
   function addConsole(x,y,z){
    const base=y-seatDrop-(t.consoleBearing?.at??0)*(hole?1:factor);
    const mount=mounts.reduce((best,value)=>Math.abs(value-z)<Math.abs(best-z)?value:best,Infinity);
-   const snap=base+driveVisualLevel609(y,templates)-y;
+   const snap=base+driveConsoleLevel609(y,templates)-y;
    add('driveConsole',x,snap,Number.isFinite(mount)?mount-t.consolePlate*factor:z+t.depth*factor/2,1,1,1);
    out.at(-1).consoleSpan=clearSpan;
   }
