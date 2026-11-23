@@ -1,3 +1,4 @@
+import {objectBearing608} from './drive-console-seat-v608.mjs';
 import {addPalletWeights599,disposePalletWeights599,nativeWeightBoxes599} from './pallet-weight-labels-v599.mjs';
 import {driveInUprightHeight} from './drive-in-height.mjs';
 import {prepareDriveNativePost,createDriveNativeFacing} from './drive-native-batches.mjs';
@@ -82,6 +83,7 @@ function consolePairAtSpan(source, span, uprightWidth=90) {
     bracket.position.x = index === 0 ? -span / 2 + uprightWidth / 2 + width / 2 + .2 : span / 2 - uprightWidth / 2 - width / 2 - .2;
     pair.add(bracket);
   });
+  pair.rotation.y=Math.PI;pair.userData.bearing608=objectBearing608(pair,'z');
   return pair;
 }
 
@@ -253,7 +255,7 @@ class DriveInFrontViewer {
     const ayakSize = metricsOf(this.models.ayak).size;
     const raySize = metricsOf(this.models.ray).size;
     const konsolModel = consolePairAtSpan(this.models.konsol, bayPitch);
-    const konsolSize = metricsOf(konsolModel).size;
+    const konsolSize = metricsOf(konsolModel).size,railSeat608=objectBearing608(this.models.ray,'z'),rayMetrics608=metricsOf(this.models.ray),railOffset608=railSeat608.seats[0].x-rayMetrics608.center.x,railTop608=railSeat608.at-rayMetrics608.center.z,railDrop608=(railSeat608.at-railSeat608.bottom)*150/metricsOf(this.models.ray).size.z;
     const arabagSize = metricsOf(this.models.arabag).size;
     const paletSize = metricsOf(this.models.palet).size;
     const ayakScale = new THREE.Vector3(uprightWidth / ayakSize.x, 1, rackHeight / ayakSize.z);
@@ -283,7 +285,7 @@ class DriveInFrontViewer {
         const left = uprightWidth + bay * bayPitch;
         const right = left + bayClear;
         const centerX = (left + right) / 2;
-        for(const run of runs){const rayPositionY=frontY-(run.start+run.end)/2,scale=new THREE.Vector3(1,(run.end-run.start)/raySize.y,150/raySize.z);this.addPart(this.models.ray,scale,new THREE.Vector3(left+raySize.x/2,rayPositionY,supportTopZ-75),technicalMaterials.ray);this.addPart(this.models.ray,scale,new THREE.Vector3(right-raySize.x/2,rayPositionY,supportTopZ-75),technicalMaterials.ray);for(const at of run.supports)this.addPart(konsolModel,konsolScale,new THREE.Vector3(centerX,frontY-at-konsolSize.y/2,supportTopZ-70+konsolSize.z/2),technicalMaterials.konsol,{rotateY:false});}
+        for(const run of runs){const rayPositionY=frontY-(run.start+run.end)/2,scale=new THREE.Vector3(1,(run.end-run.start)/raySize.y,150/raySize.z);this.addPart(this.models.ray,scale,new THREE.Vector3(centerX+konsolModel.userData.bearing608.seats[0].x+railOffset608,rayPositionY,supportTopZ-railTop608*150/raySize.z),technicalMaterials.ray,{rotateY:false,rotationZ:Math.PI});this.addPart(this.models.ray,scale,new THREE.Vector3(centerX+konsolModel.userData.bearing608.seats[1].x-railOffset608,rayPositionY,supportTopZ-railTop608*150/raySize.z),technicalMaterials.ray,{rotateY:false});for(const at of run.supports)this.addPart(konsolModel,konsolScale,new THREE.Vector3(centerX,frontY-at-konsolSize.y/2,supportTopZ-railDrop608-konsolModel.userData.bearing608.at),technicalMaterials.konsol,{rotateY:false});}
         const palletSeatZ = supportTopZ;
         const palletPart=this.addPart(this.models.palet, paletScale, new THREE.Vector3(centerX, frontY - firstPallet - c.palletDepth / 2 - 40, palletSeatZ + palletThickness / 2), technicalMaterials.palet, { rotateY: false, rotationZ: -Math.PI / 2 });
         palletPart.visible=c.showPallets;

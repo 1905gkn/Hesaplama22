@@ -518,3 +518,5 @@ node scripts/verify-inner-post-v605.mjs
 node scripts/verify-end-pallet-weights-v606.mjs
 
 node scripts/verify-deep-screen-detail-v607.mjs
+
+node scripts/verify-drive-console-seat-v608.mjs
