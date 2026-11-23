@@ -29,7 +29,7 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {layoutSnapshot} from './layout-3d-data.mjs';
 import {rackParts} from './layout-3d-geometry.mjs';
-import {loadLayoutCad,cadPlacements,deepBeamScale} from './layout-3d-cad.mjs';
+import {loadLayoutCad,cadPlacements,driveVisualLevel609,deepBeamScale} from './layout-3d-cad.mjs';
 import {environmentSnapshot,environmentParts,rackVisualTop,gridOutsideWalls} from './layout-3d-environment.mjs';
 import {readRackClearances,visiblePlanClearances,layoutClearances} from './layout-3d-clearances.mjs';
 
@@ -50,7 +50,7 @@ async function makeViewer(host,data,templates,accessoryGeometries=new Map(),opti
  const weightBoxes599=[],geometries=[],materials=[],parts={},geometry=new THREE.BoxGeometry(1,1,1);geometries.push(geometry);
  const colors={ral5010:'#005078',ral5015:'#287ab5',pgv:'#aeb8bd',galvanized:'#aeb8bd',ral1007:'#e5bd00',ral1023:'#f2c500',ral2004:'#e25318',timber:'#a67b45',load:'#d6b47b',product:'#75838a',shelf:'#b8c3c5',rail:'#bbc3c6'};
  const dummy=new THREE.Object3D(),parent=new THREE.Object3D(),palletMeshes=[],timberGroups=new Map(),partCache=new Map(),placementCache=new Map();let lastYield=performance.now();
- const localParts=r=>{const key=geometryKeyFor(r);if(!partCache.has(key))partCache.set(key,rackParts(r,{cad:true,driveRail:!!templates.driveRail,driveConsole:!!templates.driveConsole,palletInstances:true,railSeats:templates.mekikBeam?.railSeats,railBearings:templates.mekikBeam?.railBearings,nativeAccessories:accessoryGeometries.has(String(r.id)),railScaleX:r.system==='mekik2'?deepBeamScale(r,templates.mekikPost,templates.mekikBeam):null}));return partCache.get(key)};
+ const localParts=r=>{const key=geometryKeyFor(r);if(!partCache.has(key))partCache.set(key,rackParts(r,{cad:true,driveRail:!!templates.driveRail,driveVisualLevel:y=>driveVisualLevel609(y,templates),driveConsole:!!templates.driveConsole,palletInstances:true,railSeats:templates.mekikBeam?.railSeats,railBearings:templates.mekikBeam?.railBearings,nativeAccessories:accessoryGeometries.has(String(r.id)),railScaleX:r.system==='mekik2'?deepBeamScale(r,templates.mekikPost,templates.mekikBeam):null}));return partCache.get(key)};
  for(const r of data.racks){if(['mr','konsol'].includes(r.system)&&accessoryGeometries.has(String(r.id)))continue;parent.position.set(r.x,0,r.z);parent.rotation.set(0,r.angle,0);parent.updateMatrix();for(const p of localParts(r)){
   if((++preparedParts&255)===0){const pending=budget.checkpoint();if(pending)await pending;}
   if(p.kind==='palletTimber'){const key=p.w+'|'+p.d;if(!timberGroups.has(key))timberGroups.set(key,{w:p.w,d:p.d,matrices:[]});dummy.position.set(p.x,p.y,p.z);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();timberGroups.get(key).matrices.push(new THREE.Matrix4().multiplyMatrices(parent.matrix,dummy.matrix));continue;}
@@ -210,7 +210,3 @@ async function open(requestedArea,preparedAreas){
 window.rafexLayout3D={createSession:createViewSession,captureAreas,mergeAreas:mergeAreaLayouts,async previewRack(host,r,options={}){const width=Number(r.totalWidth||r.widthMm),depth=Number(r.railLength||r.depthMm),data=layoutSnapshot({scale:1,racks:[{...r,rafexSystem:(r.rafexSystem==='drive'||r.systemType==='drive')?'drive':'mekik2',x:-width/2,y:-depth/2,w:width,h:depth,angle:0}],points:[],closed:false,pathBreaks:[]});Object.assign(data,{symbols:[],floorLoops:[],columns:[],walls:[],doors:[],clearancesByRack:{},visibleClearances:[],getClearances:()=>[]});const templates=await loadViewerCad(data);if(options.isCurrent&&!options.isCurrent())return {dispose(){},loads(){}};host.replaceChildren();return makeViewer(host,data,templates,new Map(),{savedMeasuresOnly:true});},capture(){const data=snapshot();return JSON.parse(JSON.stringify(data));},async mount(host,data,options={}){const templates=await loadViewerCad(data),parts=await loadPreparedAccessories(data.racks,templates);try{return await makeViewer(host,data,templates,parts,options);}catch(error){disposeLayoutAccessories(parts);throw error;}}};
 window.rafexOpenLayout3D=open;
 document.addEventListener('click',e=>{if(e.target.closest('[data-layout-3d]'))void open()});
-
-
-
-
