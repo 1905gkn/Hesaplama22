@@ -1,8 +1,8 @@
 // Rendering quality only: saved engineering geometry and export data stay exact.
-export function adaptiveRenderQuality({renderer,render=()=>{},idleRatio=1.5,env=globalThis}){
+export function adaptiveRenderQuality({renderer,render=()=>{},idleRatio=1.5,motionPixelError=1.5,env=globalThis}){
  const idle=Math.min(Number(env.devicePixelRatio)||1,idleRatio);
  let ratio=idle,moving=false,active=true,timer=null,last=null,samples=[],slow=0,disposed=false;
- let motionRatio=Math.min(idle,1),error=1.5,lastGpuSample=0;
+ let motionRatio=Math.min(idle,1),error=motionPixelError,lastGpuSample=0;
  const publish=()=>Object.assign(renderer.domElement.dataset,{renderPixelRatio:String(ratio),renderQuality:moving?'moving':'settled',motionPixelError:String(moving?error:.35)});
  const setRatio=value=>{if(ratio!==value||renderer.getPixelRatio?.()!==value){ratio=value;renderer.setPixelRatio(value);}publish();};
  const clear=()=>{if(timer!==null)env.clearTimeout(timer);timer=null;};

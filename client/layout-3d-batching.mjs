@@ -14,7 +14,9 @@ function* cadRenderSteps(template){
   const finish=template.finishes?.[i]||'paint';
   const connector=template.cadKind==='mekikBeam'&&/KONNEKT/i.test(geometry.userData.cadPartName||'');
   const attributes=Object.entries(geometry.attributes).sort(([a],[b])=>a.localeCompare(b)).map(([name,a])=>[name,a.itemSize,a.normalized,a.array.constructor.name]);
-  const key=JSON.stringify([finish,connector,!!geometry.index,attributes,Object.keys(geometry.morphAttributes),!!geometry.userData.uprightProfile594,!!geometry.userData.connectorExact596]);
+  // Each perforated upright needs its own section for the distant CAD model.
+  const upright=template.cadKind==='drivePost'&&geometry.userData.uprightCandidate594?geometry.uuid:null;
+  const key=JSON.stringify([finish,connector,upright,!!geometry.index,attributes,Object.keys(geometry.morphAttributes),!!geometry.userData.uprightProfile594,!!geometry.userData.connectorExact596]);
   if(!groups.has(key))groups.set(key,{finish,connector,geometries:[]});groups.get(key).geometries.push(geometry);
  }
  const parts=[];
