@@ -51,7 +51,10 @@ export function prepareCad(scene,name){
  const consoleBearing=['driveConsole','driveRail'].includes(name)?consoleBearing608(source):null;
  const consolePlate=name==='driveConsole'?Math.min(...source.map(g=>g.boundingBox.min.z)):null;
  const consoleHoles=name==='driveConsole'?repeatingHoles597(planeHoles597(source[0],'z',consolePlate)):[];
- const consoleLip=name==='driveConsole'?cadPlanarFaces(source[0],'y').filter(f=>f.at>.02&&f.at<.12&&f.area>.001).sort((a,b)=>b.at-a.at)[0]?.at:null;
+ const lipFace=name==='driveConsole'?cadPlanarFaces(source[0],'y').filter(f=>f.at>.02&&f.at<.12&&f.area>.001).sort((a,b)=>b.at-a.at)[0]:null;
+ const consoleLip=lipFace?.at??null;
+ const consoleLipWidth=lipFace?lipFace.max.x-lipFace.min.x:0;
+ const consoleLipCenter=lipFace?Math.abs((lipFace.max.x+lipFace.min.x)/2):0;
  // Dispose parser materials/textures; prepared geometries are cached across viewers.
  const materials=new Set(),geometries=new Set();scene.traverse(m=>{if(m.isMesh){geometries.add(m.geometry);for(const mat of Array.isArray(m.material)?m.material:[m.material])materials.add(mat)}});materials.forEach(m=>m.dispose());geometries.forEach(g=>g.dispose());
  const bracketBounds=source.map((g,i)=>({box:g.boundingBox,name:names[i]})).filter(p=>p.name.includes('BRAKET'));const left=bracketBounds.filter(p=>(p.box.min.x+p.box.max.x)/2<0),right=bracketBounds.filter(p=>(p.box.min.x+p.box.max.x)/2>0);const railSeats=name==='mekikBeam'&&left.length&&right.length?[left.reduce((n,p)=>n+(p.box.min.x+p.box.max.x)/2,0)/left.length,right.reduce((n,p)=>n+(p.box.min.x+p.box.max.x)/2,0)/right.length]:null;
@@ -63,7 +66,7 @@ const mountFace=connectors.flatMap(g=>cadPlanarFaces(g,'x')).sort((a,b)=>b.area-
  const connectorContactZ=connectors.flatMap(g=>cadPlanarFaces(g,'z')).sort((a,b)=>b.area-a.area)[0]?.at??connectorMinZ;
  const hookHoles=repeatingHoles597(connectors.flatMap(g=>planeHoles597(g,'z',connectorContactZ))),hookHalfSpan=hookHoles.length?hookHoles.reduce((n,h)=>n+Math.abs(h.x),0)/hookHoles.length:null;
  const postGeometry=source.find(g=>g.userData.uprightCandidate594),frontFace=postGeometry?cadPlanarFaces(postGeometry,'z').filter(f=>f.area>=(cadPlanarFaces(postGeometry,'z')[0]?.area||0)*.9).sort((a,b)=>Math.abs(b.at-postGeometry.boundingBox.getCenter(new THREE.Vector3()).z)-Math.abs(a.at-postGeometry.boundingBox.getCenter(new THREE.Vector3()).z))[0]:null,holes=frontFace?repeatingHoles597(planeHoles597(postGeometry,'z',frontFace.at)):[],holeXs=[...new Set(holes.map(h=>Math.round(h.x*100000)/100000))],holeYs=[...new Set(holes.map(h=>Math.round(h.y*100000)/100000))].sort((a,b)=>a-b),profileParts=source.filter((g,i)=>names[i].includes('PROFIL'));
- return {consoleBearing,consolePlate,consoleHoles,consoleLip,holeXs,holeBase:postGeometry?.boundingBox.min.y,holeFirstOffset:holes.length?Math.min(...holes.map(h=>h.y))-postGeometry.boundingBox.min.y:null,holePitch:holeYs.length>1?holeYs[1]-holeYs[0]:.05,frontHoleFace:frontFace?.at,hookHalfSpan,hookTopY:hookHoles.length?Math.max(...hookHoles.map(h=>h.y)):null,connectorBottomY:connectors.length?Math.min(...connectors.map(g=>g.boundingBox.min.y)):null,connectorTopY:connectors.length?Math.max(...connectors.map(g=>g.boundingBox.max.y)):null,profileMinY:profileParts.length?Math.min(...profileParts.map(g=>g.boundingBox.min.y)):null,profileMaxY:profileParts.length?Math.max(...profileParts.map(g=>g.boundingBox.max.y)):null,cadKind:name,geometries:source,finishes,connectorContactZ,railSeats,railBearings,innerFaces,outerFaces,connectorMinZ,mountHalfSpan,topY:Math.max(...source.map(g=>g.boundingBox.max.y)),bodyWidthX:uprightBoxes[0]?uprightBoxes[0].max.x-uprightBoxes[0].min.x:null,postHoleFaces:uprightBoxes.map(box=>{const g=source.find(g=>g.boundingBox===box),faces=g?cadPlanarFaces(g,'z'):[],best=faces.filter(f=>f.area>=(faces[0]?.area||0)*.9).sort((a,b)=>Math.abs(b.at-(box.min.z+box.max.z)/2)-Math.abs(a.at-(box.min.z+box.max.z)/2))[0];return {at:best?.at??box.max.z,sign:(best?.at??box.max.z)>(box.min.z+box.max.z)/2?1:-1};}),postCenters:uprightBoxes.map(b=>(b.min.z+b.max.z)/2),postFrontFaces:uprightBoxes.map(b=>b.min.z),referenceHeight:profileBounds.isEmpty()?size.y/1000:profileBounds.getSize(new THREE.Vector3()).y/1000,height:size.y/1000,depth:size.z/1000,width:size.x/1000};
+ return {consoleBearing,consolePlate,consoleHoles,consoleLip,consoleLipWidth,consoleLipCenter,holeXs,holeBase:postGeometry?.boundingBox.min.y,holeFirstOffset:holes.length?Math.min(...holes.map(h=>h.y))-postGeometry.boundingBox.min.y:null,holePitch:holeYs.length>1?holeYs[1]-holeYs[0]:.05,frontHoleFace:frontFace?.at,hookHalfSpan,hookTopY:hookHoles.length?Math.max(...hookHoles.map(h=>h.y)):null,connectorBottomY:connectors.length?Math.min(...connectors.map(g=>g.boundingBox.min.y)):null,connectorTopY:connectors.length?Math.max(...connectors.map(g=>g.boundingBox.max.y)):null,profileMinY:profileParts.length?Math.min(...profileParts.map(g=>g.boundingBox.min.y)):null,profileMaxY:profileParts.length?Math.max(...profileParts.map(g=>g.boundingBox.max.y)):null,cadKind:name,geometries:source,finishes,connectorContactZ,railSeats,railBearings,innerFaces,outerFaces,connectorMinZ,mountHalfSpan,topY:Math.max(...source.map(g=>g.boundingBox.max.y)),bodyWidthX:uprightBoxes[0]?uprightBoxes[0].max.x-uprightBoxes[0].min.x:null,postHoleFaces:uprightBoxes.map(box=>{const g=source.find(g=>g.boundingBox===box),faces=g?cadPlanarFaces(g,'z'):[],best=faces.filter(f=>f.area>=(faces[0]?.area||0)*.9).sort((a,b)=>Math.abs(b.at-(box.min.z+box.max.z)/2)-Math.abs(a.at-(box.min.z+box.max.z)/2))[0];return {at:best?.at??box.max.z,sign:(best?.at??box.max.z)>(box.min.z+box.max.z)/2?1:-1};}),postCenters:uprightBoxes.map(b=>(b.min.z+b.max.z)/2),postFrontFaces:uprightBoxes.map(b=>b.min.z),referenceHeight:profileBounds.isEmpty()?size.y/1000:profileBounds.getSize(new THREE.Vector3()).y/1000,height:size.y/1000,depth:size.z/1000,width:size.x/1000};
 }
 function driveConsoleLevel609(y,templates){
  const console=templates.driveConsole,post=templates.drivePost,hole=console?.consoleHoles?.[0];
@@ -72,12 +75,7 @@ function driveConsoleLevel609(y,templates){
  return reference+Math.round((y-console.consoleLip+hole.y-reference)/pitch)*pitch-hole.y+console.consoleLip;
 }
 export function driveVisualLevel609(y,templates){
- const level=driveConsoleLevel609(y,templates);
- const rail=templates.driveRail;
- if(templates.driveConsole?.consoleLip==null||!rail?.height)return level;
- // The rail template is normalized to its lowest point. Its load face
- // sits above the mounting surface by the scaled CAD profile height.
- return level+(rail.consoleBearing?.at??rail.height)*(.15/rail.height);
+ return driveConsoleLevel609(y,templates);
 }
 export function cadPlacements(r,templates){
  r=upgradeMekikStepped(r);
@@ -130,7 +128,31 @@ export function cadPlacements(r,templates){
    if(r.driveStepped){for(const floor of r.driveStepped.floors)for(const run of floor.runs)for(const at of run.supports)addConsole(x,floor.y/1000,at/1000-r.depth/2);}
    else for(const y of r.floors)for(const at of [...new Set(r.footZ.length?r.footZ:[0,r.depth])])addConsole(x,y,Math.max(.05,Math.min(r.depth-.05,at))-r.depth/2);
   }
-  if(templates.driveRail&&t.consoleBearing){const rail=templates.driveRail;for(let lane=0;lane<r.bays;lane++){const center=-r.width/2+r.foot/2+(lane+.5)*pitch;const floors=r.driveStepped?r.driveStepped.floors.map(f=>({y:f.y/1000,runs:f.runs.map(run=>({start:run.start/1000,end:run.end/1000}))})):r.floors.map(y=>({y,runs:[{start:0,end:r.depth}]}));for(const floor of floors)for(const run of floor.runs)for(const seat of t.consoleBearing.seats){const side=Math.sign(seat.x),outer=side*t.width/2,x=center+side*(clearSpan/2-.0002)+(seat.x-outer)*factor+side*(rail.consoleBearing?.seats[0]?.x||0);add('driveRail',x,driveVisualLevel609(floor.y,templates)-(rail.consoleBearing?.at??rail.height)*railScale,(run.start+run.end)/2-r.depth/2,1,.15/rail.height,(run.end-run.start)/rail.depth);out.at(-1).color='rail';out.at(-1).ry=side>0?Math.PI:0;}}}
+  if(rail&&t.consoleBearing){
+   const railFace=rail.consoleBearing?.seats[0],loadHeight=rail.consoleBearing?.at??rail.height;
+   const fitLip=t.consoleLip!=null&&t.consoleLipWidth>0&&railFace?.width>0&&loadHeight>0;
+   const sx=fitLip?t.consoleLipWidth*factor/railFace.width:1;
+   const sy=fitLip?(t.consoleLip-t.consoleBearing.at)/loadHeight:railScale;
+   const consoles=out.filter(part=>part.name==='driveConsole');
+   for(let lane=0;lane<r.bays;lane++){const center=-r.width/2+r.foot/2+(lane+.5)*pitch;const floors=r.driveStepped?r.driveStepped.floors.map(f=>({y:f.y/1000,runs:f.runs.map(run=>({start:run.start/1000,end:run.end/1000}))})):r.floors.map(y=>({y,runs:[{start:0,end:r.depth}]}));for(const floor of floors)for(const run of floor.runs){
+    const level=driveVisualLevel609(floor.y,templates);
+    let start=run.start-r.depth/2,end=run.end-r.depth/2;
+    const supports=consoles.filter(p=>Math.abs(p.x-center)<1e-6&&Math.abs(p.y+t.consoleLip-level)<1e-6&&p.z>=start-t.depth&&p.z<=end+t.depth);
+    if(supports.length){
+     start=Math.min(start,...supports.map(p=>p.z-t.depth*factor/2));
+     end=Math.max(end,...supports.map(p=>p.z+t.depth*factor/2));
+    }
+    for(const seat of t.consoleBearing.seats){
+     const side=Math.sign(seat.x),outer=side*t.width/2;
+     const contactX=fitLip?side*t.consoleLipCenter:seat.x;
+     const x=center+side*(clearSpan/2-.0002)+(contactX-outer)*factor+side*(railFace?.x||0)*sx;
+     add('driveRail',x,level-loadHeight*sy,(start+end)/2, sx,sy,(end-start)/rail.depth);
+     out.at(-1).color='rail';
+     out.at(-1).ry=side>0?Math.PI:0;
+    }
+   }
+   }
+  }
  }
  return classifyDepthPosts605(out.filter(p=>!(['mekikPost','drivePost'].includes(p.name)&&isSharedDepthMember(r,p.x,p.z))),templates,r.system);
 }
