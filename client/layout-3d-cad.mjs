@@ -46,6 +46,8 @@ export function prepareCad(scene,name){
  const originY=name==='b2bBeam'&&!profileBounds.isEmpty()?profileBounds.min.y:name==='mekikBeam'||name==='mrBeam'?bounds.max.y:bounds.min.y;
  source.forEach(g=>{g.translate(-center.x,-originY,-center.z);g.scale(.001,.001,.001);g.computeBoundingBox();g.computeBoundingSphere()});
  if(name==='driveConsole')for(const g of source){g.rotateZ(Math.PI);g.translate(0,size.y/1000,0);g.computeBoundingBox();g.computeBoundingSphere();}
+ // Turn the rail section over around its transverse axis before measuring the load face.
+ if(name==='driveRail')for(const g of source){g.rotateX(Math.PI);g.translate(0,size.y/1000,0);g.computeBoundingBox();g.computeBoundingSphere();}
  const consoleBearing=['driveConsole','driveRail'].includes(name)?consoleBearing608(source):null;
  const consolePlate=name==='driveConsole'?Math.min(...source.map(g=>g.boundingBox.min.z)):null;
  const consoleHoles=name==='driveConsole'?repeatingHoles597(planeHoles597(source[0],'z',consolePlate)):[];
