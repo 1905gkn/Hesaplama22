@@ -53,18 +53,20 @@ export async function prepareNativeBatches(byRack){
 export function spatializeInstances(scene,cell=20){for(const step of spatializeInstanceSteps(scene,cell)){} }
 export async function spatializeInstancesAsync(scene,cell=20,budget){for(const step of spatializeInstanceSteps(scene,cell)){const pending=budget.checkpoint();if(pending)await pending;}}
 function* spatializeInstanceSteps(scene,cell=20){
- const targets=[];scene.traverse(m=>{if(m.isInstancedMesh&&m.count>=8&&!m.userData.environmentKind&&(m.material.isMeshStandardMaterial||m.material.isMeshLambertMaterial||m.material.userData?.fixedGalvanized593))targets.push(m)});
+ const targets=[];scene.traverse(m=>{if(m.isInstancedMesh&&(m.userData.cadFacing?m.instanceMatrix.count:m.count)>=8&&!m.userData.environmentKind&&(m.material.isMeshStandardMaterial||m.material.isMeshLambertMaterial||m.material.userData?.fixedGalvanized593))targets.push(m)});
  const matrix=new THREE.Matrix4(),center=new THREE.Vector3();
  for(const mesh of targets){
-  const cells=new Map();if(!mesh.geometry.boundingSphere)mesh.geometry.computeBoundingSphere();
-  for(let i=0;i<mesh.count;i++){if((i&255)===255)yield;mesh.getMatrixAt(i,matrix);center.copy(mesh.geometry.boundingSphere.center).applyMatrix4(matrix);const key=Math.floor(center.x/cell)+':'+Math.floor(center.z/cell);if(!cells.has(key))cells.set(key,[]);cells.get(key).push(i)}
+  const cells=new Map(),instanceCount=mesh.userData.cadFacing?mesh.instanceMatrix.count:mesh.count;
+  const initiallyVisible=mesh.count>0;
+  if(!mesh.geometry.boundingSphere)mesh.geometry.computeBoundingSphere();
+  for(let i=0;i<instanceCount;i++){if((i&255)===255)yield;mesh.getMatrixAt(i,matrix);center.copy(mesh.geometry.boundingSphere.center).applyMatrix4(matrix);const key=Math.floor(center.x/cell)+':'+Math.floor(center.z/cell);if(!cells.has(key))cells.set(key,[]);cells.get(key).push(i)}
   if(cells.size<2)continue;
   // Keep original mesh as a visibility/disposal parent (load and wall toggles).
   for(const indices of cells.values()){
    const child=new THREE.InstancedMesh(mesh.geometry,mesh.material,indices.length);
    for(let j=0;j<indices.length;j++){const i=indices[j];child.instanceMatrix.array.set(mesh.instanceMatrix.array.subarray(i*16,i*16+16),j*16);if(mesh.instanceColor){child.setColorAt(j,new THREE.Color().fromArray(mesh.instanceColor.array,i*3));}if((j&255)===255)yield;}
    if(mesh.userData.cadFacing)child.userData.cadFacingSources=indices;
-   child.computeBoundingSphere();child.computeBoundingBox();yield;child.name=mesh.name;mesh.add(child);
+   child.computeBoundingSphere();child.computeBoundingBox();if(!initiallyVisible)child.count=0;yield;child.name=mesh.name;mesh.add(child);
   }
   mesh.count=0;mesh.frustumCulled=false;
  }

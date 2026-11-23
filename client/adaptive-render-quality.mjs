@@ -9,6 +9,7 @@ export function adaptiveRenderQuality({renderer,render=()=>{},idleRatio=1.5,env=
  const settle=()=>{clear();timer=env.setTimeout(()=>{timer=null;if(!active||disposed)return;moving=false;last=null;setRatio(idle);render();},220);};
  return {
   move(){if(!active||disposed)return;if(!moving){last=null;slow=0;samples=[];}moving=true;setRatio(motionRatio);settle();},
+  isMoving(){return moving;},
   frame(now){
    if(!active||disposed||!moving){last=null;return;}
    const interval=last===null?0:now-last;last=now;
@@ -20,8 +21,16 @@ export function adaptiveRenderQuality({renderer,render=()=>{},idleRatio=1.5,env=
   cost(cpuMs,gpuMs,gpuSample=0){
    if(!active||disposed||!moving)return;
    const freshGpu=gpuSample!==lastGpuSample&&gpuMs!==null;lastGpuSample=gpuSample;
-   if(cpuMs>25||(freshGpu&&gpuMs>25))slow++;else if(freshGpu)slow=Math.max(0,slow-1);
-   if(slow>=8){motionRatio=Math.max(Math.min(idle,.65),Math.round((motionRatio-.15)*100)/100);error=Math.min(3,error+.5);slow=0;setRatio(motionRatio);render();}
+   if(freshGpu&&gpuMs>=50)slow+=8;
+   else if(freshGpu&&gpuMs>25)slow+=4;
+   else if(cpuMs>25)slow++;
+   else if(freshGpu)slow=Math.max(0,slow-2);
+   if(slow>=8){
+    const nextRatio=Math.max(Math.min(idle,.65),Math.round((motionRatio-.15)*100)/100);
+    const nextError=Math.min(3,error+.5);slow=0;
+    if(nextRatio===motionRatio&&nextError===error)return;
+    motionRatio=nextRatio;error=nextError;setRatio(motionRatio);render();
+   }
   },
   pixelError(){return moving?error:.35;},
   stats(){const sorted=[...samples].sort((a,b)=>a-b),p=q=>sorted.length?sorted[Math.min(sorted.length-1,Math.floor((sorted.length-1)*q))]:null;return {moving,pixelRatio:ratio,motionPixelRatio:motionRatio,pixelError:moving?error:.35,frameSamples:sorted.length,frameP50Ms:p(.5),frameP95Ms:p(.95)};},

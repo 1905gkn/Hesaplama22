@@ -17,11 +17,16 @@ const weak=adaptiveRenderQuality({renderer,env:{...env,devicePixelRatio:.5}});we
 const noGpu=createRenderGpuTimer(renderer);noGpu.begin();noGpu.end();assert.equal(noGpu.stats().gpuTimingSupported,false);noGpu.dispose();
 const events=adaptiveRenderQuality({renderer,env});events.pause(false);events.move();for(let i=0;i<25;i++)events.frame(i*100);assert.equal(ratio,1,'Sparse input events alone must not lower quality');
 for(let i=0;i<25;i++)events.cost(2,40,1);assert.equal(ratio,1,'A stale GPU sample must not repeatedly lower quality');
-for(let i=2;i<=9;i++)events.cost(2,40,i);assert.equal(ratio,.85,'Fresh expensive GPU samples lower motion resolution');events.dispose();
+events.cost(2,40,2);assert.equal(ratio,.85,'Two fresh expensive samples reduce motion detail');
+events.cost(2,60,3);assert.equal(ratio,.7,'One very slow GPU sample triggers a response');events.dispose();
 let available=false,disjoint=false,deleted=0,started=0,ended=0;
 const gl={QUERY_RESULT_AVAILABLE:1,QUERY_RESULT:2,CURRENT_QUERY:3,getExtension:()=>({GPU_DISJOINT_EXT:4,TIME_ELAPSED_EXT:5}),getParameter:()=>disjoint,getQuery:()=>null,createQuery:()=>({}),beginQuery:()=>started++,endQuery:()=>ended++,deleteQuery:()=>deleted++,getQueryParameter:(_,key)=>key===1?available:12000000};
 const gpu=createRenderGpuTimer({getContext:()=>gl});gpu.begin();gpu.end();assert.equal(started,1);assert.equal(ended,1);assert.equal(deleted,0);
 available=true;gpu.begin();gpu.end();assert.equal(gpu.stats().gpuMs,12);assert.equal(deleted,1);
 for(let i=0;i<11;i++){gpu.begin();gpu.end();}disjoint=true;gpu.begin();gpu.end();assert.equal(gpu.stats().gpuMs,null);gpu.dispose();
+const motionGpu=createRenderGpuTimer({getContext:()=>gl});disjoint=false;started=0;
+for(let i=0;i<10;i++){motionGpu.begin(true);motionGpu.end();}
+assert.equal(started,4,'GPU sampling is more frequent during interaction');
+motionGpu.dispose();
 const source=fs.readFileSync('client/layout-3d.entry.js','utf8');assert(source.includes('mobileQuality.frame(rafTime)'));assert(source.includes('maxPixelError:mobileQuality.pixelError()'));assert(source.includes('mobileQuality.pause(paused)'));assert(source.includes('gpuTimer.dispose()'));
 console.log('PASS adaptive motion resolution, slow-frame response, idle restoration, cached-area isolation, low DPR, disposal and asynchronous GPU timing.');

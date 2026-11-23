@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {populateInstances} from './layout-3d-budget.mjs';
-import {prepareScreenLod,projectedCadError} from './cad-screen-lod.mjs';
+import {prepareScreenLod} from './cad-screen-lod.mjs';
 // Conservative object-space backface culling. All original triangles/attributes
 // remain intact. Only batches proven entirely back-facing can be skipped.
 const cache=new WeakMap(),directions=[];
@@ -88,29 +88,75 @@ export async function createFacingBatch(scene,geometry,material,matrices,budget,
  if(!geometry.boundingBox)geometry.computeBoundingBox();
  const worldBounds=matrices.map(m=>geometry.boundingBox.clone().applyMatrix4(m)),inView=new Uint8Array(matrices.length),lastPlanes=new Float64Array(24).fill(Infinity);
  for(const part of parts){const mesh=new THREE.InstancedMesh(part.geometry,material,matrices.length);await populateInstances(mesh,matrices,budget);mesh.computeBoundingSphere();mesh.userData.cadFacing=true;scene.add(mesh);meshes.push(mesh);}
- const coarse=new Uint8Array(matrices.length),worldSpheres=lods.length?matrices.map(m=>geometry.boundingSphere.clone().applyMatrix4(m)):[],scales=lods.length?lods.map(lod=>matrices.map(m=>cadLodScale607(m,lod))):[];
- const coarseMeshes=[];let lastProjection='';for(const level of lods){const mesh=new THREE.InstancedMesh(level.geometry,material,matrices.length);await populateInstances(mesh,matrices,budget);mesh.userData.cadFacing=true;mesh.computeBoundingSphere();scene.add(mesh);mesh.count=0;coarseMeshes.push(mesh);}
+ const coarse=new Uint8Array(matrices.length),scales=lods.length?lods.map(lod=>matrices.map(m=>cadLodScale607(m,lod))):[];
+ const coarseMeshes=[];let lastHeight,lastFov,lastAspect,lastError;for(const level of lods){const mesh=new THREE.InstancedMesh(level.geometry,material,matrices.length);await populateInstances(mesh,matrices,budget);mesh.userData.cadFacing=true;mesh.computeBoundingSphere();scene.add(mesh);mesh.count=0;coarseMeshes.push(mesh);}
  const last=new THREE.Vector3(Infinity,Infinity,Infinity);
  const allIndices=matrices.map((_,i)=>i),previous=new WeakMap();
+ const visible=new Uint32Array(matrices.length);
  const targets=mesh=>mesh.children.length?mesh.children:[mesh];
+ function applyVisibility(mesh,count){
+  let indices=previous.get(mesh);
+  if(!indices){
+   indices=new Int32Array(mesh.instanceMatrix.count).fill(-1);
+   previous.set(mesh,indices);
+  }
+  let first=count,last=-1;
+  for(let i=0;i<count;i++){
+   if(indices[i]===visible[i])continue;
+   indices[i]=visible[i];
+   mesh.instanceMatrix.array.set(matrices[visible[i]].elements,i*16);
+   first=Math.min(first,i);
+   last=i;
+  }
+  mesh.count=count;
+  if(last>=0){
+   const attribute=mesh.instanceMatrix;
+   let start=first*16,end=(last+1)*16;
+   for(const range of attribute.updateRanges){
+    start=Math.min(start,range.start);
+    end=Math.max(end,range.start+range.count);
+   }
+   attribute.clearUpdateRanges();
+   attribute.addUpdateRange(start,end-start);
+   mesh.instanceMatrix.needsUpdate=true;
+  }
+ }
  return {update(camera,frustum,view){
+  for(let parent=scene;parent;parent=parent.parent)if(!parent.visible)return;
   let changed=!last.equals(camera);
-  const projection=view?view.viewportHeight+':'+view.camera.fov+':'+view.camera.aspect+':'+(view.maxPixelError??.35):'';if(projection!==lastProjection){lastProjection=projection;changed=true;}
-  if(frustum)for(let i=0;i<6;i++){const p=frustum.planes[i],values=[p.normal.x,p.normal.y,p.normal.z,p.constant];for(let j=0;j<4;j++){const k=i*4+j;if(values[j]!==lastPlanes[k])changed=true;lastPlanes[k]=values[j];}}
+  const height=view?.viewportHeight,fov=view?.camera.fov,aspect=view?.camera.aspect,error=view?.maxPixelError??.35;
+  if(height!==lastHeight||fov!==lastFov||aspect!==lastAspect||error!==lastError){lastHeight=height;lastFov=fov;lastAspect=aspect;lastError=error;changed=true;}
+  if(frustum)for(let i=0;i<6;i++){const p=frustum.planes[i];for(let j=0;j<4;j++){const k=i*4+j,value=j===0?p.normal.x:j===1?p.normal.y:j===2?p.normal.z:p.constant;if(value!==lastPlanes[k])changed=true;lastPlanes[k]=value;}}
   else if(lastPlanes[0]!==Infinity){lastPlanes.fill(Infinity);changed=true;}
   if(!changed)return;last.copy(camera);
   for(let i=0;i<worldBounds.length;i++)inView[i]=!frustum||frustum.intersectsBox(worldBounds[i]);
-  coarse.fill(0);if(view)for(let i=0;i<coarse.length;i++)if(inverse[i])for(let level=lods.length-1;level>=0;level--)if(projectedCadError(lods[level].error,scales[level][i],worldSpheres[i],view.camera,view.viewportHeight)<=(view.maxPixelError??.35)){coarse[i]=level+1;break;}
-  for(let i=0;i<inverse.length;i++)if(inverse[i]&&!coarse[i])cameraPoints[i].copy(camera).applyMatrix4(inverse[i]);
-  for(let k=0;k<parts.length;k++)for(const mesh of targets(meshes[k])){
-   const source=mesh.userData.cadFacingSources||allIndices,visible=[];
-   for(const i of source)if(inView[i]&&!coarse[i]&&(!inverse[i]||mayFaceCamera(parts[k],cameraPoints[i])))visible.push(i);
-   const before=previous.get(mesh);if(before&&before.length===visible.length&&before.every((i,j)=>i===visible[j]))continue;
-   // Positions are immutable. Copy cached transforms only when the visibility
-   // mask changes; never rebuild racks, products or layout on camera movement.
-   for(let j=0;j<visible.length;j++)mesh.instanceMatrix.array.set(matrices[visible[j]].elements,j*16);
-   mesh.count=visible.length;mesh.instanceMatrix.needsUpdate=true;previous.set(mesh,visible);
+  coarse.fill(0);
+  if(view&&lods.length){
+   const m=view.camera.matrixWorldInverse.elements;
+   const focalLength=height/(2*Math.tan(fov*Math.PI/360));
+   for(let i=0;i<coarse.length;i++){
+    if(!inView[i]||!inverse[i])continue;
+    // Closest camera-space corner of the world bounds. Long rails no longer
+    // look artificially close when their length runs across the screen.
+    const {min,max}=worldBounds[i];
+    const depth=-(m[2]*(m[2]>0?max.x:min.x)+m[6]*(m[6]>0?max.y:min.y)+m[10]*(m[10]>0?max.z:min.z)+m[14]);
+    if(depth<=0)continue;
+    const maxError=error*depth/focalLength;
+    for(let level=lods.length-1;level>=0;level--)if(lods[level].error*scales[level][i]<=maxError){coarse[i]=level+1;break;}
+   }
   }
-  for(let level=0;level<coarseMeshes.length;level++)for(const mesh of targets(coarseMeshes[level])){const source=mesh.userData.cadFacingSources||allIndices,visible=source.filter(i=>inView[i]&&coarse[i]===level+1),before=previous.get(mesh);if(before&&before.length===visible.length&&before.every((i,j)=>i===visible[j]))continue;for(let j=0;j<visible.length;j++)mesh.instanceMatrix.array.set(matrices[visible[j]].elements,j*16);mesh.count=visible.length;mesh.instanceMatrix.needsUpdate=true;previous.set(mesh,visible);}
+  for(let i=0;i<inverse.length;i++)if(inView[i]&&inverse[i]&&!coarse[i])cameraPoints[i].copy(camera).applyMatrix4(inverse[i]);
+  for(let k=0;k<parts.length;k++)for(const mesh of targets(meshes[k])){
+   const source=mesh.userData.cadFacingSources||allIndices;
+   let count=0;
+   for(const i of source)if(inView[i]&&!coarse[i]&&(!inverse[i]||mayFaceCamera(parts[k],cameraPoints[i])))visible[count++]=i;
+   applyVisibility(mesh,count);
+  }
+  for(let level=0;level<coarseMeshes.length;level++)for(const mesh of targets(coarseMeshes[level])){
+   const source=mesh.userData.cadFacingSources||allIndices;
+   let count=0;
+   for(const i of source)if(inView[i]&&coarse[i]===level+1)visible[count++]=i;
+   applyVisibility(mesh,count);
+  }
  },stats(){const drawn=[...meshes,...coarseMeshes].flatMap(targets);return {batches:drawn.length,visible:drawn.filter(m=>m.count>0).length,coarseInstances:coarseMeshes.flatMap(targets).reduce((sum,m)=>sum+m.count,0),triangles:drawn.reduce((sum,m)=>sum+Math.min(m.geometry.index.count,m.geometry.drawRange.count)/3*m.count,0),fullTriangles:(geometry.index?.count??geometry.attributes.position.count)/3*matrices.length};}};
 }
