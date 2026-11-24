@@ -6,7 +6,7 @@ import {rackParts} from '../client/layout-3d-geometry.mjs';
 import {driveStepped} from '../client/drive-stepped.mjs';
 import {mekikStepped} from '../client/mekik-stepped.mjs';
 import {physicalLevels} from './b2b-level-plan-v121.mjs';
-import {readDetail,sealDetail} from './rack-detail-snapshot-v135.mjs';
+import {detailSignature,readDetail,sealDetail} from './rack-detail-snapshot-v135.mjs';
 import {transform} from './rack-record-consistency.mjs';
 import {attachCustomerBlockDetails,createCustomerManifest} from '../client/customer-share-capture.entry.js';
 import {decodeShareSnapshot530,encodeShareSnapshot530} from '../client/customer-share-payload.mjs';
@@ -14,7 +14,7 @@ import {decodeShareSnapshot530,encodeShareSnapshot530} from '../client/customer-
 const input=fs.readFileSync(process.argv[2]||'dist/index.html','utf8'),html=transform(input);
 assert.equal(transform(html),html);
 const context=vm.createContext({
- window:{},document:{querySelector:()=>null},m2SavedRackTypes:[],m2SelectedSavedType:null,
+ window:{rafexReadRackDetailV135:readDetail,rafexRackDetailSignatureV135:detailSignature},document:{querySelector:()=>null},m2SavedRackTypes:[],m2SelectedSavedType:null,
  m2LayoutState:{scale:1,racks:[]},m2ActiveModule:'b2b',$:()=>({}),m2TypeColor:()=>'#247fba',
  m2PushUndo(){},m2RenderLayout(){},setTimeout(){},structuredClone,
  m2B2BRecordV108(){throw Error('Placement rebuilt a saved B2B design');}
@@ -23,7 +23,7 @@ const start=html.indexOf('function m2AddRack(drawing'),end=html.indexOf('functio
 assert(start>=0&&end>start);
 vm.runInContext(html.match(/<script data-rack-record-consistency>([\s\S]*?)<\/script>/)[1]+html.slice(start,end),context);
 assert.match(html,/const traverses=rafexB2BTraverseProducts\(rack,levelOptions,window\.rafexPhysicalLevelsV121\)/);
-assert.match(html,/rafexRestoreMissingRackDetails\(v.racks\|\|\[\],types\)/);
+assert.match(html,/rafexRestoreMissingRackDetails\(v.racks\|\|\[\],types,rafexCollectionOnlyRack\)/);
 assert.ok(!html.includes('var inventoryCustomizeApply'));
 
 const b2bOptions={levels:3,sectionWidth:2700,palletCount:3,palletHeight:1200,footHeight:5100,
@@ -57,6 +57,41 @@ assert.equal(reopened.blocks[0].rack.showPallets,false);
 delete globalThis.window;
 
 const hydrate=vm.runInContext('rafexRestoreMissingRackDetails',context);
+const normalize=vm.runInContext('rafexCollectionOnlyRack',context);
+const collectionFloors=Array.from({length:18},(_,index)=>({bottom:200+index*520,top:720+index*520,height:445,zsHeight:75}));
+const collectionLevels={enabled:true,floors:collectionFloors};
+const collection=sealDetail({...b2b,levels:0,b2b:{...b2b.b2b,levels:0,manualLevelSpecs:[],collectionLevels}},
+ {b2b:{...b2bOptions,levels:0,collectionFloors,collectionLevels,tunnelHeight:0}});
+const corruptedCatalog={...collection,b2b:{...collection.b2b,levels:1}};
+const corruptedPlacement={...corruptedCatalog,levels:1,x:150,y:500};
+assert.equal(normalize(corruptedCatalog).b2b.levels,0);
+assert.equal(normalize(corruptedPlacement).levels,0);
+const resealed=sealDetail(corruptedPlacement,collection.rackDetail.views);
+assert.equal(readDetail(normalize(resealed),'b2b').levels,0);
+const edited=sealDetail(corruptedPlacement,{b2b:{...collection.rackDetail.views.b2b,levels:1}});
+assert.equal(normalize(edited),edited,'A deliberately saved pallet level stays in the rack');
+const changed={...corruptedPlacement,palletHeight:1100};
+assert.equal(normalize(changed),changed,'A mismatched saved detail must not overwrite a newer edit');
+const placedOnly=structuredClone(corruptedPlacement);
+hydrate([placedOnly],[],normalize);
+assert.equal(placedOnly.levels,0);
+assert.equal(placedOnly.x,150);
+assert.equal(placedOnly.y,500);
+context.m2AddRack(corruptedCatalog,'N');
+const pickingRack=JSON.parse(JSON.stringify(context.m2LayoutState.racks.pop()));
+assert.equal(pickingRack.levels,0);
+const pickingOptions=readDetail(pickingRack,'b2b');
+assert.equal(pickingOptions.collectionFloors.length,18);
+assert.equal(products(pickingRack,pickingOptions,physicalLevels).length,0);
+const picking3D=layoutSnapshot({scale:1,racks:[pickingRack]},()=>pickingOptions).racks[0];
+assert.equal(picking3D.levels,0);
+assert.deepEqual(picking3D.floors,[]);
+assert.equal(picking3D.collectionFloors.length,18);
+const metaStart=html.indexOf('function meta(source,name,sys)'),metaEnd=html.indexOf('function schematic(',metaStart);
+Object.assign(context,{b2bMeasure:()=>({width:2900,depth:1200}),label:String,mm:String,esc:String});
+vm.runInContext(html.slice(metaStart,metaEnd),context);
+assert.match(context.meta({drawing:corruptedPlacement},'N','b2b'),/<small>Kat<\/small><b>0<\/b>/);
+
 for(const [system,key,model] of [
  ['mekik2','mekikCustomizationV514',mekikStepped],['drive','driveCustomizationV521',driveStepped]
 ]) {
@@ -87,4 +122,4 @@ for(const [system,key,model] of [
  assert.equal(legacy.mekikFootColor,'ral5015');
  assert.equal(legacy.straightProfileLength,4200);
 }
-console.log('PASS saved rack placement, B2B CAD/BOM support parity, customer roundtrip and legacy Mekik/Drive-In data.');
+console.log('PASS saved rack placement, B2B CAD/BOM support parity, 18 picking floors with zero pallet levels, customer roundtrip and legacy Mekik/Drive-In data.');
