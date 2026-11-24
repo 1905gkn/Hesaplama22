@@ -523,3 +523,5 @@ node scripts/verify-drive-console-seat-v608.mjs
 node scripts/rack-record-consistency.mjs
 node scripts/verify-rack-record-consistency.mjs dist/index.html
 node scripts/verify-project-products-v372.mjs dist/index.html
+node scripts/drive-frame-capacity.mjs
+node scripts/verify-drive-frame-capacity.mjs dist/index.html
