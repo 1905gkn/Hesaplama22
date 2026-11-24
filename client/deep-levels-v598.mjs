@@ -7,7 +7,7 @@ export function deepLevelModel598(r,specs,catalog=deepTraverseCatalog598){
  for(let i=0;i<levels;i++){const s=specs[i]||{},weight=n(s.palletWeight,n(r.palletWeight,1000)),palletHeight=n(s.palletHeight,n(r.palletHeight,1200));
 
   const load=weight*Math.max(1,n(r.depth,1))/divisor,choices=catalog.filter(t=>t.capacity>=load).sort((a,b)=>a.capacity-b.capacity),mode=s.selectionMode==='manual'?'manual':'auto',selected=mode==='manual'?catalog.find(t=>t.grade+'|'+t.profile===s.traverseType):choices.find(t=>t.grade==='ST37')||choices[0],traverseType=selected?selected.grade+'|'+selected.profile:'',traverseHeight=selected?Number(selected.profile.split('×')[1]):50;
-  const assembly=(n(r.railHeight,170)===170?280:260)+(drive?0:traverseHeight-50);
+  const assembly=drive?(n(r.railHeight,170)===170?280:260):210+traverseHeight;
   const lower=i?floors[i-1]:null;
   if(lower)y=lower.y+lower.palletHeight+assembly+150;
   const explicit=n(s.height,null);if(explicit!==null)y=explicit;

@@ -797,9 +797,8 @@ function syncMekikLevelSpacing(panel, selectedTraverse) {
   }
 
   const palletHeight = numberFrom("m2LevelH", 1200, 300, 3000);
-  const railHeight = numberFrom("m2RailHeight", 170, 150, 170);
   const traverseHeight = traverseProfileHeight(selectedTraverse);
-  const assembly = (railHeight === 170 ? 280 : 260) + traverseHeight - 50;
+  const assembly = 210 + traverseHeight;
   const netClearance = Number(levelInput.dataset.netClearance557 ?? 150);
   const automaticSpacing = palletHeight + assembly + netClearance;
   const current = Number(levelInput.value);

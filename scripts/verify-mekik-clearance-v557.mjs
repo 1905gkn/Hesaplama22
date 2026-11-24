@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 
 for(const rail of [150,170])for(const ph of [800,1200,1450]){
  const total={value:String(spacing557(ph,rail)),dataset:{}},gap={value:'150'},fields={m2LevelSpacing:total,m2PalletClearance557:gap};
  globalThis.document={getElementById:id=>fields[id],activeElement:null};
- assert.equal(sync557(null,ph,rail),ph+(rail===170?430:410));assert.equal(gap.value,'150');
- assert.equal(sync557({target:{id:'m2LevelH'}},ph+100,rail),ph+100+(rail===170?430:410));
- gap.value='200';assert.equal(sync557({target:{id:'m2PalletClearance557'}},ph,rail),ph+(rail===170?480:460));
- total.value=String(ph+600);assert.equal(sync557({target:{id:'m2LevelSpacing'}},ph,rail),ph+600);assert.equal(Number(gap.value),600-(rail===170?280:260));
+ assert.equal(sync557(null,ph,rail),ph+410);assert.equal(gap.value,'150');
+ assert.equal(sync557({target:{id:'m2LevelH'}},ph+100,rail),ph+100+410);
+ gap.value='200';assert.equal(sync557({target:{id:'m2PalletClearance557'}},ph,rail),ph+460);
+ total.value=String(ph+600);assert.equal(sync557({target:{id:'m2LevelSpacing'}},ph,rail),ph+600);assert.equal(Number(gap.value),600-260);
  // Reopening saved spacing retains its value rather than replacing it with a default.
  total.dataset={};total.value=String(ph+530);assert.equal(sync557(null,ph,rail),ph+530);
 }
@@ -17,6 +17,8 @@ for(const rail of [150,170]){
  globalThis.document={getElementById:id=>({m2LevelSpacing:total,m2PalletClearance557:gap})[id],activeElement:null};
  const sync=vm.runInNewContext(syncSource+';syncMekikLevelSpacing',{liveField:()=>total,numberFrom:id=>id==='m2RailHeight'?rail:1200,Event});
  const before=Number(total.value);
+ assert.equal(before,1200+260+150);
+ sync(null,{profile:'50×60×1,5'});assert.equal(Number(total.value),1200+270+150);assert.equal(gap.value,'150');
  sync(null,{profile:'50×70×1,5'});
  assert.equal(Number(total.value),before+20);
  assert.equal(gap.value,'150');
