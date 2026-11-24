@@ -3,12 +3,18 @@ export const deepTraverseCatalog598=[{grade:'ST37',profile:'50×50×1,5',capacit
 export function deepLevelModel598(r,specs,catalog=deepTraverseCatalog598){
  if(!specs?.length)return null;
  const n=(v,f)=>v!==null&&v!==''&&Number.isFinite(Number(v))?Number(v):f,levels=Math.max(1,Math.min(30,Math.round(n(r.levels,1)))),drive=r.rafexSystem==='drive'||r.systemType==='drive',count=Math.max(1,r.plan?.feet?.length||1),divisor=Math.max(1,count*2-(drive?0:r.systemType==='fifo'?(r.hasExtra?1:2):(r.hasExtra?0:1))),errors=[];let y=n(r.firstRailHeight,430);
- const floors=Array.from({length:levels},(_,i)=>{const s=specs[i]||{},weight=n(s.palletWeight,n(r.palletWeight,1000)),palletHeight=n(s.palletHeight,n(r.palletHeight,1200));if(i)y+=n(specs[i-1]?.palletHeight,n(r.palletHeight,1200))+(n(r.railHeight,170)===170?280:260)+150;
-  const explicit=n(s.height,null);if(explicit!==null)y=explicit;
+ const floors=[];
+ for(let i=0;i<levels;i++){const s=specs[i]||{},weight=n(s.palletWeight,n(r.palletWeight,1000)),palletHeight=n(s.palletHeight,n(r.palletHeight,1200));
+
   const load=weight*Math.max(1,n(r.depth,1))/divisor,choices=catalog.filter(t=>t.capacity>=load).sort((a,b)=>a.capacity-b.capacity),mode=s.selectionMode==='manual'?'manual':'auto',selected=mode==='manual'?catalog.find(t=>t.grade+'|'+t.profile===s.traverseType):choices.find(t=>t.grade==='ST37')||choices[0],traverseType=selected?selected.grade+'|'+selected.profile:'',traverseHeight=selected?Number(selected.profile.split('×')[1]):50;
+  const assembly=(n(r.railHeight,170)===170?280:260)+(drive?0:traverseHeight-50);
+  const lower=i?floors[i-1]:null;
+  if(lower)y=lower.y+lower.palletHeight+assembly+150;
+  const explicit=n(s.height,null);if(explicit!==null)y=explicit;
+  if(lower&&y<lower.y+lower.palletHeight+assembly)errors.push('K'+(i+1)+': alt palet ile travers/ray bölümü çakışıyor.');
   if(weight<0||palletHeight<300||palletHeight>3000||y<0)errors.push('K'+(i+1)+': geçersiz yük veya yükseklik.');if(!selected)errors.push('K'+(i+1)+': bu yük için katalogda travers önerisi yok.');else if(selected.capacity<load)errors.push('K'+(i+1)+': seçilen travers kapasitesi kat yükünü karşılamıyor.');
-  return {index:i,y,palletWeight:weight,palletHeight,traverseType,traverseHeight,selectionMode:mode,load,divisor,capacity:selected?.capacity||0,choices:choices.map(t=>t.grade+'|'+t.profile)};});
- for(let i=1;i<floors.length;i++)if(floors[i].y<floors[i-1].y+floors[i-1].palletHeight+(n(r.railHeight,170)===170?280:260))errors.push('K'+(i+1)+': alt palet ile travers/ray bölümü çakışıyor.');
+  const floor={index:i,y,palletWeight:weight,palletHeight,traverseType,traverseHeight,selectionMode:mode,load,divisor,capacity:selected?.capacity||0,choices:choices.map(t=>t.grade+'|'+t.profile)};floors.push(floor);
+ }
  const totalPalletLoad=floors.reduce((s,f,i)=>s+(r.footLoadStart==='first'&&i===0?0:f.palletWeight*Math.max(1,n(r.depth,1))),0),top=floors.at(-1),automatic=Math.ceil((drive?Math.max(...floors.map(f=>f.y+f.palletHeight))+220:Math.max(...floors.map(f=>f.y+f.palletHeight/2)))/50)*50;
  return {floors,errors,totalPalletLoad,automatic,topLoad:Math.max(...floors.map(f=>f.y+f.palletHeight)),minimum:drive?automatic:top.y};
 }
