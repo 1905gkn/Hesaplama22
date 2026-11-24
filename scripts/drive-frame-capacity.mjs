@@ -22,7 +22,7 @@ const profiles=[
  ['HR140.120.3,0',9.99,22808,19006,15808,13269,11219,10346,9552,8840,8182,7611]
 ];
 export function resolveDriveFrames(height,total,frameCount) {
- const index=heights.findIndex(column=>height>0&&column>=height);
+ const index=heights.findIndex(column=>height>0&&column>height);
  const tableHeight=heights[index]??null;
  const load=frameCount>0?total/frameCount:NaN;
  const choices=index<0||!Number.isFinite(load)||load<0?[]:profiles.flatMap(([profile,unitWeight,...capacities])=>{
@@ -43,7 +43,7 @@ export function transform(html){
  replace(/^(          footLoad = )(.+),$/m,'$1m2ActiveModule==="drive"?(footCount>0?totalPalletLoad/footCount:NaN):($2),');
  replace(/^(          footCalculationHeight = )(.+),$/m,'$1m2ActiveModule==="drive"?sideUprightHeight:($2),');
  replace('footSelection = m2ResolveFootProfiles(footCalculationHeight, footLoad),','footSelection = m2ActiveModule==="drive"?rafexResolveDriveFrames(footCalculationHeight,totalPalletLoad,footCount):m2ResolveFootProfiles(footCalculationHeight, footLoad),');
- replace('selection.tableHeight == null ? "İlk kat yüksekliği kapasite tablosunun 3.000 mm sınırını aşıyor."', 'selection.tableHeight == null ? (m2ActiveModule==="drive"?"Ayak boyu için Drive-In tablosunda 12.500 mm’ye kadar kapasite bulunur.":"İlk kat yüksekliği kapasite tablosunun 3.000 mm sınırını aşıyor.")');
+ replace('selection.tableHeight == null ? "İlk kat yüksekliği kapasite tablosunun 3.000 mm sınırını aşıyor."', 'selection.tableHeight == null ? (m2ActiveModule==="drive"?"12.500 mm ve üzeri ayak boyları için tabloda bir üst sütun bulunmuyor.":"İlk kat yüksekliği kapasite tablosunun 3.000 mm sınırını aşıyor.")');
  replace(/(\? "2\. ÖNERİ"\s*)(:\s*choice\.qualified)/,'$1: recommendationIndex === 2 ? "3. ÖNERİ" $2');
  replace('${fmt(choice.capacity)} kg</option>', '${fmt(choice.capacity)} kg${m2ActiveModule==="drive"?" · "+choice.unitWeight.toLocaleString("tr-TR",{minimumFractionDigits:2})+" kg/m":""}</option>');
  replace('$("m2FootLoadFormula").textContent = plan ? (b2bFootCalculation', '$("m2FootLoadFormula").textContent = m2ActiveModule==="drive"&&footCount ? `${fmt(totalPalletLoad)} kg ÷ ${fmt(footCount)} ayak takımı` : plan ? (b2bFootCalculation');

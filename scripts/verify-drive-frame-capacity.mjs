@@ -14,6 +14,11 @@ for(const calculate of [resolve,resolveDriveFrames]){
  assert.equal(entry.primary.unitWeight,5.04);
  assert.equal(entry.recommendedChoices.map(c=>c.profile).join(','),'HR120.80.2,0,HR127.105.2,0,HR140.120.2,0');
  assert.equal(calculate(6200,21000,4).tableHeight,7000);
+ for(const [from,to] of [[6000,7000],[7000,8000],[8000,9000],[9000,10000],[10000,10500],[10500,11000],[11000,11500],[11500,12000],[12000,12500]]){
+  assert.equal(calculate(from,21000,4).tableHeight,to);
+  assert.equal(calculate(to-1,21000,4).tableHeight,to);
+ }
+ assert.equal(calculate(12500,21000,4).tableHeight,null);
  assert.equal(calculate(12501,21000,4).primary,null);
  assert.equal(calculate(6800,21000,0).primary,null);
  assert.equal(calculate(7000,6539.1,1).choices.some(c=>c.profile==='HR120.80.2,0'),false);
