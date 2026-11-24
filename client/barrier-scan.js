@@ -31,15 +31,6 @@ export function barrierSegmentHitsRect(a, b, rect) {
   }
   return true;
 }
-export function barrierSelectionSpan(slot, rect) {
-  const angle=slot.angle*Math.PI/180, centerY=slot.rack.y+slot.rack.h/2,centerX=slot.rack.x+slot.rack.w/2;
-  const values=[rect.left,rect.right].flatMap(x=>[rect.top,rect.bottom].map(y=>-(x-centerX)*Math.sin(angle)+(y-centerY)*Math.cos(angle)));
-  const low=Math.min(...values),high=Math.max(...values);
-  return {lengthMm:(high-low)/slot.sy,offsetMm:((low+high)/2-slot.localY)/slot.sy};
-}
-export function barrierSizedSlot(slot, span) {
-  return span&&Number(span.lengthMm)>0?{...slot,lengthMm:Number(span.lengthMm),localY:slot.localY+Number(span.offsetMm||0)*slot.sy,selectionSpan:span}:slot;
-}
 export function barrierScanSlots(racks, rect, scale) {
   const selected = [], seen = new Set();
   for (const rack of racks) for (const slot of barrierFrameSlots(rack, scale)) {
@@ -51,7 +42,7 @@ export function barrierScanSlots(racks, rect, scale) {
     // Shared frames have one physical barrier even when two rack records own it.
     const key = [a,b].map(p=>`${Math.round(p.x*100)},${Math.round(p.y*100)}`).sort().join('|');
     if (seen.has(key)) continue;
-    seen.add(key); selected.push(barrierSizedSlot(slot,barrierSelectionSpan(slot,rect)));
+    seen.add(key); selected.push(slot);
   }
   return selected;
 }
@@ -61,7 +52,7 @@ export function barrierPlacement(slot, side, depthMm = 150) {
   const center = barrierWorldPoint(slot,localX,slot.localY);
   const w = slot.lengthMm * slot.sy, h = depthMm * slot.sx;
   return { type:'barrier', name:'Bariyer Koruma', rackId:slot.rackId,
-    barrierScan:{edge:slot.edge,side:sign,clearanceMm:100,...(slot.selectionSpan?{selectionSpan:{...slot.selectionSpan}}:{})}, localX,localY:slot.localY,
+    barrierScan:{edge:slot.edge,side:sign,clearanceMm:100}, localX,localY:slot.localY,
     x:center.x-w/2,y:center.y-h/2,w,h,widthMm:slot.lengthMm,depthMm,
     angle:slot.angle+90,blocking:false,showDetails:false };
 }
@@ -78,7 +69,7 @@ export function installBarrierScan() {
       const rack=m2LayoutState.racks.find(r=>r.id===slot.rackId);
       if(!rack)return[];
       const fresh=barrierFrameSlots(rack,m2LayoutState.scale).find(s=>s.edge===slot.edge);
-      return fresh?[{...barrierPlacement(barrierSizedSlot(fresh,slot.selectionSpan),side,current.depthMm),ral:current.ral}]:[];
+      return fresh?[{...barrierPlacement(fresh,side,current.depthMm),ral:current.ral}]:[];
     });
     const additions=candidates.filter(candidate=>!m2LayoutSymbols.some(symbol=>symbol.type==='barrier' && Math.hypot(symbol.x+symbol.w/2-candidate.x-candidate.w/2,symbol.y+symbol.h/2-candidate.y-candidate.h/2)<Math.max(1,m2LayoutState.scale*10) && Math.abs(Number(symbol.widthMm)-candidate.widthMm)<1));
     if(additions.length){
@@ -134,7 +125,7 @@ export function installBarrierScan() {
       if(symbol.type!=='barrier'||!symbol.barrierScan)return;
       const rack=m2LayoutState.racks.find(r=>r.id===symbol.rackId);if(!rack)return;
       const slot=barrierFrameSlots(rack,m2LayoutState.scale).find(s=>s.edge===symbol.barrierScan.edge);
-      if(slot)Object.assign(symbol,barrierPlacement(barrierSizedSlot(slot,symbol.barrierScan.selectionSpan),symbol.barrierScan.side,symbol.depthMm));
+      if(slot)Object.assign(symbol,barrierPlacement(slot,symbol.barrierScan.side,symbol.depthMm));
     });
   };
   const host=m2BarrierHostRack;
