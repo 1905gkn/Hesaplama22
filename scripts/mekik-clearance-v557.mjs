@@ -3,7 +3,7 @@ export function spacing557(pallet,rail,clearance=150){return Number(pallet)+(Num
 export function sync557(event,pallet,rail){
  const total=document.getElementById('m2LevelSpacing'),gap=document.getElementById('m2PalletClearance557');
  if(!total)return Number(pallet)+(Number(rail)===170?280:260)+150;
- const assembly=Number(rail)===170?280:260,id=event?.target?.id;
+ const assembly=(Number(rail)===170?280:260)+(Number(total.dataset.mekikTraverseHeight557)||50)-50,id=event?.target?.id;
  if(id==='m2PalletClearance557'||id==='m2LevelSpacing'&&event?.isTrusted!==false)total.dataset.rafexLevelSpacingManual='1';
  if(id==='m2PalletClearance557'&&gap?.value!=='')total.value=String(Number(pallet)+assembly+Math.max(0,Number(gap.value)||0));
  else if(id==='m2LevelH'&&total.dataset.netClearance557!==undefined)total.value=String(Number(pallet)+assembly+Number(total.dataset.netClearance557));
@@ -21,6 +21,7 @@ export function transform(html){
  replace('<section class="m2-spacing-section"><b>Kat arası mesafe</b>', '${m2ActiveModule === "mekik2" ? `<section class="m2-spacing-section"><b>Palet arası boşluk</b><small>En alt kat hariç palet üstü ile üst katın travers bölümü arasındaki net boşluk.</small><label>Boşluk (mm)<input id="m2PalletClearance557" type="number" min="0" max="3000" step="10" value="150" oninput="drawMekik2(event)" onchange="drawMekik2(event)"></label></section>` : ""}<section class="m2-spacing-section"><b>Kat arası mesafe</b>');
  replace('requestedLevelH = m2Number("m2LevelSpacing", 380, 5000),','requestedLevelH = m2ActiveModule === "mekik2" ? window.rafexSyncMekikSpacing557(event,palletHeight,railHeight) : m2Number("m2LevelSpacing", 380, 5000),');
  replace('clearance = Math.max(0, levelH - palletHeight - traverseHeight),','clearance = Math.max(0, levelH - palletHeight - (m2ActiveModule === "mekik2" ? (railHeight === 170 ? 280 : 260) : traverseHeight)),');
+ html=html.replace('(railHeight === 170 ? 280 : 260) : traverseHeight)),','((railHeight === 170 ? 280 : 260)+(Number($("m2LevelSpacing")?.dataset.mekikTraverseHeight557)||50)-50) : traverseHeight)),');
  replace('1200 mm palet için varsayılan: ilk kat 430 mm, kat araları 1580 mm.','Palet arası boşluk 150 mm. Kat aralığı = palet yüksekliği + travers/ray bölümü (260 / 280 mm) + boşluk. İlk kat 430 / 450 mm.');
  const code='<script data-mekik-clearance="557">window.rafexSyncMekikSpacing557='+sync557.toString()+';</script>';
  const at=html.lastIndexOf('</body>');return html.slice(0,at)+code+html.slice(at);

@@ -356,7 +356,7 @@ class MekikFrontViewer {
         const bayCenterX = (bay + 0.5) * config.bayPitch;
         const traverse = this.models.traverse.root.clone(true);
         traverse.name = `Mekik Travers G${bay + 1} K${level + 1}`;
-        traverse.traverse((part) => { if (part.isMesh) {part.material = traverseMaterial;const height=config.deepLevels?.[level]?.traverseHeight;if(height&&/PROFIL/i.test(part.name))part.geometry=beamProfileGeometry598(part.geometry,height,'z');} });
+        traverse.traverse((part) => { if (part.isMesh) {part.material = traverseMaterial;const height=config.deepLevels?.[level]?.traverseHeight??config.traverseHeight;if(height&&/PROFIL/i.test(part.name))part.geometry=beamProfileGeometry598(part.geometry,height,'z');} });
         traverse.scale.set(traverseScaleX, 1, 1);
         traverse.rotation.z = 0;
         const connectorShift597=postJoint597&&beamJoint597?connectorPhase597(postJoint597,beamJoint597,uprightScaleZ,(supportZ-bracketTopOffset)/1000)*1000:0;traverse.traverse(part=>{if(part.isMesh&&/KONNEKT/i.test(part.name))part.position.z+=connectorShift597;});
@@ -799,25 +799,23 @@ function syncMekikLevelSpacing(panel, selectedTraverse) {
   const palletHeight = numberFrom("m2LevelH", 1200, 300, 3000);
   const railHeight = numberFrom("m2RailHeight", 170, 150, 170);
   const traverseHeight = traverseProfileHeight(selectedTraverse);
-  // İki paletin aynı kot referansı arasındaki standart mesafe:
-  // palet yüksekliği + 100 mm + travers yüksekliği + 60 mm + ray yüksekliği.
-  const palletGap = (railHeight === 170 ? 280 : 260) + 150;
-  const automaticSpacing = palletHeight + palletGap;
-  const previousAutomatic = Number(levelInput.dataset.rafexAutomaticSpacing);
+  const assembly = (railHeight === 170 ? 280 : 260) + traverseHeight - 50;
+  const netClearance = Number(levelInput.dataset.netClearance557 ?? 150);
+  const automaticSpacing = palletHeight + assembly + netClearance;
   const current = Number(levelInput.value);
   const manuallyChanged = levelInput.dataset.rafexLevelSpacingManual === "1";
-  if (!manuallyChanged || current === previousAutomatic) {
-    const changed = current !== automaticSpacing;
+  const previousHeight = Number(levelInput.dataset.mekikTraverseHeight557) || 50;
+  levelInput.dataset.mekikTraverseHeight557 = String(traverseHeight);
+  if (!manuallyChanged || previousHeight !== traverseHeight) {
     levelInput.value = String(automaticSpacing);
-    levelInput.dataset.rafexLevelSpacingManual = "0";
-    if (changed) levelInput.dispatchEvent(new Event("input", { bubbles: true }));
+    if (current !== automaticSpacing) levelInput.dispatchEvent(new Event("input", { bubbles: true }));
   }
   levelInput.dataset.rafexAutomaticSpacing = String(automaticSpacing);
 
   const modal = levelInput.closest(".m2-spacing-modal");
   const footer = modal?.querySelector(".m2-spacing-dialog-foot span");
   if (footer) {
-    footer.textContent = `Standart: ${palletHeight} palet + ${railHeight === 170 ? 280 : 260} travers/ray bölümü + 150 palet arası boşluk = ${automaticSpacing} mm. Elle değiştirilebilir.`;
+    footer.textContent = `${palletHeight} palet + ${assembly} travers/ray bölümü + ${netClearance} palet arası boşluk = ${automaticSpacing} mm.`;
   }
 }
 

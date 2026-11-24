@@ -9,6 +9,21 @@ for(const rail of [150,170])for(const ph of [800,1200,1450]){
  // Reopening saved spacing retains its value rather than replacing it with a default.
  total.dataset={};total.value=String(ph+530);assert.equal(sync557(null,ph,rail),ph+530);
 }
+const viewer=fs.readFileSync('client/mekik-front-viewer.entry.js','utf8');
+const syncSource=viewer.slice(viewer.indexOf('function traverseProfileHeight('),viewer.indexOf('function updateTraverseChoice('));
+for(const rail of [150,170]){
+ const gap={value:'150'},total={value:String(spacing557(1200,rail)),dataset:{netClearance557:'150'},
+  addEventListener(){},closest(){return null;},dispatchEvent(){sync557(null,1200,rail);}};
+ globalThis.document={getElementById:id=>({m2LevelSpacing:total,m2PalletClearance557:gap})[id],activeElement:null};
+ const sync=vm.runInNewContext(syncSource+';syncMekikLevelSpacing',{liveField:()=>total,numberFrom:id=>id==='m2RailHeight'?rail:1200,Event});
+ const before=Number(total.value);
+ sync(null,{profile:'50×70×1,5'});
+ assert.equal(Number(total.value),before+20);
+ assert.equal(gap.value,'150');
+ sync(null,{profile:'50×50×1,5'});
+ assert.equal(Number(total.value),before);
+ assert.equal(gap.value,'150');
+}
 const file=process.argv[2]||'dist/index.html';if(fs.existsSync(file)){
  const source=fs.readFileSync(file,'utf8'),s=source.includes('data-mekik-clearance="557"')?source:transform(source);
  assert(s.includes('m2ActiveModule === "drive" ? 1350 : 1610'));assert(s.includes('firstRailHeight = m2Number("m2FirstLevelHeight", 0, 5000)'));
