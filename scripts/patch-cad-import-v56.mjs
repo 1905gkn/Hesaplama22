@@ -59,9 +59,17 @@ if (!html.includes(marker)) {
     var additions=elements.filter(function(element){return element.type==='column'||element.type==='obstacle';}).map(function(element){var xs=element.points.map(function(point){return point.x;}),ys=element.points.map(function(point){return point.y;}),x=Math.min.apply(Math,xs),y=Math.min.apply(Math,ys),w=Math.max(2,Math.max.apply(Math,xs)-x),h=Math.max(2,Math.max.apply(Math,ys)-y);return{id:'cad-import-'+Date.now()+'-'+(++seq),type:element.type==='column'?'column':'barrier',x:x,y:y,w:w,h:h,angle:0,cadImported:true,cadElement:element};});
     try{m2LayoutSymbols=old.concat(additions);}catch(error){}
   }
+  function parseCadJson(text){
+    try{return JSON.parse(text);}catch(error){
+      // Some AutoCAD exports omit the integer zero in decimal coordinates.
+      var normalized=text.replace(/"(?:[^"\\]|\\[\s\S])*"|([\[,:]\s*)(-?)\.(?=\d)/g,function(match,prefix,sign){return prefix===undefined?match:prefix+sign+'0.';});
+      if(normalized!==text)return JSON.parse(normalized);
+      throw error;
+    }
+  }
   async function importFile(file){
     if(!file)return;try{
-      if(file.size>10*1024*1024)throw new Error('Dosya 10 MB sınırını aşıyor.');var bytes=await file.arrayBuffer(),sourceText='';try{sourceText=new TextDecoder('utf-8',{fatal:true}).decode(bytes);}catch(decodeError){sourceText=new TextDecoder('windows-1254').decode(bytes);}var payload=JSON.parse(sourceText);if(String(payload?.unit||'').toLowerCase()!=='mm')throw new Error('Çizim birimi mm olmalıdır.');if(!Array.isArray(payload?.objects))throw new Error('Geçerli RAFEX çizim verisi bulunamadı.');
+      if(file.size>10*1024*1024)throw new Error('Dosya 10 MB sınırını aşıyor.');var bytes=await file.arrayBuffer(),sourceText='';try{sourceText=new TextDecoder('utf-8',{fatal:true}).decode(bytes);}catch(decodeError){sourceText=new TextDecoder('windows-1254').decode(bytes);}var payload=parseCadJson(sourceText);if(String(payload?.unit||'').toLowerCase()!=='mm')throw new Error('Çizim birimi mm olmalıdır.');if(!Array.isArray(payload?.objects))throw new Error('Geçerli RAFEX çizim verisi bulunamadı.');
       var typeMap={area:'area',wall:'wall',column:'column',door:'door',obstacle:'obstacle',rafex_alan:'area',rafex_duvar:'wall',rafex_kolon:'column',rafex_kapi:'door',rafex_engel:'obstacle'};
       var objects=payload.objects.slice(0,5000).map(function(object){var raw=String(object?.type||object?.layer||'').trim().toLowerCase(),type=typeMap[raw],points=Array.isArray(object?.points)?object.points.slice(0,10000).map(function(point){return{x:Number(point?.[0]),y:Number(point?.[1])};}).filter(function(point){return Number.isFinite(point.x)&&Number.isFinite(point.y);}):[];return{type:type,closed:Boolean(object?.closed),points:points};}).filter(function(object){return object.type&&object.points.length>=2;});
       var taggedAreas=objects.filter(function(object){return object.type==='area'&&object.points.length>=2;}),areas=taggedAreas.length?taggedAreas:objects.filter(function(object){return object.type!=='column'&&object.type!=='obstacle';});if(!areas.length)areas=objects.slice();if(!areas.length)throw new Error('Aktarılabilir CAD çizgisi bulunamadı.');var pathSet=new Set(areas),singleClosed=areas.length===1&&areas[0].closed,filterArea=taggedAreas.length===1&&singleClosed?areas[0]:null,nonArea=objects.filter(function(object){return !pathSet.has(object)&&(!filterArea||touchesArea(object,filterArea.points));}),fitPoints=areas.reduce(function(all,object){return all.concat(object.points);},[]).concat(nonArea.reduce(function(all,object){return all.concat(object.points);},[]));
