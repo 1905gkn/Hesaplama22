@@ -6,6 +6,12 @@ export function paintAccessory(root,color){
    material.color.setHex(color);
    material.map=null;
    material.vertexColors=false;
+   material.metalness=0;
+   material.roughness=.65;
+   material.metalnessMap=null;
+   material.roughnessMap=null;
+   material.aoMap=null;
+   material.lightMap=null;
    materials.set(source,material);
   }
   return materials.get(source);
@@ -27,6 +33,8 @@ export function transformAccessoryFinishes(source){
  replace('section.add(wire);','paintRackAccessory(wire, COLORS.galvanized); section.add(wire);');
  replace('hReferenceSpan.outerDepth + 16','hReferenceSpan.outerDepth');
  replace('if (hSpan) h.position.y += 2;','');
- replace('this.seatAccessoryOnTraverses(h, hSpan, 0.71);\n          h.position.z += 50;','this.seatAccessoryOnTraverses(h, hSpan);');
+ // The folded end plate bears at Z=84 on the 89 mm source profile.
+ // Seat that underside, while the deeper central profile hangs between beams.
+ replace('this.seatAccessoryOnTraverses(h, hSpan, 0.71);\n          h.position.z += 50;','this.seatAccessoryOnTraverses(h, hSpan);\n          if (hSpan) h.position.z += 84;');
  return 'const paintRackAccessory = '+paintAccessory.toString()+';\n'+source;
 }
