@@ -1,5 +1,6 @@
 import {driveConsoleTemplate597} from './hook-hole-joint-v597.mjs';
 import {innerPostTemplate605} from './inner-post-v605.mjs';
+import {fixedGalvanizedMaterial593,isGalvanizedColor593} from './galvanized-material-v593.mjs';
 import * as THREE from 'three';
 import {rackParts} from './layout-3d-geometry.mjs';
 import {cadPlacements,driveVisualLevel609,deepBeamScale,loadLayoutCad} from './layout-3d-cad.mjs';
@@ -8,7 +9,7 @@ export async function loadCustomerRackDetail(r){
  const templates=await loadLayoutCad([r]),accessoryGeometries=await loadLayoutAccessories([r],undefined,templates);
  try{
  const data={racks:[r]},scene=new THREE.Group(),options={customerPerformance:true};
- function Surface(params){const {roughness,metalness,...simple}=params;return new THREE.MeshLambertMaterial(simple);}
+ function Surface(params){if(isGalvanizedColor593(params.color))return fixedGalvanizedMaterial593(params);const {roughness,metalness,...simple}=params;return new THREE.MeshLambertMaterial(simple);}
  const geometries=[],materials=[],parts={},geometry=new THREE.BoxGeometry(1,1,1);geometries.push(geometry);
  const colors={ral5010:'#005078',ral5015:'#287ab5',pgv:'#aeb8bd',galvanized:'#aeb8bd',ral1007:'#e5bd00',ral1023:'#f2c500',ral2004:'#e25318',timber:'#a67b45',load:'#d6b47b',product:'#75838a',shelf:'#b8c3c5',rail:'#bbc3c6'};
  const dummy=new THREE.Object3D(),parent=new THREE.Object3D(),palletMeshes=[];
