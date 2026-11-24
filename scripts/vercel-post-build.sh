@@ -522,3 +522,4 @@ node scripts/verify-deep-screen-detail-v607.mjs
 node scripts/verify-drive-console-seat-v608.mjs
 node scripts/rack-record-consistency.mjs
 node scripts/verify-rack-record-consistency.mjs dist/index.html
+node scripts/verify-project-products-v372.mjs dist/index.html

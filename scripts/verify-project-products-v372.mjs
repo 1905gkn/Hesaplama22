@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
+import {physicalLevels} from './b2b-level-plan-v121.mjs';
 const html=fs.readFileSync(process.argv[2]||'dist/index.html','utf8');
 assert(html.includes('documentV133=window.rafexProjectProductsV372.capture(documentV133);'));
 const save=html.indexOf('let documentV133=');assert(save>=0);
@@ -26,6 +27,12 @@ const marker=html.indexOf('window.rafexLayoutInventoryRowsV44=rows;'),start=html
 let inventory=html.slice(html.indexOf('>',start)+1,end),cut=inventory.indexOf('  function inventoryPdfPages');assert(cut>0);inventory=inventory.slice(0,cut)+'window.rafexLayoutInventoryRowsV44=rows;})();';
 context.window.rafexSharedFramesV255={stations:racks=>new Map(racks.map(r=>[Number(r.id),[{product:{profile:'HR90.80.2,0',height:4900,depth:1100}},{product:{profile:'HR90.80.2,0',height:4900,depth:1100}}]]))};
 context.sharedRows=()=>0;context.m2B2BVisibleTraverseLevels=r=>r.visibleLevels;
+const rackRecord=html.match(/<script data-rack-record-consistency>([\s\S]*?)<\/script>/)?.[1];
+if(rackRecord){
+ vm.runInContext(rackRecord,context);
+ context.window.rafexPhysicalLevelsV121=physicalLevels;
+ context.window.rafexB2BDetailOptionsV117=rack=>({levels:rack.levels,firstPalletPosition:'ground',tunnelHeight:rack.b2b.tunnelHeight});
+}
 vm.runInContext(inventory,context);
 const rack={id:1,b2b:{traverseType:'CC140x50x2'},b2bLayout:{rowCount:1,sectionWidth:2700,frameDepth:1100},levels:3,visibleLevels:2,footProfile:'HR90.80.2,0'};
 const actual={payload:{areas:[{layout:{racks:[rack]}},{layout:{racks:[{...rack,id:2}]}}]}};api.capture(actual);
@@ -33,4 +40,12 @@ assert.equal(actual.payload.productSnapshotV372.products.find(p=>p.name==='Trave
 assert.equal(actual.payload.productSnapshotV372.products.find(p=>p.name==='Ayak takımı').quantity,4);
 assert.equal(actual.payload.productSnapshotV372.products.find(p=>p.name==='Emniyet pimi').quantity,16);
 assert(actual.payload.productSnapshotV372.products.every(p=>p.code));
+if(rackRecord){
+ const groundOnly={payload:{layout:{racks:[{...rack,levels:1}]}}};
+ api.capture(groundOnly);
+ assert(!groundOnly.payload.productSnapshotV372.products.some(p=>['Travers','Emniyet pimi'].includes(p.name)));
+ const tunnel={payload:{layout:{racks:[{...rack,b2b:{...rack.b2b,tunnelHeight:1500}}]}}};
+ api.capture(tunnel);
+ assert.equal(tunnel.payload.productSnapshotV372.products.find(p=>p.name==='Travers').quantity,2);
+}
 console.log('PASS v372: actual save hook ordering + all areas without active-area duplication; shared inventory rows; tunnel-aware quantities; exception restores editor; code merging; uncoded products retained; invalid quantities rejected.');
