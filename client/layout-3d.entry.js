@@ -206,6 +206,7 @@ function createViewSession(host,options={}){
 }
 function snapshot(){window.rafexVariantLabelSpacingV306?.paint();const data=layoutSnapshot(m2LayoutState,(r,system)=>{
  if(system==='b2b'){const o=window.rafexB2BDetailOptionsV117?.(r)||r.b2bViewerOptions||{};return window.rafexEndFrameOptions?.(r,o)||o;}
+ if(system==='mekik2'||system==='drive')return {};
  const saved=window.rafexReadRackDetailV135?.(r,system);if(saved)return saved;
  if(system==='mr')return window.rafexMrConfigFromRackV37?.(r)||{};
  if(system==='konsol')return window.rafexKonsolDetailOptionsV135?.(r)||{};

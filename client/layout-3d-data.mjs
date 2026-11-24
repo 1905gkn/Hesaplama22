@@ -2,6 +2,7 @@ import {driveStepped} from './drive-stepped.mjs';
 import {depthSharedSupport} from './depth-shared-support.mjs';
 import {mekikStepped} from './mekik-stepped.mjs';
 import {driveInUprightHeight} from './drive-in-height.mjs';
+import {physicalLevels} from '../scripts/b2b-level-plan-v121.mjs';
 const num=(v,f=0)=>Number.isFinite(Number(v))?Number(v):f;
 const pos=(v,f)=>num(v)>0?Number(v):f;
 const count=(v,f,max=100)=>Math.max(1,Math.min(max,Math.round(pos(v,f))));
@@ -16,7 +17,7 @@ export function rackSystem(r){
 export function layoutSnapshot(state,optionsFor=()=>({})){
  const scale=pos(state.scale,.04),unit=1/(scale*1000);
  return {selectedId:state.selected,showAreaDimensions:!!state.showAreaDimensions,edgeDimensions:[...(state.edgeDimensions||[])],points:(state.points||[]).map(p=>({x:p.x*unit,z:p.y*unit})),closed:!!state.closed,breaks:[...(state.pathBreaks||[])],racks:(state.racks||[]).map(r=>{
-  const system=rackSystem(r),o=optionsFor(r,system)||{};const depthSharedSupportData=depthSharedSupport(r,state.racks);if(system==='mekik2'||system==='drive')r={...r,...o,depthSharedSupport:depthSharedSupportData,id:r.id,x:r.x,y:r.y,w:r.w,h:r.h,angle:r.angle};const b=r.b2b||{},k=r.konsol||r.spec||{},l=r.b2bLayout||{};
+  const system=rackSystem(r),o=optionsFor(r,system)||{};const depthSharedSupportData=depthSharedSupport(r,state.racks);if(system==='mekik2'||system==='drive')r={...o,...r,depthSharedSupport:depthSharedSupportData};const b=r.b2b||{},k=r.konsol||r.spec||{},l=r.b2bLayout||{};
   const width=(system==='b2b'&&Number(o.sectionWidth)>0?Number(o.sectionWidth)+2*pos(o.footWidth,pos(r.footType,100)):pos(r.widthMm,pos(r.totalWidth,r.w/scale)))/1000,depth=pos(r.depthMm,pos(r.railLength,r.h/scale))/1000;
   const rawLevels=o.levels??k.levels??r.levels??b.levels,collectionOnly=system==='b2b'&&rawLevels!==null&&rawLevels!==''&&Number(rawLevels)===0&&!!o.collectionFloors?.length;
   const levels=collectionOnly?0:count(rawLevels,4,30),palletHeight=pos(o.palletHeight,pos(r.palletHeight,pos(b.palletHeight,1200)))/1000;
@@ -25,13 +26,16 @@ export function layoutSnapshot(state,optionsFor=()=>({})){
   if(system==='mekik2'||system==='mr')height=Math.ceil(height*1000/50)*50/1000;
   const floors=[],beamYs=[],heights=[];
   if(system==='b2b'){
-   const first=o.firstPalletPosition||b.firstPalletPosition||'ground';let previousTop=0;
+   const first=o.firstPalletPosition||b.firstPalletPosition||'ground';
+   const clearances=o.levelClearances?.length?o.levelClearances:b.customLevels?.map((item,i)=>Math.max(0,Number(item.interval)-(Number(o.palletHeights?.[i]??item.palletHeight)||palletHeight*1000)-beam*1000));
+   const supports=physicalLevels({...o,levels,firstPalletPosition:first,palletHeight:palletHeight*1000,traverseHeight:beam*1000,
+    palletHeights:o.palletHeights?.length?o.palletHeights:b.customLevels?.map(item=>item.palletHeight),
+    firstFloorGap:o.firstFloorGap??b.firstFloorGap??200,palletTraverseGap:o.palletTraverseGap??b.palletTraverseGap,levelClearances:clearances});
    for(let i=0;i<levels;i++){
-    const ground=first!=='traverse'&&i===0,idx=first==='traverse'?i:i-1;
-    let beamY=ground?null:(Number.isFinite(o.traverseBottoms?.[idx])?o.traverseBottoms[idx]/1000:i===0?num(o.firstFloorGap??b.firstFloorGap,200)/1000:previousTop+num(o.levelClearances?.[i-1]??o.palletTraverseGap,200)/1000);
-    const ph=pos(o.palletHeights?.[i],pos(b.customLevels?.[i]?.palletHeight,palletHeight*1000))/1000;
-    if(!ground&&b.customLevels?.[i-1]?.interval>0&&!Number.isFinite(o.traverseBottoms?.[idx]))beamY=floors[i-1]+b.customLevels[i-1].interval/1000-beam;
-    const y=ground?0:beamY+pos(o.traverseHeights?.[idx],beam*1000)/1000;floors.push(y);beamYs.push(beamY);heights.push(ph);previousTop=y+ph;
+    const support=supports[first==='traverse'?i:i-1];
+    floors.push(support?(support.bottom+support.beam)/1000:0);
+    beamYs.push(support?support.bottom/1000:null);
+    heights.push(num(o.palletHeights?.[i]??b.customLevels?.[i]?.palletHeight,palletHeight*1000)/1000);
    }
   }else for(let i=0;i<levels;i++){
    const y=system==='mr'?(num(o.firstTraverse??b.firstTraverse??r.firstRailHeight,200)+i*pos(o.levelGap||b.levelGap||r.levelH,1000))/1000:system==='konsol'?height*(i+1)/(levels+1):(num(r.firstRailHeight,430)+i*pos(r.levelH,palletHeight*1000+380))/1000;
@@ -41,7 +45,7 @@ export function layoutSnapshot(state,optionsFor=()=>({})){
   if(deep598?.floors?.some(f=>f.palletHeight!=null)){for(let i=0;i<levels;i++){floors[i]=deep598.floors[i].y/1000;beamYs[i]=floors[i]-(deep598.floors[i].traverseHeight||beam*1000)/1000;heights[i]=deep598.floors[i].palletHeight/1000;}}
   const positions=(r.palletPositions||[]).map(v=>num(v)/1000).filter(v=>v>=0&&v<depth),palletDepth=pos(o.palletDepth,pos(l.palletDepth,pos(r.palD,1200)))/1000;
   const footZ=[],footFrames=[];let cursor=0;for(let i=0;i<(r.plan?.feet||[]).length;i++){const f=num(r.plan.feet[i])/1000;if(f>0){footZ.push(cursor,cursor+f);footFrames.push([cursor,cursor+f]);cursor+=f}cursor+=num(r.plan.braces?.[i])/1000;}
-  return {depthSharedSupport:depthSharedSupportData,driveStepped:system==='drive'?driveStepped(r):null,mekikStepped:system==='mekik2'?mekikStepped(r):null,blockedPallets:structuredClone(r.columnPassageV504?.slots||[]),backMeshSides:[...new Set((r.backMeshSides||[]).filter(s=>["front","back","middle"].includes(s)))],backMeshWidth:pos(l.sectionWidth,width*1000-foot*2000)/1000,showPallets:r.showPallets!==false,systemType:r.systemType||'fifo',hasExtra:!!r.hasExtra,system,id:r.id,name:String(r.typeName||r.blockName||'Raf'),typeColor:String(r.typeColor||'#247fba'),x:(num(r.x)+num(r.w)/2)*unit,z:(num(r.y)+num(r.h)/2)*unit,angle:-num(r.angle)*Math.PI/180,width,depth,height:r.driveCustomizationV521?driveStepped(r).height/1000:r.mekikCustomizationV514?mekikStepped(r).height/1000:height,levels,foot,beam,floors,beamYs,palletWeights:Array.from({length:levels},(_,i)=>deep598?.floors?.[i]?.palletWeight??r.palletWeight??null),palletHeights:heights,palletHeight,palletDepth,railHeight:pos(r.railHeight,170)/1000,palletWidth:pos(o.palletWidth,pos(l.palletWidth,pos(r.palW,800)))/1000,
+  return {depthSharedSupport:depthSharedSupportData,driveStepped:system==='drive'?deep598:null,mekikStepped:system==='mekik2'?deep598:null,blockedPallets:structuredClone(r.columnPassageV504?.slots||[]),backMeshSides:[...new Set((r.backMeshSides||[]).filter(s=>["front","back","middle"].includes(s)))],backMeshWidth:pos(l.sectionWidth,width*1000-foot*2000)/1000,showPallets:(system==='b2b'?(o.showPallets??b.showPallets??r.showPallets):r.showPallets)!==false,systemType:r.systemType||'fifo',hasExtra:!!r.hasExtra,system,id:r.id,name:String(r.typeName||r.blockName||'Raf'),typeColor:String(r.typeColor||'#247fba'),x:(num(r.x)+num(r.w)/2)*unit,z:(num(r.y)+num(r.h)/2)*unit,angle:-num(r.angle)*Math.PI/180,width,depth,height:deep598?deep598.height/1000:height,levels,foot,beam,floors,beamYs,palletWeights:Array.from({length:levels},(_,i)=>deep598?.floors?.[i]?.palletWeight??o.palletWeights?.[i]??r.palletWeight??o.palletWeight??null),palletHeights:heights,palletHeight,palletDepth,railHeight:pos(r.railHeight,170)/1000,palletWidth:pos(o.palletWidth,pos(l.palletWidth,pos(r.palW,800)))/1000,
    footColor:String(system==='konsol'?'pgv':b.uprightFinish||b.footColor||r.mekikFootColor||o.footColor||'ral5010'),beamColor:String(k.armColor||b.traverseFinish||b.traverseColor||r.mekikTraverseColor||o.traverseColor||'ral1007'),
    rows:count((o.rowType?o.rowType==='double'?2:1:l.rowCount)||(b.rowType==='double'?2:1),1,2),rowGap:num(o.rowGap??l.rowGap??b.rowGap,200)/1000,frameDepth:((b.palletOverhang??l.palletOverhang)!=null?Math.max(100,palletDepth*1000-2*num(b.palletOverhang??l.palletOverhang,50)):pos(l.frameDepth,Math.max(100,palletDepth*1000-2*num(o.frontPalletGap,50))))/1000,frameHeights:structuredClone(o.frameHeights||[]),
    pallets:count(o.palletCount||l.palletCount||b.palletCount||r.bays,3,12),bays:count(r.bays,1),modules:count(o.modules||b.modules,1),positions,footZ,footFrames,

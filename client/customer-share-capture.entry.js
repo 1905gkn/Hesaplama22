@@ -20,8 +20,8 @@ export async function attachCustomerBlockDetails(manifest,saved,originals=[]){
  async function prepare(block,d){
   if(!d)throw Error(block.name+' bloğunun kaynak çizimi bulunamadı.');
   const system=block.system;let options=null,technical=null;
-  if(system==='b2b')options=window.rafexB2BDetailOptionsV117(d);
-  else if(['mr','konsol'].includes(system))options=window.rafexReadRackDetailV135?.(d,system)||(system==='mr'?window.rafexMrConfigFromRackV37?.(d):window.rafexKonsolDetailOptionsV135?.(d));
+  if(system==='b2b')options=block.rack?.nativeOptions||window.rafexB2BDetailOptionsV117(d);
+  else if(['mr','konsol'].includes(system))options=block.rack?.nativeOptions||window.rafexReadRackDetailV135?.(d,system)||(system==='mr'?window.rafexMrConfigFromRackV37?.(d):window.rafexKonsolDetailOptionsV135?.(d));
   else {technical=await window.rafexCaptureTechnicalViews(d,system);for(const key of ['front','side']){const img=new Image();await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(Error(block.name+' teknik görünümü hazırlanamadı.'));img.src=technical[key];});const canvas=document.createElement('canvas');canvas.width=1260;canvas.height=Math.max(1,Math.round(1260*img.height/img.width));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);technical[key]=canvas.toDataURL('image/png');canvas.width=canvas.height=1;}}
   if(!options&&!technical)throw Error(block.name+' bloğunun detay görünümü hazırlanamadı.');
   const r=block.rack||{width:Number(d.totalWidth||d.widthMm||0)/1000,depth:Number(d.railLength||d.depthMm||0)/1000,height:Number(d.sideUprightHeight||d.totalRackHeight||0)/1000,levels:Number(d.levels||d.b2b?.levels||0)};block.detailView={system,options:options?structuredClone(options):null,technical,meta:[['Sistem',systemNames[system]],['Tip',block.name+(block.detail?' · '+block.detail:'')],['Genişlik',Math.round(r.width*1000)+' mm'],['Derinlik',Math.round(r.depth*1000)+' mm'],['Kat',r.levels],['Ayak boyu',Math.round(r.height*1000)+' mm']]};catalogue.push(block);

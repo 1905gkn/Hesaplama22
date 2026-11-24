@@ -9,8 +9,8 @@ export function detailSignature(d) {
   if(system==='b2b'||system==='mr')data.settings=d.b2b;
   else if(system==='konsol')data.settings=d.konsol||d.spec;
   else {
-    for(const k of ['bays','depth','palW','palD','palletWeight','railHeight','levelH','firstRailHeight','sideUprightHeight','firstPalletGap','palletGap','palletPositions','palletGaps','hasExtra','footType','footProfile','plan'])data[k]=d[k];
-    data.width=Number(d.totalWidth||d.widthMm)||0;data.length=Number(d.railLength||d.depthMm)||0;
+    for(const k of ['bays','depth','palW','palD','palletWeight','railHeight','levelH','firstRailHeight','sideUprightHeight','firstPalletGap','palletGap','palletPositions','palletGaps','hasExtra','footType','footProfile','plan','mekikCustomizationV514','driveCustomizationV521','mekikFootColor','mekikTraverseColor','straightProfileLength'])data[k]=d[k];
+    data.width=Number(d.widthMm||d.totalWidth)||0;data.length=Number(d.depthMm||d.railLength)||0;
     data.topVBraceBays=d.topVBraceBays||[];data.showPallets=d.showPallets!==false;data.showFlowArrows=d.showFlowArrows!==false;
   }
   const stable=value=>Array.isArray(value)?value.map(stable):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().filter(k=>value[k]!==undefined).map(k=>[k,stable(value[k])])):value;
