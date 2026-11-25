@@ -57,7 +57,176 @@ export function optimizeLargeLayout(html) {
     'if(ids.size){const existing=new Set(racks().map(r=>r.id));ids=new Set([...ids].filter(id=>existing.has(id)));}');
   replace('function render(){syncSelection();m2RenderLayout();syncUi();}',
     'function render(){syncSelection();m2RenderSelectionOnly();syncUi();}');
-  return addCanvasLayoutTrial(addGroupPlacementWorker(cacheLayoutInventory(reduceFreeLayoutWork(retainSelectionPreview(retainLayoutEdits(html))))));
+  const arrayCheckStart=html.indexOf('  for(let i=0;i<result.racks.length;i++){const r=result.racks[i];if(!m2RackInsideArea(r)||m2RackOverlaps(r))');
+  const arrayCheckEnd=html.indexOf('\n',arrayCheckStart);
+  if(arrayCheckStart<0||arrayCheckEnd<0)throw Error('Array placement checks missing');
+  html=html.slice(0,arrayCheckStart)+'  m2WithCopyCollisionIndex(()=>{\n'+html.slice(arrayCheckStart,arrayCheckEnd)+'\n  });'+html.slice(arrayCheckEnd);
+  replace('m2SyncAttachedProtections();dialog.close();m2RenderLayout();m2RefreshActiveReport();',
+    'm2SyncAttachedProtections();dialog.close();m2RenderLayout();');
+  return addCanvasLayoutTrial(addGroupPlacementWorker(cacheLayoutInventory(reduceFreeLayoutWork(retainSelectionPreview(retainLayoutEdits(shareLayoutPlanGeometry(removeInvisiblePlanLines(html))))))));
+}
+
+
+export function shareLayoutPlanGeometry(html){
+  const replace=(before,after)=>{
+    if(!html.includes(before))throw Error('Shared plan geometry anchor missing: '+before);
+    html=html.replace(before,()=>after);
+  };
+  replace('        const rackCacheV212=window.rafexCommonPerfV212.racks;',
+    `        const rackCacheV212=window.rafexCommonPerfV212.racks;
+        const planSvg=layer.ownerSVGElement,exporting=window.rafexViewportV248?.exporting;
+        const sharedPlans=!exporting&&!planSvg?.hasAttribute('data-canvas144')&&m2LayoutState.racks.length>=80;
+        const templateRegistry=sharedPlans&&m2SharedPlanRegistry(planSvg);
+        const usedPlans=new Set();`);
+  replace('const globalKeyV212=JSON.stringify([m2LayoutState.scale,',
+    'const globalKeyV212=JSON.stringify([Boolean(templateRegistry),m2LayoutState.scale,');
+  replace('if(cachedV212?.key===keyV212){html+=cachedV212.html;',
+    'if(cachedV212?.key===keyV212&&(!cachedV212.plan||templateRegistry?.templates?.get(cachedV212.plan.key)===cachedV212.plan)){if(cachedV212.plan)usedPlans.add(cachedV212.plan);html+=window.rafexRetainKnownRackV133?.(layer,rack.id,cachedV212)||cachedV212.html;');
+  replace("const rackHtmlV212=(()=>{let html='';","let planTemplate=null;const rackHtmlV212=(()=>{let html='';");
+  replace('          html+=window.rafexRenderPlanV143({...savedPlanV143,shared:window.rafexDepthSharedV524(rack)},{x:rack.x,y:rack.y,scale:planScaleV143});',
+    `          const geometry={...savedPlanV143,shared:window.rafexDepthSharedV524(rack)};
+          if(templateRegistry){
+            planTemplate=m2SharedPlanTemplate(templateRegistry,geometry);
+            usedPlans.add(planTemplate);
+            html+='<use class="rafex-plan-detail-v143" href="#'+planTemplate.id+'" transform="translate('+rack.x+' '+rack.y+') scale('+planScaleV143+')" data-plan-width-mm="'+geometry.width+'" data-plan-depth-mm="'+geometry.length+'"/>';
+          }else html+=window.rafexRenderPlanV143(geometry,{x:rack.x,y:rack.y,scale:planScaleV143});`);
+  replace('{key:keyV212,html:rackHtmlV212}',"{key:keyV212,html:rackHtmlV212,plan:planTemplate,groupEnd:rackHtmlV212.lastIndexOf('</g>')+4}");
+  replace('window.rafexCommitLayoutV133(layer,html); m2PerfRefreshLayoutDomTable(layer);',
+    'window.rafexCommitLayoutV133(layer,html);if(templateRegistry)m2PruneSharedPlans(templateRegistry,usedPlans);else m2SharedPlanRegistries.get(planSvg)?.defs.remove();m2PerfRefreshLayoutDomTable(layer);');
+  replace('      function m2QueueLayoutRender() {',`      const m2SharedPlanRegistries=new WeakMap();
+      let m2SharedPlanNextId=0;
+      function m2SharedPlanRegistry(svg){
+        if(!svg)return null;
+        let registry=m2SharedPlanRegistries.get(svg);
+        if(registry?.defs.parentNode===svg)return registry;
+        const defs=document.createElementNS("http://www.w3.org/2000/svg","defs");
+        defs.setAttribute("data-rafex-shared-plans","");
+        svg.prepend(defs);
+        registry={defs,templates:new Map()};
+        m2SharedPlanRegistries.set(svg,registry);
+        return registry;
+      }
+      function m2SharedPlanTemplate(registry,geometry){
+        const key=JSON.stringify(geometry);
+        let template=registry.templates.get(key);
+        if(template)return template;
+        const id="rafex-shared-plan-"+(++m2SharedPlanNextId);
+        const node=document.createElementNS("http://www.w3.org/2000/svg","g");
+        node.id=id;
+        node.innerHTML=window.rafexRenderPlanV143(geometry);
+        registry.defs.append(node);
+        template={id,node,key};
+        registry.templates.set(key,template);
+        return template;
+      }
+      function m2PruneSharedPlans(registry,used){
+        for(const template of registry.templates.values())if(!used.has(template)){
+          template.node.remove();
+          registry.templates.delete(template.key);
+        }
+      }
+      function m2QueueLayoutRender() {`);
+  replace('  const markup = new WeakMap();\n  window.rafexCommitLayoutV133=',`  const markup = new WeakMap(),groupTransforms=new WeakMap();
+  window.rafexRetainKnownRackV133=function(layer,id,entry){
+    const node=m2PerfRackDomTable.get(Number(id))?.node;
+    if(node?.parentNode!==layer||markup.get(node)!==entry.html.slice(0,entry.groupEnd)||
+      (node.getAttribute('transform')||'')!==groupTransforms.get(node))return null;
+    return '<g data-rafex-known-rack="'+Number(id)+'"></g>'+entry.html.slice(entry.groupEnd);
+  };
+  window.rafexCommitLayoutV133=`);
+  replace('if(freshMarkup.has(fresh.dataset.rack))markup.set(fresh,freshMarkup.get(fresh.dataset.rack));',
+    'if(freshMarkup.has(fresh.dataset.rack)){markup.set(fresh,freshMarkup.get(fresh.dataset.rack));groupTransforms.set(fresh,fresh.getAttribute("transform")||"");}');
+  replace('const desiredV135=Array.from(buffer.childNodes).map(node=>node.nodeType===1&&node.hasAttribute(\'data-rafex-retain-v133\')?retained[Number(node.dataset.rafexRetainV133)]:node);',`    const desiredV135=Array.from(buffer.childNodes).map(node=>{
+      if(node.nodeType!==1)return node;
+      if(node.hasAttribute('data-rafex-retain-v133'))return retained[Number(node.dataset.rafexRetainV133)];
+      if(node.hasAttribute('data-rafex-known-rack'))return old.get(node.dataset.rafexKnownRack);
+      return node;
+    });`);
+  const sharedFeetStart=html.indexOf('  function renderSharedFeet(state,svg){');
+  const sharedFeetEnd=html.indexOf('  function decorate(){',sharedFeetStart);
+  if(sharedFeetStart<0||sharedFeetEnd<0)throw Error('Shared frame layer missing');
+  html=html.slice(0,sharedFeetStart)+`  const m2SharedFootHolders=new WeakMap();
+  function renderSharedFeet(state,svg){
+    const ns="http://www.w3.org/2000/svg";
+    let layer=svg.querySelector(':scope > .rafex-shared-foot-layer-v60');
+    if(!layer){
+      layer=document.createElementNS(ns,'g');
+      layer.setAttribute('class','rafex-shared-foot-layer-v60');
+      layer.setAttribute('pointer-events','none');
+    }
+    const keep=new Set();
+    let cursor=layer.firstChild;
+    svg.querySelectorAll('[data-rack]').forEach(group=>{
+      const signature=group.__uprightSignatureV133;
+      let entry=m2SharedFootHolders.get(group);
+      if(!entry||entry.signature!==signature){
+        const profiles=group.querySelectorAll('.m2-b2b-plan-upright:not(.rafex-profile-merge-source-v61)');
+        const holder=profiles.length?document.createElementNS(ns,'g'):null;
+        if(holder){
+          holder.setAttribute('data-shared-foot',group.getAttribute('data-rack'));
+          profiles.forEach(source=>{
+            const clone=source.cloneNode(true);
+            clone.removeAttribute('id');
+            clone.classList.add('rafex-shared-upright-v60');
+            clone.style.setProperty('opacity','1','important');
+            holder.appendChild(clone);
+          });
+        }
+        entry={holder,signature};
+        m2SharedFootHolders.set(group,entry);
+      }
+      const {holder}=entry;
+      if(!holder)return;
+      const transform=group.getAttribute('transform')||'';
+      if(holder.getAttribute('transform')!==transform)holder.setAttribute('transform',transform);
+      keep.add(holder);
+      if(holder===cursor)cursor=cursor.nextSibling;
+      else layer.insertBefore(holder,cursor);
+    });
+    for(const child of [...layer.children])if(!keep.has(child))child.remove();
+    if(!keep.size)layer.remove();
+    else if(svg.lastChild!==layer)svg.appendChild(layer);
+  }
+`+html.slice(sharedFeetEnd);
+  const palletStart=html.indexOf('              for (let pallet = 0;',html.indexOf('const rackHtmlV212='));
+  const palletEnd=html.indexOf('            const variantLabelV305=',palletStart);
+  const rowEnd=html.lastIndexOf('            }',palletEnd);
+  if(palletStart<0||palletEnd<0||rowEnd<palletStart)throw Error('Pallet row geometry missing');
+  const originalPalletRow=html.slice(palletStart,rowEnd);
+  const loop=originalPalletRow
+    .replace('if(m2ColumnPalletBlockedV504(rack,row,pallet))continue;','if(blocked.has(pallet))continue;')
+    .replace('rack.x + uprightW','uprightW')
+    .replaceAll('palletY','0')
+    .replaceAll('html+=','rowHtml+=')
+    .replaceAll('html +=','rowHtml +=')
+    .replace(/const trayAccessory=.*?trayTotal=/,'const trayTotal=');
+  html=html.slice(0,palletStart)+`              if(!sharedPlans){
+${originalPalletRow}              }else{
+              const blocked=new Set((rack.columnPassageV504?.slots||[]).filter(slot=>slot.row===row).map(slot=>slot.pallet));
+              const trayAccessory=rack.b2b?.mr&&(rack.b2b.accessories||[]).find(item=>item?.type==='tray'&&(item.levels||[]).length);
+              const trayPieces=trayAccessory&&typeof mrTrayPlanV5==='function'?mrTrayPlanV5(Number(rack.b2b.width)||layout.palletWidth,Number(trayAccessory.width)||300).pieces:[];
+              const rowKey=JSON.stringify([layout.palletCount,uprightW,planGapPx,planPalletW,palletH,!!rack.b2b?.mr,rack.b2b?.showPallets!==false,trayPieces,[...blocked]]);
+              let rowHtml=m2PalletRowTemplates.get(rowKey);
+              if(rowHtml===undefined){
+                rowHtml='';
+${loop}                if(m2PalletRowTemplates.size>=256)m2PalletRowTemplates.delete(m2PalletRowTemplates.keys().next().value);
+                m2PalletRowTemplates.set(rowKey,rowHtml);
+              }
+              if(rowHtml)html+='<g transform="translate('+rack.x+' '+palletY+')">'+rowHtml+'</g>';
+              }
+`+html.slice(rowEnd);
+  return html.replace('const m2SharedPlanRegistries=new WeakMap();','const m2SharedPlanRegistries=new WeakMap(),m2PalletRowTemplates=new Map();');
+}
+
+export function removeInvisiblePlanLines(html){
+  const start=html.indexOf('const rackHtmlV212='),end=html.indexOf('rackCacheV212.set(rack.id',start);
+  if(start<0||end<0)throw Error('Rack SVG template missing');
+  const before=html.slice(start,end);
+  // The editor and PDF stylesheet already hide these two sets of internal lines.
+  // Keep the pallet/tray outlines and every interactive element.
+  const after=before.replace(/<line\b[^>]*\bclass="(?:m2-b2b-plan-pallet-line|m2-mr-plan-tray-fold)"[^>]*\/>/g,'');
+  if(after===before)throw Error('Hidden pallet and tray lines missing');
+  return html.slice(0,start)+after+html.slice(end);
 }
 
 export function cacheLayoutInventory(html){
