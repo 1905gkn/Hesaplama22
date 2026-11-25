@@ -1,5 +1,4 @@
 (()=>{
- if(new URLSearchParams(location.search).get('canvas144')!=='1')return;
  const ns='http://www.w3.org/2000/svg',selector='#m2LayoutContent > g[data-rack]';
  const props=['fill','fill-opacity','stroke','stroke-opacity','stroke-width','stroke-linecap','stroke-linejoin',
   'stroke-dasharray','opacity','font-family','font-size','font-weight','letter-spacing','text-anchor',
@@ -9,8 +8,9 @@
   '#m2LayoutSvg[data-canvas144] '+selector+' > .m2-layout-rack{fill:transparent!important}'+
   '#m2LayoutSvg[data-canvas144] '+selector+' > .m2-layout-rack:not(.selected){stroke:transparent!important}}';
  document.head.append(style);
- let overlay=null,generation=0,timer=0,enabled=true,button=null;
- const project144=()=>String(window.rafexProjectIdentityV133?.displayNumber??document.getElementById('rafexProjectDisplayNumber')?.textContent??'').trim()==='144';
+ let overlay=null,generation=0,timer=0,button=null;
+ let enabled=new URLSearchParams(location.search).get('canvas144')==='1';
+ const project144=()=>/^0*144$/.test(String(window.rafexProjectIdentityV133?.displayNumber??document.getElementById('rafexProjectDisplayNumber')?.textContent??'').trim());
  function clear(){
   generation++;clearTimeout(timer);
   document.getElementById('m2LayoutSvg')?.removeAttribute('data-canvas144');
@@ -19,10 +19,13 @@
  function toggleButton(svg){
   if(button?.isConnected)return;
   button=document.createElement('button');button.type='button';
-  button.textContent='Canvas denemesini kapat';
+  button.id='rafexCanvasTrial144';
+  button.textContent=enabled?'Canvas denemesini kapat':'Canvas denemesini aç';
+  button.setAttribute('aria-pressed',String(enabled));
   button.onclick=()=>{
    enabled=!enabled;
    button.textContent=enabled?'Canvas denemesini kapat':'Canvas denemesini aç';
+   button.setAttribute('aria-pressed',String(enabled));
    if(enabled)schedule();else clear();
   };
   (svg.closest('.m2-floor-canvas-wrap')||svg).before(button);
@@ -30,7 +33,6 @@
  async function paint(){
   const svg=document.getElementById('m2LayoutSvg');
   if(!svg||!project144()||!enabled||m2LayoutState.drag||window.rafexViewportV248?.exporting)return;
-  toggleButton(svg);
   const groups=[...svg.querySelectorAll(selector)];
   if(!groups.length)return;
   const epoch=generation,started=performance.now(),root=document.createElementNS(ns,'svg');
@@ -83,13 +85,19 @@
   }finally{URL.revokeObjectURL(url);}
  }
  function schedule(){
+  if(!project144()&&!button&&!overlay)return;
   clear();
   if(!project144()){button?.remove();button=null;return;}
-  if(enabled&&project144()&&!window.rafexViewportV248?.exporting)
+  const svg=document.getElementById('m2LayoutSvg');
+  if(svg)toggleButton(svg);
+  if(enabled&&!window.rafexViewportV248?.exporting)
    timer=setTimeout(()=>void paint().catch(()=>clear()),180);
  }
  const render=m2RenderLayout;
- m2RenderLayout=function(){clear();try{return render.apply(this,arguments);}finally{schedule();}};
+ m2RenderLayout=function(){
+  if(!project144()&&!button&&!overlay)return render.apply(this,arguments);
+  clear();try{return render.apply(this,arguments);}finally{schedule();}
+ };
  const drag=m2ApplyLiveRackDrag;
  m2ApplyLiveRackDrag=function(){if(overlay)clear();return drag.apply(this,arguments);};
  window.addEventListener('pointerup',()=>{if(enabled&&!overlay&&project144())schedule();},true);
