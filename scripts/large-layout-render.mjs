@@ -1,5 +1,7 @@
 import fs from 'node:fs';
 import {pathToFileURL} from 'node:url';
+import {createGroupSolver} from '../client/group-placement-worker.mjs';
+import {wallCuts559} from './target-placement-v559.mjs';
 
 export function optimizeLargeLayout(html) {
   const replace=(before,after)=>{
@@ -55,7 +57,44 @@ export function optimizeLargeLayout(html) {
     'if(ids.size){const existing=new Set(racks().map(r=>r.id));ids=new Set([...ids].filter(id=>existing.has(id)));}');
   replace('function render(){syncSelection();m2RenderLayout();syncUi();}',
     'function render(){syncSelection();m2RenderSelectionOnly();syncUi();}');
-  return reduceFreeLayoutWork(retainSelectionPreview(retainLayoutEdits(html)));
+  return addGroupPlacementWorker(reduceFreeLayoutWork(retainSelectionPreview(retainLayoutEdits(html))));
+}
+
+export function addGroupPlacementWorker(html){
+  const replace=(before,after)=>{
+    if(!html.includes(before))throw Error('Group worker anchor missing: '+before);
+    html=html.replace(before,()=>after);
+  };
+  const runtime=fs.readFileSync(new URL('./group-placement-runtime.js',import.meta.url),'utf8');
+  replace('      function m2ApplyLiveRackDragBaseV266(svg,drag,clientX,clientY){',
+    runtime+'\n      function m2ApplyLiveRackDragBaseV266(svg,drag,clientX,clientY,workerResult,workerCompleted=false){');
+  replace('const nextX=point.x-drag.dx,nextY=point.y-drag.dy;\n        if(drag.selectionGroup){',
+    `const nextX=point.x-drag.dx,nextY=point.y-drag.dy;
+        if(!workerCompleted&&m2QueueGroupPlacement(drag,nextX-drag.originX,nextY-drag.originY,result=>{
+          const previous=m2MemberFrameV266;
+          m2MemberFrameV266=++m2MemberFrameSerialV266;
+          try{m2ApplyLiveRackDragBaseV266(svg,drag,clientX,clientY,result,true);}
+          finally{m2MemberFrameV266=previous;}
+        }))return;
+        const workerPosition=workerResult&&m2GroupTranslationValid(drag.groupMembers,workerResult.dx,workerResult.dy)?workerResult:null;
+        if(drag.selectionGroup){`);
+  replace('adjusted=m2SmoothGroupTranslation(drag.groupMembers,targetDx,targetDy);m2ApplyGroupTranslation',
+    'adjusted=workerPosition||m2SmoothGroupTranslation(drag.groupMembers,targetDx,targetDy);m2ApplyGroupTranslation');
+  replace('adjusted=freeGroup?m2SmoothFreeGroupTranslation(drag.groupMembers,targetDx,targetDy):m2SmoothGroupTranslation(drag.groupMembers,targetDx,targetDy);',
+    'adjusted=freeGroup?m2SmoothFreeGroupTranslation(drag.groupMembers,targetDx,targetDy):workerPosition||m2SmoothGroupTranslation(drag.groupMembers,targetDx,targetDy);');
+  replace('m2ApplyLiveRackDrag(svg,drag,clientX,clientY);\n      }\n      function m2ClearMultiSelection',
+    'm2CloseGroupPlacement(drag);drag.groupWorkerFlush=true;\n        try{m2ApplyLiveRackDrag(svg,drag,clientX,clientY);}finally{drag.groupWorkerFlush=false;}\n      }\n      function m2ClearMultiSelection');
+  return html;
+}
+
+export function groupPlacementWorkerSource(){
+  return createGroupSolver.toString()+'\n'+wallCuts559.toString()+`
+let solver;
+self.onmessage=({data})=>{
+ if(data.geometry){solver=createGroupSolver(data.geometry,wallCuts559);return;}
+ if(solver)self.postMessage(solver.solve(data.startDx,data.startDy,data.targetDx,data.targetDy));
+};
+`;
 }
 
 export function reduceFreeLayoutWork(html){
@@ -418,4 +457,8 @@ if(process.argv[1]&&pathToFileURL(process.argv[1]).href===import.meta.url){
   const source=process.argv[2]||'dist/index.html';
   const target=process.argv[3]||source;
   fs.writeFileSync(target,optimizeLargeLayout(fs.readFileSync(source,'utf8')));
+  if(!process.argv[2]){
+    fs.mkdirSync('dist/runtime-assets',{recursive:true});
+    fs.writeFileSync('dist/runtime-assets/group-placement-worker-v1.js',groupPlacementWorkerSource());
+  }
 }
