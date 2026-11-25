@@ -55,7 +55,73 @@ export function optimizeLargeLayout(html) {
     'if(ids.size){const existing=new Set(racks().map(r=>r.id));ids=new Set([...ids].filter(id=>existing.has(id)));}');
   replace('function render(){syncSelection();m2RenderLayout();syncUi();}',
     'function render(){syncSelection();m2RenderSelectionOnly();syncUi();}');
-  return retainSelectionPreview(retainLayoutEdits(html));
+  return reduceFreeLayoutWork(retainSelectionPreview(retainLayoutEdits(html)));
+}
+
+export function reduceFreeLayoutWork(html){
+  const replace=(before,after)=>{
+    if(!html.includes(before))throw Error('Free layout work anchor missing: '+before);
+    html=html.replace(before,()=>after);
+  };
+  replace('window.rafexPinRulerV221?.();window.rafexDimensionLayoutV499?.(node);',
+    'window.rafexPinRulerV221?.();scheduleCameraDimensions(node);');
+  replace('  function expectedViewBox(){',
+    `  let cameraDimensionTimer=0,cameraDimensionScale=null,cameraDimensionSvg=null;
+  function scheduleCameraDimensions(node){
+    const scale=view.w+':'+view.h;
+    clearTimeout(cameraDimensionTimer);
+    if(node===cameraDimensionSvg&&scale===cameraDimensionScale)return;
+    cameraDimensionTimer=setTimeout(()=>{
+      if(node!==svg()||!node.isConnected)return;
+      cameraDimensionSvg=node;cameraDimensionScale=scale;
+      window.rafexDimensionLayoutV499?.(node);
+    },140);
+  }
+  function expectedViewBox(){`);
+  replace('      function m2RenderSelectedRackInfo() {',
+    `      let m2LayoutTotals=null;
+      function m2ReadLayoutTotals(){
+        const racks=m2LayoutState.racks;
+        if(m2LayoutTotals?.racks===racks&&m2LayoutTotals.count===racks.length)return m2LayoutTotals;
+        const byId=new Map(racks.map(rack=>[rack.id,rack]));
+        let pallets=0,feet=0;
+        for(const rack of racks){
+          pallets+=rafexPalletCapacity(rack);
+          if(rack.b2bLayout)feet+=2*(Number(rack.b2bLayout.rowCount)||1)-sharedRows(rack,byId);
+        }
+        return m2LayoutTotals={racks,count:racks.length,pallets,feet};
+      }
+      function m2RenderSelectedRackInfo() {`);
+  replace('const parent=racks.find(r=>r.id===rack.sharedFootWith);if(!parent)return false;',
+    'const parent=racks instanceof Map?racks.get(rack.sharedFootWith):racks.find(r=>r.id===rack.sharedFootWith);if(!parent)return false;');
+  replace('const layoutTotalPallets = m2LayoutState.racks.reduce((total, item) => total + rafexPalletCapacity(item), 0);',
+    'const {pallets:layoutTotalPallets,feet:layoutB2BFootCount}=m2ReadLayoutTotals();');
+  replace('        const layoutB2BFootCount = m2LayoutState.racks.reduce((total,item) => total + (item.b2bLayout ? 2 * (Number(item.b2bLayout.rowCount) || 1) - (sharedRows(item,m2LayoutState.racks)) : 0),0);','');
+  replace('if(!m2LayoutState.drag&&!window.rafexViewportV248?.viewportOnly)m2SyncEditingIndex();',
+    'if(!m2LayoutState.drag&&!window.rafexViewportV248?.viewportOnly&&!m2LargeSelectionRender){m2LayoutTotals=null;m2SyncEditingIndex();}');
+  replace('for(const member of members)m2UpdateIndexedRack(member);',
+    'for(const member of members)if(m2UpdateIndexedRack(member))m2LayoutTotals=null;');
+  replace('      function m2NearestColumnGap(rack) {\n        const table=',
+    '      function m2NearestColumnGap(rack) {\n        if(!m2LayoutSymbols.some(symbol=>symbol.type==="column"))return null;\n        const table=');
+  replace('function m2RackOverlapsBlockingSymbol(rack,x=rack.x,y=rack.y,angle=rack.angle){const a=m2RackBounds(rack,x,y,angle);',
+    'function m2RackOverlapsBlockingSymbol(rack,x=rack.x,y=rack.y,angle=rack.angle){if(!m2LayoutSymbols.length)return false;const symbols=m2PerfBlockingSymbols();if(!symbols.length)return false;const a=m2RackBounds(rack,x,y,angle);');
+  replace('};const symbols=m2PerfBlockingSymbols();return m2ColumnExtensionContextV504?',
+    '};return m2ColumnExtensionContextV504?');
+  replace('function m2MekikColumnGroupTargetV512(origins,targetDx,targetDy){\n let fraction=',
+    'function m2MekikColumnGroupTargetV512(origins,targetDx,targetDy){\n if(!m2PerfColumnObstacles().length)return{dx:targetDx,dy:targetDy};\n let fraction=');
+  replace('function m2MekikColumnTargetV512(rack,targetX,targetY){\n if(!m2IsMekikV512(rack))',
+    `function m2PerfColumnObstacles(){
+ const drag=m2LayoutState.drag;
+ if(drag?.perfColumns)return drag.perfColumns;
+ const columns=m2LayoutSymbols.length?m2PerfBlockingSymbols().filter(symbol=>symbol.type==='column'):[];
+ if(drag)drag.perfColumns=columns;
+ return columns;
+}
+function m2MekikColumnTargetV512(rack,targetX,targetY){
+ if(!m2IsMekikV512(rack))`);
+  replace('const dx=targetX-rack.x,dy=targetY-rack.y,a=m2RackBounds(rack);let fraction=1;\n for(const symbol of m2PerfBlockingSymbols()){if(symbol.type!==\'column\')continue;',
+    'const columns=m2PerfColumnObstacles();if(!columns.length)return{x:targetX,y:targetY};\n const dx=targetX-rack.x,dy=targetY-rack.y,a=m2RackBounds(rack);let fraction=1;\n for(const symbol of columns){');
+  return html;
 }
 
 export function retainSelectionPreview(html){
