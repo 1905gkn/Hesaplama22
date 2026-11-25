@@ -18,7 +18,7 @@ export function transform(html){
     const name=String(rack.rafexGlobalTypeLetter||rack.typeName||'').trim();
     const systemName=names[system]||(rack.b2b?.mr?'MR':rack.b2b?'B2B':rack.konsol?'Konsol Kollu':'Mekik');
     const label=['Drive-In','Mekik'].includes(systemName)?systemName:'';
-    const matrix=labelMatrixBatch583?.get(group)||group.getScreenCTM(),scale=Math.hypot(matrix?.a||1,matrix?.b||0)||1;
+    const matrix=labelMatrixBatch583?.get(group)||group.getScreenCTM(),scale=Math.hypot(matrix?.a??1,matrix?.b??0)||1;
     /* rack-label-v171 */
     const ratio=Math.max(.1,Math.min(2,Number(window.rafexCommonTypeLetterScaleV65?.())||1));
     const tunnel=Number(rack.b2b?.tunnelHeight)>0;
@@ -31,10 +31,15 @@ export function transform(html){
     const x=coord('x',rack.x)+coord('width',rack.w)/2,y=coord('y',rack.y)+coord('height',rack.h)/2-(tunnel?size*2/3:0);
     const small=size*5/6,gap=size;
     const color=m2TypeColor(name);
-    const signature=[name,label,color,x,y,size,ratio,tunnel].join('|');
+    const angle=Number(rack.angle)||0;
+    const centerY=coord('y',rack.y)+coord('height',rack.h)/2;
+    const upright=angle%360?'rotate('+(-angle%360)+' '+x+' '+centerY+')':'';
+    const signature=[name,label,color,x,y,size,ratio,tunnel,upright].join('|');
     let mark=group.querySelector('.rafex-rack-label-v160');
     if(mark?.getAttribute('data-signature')===signature)return;
     if(!mark){mark=document.createElementNS(NS,'g');mark.setAttribute('class','rafex-rack-label-v160');mark.setAttribute('pointer-events','none');group.appendChild(mark);}
+    if(upright)mark.setAttribute('transform',upright);
+    else if(mark.getAttribute('transform')!==null)mark.removeAttribute('transform');
     mark.setAttribute('data-signature',signature);mark.setAttribute('aria-label',[name,label].filter(Boolean).join(' '));mark.replaceChildren();
     for(const [text,baseline,font,weight] of [[name,y,size,'700'],[label,y+gap,small,'400']]){
       if(!text)continue;
