@@ -27,14 +27,22 @@ export function transformAccessoryFinishes(source){
   source=all?source.replaceAll(anchor,value):source.replace(anchor,value);
  };
  const traverseColor='(COLORS[this.options.traverseColor] ?? COLORS.ral1007)';
- replace('section.add(stop);','paintRackAccessory(stop, '+traverseColor+'); section.add(stop);',true);
+ replace('section.add(stop);','finishPalletStop(stop, '+traverseColor+', THREE); section.add(stop);',true);
  replace('section.add(h);','paintRackAccessory(h, '+traverseColor+'); section.add(h);');
  replace('layer.add(tray);','paintRackAccessory(tray, COLORS.galvanized); layer.add(tray);');
  replace('section.add(wire);','paintRackAccessory(wire, COLORS.galvanized); section.add(wire);');
  replace('hReferenceSpan.outerDepth + 16','hReferenceSpan.outerDepth');
  replace('if (hSpan) h.position.y += 2;','');
- // The folded end plate bears at Z=84 on the 89 mm source profile.
- // Seat that underside, while the deeper central profile hangs between beams.
- replace('this.seatAccessoryOnTraverses(h, hSpan, 0.71);\n          h.position.z += 50;','this.seatAccessoryOnTraverses(h, hSpan);\n          if (hSpan) h.position.z += 84;');
- return 'const paintRackAccessory = '+paintAccessory.toString()+';\n'+source;
+ // In the rack CAD assembly, increasing local Z lowers the part.
+ replace('this.seatAccessoryOnTraverses(h, hSpan, 0.71);\n          h.position.z += 50;','this.seatAccessoryOnTraverses(h, hSpan);\n          if (hSpan) h.position.z += 129;');
+ return 'const paintRackAccessory = '+paintAccessory.toString()+';\n'+finishPalletStop.toString()+';\n'+source;
+}
+
+export function finishPalletStop(root,color,THREE){
+ const material=new THREE.MeshLambertMaterial({color,emissive:color,emissiveIntensity:.22,side:THREE.DoubleSide});
+ root.traverse(mesh=>{
+  if(!mesh.isMesh)return;
+  mesh.material=Array.isArray(mesh.material)?mesh.material.map(()=>material):material;
+  mesh.userData.palletStopColor=color;
+ });
 }

@@ -49,8 +49,8 @@ export function nativeRenderBatches(racks,byRack){
    const roughness=rack.system==='konsol'?Math.max(.42,part.roughness??.42):rack.system==='mr'?(part.roughness??.42):.42;
    const metalness=rack.system==='konsol'?(part.load?Math.min(.25,part.metalness??.25):.4):rack.system==='mr'?(part.metalness??.4):.48;
    const color=new THREE.Color(part.color).getHex();
-   const key=JSON.stringify([part.geometry.uuid,color,roughness,metalness,!!part.load]);
-   if(!groups.has(key))groups.set(key,{geometry:part.geometry,color,roughness,metalness,load:!!part.load,name:part.name,matrices:[]});
+   const key=JSON.stringify([part.geometry.uuid,color,roughness,metalness,!!part.load,!!part.palletStop]);
+   if(!groups.has(key))groups.set(key,{geometry:part.geometry,color,roughness,metalness,load:!!part.load,palletStop:!!part.palletStop,name:part.name,matrices:[]});
    const group=groups.get(key);
    if(part.matrices){for(const values of part.matrices){local.fromArray(values);group.matrices.push(new THREE.Matrix4().multiplyMatrices(parent.matrix,local));}}
    else group.matrices.push(parent.matrix.clone());
