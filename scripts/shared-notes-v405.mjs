@@ -4,6 +4,13 @@ function sharedNotesRuntimeV405(){
  const expanded=new Set(),byId=id=>(todoItems||[]).find(n=>Number(n.id)===Number(id));
  const size=value=>Number(value)>=1048576?(Number(value)/1048576).toFixed(1)+' MB':Math.ceil(Number(value)/1024)+' KB';
  const date=value=>value?new Date(value).toLocaleString('tr-TR'):'';
+ function renderCommentFiles(note){
+  return (note?.files||[]).map(file=>{
+   const fileId=Number(file.id);
+   return '<li><a href="/api/todos/'+Number(note.id)+'/files/'+fileId+'?download=1" download>'+escNote(file.name)+'</a> '+(note.can_edit?'<button type="button" data-remove-comment-file="'+fileId+'">Dosyayı sil</button>':'')+
+    (file.created_at?'<small style="display:block"><time datetime="'+escNote(file.created_at)+'">'+escNote(new Date(file.created_at).toLocaleString('tr-TR',{timeZone:'Europe/Istanbul'}))+'</time></small>':'')+'</li>';
+  }).join('');
+ }
  const message=(text,bad=false)=>{const el=document.getElementById('todoMsg');if(el){el.textContent=text;el.classList.toggle('error',bad);el.setAttribute('role',bad?'alert':'status');}};
  function dialog(title){let box=document.getElementById('rafexNoteDialogV405');if(!box){box=document.createElement('dialog');box.id='rafexNoteDialogV405';document.body.append(box);box.addEventListener('click',e=>{if(e.target===box)box.close();});}box.innerHTML='<header><h3>'+escNote(title)+'</h3><button type="button" data-close aria-label="Kapat">×</button></header><div class="note-dialog-body"></div><p class="note-dialog-message" role="alert"></p>';box.querySelector('[data-close]').onclick=()=>box.close();box.showModal();return box;}
  function upgrade(){
@@ -45,13 +52,30 @@ function sharedNotesRuntimeV405(){
   expand(id){expanded.has(id)?expanded.delete(id):expanded.add(id);renderTodoRows();if(byId(id)?.is_new)this.seen(id);},
   async seen(id){if(!byId(id)?.is_new)return;try{await req('/api/todos/'+id+'/seen',{method:'POST',body:'{}'});signature='';await loadTodos();}catch(error){message(error.message,true);}},
   async comments(id){
-   const note=byId(id);if(!note)return;const box=dialog('Not içindeki yorumlar'),body=box.querySelector('.note-dialog-body');body.innerHTML='<div class="note-thread-original"></div><div class="note-thread-tools"><button type="button" data-older hidden>Önceki yorumlar</button><button type="button" data-refresh>Yenile</button></div><div class="note-thread-list" aria-live="polite"></div><section class="note-thread-viewers-v409" aria-live="polite"><b>Son yorumu görenler</b><div data-comment-viewers></div></section><label for="noteCommentInputV406">Yorum ekle</label><textarea id="noteCommentInputV406" rows="2" maxlength="5000" placeholder="Notun içine yorumunuzu yazın…"></textarea><button type="button" data-comment-save>Yorumu ekle</button>';body.querySelector('.note-thread-original').textContent=note.text;
-   box.dataset.noteThreadV409=String(id);const active=()=>box.open&&box.dataset.noteThreadV409===String(id);
+   const note=byId(id);if(!note)return;const box=dialog('Not içindeki yorumlar'),body=box.querySelector('.note-dialog-body');body.innerHTML='<div class="note-thread-original"></div><div class="note-thread-tools"><button type="button" data-older hidden>Önceki yorumlar</button><button type="button" data-refresh>Yenile</button></div><div class="note-thread-list" aria-live="polite"></div><section data-thread-files hidden><b>Ekli dosyalar</b><ul></ul></section><section class="note-thread-viewers-v409" aria-live="polite"><b>Son yorumu görenler</b><div data-comment-viewers></div></section><label for="noteCommentInputV406">Yorum ekle</label><textarea id="noteCommentInputV406" rows="2" maxlength="5000" placeholder="Notun içine yorumunuzu yazın…"></textarea><button type="button" data-comment-save>Yorumu ekle</button>';body.querySelector('.note-thread-original').textContent=note.text;
+   box.dataset.noteThreadV409=String(id);const active=()=>box.open&&body.isConnected&&box.dataset.noteThreadV409===String(id);
+   const fileSection=body.querySelector('[data-thread-files]'),fileList=fileSection.querySelector('ul');
+   const paintFiles=()=>{const files=renderCommentFiles(byId(id)||note);if(files!==fileList.innerHTML)fileList.innerHTML=files;fileSection.hidden=!files;};
+   paintFiles();
+   fileSection.addEventListener('click',async event=>{
+    const button=event.target.closest('[data-remove-comment-file]'),current=byId(id)||note;
+    if(!button||button.disabled||!current.can_edit)return;
+    const fileId=Number(button.dataset.removeCommentFile);
+    if(!current.files?.some(file=>Number(file.id)===fileId)||!confirm('Bu dosya silinsin mi?'))return;
+    button.disabled=true;
+    try{
+     await req('/api/todos/'+id+'/files/'+fileId,{method:'DELETE',body:'{}'});
+     for(const entry of new Set([note,byId(id)]))if(entry)entry.files=(entry.files||[]).filter(file=>Number(file.id)!==fileId);
+     if(active()){paintFiles();box.querySelector('.note-dialog-message').textContent='';}
+     signature='';renderTodoRows();await loadTodos();
+    }catch(error){if(active())box.querySelector('.note-dialog-message').textContent=error.message;}
+    finally{button.disabled=false;}
+   });
    const paintReaders=readers=>{body.querySelector('[data-comment-viewers]').innerHTML=(readers||[]).map(u=>'<span>'+escNote(u.full_name||u.username)+' <small>'+escNote(date(u.seen_at))+'</small></span>').join('')||'<small>Henüz görüntüleyen yok.</small>';};
    let comments=[],older=null,loaded=false,reading=false;const paint=()=>{body.querySelector('.note-thread-list').innerHTML=comments.map(c=>'<article class="note-thread-comment"><header><strong>'+escNote(c.full_name||c.username)+'</strong><time>'+escNote(date(c.created_at))+'</time></header><div>'+escNote(c.text)+'</div></article>').join('')||'<p>Henüz yorum yok.</p>';body.querySelector('[data-older]').hidden=!older;};
    const read=async(previous=false)=>{if(reading||!active())return;reading=true;try{
     const data=await req('/api/todos/'+id+'/comments'+(previous&&older?'?before='+older:''));if(!active())return;
-    comments=[...new Map([...comments,...data.comments].map(c=>[c.id,c])).values()].sort((a,b)=>a.id-b.id);if(previous||!loaded)older=data.nextBefore;loaded=true;paint();paintReaders(data.readers);
+    comments=[...new Map([...comments,...data.comments].map(c=>[c.id,c])).values()].sort((a,b)=>a.id-b.id);if(previous||!loaded)older=data.nextBefore;loaded=true;paint();paintReaders(data.readers);paintFiles();
     const through=Math.max(0,...data.comments.map(c=>Number(c.id)||0));
     if(through&&document.visibilityState==='visible'){const seen=await req('/api/todos/'+id+'/comment-seen',{method:'POST',body:JSON.stringify({lastCommentId:through})});if(!active())return;paintReaders(seen.readers);signature='';await loadTodos();}
    }catch(error){if(active())box.querySelector('.note-dialog-message').textContent=error.message;}finally{reading=false;}};
