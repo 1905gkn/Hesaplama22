@@ -57,7 +57,56 @@ export function optimizeLargeLayout(html) {
     'if(ids.size){const existing=new Set(racks().map(r=>r.id));ids=new Set([...ids].filter(id=>existing.has(id)));}');
   replace('function render(){syncSelection();m2RenderLayout();syncUi();}',
     'function render(){syncSelection();m2RenderSelectionOnly();syncUi();}');
-  return addCanvasLayoutTrial(addGroupPlacementWorker(reduceFreeLayoutWork(retainSelectionPreview(retainLayoutEdits(html)))));
+  return addCanvasLayoutTrial(addGroupPlacementWorker(cacheLayoutInventory(reduceFreeLayoutWork(retainSelectionPreview(retainLayoutEdits(html))))));
+}
+
+export function cacheLayoutInventory(html){
+  const replace=(before,after)=>{
+    if(!html.includes(before))throw Error('Layout inventory anchor missing: '+before);
+    html=html.replace(before,()=>after);
+  };
+  replace('      let m2LayoutTotals=null;',
+    `      let m2LayoutTotals=null,m2InventoryRevision=0;
+      function m2InvalidateLayoutInventory(){m2InventoryRevision++;m2LayoutTotals=null;}
+      function m2InventoryInputs(){
+        return [m2InventoryRevision,m2LayoutState,m2LayoutState.racks,m2LayoutState.racks.length,
+          m2LayoutSymbols,m2LayoutSymbols.length,m2LayoutState.rafexRegionsV426];
+      }
+      function m2SameInventoryInputs(a,b){return Boolean(a&&b&&a.every((value,i)=>value===b[i]));}
+      function m2InventoryUsesPosition(){
+        return Boolean(m2LayoutState.rafexRegionsV426?.length||
+          m2LayoutSymbols.some(symbol=>symbol.type==="column"||symbol.type==="barrier"));
+      }`);
+  replace('function m2PushUndo(label){m2UndoHistory.push(m2UndoSnapshot(label));',
+    `function m2PushUndo(label){
+        if(!/^(?:Ölçü yerini taşı|Arası ölçü türü)$/.test(label))m2InvalidateLayoutInventory();
+        m2UndoHistory.push(m2UndoSnapshot(label));`);
+  replace('const snapshot=m2UndoHistory.pop();if(!snapshot){m2UpdateUndoButton();return;}',
+    'const snapshot=m2UndoHistory.pop();if(!snapshot){m2UpdateUndoButton();return;}m2InvalidateLayoutInventory();');
+  replace('const racks=m2LayoutState.racks;\n        if(m2LayoutTotals?.racks===racks&&m2LayoutTotals.count===racks.length)return m2LayoutTotals;',
+    'const racks=m2LayoutState.racks,inputs=m2InventoryInputs();\n        if(m2SameInventoryInputs(m2LayoutTotals?.inputs,inputs))return m2LayoutTotals;');
+  replace('return m2LayoutTotals={racks,count:racks.length,pallets,feet};',
+    'return m2LayoutTotals={inputs,pallets,feet};');
+  replace('{m2LayoutTotals=null;m2SyncEditingIndex();}', 'm2SyncEditingIndex();');
+  replace('for(const member of members)if(m2UpdateIndexedRack(member))m2LayoutTotals=null;',
+    'for(const member of members)m2UpdateIndexedRack(member);');
+  replace('if (!targets.length) return;\n        targets.forEach((rack) => {',
+    'if (!targets.length) return;\n        m2InvalidateLayoutInventory();\n        targets.forEach((rack) => {');
+  replace('function render(force){\n    var host=document.getElementById(\'m2LayoutProductList\');if(!host)return false;\n    window.rafexRegionsV179?.sync?.();',
+    `let previousInventoryInputs=null,previousInventoryHost=null;
+  function render(force){
+    var host=document.getElementById('m2LayoutProductList');if(!host)return false;
+    const inputs=m2InventoryInputs();
+    if(force!==true&&host===previousInventoryHost&&host.dataset.rafexInventoryStable==='v46'&&m2SameInventoryInputs(previousInventoryInputs,inputs))return true;
+    window.rafexRegionsV179?.sync?.();
+    previousInventoryInputs=m2InventoryInputs();previousInventoryHost=host;`);
+  replace('if(revision===refreshedRevision)return;refreshedRevision=revision;syncV428();m2RenderLayoutProductList();draw();',
+    'if(revision===refreshedRevision)return;refreshedRevision=revision;if(m2InventoryUsesPosition()){m2InvalidateLayoutInventory();syncV428();m2RenderLayoutProductList();draw();}');
+  replace('if(!interactiveRender&&!window.rafexViewportV248?.viewportOnly&&!m2LargeSelectionRender){m2RenderLayoutProductList();const placingRack=m2LayoutState.racks.some((rack)=>rack?.staged||rack?.freePlacement);if(!placingRack)m2ScheduleReportRefresh(650);}',
+    'if(!interactiveRender&&!window.rafexViewportV248?.viewportOnly&&!m2LargeSelectionRender&&!m2SameInventoryInputs(m2LastLayoutInventoryInputs,m2InventoryInputs())){m2RenderLayoutProductList();const placingRack=m2LayoutState.racks.some((rack)=>rack?.staged||rack?.freePlacement);if(!placingRack){m2LastLayoutInventoryInputs=m2InventoryInputs();m2ScheduleReportRefresh(650);}}');
+  replace('let m2LayoutTotals=null,m2InventoryRevision=0;',
+    'let m2LayoutTotals=null,m2LastLayoutInventoryInputs=null,m2InventoryRevision=0;');
+  return html;
 }
 
 export function addCanvasLayoutTrial(html){
