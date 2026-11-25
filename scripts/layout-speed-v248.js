@@ -1,5 +1,5 @@
 (()=>{
- const ns='http://www.w3.org/2000/svg';let svg=null,observer=null,resize=null,frame=0,rendering=false,visible=null,signature='',scene=null,full=0,finishing=false;
+ const ns='http://www.w3.org/2000/svg';let svg=null,observer=null,resize=null,viewportTimer=0,rendering=false,visible=null,signature='',scene=null,full=0,finishing=false,viewportOnly=false;
  let pointerMatrix=null;
  const oldPoint=m2SvgPoint;m2SvgPoint=function(event){const drag=state()?.drag,node=document.getElementById('m2LayoutSvg');if(!drag||!node)return oldPoint.apply(this,arguments);const box=node.getAttribute('viewBox');if(!pointerMatrix||pointerMatrix.drag!==drag||pointerMatrix.node!==node||pointerMatrix.box!==box){const matrix=node.getScreenCTM();if(!matrix)return oldPoint.apply(this,arguments);pointerMatrix={drag,node,box,inverse:matrix.inverse()};}const p=new DOMPoint(event.clientX,event.clientY).matrixTransform(pointerMatrix.inverse);return{x:p.x,y:p.y};};
  const invalidatePointer=()=>{pointerMatrix=null;};window.addEventListener('scroll',invalidatePointer,{capture:true,passive:true});window.addEventListener('resize',invalidatePointer,{passive:true});
@@ -7,7 +7,7 @@
  function compute(){
   const s=state(),node=document.getElementById('m2LayoutSvg');if(full||!s||!node||s.racks.length<80)return null;
   const rect=node.getBoundingClientRect(),matrix=node.getScreenCTM();if(!matrix||rect.width<2||rect.height<2)return null;
-  const inv=matrix.inverse(),a=new DOMPoint(Math.max(0,rect.left),Math.max(0,rect.top)).matrixTransform(inv),b=new DOMPoint(Math.min(innerWidth,rect.right),Math.min(innerHeight,rect.bottom)).matrixTransform(inv),margin=Math.max(5,Math.max(Math.abs(b.x-a.x),Math.abs(b.y-a.y))*.06);
+  const inv=matrix.inverse(),a=new DOMPoint(Math.max(0,rect.left),Math.max(0,rect.top)).matrixTransform(inv),b=new DOMPoint(Math.min(innerWidth,rect.right),Math.min(innerHeight,rect.bottom)).matrixTransform(inv),margin=Math.max(5,Math.max(Math.abs(b.x-a.x),Math.abs(b.y-a.y))*.18);
   const selected=s.racks.find(r=>r.id===s.selected),moving=new Set((s.drag?.groupMembers||[]).map(r=>Number(r.id))),ids=new Set();if(s.drag)moving.add(Number(s.drag.id));
   for(const r of s.racks){const box=m2RackBounds(r),keep=moving.has(Number(r.id))||r.id===s.selected||m2MultiSelect.rackIds.has(r.id)||(selected?.joinGroup&&r.joinGroup===selected.joinGroup);if(keep||!(box.right<a.x-margin||box.left>b.x+margin||box.bottom<a.y-margin||box.top>b.y+margin))ids.add(Number(r.id));}
   // A visible child's shared frame may be painted by its preceding module.
@@ -16,7 +16,18 @@
  }
  const key=ids=>ids?[...ids].join(','):'all';
  function prepare(){visible=compute();signature=key(visible);return visible;}
- function schedule(){if(!frame)frame=requestAnimationFrame(()=>{frame=0;if(rendering||full)return;if(state()?.drag){schedule();return;}restore();const next=compute();if(key(next)!==signature)m2RenderLayout();});}
+ function schedule(){
+  if(viewportTimer)clearTimeout(viewportTimer);
+  viewportTimer=setTimeout(()=>{
+   viewportTimer=0;
+   if(rendering||full||state()?.drag)return;
+   restore();
+   const next=compute();
+   if(key(next)===signature)return;
+   viewportOnly=true;
+   try{m2RenderLayout();}finally{viewportOnly=false;}
+  },110);
+ }
  function bind(){const next=document.getElementById('m2LayoutSvg');if(next===svg)return;observer?.disconnect();resize?.disconnect();svg=next;if(!svg)return;observer=new MutationObserver(()=>{if(scene)scene.moving.setAttribute('viewBox',svg.getAttribute('viewBox'));invalidatePointer();schedule();});observer.observe(svg,{attributes:true,attributeFilter:['viewBox']});resize=new ResizeObserver(()=>{restore();invalidatePointer();schedule();});resize.observe(svg);}
  function restore(){if(!scene)return;const old=scene;scene=null;for(const [node,base] of old.bases)node.setAttribute("transform","translate("+old.dx+" "+old.dy+") "+base);for(const item of old.items){if(item.marker.isConnected)item.marker.replaceWith(item.node);}old.moving.remove();old.svg.style.willChange=old.willChange;old.svg.style.transform=old.transform;if(old.position!==null)old.parent.style.position=old.position;}
  function isolate(){
@@ -40,7 +51,7 @@
  const finish=m2FinishRetainedDragV107;m2FinishRetainedDragV107=function(){finishing=true;restore();try{return finish.apply(this,arguments)}finally{finishing=false;schedule();}};
  const shared=m2PerfTranslateSharedFeet;m2PerfTranslateSharedFeet=function(drag,ids,dx,dy){if(!drag.perfSharedFootEntries){drag.perfSharedFootEntries=Array.from(document.querySelectorAll('#m2LayoutSvg .rafex-shared-foot-layer-v60 [data-shared-foot]')).map(node=>({node,ids:String(node.dataset.sharedFoot).split(':').map(Number),baseTransform:node.getAttribute('transform')||''})).filter(e=>e.ids.some(id=>ids.has(id)));}return shared.apply(this,arguments);};
  function withFull(fn){restore();full++;try{m2RenderLayout();return fn();}finally{full--;if(!full)m2RenderLayout();}}
- window.rafexViewportV248={prepare,visible:()=>visible,withFull,get exporting(){return full>0},restore,schedule,get scene(){return !!scene;}};
+ window.rafexViewportV248={prepare,visible:()=>visible,withFull,get exporting(){return full>0},get viewportOnly(){return viewportOnly&&full===0},restore,schedule,get scene(){return !!scene;}};
  const cache=new Map(),planRender=window.rafexRenderPlanV143;
  if(planRender)window.rafexRenderPlanV143=function(plan,options){const key=JSON.stringify([plan,options]);if(cache.has(key))return cache.get(key);const result=planRender(plan,options);if(cache.size>=256)cache.delete(cache.keys().next().value);cache.set(key,result);return result;};
  window.rafexLayoutBudgetV152={update:schedule,cache};
