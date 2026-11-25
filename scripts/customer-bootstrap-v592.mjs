@@ -8,7 +8,7 @@ export async function customerBootstrap592(request,{proxyApi}){
  const unlockResponse=await forward('/unlock',{method:'POST',headers:{'content-type':'application/json',origin:url.origin},body:JSON.stringify({password:''})});if(!unlockResponse.ok)return unlockResponse;
  const auth=await unlockResponse.json();
  // Legacy image-only shares keep their existing compatible image read path.
- if(!auth.snapshot)return Response.json({...auth,passwordRequired:false},{headers:{'cache-control':'no-store'}});
+ if(!auth.snapshot||url.searchParams.get('mode')==='plan')return Response.json({...auth,passwordRequired:false},{headers:{'cache-control':'no-store'}});
  const snapshot=await forward('/snapshot',{headers:{Authorization:'Bearer '+auth.session}});if(!snapshot.ok)return snapshot;
  const snapshotBody=Buffer.from(await snapshot.arrayBuffer()).toString('base64');
  return Response.json({...auth,passwordRequired:false,snapshotBody},{headers:{'cache-control':'no-store','x-content-type-options':'nosniff'}});

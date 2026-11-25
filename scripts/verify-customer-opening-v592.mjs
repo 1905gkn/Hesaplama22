@@ -3,12 +3,18 @@ import {customerBootstrap592} from './customer-bootstrap-v592.mjs';
 import {customerBlockGroups} from '../client/customer-block-groups-v592.mjs';
 import {instanceRepeatedAccessories592} from '../client/accessory-instances-v592.mjs';
 const request=new Request('https://test.invalid/api/customer-view/alias/bootstrap',{method:'POST'});
-async function run(responses){const calls=[];const result=await customerBootstrap592(request,{proxyApi:async r=>{calls.push({path:new URL(r.url).pathname.split('/').at(-1),authorization:r.headers.get('authorization'),body:r.method==='POST'?await r.json():null});return responses[calls.length-1];}});return{calls,result};}
+async function run(responses,entry=request){const calls=[];const result=await customerBootstrap592(entry,{proxyApi:async r=>{calls.push({path:new URL(r.url).pathname.split('/').at(-1),authorization:r.headers.get('authorization'),body:r.method==='POST'?await r.json():null});return responses[calls.length-1];}});return{calls,result};}
 let test=await run([Response.json({passwordRequired:true})]);assert.equal(test.calls.length,1);assert.equal((await test.result.json()).passwordRequired,true);
 test=await run([new Response('expired',{status:410})]);assert.equal(test.result.status,410);assert.equal(test.calls.length,1);
 test=await run([Response.json({passwordRequired:false}),new Response('denied',{status:403})]);assert.equal(test.result.status,403);assert.equal(test.calls.length,2);
 const bytes=Uint8Array.from([31,139,8,0,255]);test=await run([Response.json({passwordRequired:false}),Response.json({session:'test-session',snapshot:{encoding:'gzip-json'}}),new Response(bytes)]);
 assert.deepEqual(test.calls.map(c=>c.path),['info','unlock','snapshot']);assert.equal(test.calls[2].authorization,'Bearer test-session');assert.deepEqual(test.calls[1].body,{password:''});const response=await test.result.json();assert.deepEqual([...Buffer.from(response.snapshotBody,'base64')],[...bytes]);assert.equal(test.result.headers.get('cache-control'),'no-store');
+const planRequest=new Request(request.url+'?mode=plan',{method:'POST'});
+test=await run([Response.json({passwordRequired:false}),Response.json({session:'test-session',snapshot:{encoding:'gzip-json'}})],planRequest);
+assert.deepEqual(test.calls.map(c=>c.path),['info','unlock']);
+assert.equal((await test.result.json()).snapshotBody,undefined);
+test=await run([Response.json({passwordRequired:true})],planRequest);
+assert.equal(test.calls.length,1);
 const geometry=new THREE.BoxGeometry(.2,.035,1.1),parts=[],expected=[];let originalBytes=0;
 for(let level=0;level<18;level++)for(let panel=0;panel<9;panel++){const g=geometry.clone().translate(panel*.2,level*.53,0);g.computeBoundingBox();expected.push(g.attributes.position.array.slice());originalBytes+=g.attributes.position.array.byteLength;parts.push({geometry:g,color:0xaeb8bd,sourceKey:'same-native-tray',renderSystem:'b2b'});}
 const prepared=instanceRepeatedAccessories592(parts);assert.equal(prepared.length,1);assert.equal(prepared[0].matrices.length,162);
