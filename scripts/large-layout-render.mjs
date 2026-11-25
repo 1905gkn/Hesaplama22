@@ -55,7 +55,77 @@ export function optimizeLargeLayout(html) {
     'if(ids.size){const existing=new Set(racks().map(r=>r.id));ids=new Set([...ids].filter(id=>existing.has(id)));}');
   replace('function render(){syncSelection();m2RenderLayout();syncUi();}',
     'function render(){syncSelection();m2RenderSelectionOnly();syncUi();}');
-  return retainLayoutEdits(html);
+  return retainSelectionPreview(retainLayoutEdits(html));
+}
+
+export function retainSelectionPreview(html){
+  const replace=(before,after)=>{
+    if(!html.includes(before))throw Error('Selection preview anchor missing: '+before);
+    html=html.replace(before,()=>after);
+  };
+  replace('      function m2QueueLayoutRender() {',
+    `      let m2SelectionPreview, m2SelectionPreviewFrame=0;
+      function m2PaintSelectionPreview(){
+        const svg=$("m2LayoutSvg"),start=m2MultiSelect.start,end=m2MultiSelect.hover;
+        if(!svg||!m2MultiSelect.active||!start||!end){m2SelectionPreview?.remove();return false;}
+        if(m2SelectionPreview?.parentNode!==svg){
+          m2SelectionPreview?.remove();
+          const ns="http://www.w3.org/2000/svg";
+          m2SelectionPreview=document.createElementNS(ns,"g");
+          m2SelectionPreview.setAttribute("pointer-events","none");
+          m2SelectionPreview.setAttribute("aria-hidden","true");
+          const rect=document.createElementNS(ns,"rect"),label=document.createElementNS(ns,"text");
+          rect.setAttribute("class","m2-multi-selection-area");
+          label.setAttribute("class","m2-multi-selection-label");
+          label.setAttribute("text-anchor","middle");
+          label.textContent="TOPLU SEÇİM";
+          m2SelectionPreview.append(rect,label);svg.append(m2SelectionPreview);
+        }
+        const [rect,label]=m2SelectionPreview.children;
+        const x=Math.min(start.x,end.x),y=Math.min(start.y,end.y),width=Math.abs(start.x-end.x),height=Math.abs(start.y-end.y);
+        for(const [key,value] of Object.entries({x,y,width,height}))rect.setAttribute(key,value);
+        label.setAttribute("x",x+width/2);label.setAttribute("y",y+height/2);
+        return true;
+      }
+      function m2QueueSelectionPreview(){
+        if(!m2SelectionPreviewFrame)m2SelectionPreviewFrame=requestAnimationFrame(()=>{
+          m2SelectionPreviewFrame=0;m2PaintSelectionPreview();
+        });
+      }
+      function m2QueueLayoutRender() {
+        if(m2MultiSelect.active&&m2MultiSelect.start){m2QueueSelectionPreview();return;}`);
+  replace('m2MultiSelect.start=point;m2MultiSelect.hover=point;svg.setPointerCapture?.(event.pointerId);m2RenderLayout();return;',
+    'm2MultiSelect.start=point;m2MultiSelect.hover=point;svg.setPointerCapture?.(event.pointerId);m2QueueSelectionPreview();return;');
+  replace('"Toplu seçim kapatıldı.";m2RenderLayout();','"Toplu seçim kapatıldı.";m2RenderSelectionOnly();');
+  replace('function m2RenderSelectionOnly(){\n        const layer=', 'function m2RenderSelectionOnly(){\n        m2PaintSelectionPreview();\n        const layer=');
+  replace('function m2ClearMultiSelection(keepMode=false){m2MultiSelect.rackIds.clear();',
+    'function m2ClearMultiSelection(keepMode=false){m2SelectionPreview?.remove();m2MultiSelect.rackIds.clear();');
+  const start=html.indexOf('        if(m2MultiSelect.active&&m2MultiSelect.start&&m2MultiSelect.hover){const x=');
+  const end=html.indexOf('\n',start);
+  if(start<0||end<0)throw Error('Missing legacy selection preview');
+  html=html.slice(0,start)+html.slice(end+1);
+  replace('if(m2MultiSelect.active&&m2MultiSelect.start){m2CommitMultiSelection();return;}',
+    'if(m2MultiSelect.active&&m2MultiSelect.start){m2MultiSelect.hover=m2SvgPoint(event);try{m2CommitMultiSelection();}finally{m2QueueSelectionPreview();}return;}');
+  replace('const layer = $("m2LayoutContent"); if (!layer) return;\n        m2NormalizeSeismicBraces();',
+    'const layer = $("m2LayoutContent"); if (!layer) return;\n        m2PaintSelectionPreview();\n        m2NormalizeSeismicBraces();');
+  replace('window.rafexFitNameplatesV136=groups=>(groups||svg()?.querySelectorAll("[data-rack]"))?.forEach(compactNameplateV136);',
+    `const resizeQueue=new Set();
+    let resizeFrame=0;
+    function resizeNameplates(){
+      resizeFrame=0;
+      const deadline=performance.now()+5;
+      for(const group of resizeQueue){
+        resizeQueue.delete(group);
+        if(group.isConnected)compactNameplateV136(group);
+        if(performance.now()>=deadline)break;
+      }
+      if(resizeQueue.size)resizeFrame=requestAnimationFrame(resizeNameplates);
+    }
+    window.rafexFitNameplatesV136=groups=>{
+      for(const group of groups||svg()?.querySelectorAll("[data-rack]")||[])resizeQueue.add(group);
+      if(resizeQueue.size&&!resizeFrame)resizeFrame=requestAnimationFrame(resizeNameplates);
+    };`);
+  return html;
 }
 
 export function retainLayoutEdits(html) {
