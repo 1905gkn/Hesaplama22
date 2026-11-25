@@ -4,11 +4,12 @@ const areaMaskStates436=new WeakMap();
 export function areaBoundaryMask436(root){
  if(!root?.getScreenCTM)return;
  const matrix=root.getScreenCTM();if(!matrix)return;
+ const inverse=matrix.inverse();
  const boundaries=[...root.querySelectorAll('.m2-floor-area,.m2-floor-walls,.m2-floor-draft,.rafex-cad-wall')].filter(n=>!n.closest('[data-area-mask-v436]'));
  if(!boundaries.length)return;
  const texts=[...root.querySelectorAll('text[data-dimension-key],text.m2-layout-label,text.m2-area-dimension,text.m2-wall-distance-label,text.m2-rack-distance-label,text.m2-free-measure-label,text.m2-user-note')];
  const polygons=[];
- for(const text of texts){try{const style=getComputedStyle(text);if(style.display==='none'||style.visibility==='hidden'||!text.textContent?.trim())continue;const b=text.getBBox();if(!b.width||!b.height)continue;const p=Math.max(.5,Math.min(3,b.height*.16)),m=matrix.inverse().multiply(text.getScreenCTM());polygons.push([[b.x-p,b.y-p],[b.x+b.width+p,b.y-p],[b.x+b.width+p,b.y+b.height+p],[b.x-p,b.y+b.height+p]].map(([x,y])=>[(m.a*x+m.c*y+m.e).toFixed(3),(m.b*x+m.d*y+m.f).toFixed(3)].join(',')).join(' '));}catch{}}
+ for(const text of texts){try{const style=getComputedStyle(text);if(style.display==='none'||style.visibility==='hidden'||!text.textContent?.trim())continue;const b=text.getBBox();if(!b.width||!b.height)continue;const p=Math.max(.5,Math.min(3,b.height*.16)),m=inverse.multiply(text.getScreenCTM());polygons.push([[b.x-p,b.y-p],[b.x+b.width+p,b.y-p],[b.x+b.width+p,b.y+b.height+p],[b.x-p,b.y+b.height+p]].map(([x,y])=>[(m.a*x+m.c*y+m.e).toFixed(3),(m.b*x+m.d*y+m.f).toFixed(3)].join(',')).join(' '));}catch{}}
  const signature=JSON.stringify([polygons,boundaries.map(n=>[n.tagName,n.getAttribute('points'),n.getAttribute('d'),n.getAttribute('x1'),n.getAttribute('y1'),n.getAttribute('x2'),n.getAttribute('y2'),n.getAttribute('transform')])]);
  let state=areaMaskStates436.get(root);if(state?.signature===signature&&state.defs.isConnected)return;
  const ns='http://www.w3.org/2000/svg',make=(tag,attrs={})=>{const n=document.createElementNS(ns,tag);for(const [key,value] of Object.entries(attrs))n.setAttribute(key,String(value));return n;};
@@ -24,12 +25,62 @@ export function areaBoundaryMask436(root){
  }catch{}});
 }
 export function areaBoundaryRuntime436(){
- if(window.rafexAreaMasks436)return;const attached=new WeakSet();let queued=false;
- const own=node=>node?.nodeType===1&&(node.matches?.('[data-area-mask-v436]')||node.closest?.('[data-area-mask-v436]'));
- const relevant=records=>records.some(r=>!own(r.target)&&!(r.type==='childList'&&[...r.addedNodes,...r.removedNodes].length&&[...r.addedNodes,...r.removedNodes].every(own)));
- const run=()=>{queued=false;for(const root of document.querySelectorAll('#m2LayoutSvg,#m2ReportFloor svg,#m2CorporatePreview svg,#m2CorporatePrint svg,#m2CorporatePrintArea svg')){if(!attached.has(root)){attached.add(root);new MutationObserver(records=>{if(relevant(records))schedule();}).observe(root,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['transform','x','y','points','d','viewBox','font-size','style']});}areaBoundaryMask436(root);}};
- const schedule=()=>{if(!queued){queued=true;requestAnimationFrame(run);}};
- new MutationObserver(records=>{if(relevant(records))schedule();}).observe(document.body,{subtree:true,childList:true});window.addEventListener('resize',schedule);document.fonts?.ready.then(schedule);window.rafexAreaMasks436={apply:areaBoundaryMask436,refresh:schedule};schedule();
+ if(window.rafexAreaMasks436)return;
+ const roots='#m2LayoutSvg,#m2ReportFloor svg,#m2CorporatePreview svg,#m2CorporatePrint svg,#m2CorporatePrintArea svg';
+ const geometry='.m2-floor-area,.m2-floor-walls,.m2-floor-draft,.rafex-cad-wall,text[data-dimension-key],text.m2-layout-label,text.m2-area-dimension,text.m2-wall-distance-label,text.m2-rack-distance-label,text.m2-free-measure-label,text.m2-user-note';
+ const attached=new WeakSet(),dirty=new Set();
+ let queued=false,discover=false;
+ const own=node=>node?.nodeType===1&&!!node.closest?.('[data-area-mask-v436]');
+ const affectsGeometry=node=>node?.nodeType===1&&!own(node)&&
+   !!(node.closest?.(geometry)||node.querySelector?.(geometry));
+ const size=value=>(value||'').trim().split(/[\s,]+/).slice(2).map(Number).join(',');
+ function relevant(record,root){
+  const {target,type,attributeName,oldValue}=record;
+  if(own(target))return false;
+  if(type==='attributes'&&target===root){
+   return attributeName!=='viewBox'||size(oldValue)!==size(root.getAttribute('viewBox'));
+  }
+  if(type==='characterData')return affectsGeometry(target.parentElement);
+  if(type==='childList'){
+   if(target.closest?.(geometry))return true;
+   return [...record.addedNodes,...record.removedNodes].some(affectsGeometry);
+  }
+  return affectsGeometry(target);
+ }
+ const resize=typeof ResizeObserver==='function'?new ResizeObserver(entries=>{
+  for(const {target} of entries)request(target);
+ }):null;
+ function attach(root){
+  if(attached.has(root))return;
+  attached.add(root);resize?.observe(root);
+  new MutationObserver(records=>{
+   if(records.some(record=>relevant(record,root)))request(root);
+  }).observe(root,{subtree:true,childList:true,characterData:true,attributes:true,
+   attributeOldValue:true,attributeFilter:['transform','x','y','points','d','viewBox','font-size','style']});
+ }
+ function run(){
+  queued=false;
+  if(discover){
+   discover=false;
+   for(const root of document.querySelectorAll(roots)){attach(root);dirty.add(root);}
+  }
+  for(const root of dirty)if(root.isConnected)areaBoundaryMask436(root);
+  dirty.clear();
+ }
+ function request(root){
+  if(root)dirty.add(root);
+  else discover=true;
+  if(!queued){queued=true;requestAnimationFrame(run);}
+ }
+ const refresh=()=>request();
+ new MutationObserver(records=>{
+  if(records.some(record=>[...record.addedNodes].some(node=>node.nodeType===1&&
+    (node.matches?.(roots)||node.querySelector?.(roots)))))refresh();
+ }).observe(document.body,{subtree:true,childList:true});
+ window.addEventListener('resize',refresh);
+ document.fonts?.ready.then(refresh);
+ window.rafexAreaMasks436={apply:areaBoundaryMask436,refresh};
+ refresh();
 }
 
 export function customerShareRuntime431(){

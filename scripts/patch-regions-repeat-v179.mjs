@@ -50,24 +50,57 @@ export function regionColorV426(regions){
  throw Error('Bölge renkleri oluşturulamadı.');
 }
 export function syncRegionsV426(state,racks,symbols,bounds){
- const regions=new Map((state.rafexRegionsV426||[]).map(r=>[r.id,r]));
- for(const item of [...racks,...symbols]){const region=item.rafexRegionV179;if(region?.id)regions.set(region.id,{...region,box:region.box?{...region.box}:undefined});}
+ const previous=state.rafexRegionsV426;
+ const regions=new Map((previous||[]).map(region=>[region.id,region]));
+ let hasItemRegion=false;
+ for(const items of [racks,symbols])for(const item of items){
+  const region=item.rafexRegionV179;
+  if(region)hasItemRegion=true;
+  if(region?.id)regions.set(region.id,region);
+ }
+ if(!regions.size&&!hasItemRegion)return previous||(state.rafexRegionsV426=[]);
+
  const reserved=[...regions.values()].filter(r=>r.colorManual===true||(r.colorManual==null&&r.color&&r.color.toLowerCase()!=='#267952')).map(r=>r.color.toLowerCase());
  const used=new Set(reserved);
- for(const region of regions.values()){
+ for(const [id,region] of regions){
   const explicit=region.colorManual===true||(region.colorManual==null&&region.color&&region.color.toLowerCase()!=='#267952');
-  if(!explicit){if(!/^#[0-9a-f]{6}$/i.test(region.color||'')||used.has(region.color.toLowerCase()))region.color=regionColorV426([...regions.values(),...[...used].map(color=>({color}))]);region.colorManual=false;}
-  else region.colorManual=true;
-  used.add(region.color.toLowerCase());
+  const color=!explicit&&(!/^#[0-9a-f]{6}$/i.test(region.color||'')||used.has(region.color.toLowerCase()))
+   ?regionColorV426([...regions.values(),...[...used].map(value=>({color:value}))])
+   :region.color;
+  const colorManual=Boolean(explicit);
+  if(color!==region.color||colorManual!==region.colorManual)regions.set(id,{...region,color,colorManual});
+  used.add(color.toLowerCase());
  }
  const valid=[...regions.values()].filter(r=>r.id&&r.box&&['left','right','top','bottom'].every(k=>Number.isFinite(r.box[k]))&&r.box.right>r.box.left&&r.box.bottom>r.box.top);
- state.rafexRegionsV426=[...regions.values()];
+ const copyRegion=region=>({...region,box:region.box?{...region.box}:undefined});
+ const signatures=new WeakMap();
+ const signature=region=>{
+  if(!region||typeof region!=='object')return JSON.stringify(region);
+  if(!signatures.has(region))signatures.set(region,JSON.stringify(region));
+  return signatures.get(region);
+ };
+ const sameRegion=(a,b)=>a===b||signature(a)===signature(b);
+ const next=[...regions.values()];
+ const sameRegions=previous?.length===next.length&&next.every((region,i)=>sameRegion(region,previous[i]));
+ if(!sameRegions)state.rafexRegionsV426=next.map(region=>previous?.includes(region)?region:copyRegion(region));
+
  const inside=(r,x,y)=>x>=r.box.left&&x<=r.box.right&&y>=r.box.top&&y<=r.box.bottom;
- const assign=(item,region)=>{if(region){if(JSON.stringify(item.rafexRegionV179)!==JSON.stringify(region))item.rafexRegionV179={...region,box:region.box?{...region.box}:undefined};}else delete item.rafexRegionV179;};
+ let membershipChanged=false;
+ const assign=(item,region)=>{
+  if(region){
+   if(sameRegion(item.rafexRegionV179,region))return;
+   item.rafexRegionV179=copyRegion(region);
+  }else{
+   if(!Object.hasOwn(item,'rafexRegionV179'))return;
+   delete item.rafexRegionV179;
+  }
+  membershipChanged=true;
+ };
  const choose=(item,x,y)=>valid.find(r=>r.id===item.rafexRegionV179?.id&&inside(r,x,y))||valid.findLast(r=>inside(r,x,y));
  for(const rack of racks){
+  if(!valid.length){if(rack.rafexRegionV179?.box)assign(rack,null);continue;}
   const b=bounds(rack),region=choose(rack,(b.left+b.right)/2,(b.top+b.bottom)/2);
-  if(valid.length||rack.rafexRegionV179?.box)assign(rack,region);
+  assign(rack,region);
  }
  const byId=new Map(racks.map(r=>[String(r.id),r]));
  for(const symbol of symbols){
@@ -75,6 +108,7 @@ export function syncRegionsV426(state,racks,symbols,bounds){
   if(owner)assign(symbol,owner.rafexRegionV179);
   else if(valid.length||symbol.rafexRegionV179?.box)assign(symbol,choose(symbol,Number(symbol.x)+Number(symbol.w||0)/2,Number(symbol.y)+Number(symbol.h||0)/2));
  }
+ if(sameRegions&&membershipChanged)state.rafexRegionsV426=previous.slice();
  return state.rafexRegionsV426;
 }
 

@@ -12,17 +12,31 @@ export function runtime(){
   const a=m2GapBoundsV346(rack);
   return m2LayoutState.racks.some(other=>other.id!==rack.id&&!(rack.joinGroup&&rack.joinGroup===other.joinGroup)&&blocksWall(a,m2GapBoundsV346(other),d,item.px));
  };
+ let automaticSizeCache=null;
+ function automaticSize(){
+  const state=m2LayoutState,racks=state.racks;
+  const index=typeof m2EditingIndex==='undefined'?null:m2EditingIndex;
+  const revision=index?.racks===racks&&index.records.size===racks.length?index.revision:null;
+  const basis=state.rackGapBasis;
+  if(revision!==null&&automaticSizeCache?.state===state&&automaticSizeCache.racks===racks&&
+     automaticSizeCache.revision===revision&&automaticSizeCache.basis===basis)return automaticSizeCache.size;
+  const sizes=racks.map(r=>{const b=m2GapBoundsV346(r);return Math.min(b.right-b.left,b.bottom-b.top)}).filter(n=>n>0).sort((a,b)=>a-b);
+  const size=Math.max(1.5,Math.min(12,(sizes[Math.floor(sizes.length/2)]||60)*.2));
+  if(revision!==null)automaticSizeCache={state,racks,revision,basis,size};
+  return size;
+ }
  window.rafexDimensionLayoutV499=layer=>{
   if(!layer?.isConnected)return;
-  const sizes=m2LayoutState.racks.map(r=>{const b=m2GapBoundsV346(r);return Math.min(b.right-b.left,b.bottom-b.top)}).filter(n=>n>0).sort((a,b)=>a-b);
-  const automatic=Math.max(1.5,Math.min(12,(sizes[Math.floor(sizes.length/2)]||60)*.2)),occupied=[];
-  const labels=[...layer.querySelectorAll('text[data-dimension-key]')],hits=new Map();
+  const labels=[...layer.querySelectorAll('text[data-dimension-key]')].filter(text=>!text.dataset.dimensionKey.startsWith('mark-label:'));
+  if(!labels.length)return;
+  const occupied=[],hits=new Map();
+  let automatic;
   for(const hit of layer.querySelectorAll('rect.m2-measure-hit[data-dimension-key]')){const key=hit.dataset.dimensionKey;if(!hits.has(key))hits.set(key,[]);hits.get(key).push(hit);}
   for(const text of labels){
-   const key=text.dataset.dimensionKey;if(key.startsWith('mark-label:'))continue;
+   const key=text.dataset.dimensionKey;
    if(text.dataset.layout499Transform===undefined)text.dataset.layout499Transform=text.getAttribute('transform')||'';
    text.setAttribute('transform',text.dataset.layout499Transform);
-   const size=m2DimensionFontSizes[key]??m2DimensionFontSizes.__all??automatic;
+   const size=m2DimensionFontSizes[key]??m2DimensionFontSizes.__all??(automatic??=automaticSize());
    text.style.setProperty('font-size',size+'px','important');
    text.style.setProperty('stroke-width',Math.max(.25,size*.1)+'px','important');
    const original=text.getBoundingClientRect(),step=Math.max(original.height,original.width>original.height?0:size)*1.3+3;
