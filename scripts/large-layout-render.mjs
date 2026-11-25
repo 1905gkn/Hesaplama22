@@ -55,6 +55,24 @@ export function optimizeLargeLayout(html) {
     'if(ids.size){const existing=new Set(racks().map(r=>r.id));ids=new Set([...ids].filter(id=>existing.has(id)));}');
   replace('function render(){syncSelection();m2RenderLayout();syncUi();}',
     'function render(){syncSelection();m2RenderSelectionOnly();syncUi();}');
+  replace('          liveIdsV212.add(rack.id);if(visibleV248&&!visibleV248.has(Number(rack.id)))return;',
+    `          liveIdsV212.add(rack.id);if(visibleV248&&!visibleV248.has(Number(rack.id)))return;
+          if(window.rafexViewportV248?.isOverview?.(rack.id)){
+            const selected=rack.id===m2LayoutState.selected||m2MultiSelect.rackIds.has(rack.id);
+            const typeName=rack.typeName||'RAF '+(index+1),color=esc(m2TypeColor(rack.typeName));
+            const cx=rack.x+rack.w/2,cy=rack.y+rack.h/2,angle=Number(rack.angle)||0;
+            const label=esc(b2bTypeLetter(typeName,index+1)),font=Math.max(.5,Math.min(20,Math.min(rack.w,rack.h)*.63));
+            html+=\`<g data-rack="\${rack.id}" data-rack-overview="" data-rack-type="\${esc(typeName)}" data-type-color="\${color}" transform="rotate(\${angle} \${cx} \${cy})"><rect x="\${rack.x}" y="\${rack.y}" width="\${rack.w}" height="\${rack.h}" class="m2-layout-rack\${selected?' selected':''}" style="fill:\${color};fill-opacity:\${selected ? .28 : .14};stroke:\${color};stroke-width:\${selected ? 2 : 1};pointer-events:all" vector-effect="non-scaling-stroke"/><text x="\${cx}" y="\${cy}" dominant-baseline="central" text-anchor="middle" transform="rotate(\${-angle} \${cx} \${cy})" style="fill:\${color};font-size:\${font}px;font-weight:750;pointer-events:none">\${label}</text></g>\`;
+            return;
+          }`);
+  replace('function decorateRack(group,screenScaleV133,rack){group.classList.add("rafex-type-contour");',
+    'function decorateRack(group,screenScaleV133,rack){if(group.hasAttribute("data-rack-overview"))return;group.classList.add("rafex-type-contour");');
+  replace("svg.querySelectorAll('[data-rack]').forEach(group=>{\n      const profiles=group.querySelectorAll",
+    "svg.querySelectorAll('[data-rack]:not([data-rack-overview])').forEach(group=>{\n      const profiles=group.querySelectorAll");
+  replace('if(label&&label.textContent!==textV186)label.textContent=textV186;window.rafexPinRulerV221?.();window.rafexDimensionLayoutV499?.(node);',
+    'if(label&&label.textContent!==textV186)label.textContent=textV186;window.rafexPinRulerV221?.();if(window.rafexViewportV248?.measureZoom)window.rafexViewportV248.measureZoom(view.w);else window.rafexDimensionLayoutV499?.(node);');
+  replace('        window.rafexRefreshPairDistances?.();\n      }\n      function m2DiscardUndo',
+    '        window.rafexRefreshPairDistances?.();\n        window.rafexViewportV248?.schedule();\n      }\n      function m2DiscardUndo');
   return html;
 }
 
