@@ -21,7 +21,7 @@ assert.equal(chooseDetailRack([{id:1}],()=>({pixels:400,x:0,y:0,z:0})).id,1);
 const lodRuntime=fs.readFileSync('client/layout-3d.entry.js','utf8');
 assert.ok(!lodRuntime.includes('return makeViewer(host,data,{},new Map(),options)'),'Customer links must retain the full CAD scene at every distance');
 assert.ok(lodRuntime.includes('const templates=await loadViewerCad(data),parts=await loadPreparedAccessories(data.racks,templates)')&&lodRuntime.includes('Promise.all([loadLayoutCad(data.racks),loadProtectionCad(data.symbols),loadBackMeshCad(data.racks)])'),'Load all original rack/accessory details together with protection CAD');
-assert.ok(lodRuntime.includes('cad:options.customerFastOverview!==true,simple:options.customerFastOverview===true'));assert.ok(runtime.includes('customerFastOverview:fastOverview'));assert.ok(runtime.includes('qualityButton.onclick'));
+assert.ok(lodRuntime.includes('options.customerFastOverview?customerOverviewParts(r):rackParts(r,{cad:true,'));assert.ok(runtime.includes('customerFastOverview:fastOverview'));assert.ok(runtime.includes('qualityButton.onclick'));
 assert.ok(!lodRuntime.includes('createDetailController'),'Zooming must not replace or remove CAD detail');
 assert.ok(lodRuntime.includes('if(paused||disposed)return;'),'Hidden layout must not render');
 assert.match(runtime,/view\?\.pause\(true\);(?:if\(!dialog\.open\))?dialog\.showModal\(\)/,'Opening or switching details pauses the main layout before opening the dialog');
@@ -32,6 +32,15 @@ const fullParts=customerParts(proxyRack),lightParts=customerParts(proxyRack,{sim
 assert.equal(lightParts.filter(p=>p.kind==='load').length,12);
 assert.equal(lightParts.filter(p=>p.kind==='timber').length,0);
 assert.ok(lightParts.length<fullParts.length*.3);
+const {prepareCustomerOverview}=await import('../client/customer-prepared-overview.mjs');
+const {readCustomerOverview}=await import('../client/customer-overview-wire.mjs');
+const overview=await prepareCustomerOverview([{...proxyRack,id:'a',x:1},{...proxyRack,id:'b',x:20}]);
+assert.equal(overview.templates.length,1);
+const restoredOverview=readCustomerOverview(JSON.parse(JSON.stringify(overview)));
+assert.equal(restoredOverview.size,2);
+assert.equal(restoredOverview.get('a'),restoredOverview.get('b'),'Repeated racks reuse a decoded template');
+assert.deepEqual(restoredOverview.get('a'),lightParts.map(p=>Object.fromEntries(Object.entries(p).filter(([,value])=>value!==undefined))));
+assert.equal(readCustomerOverview(null).size,0,'Older shares remain compatible');
 console.log('PASS lightweight overview with retained pallet count, detailed CAD option, and detail-dialog suspension.');
 
 

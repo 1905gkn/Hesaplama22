@@ -1,4 +1,5 @@
 import {rackGeometryKey} from './layout-3d-pallet-key.mjs';
+import {prepareCustomerOverview} from './customer-prepared-overview.mjs';
 import {embedSharePayload,readSharePayload,pngDataBytes,pngDataUrl,validateSharePayload,encodeShareSnapshot530,decodeShareSnapshot530} from './customer-share-payload.mjs';
 export function effectivePalletCapacity530(r,base){
  if(Number.isFinite(r.effectivePalletCapacity))return Math.max(0,r.effectivePalletCapacity);
@@ -31,4 +32,13 @@ export async function attachCustomerBlockDetails(manifest,saved,originals=[]){
  manifest.blocks=catalogue;return validateSharePayload(manifest);
 }
 export async function packCustomerSnapshot(png,payload){let original=png;for(let attempt=0;attempt<6;attempt++){const packed=payload?pngDataUrl(await embedSharePayload(pngDataBytes(original),payload)):original;if(packed.length<=3900000)return packed;const image=new Image();await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=original;});const canvas=document.createElement('canvas');canvas.width=Math.round(image.width*.8);canvas.height=Math.round(image.height*.8);canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);original=canvas.toDataURL('image/png');canvas.width=canvas.height=1;}throw Error('3D paylaşım verisi görünüme sığmadı. Projeyi daha küçük bölümlerle paylaşın.');}
-if(typeof window!=='undefined')window.rafexCustomerCapture={create:createCustomerManifest,details:attachCustomerBlockDetails,pack:packCustomerSnapshot,read:readSharePayload,serialize:encodeShareSnapshot530,readSnapshot:decodeShareSnapshot530};
+export async function serializeCustomerShare(payload){
+ if(typeof CompressionStream!=='function')return encodeShareSnapshot530(payload);
+ const overview=await prepareCustomerOverview(payload.layout.racks);
+ if(overview){
+  try{return await encodeShareSnapshot530({...payload,overview});}
+  catch(error){if(!(error instanceof Error)||!error.message.includes('120 MB'))throw error;}
+ }
+ return encodeShareSnapshot530(payload);
+}
+if(typeof window!=='undefined')window.rafexCustomerCapture={create:createCustomerManifest,details:attachCustomerBlockDetails,pack:packCustomerSnapshot,read:readSharePayload,serialize:serializeCustomerShare,readSnapshot:decodeShareSnapshot530};
