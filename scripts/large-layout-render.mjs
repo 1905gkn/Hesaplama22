@@ -57,7 +57,14 @@ export function optimizeLargeLayout(html) {
     'if(ids.size){const existing=new Set(racks().map(r=>r.id));ids=new Set([...ids].filter(id=>existing.has(id)));}');
   replace('function render(){syncSelection();m2RenderLayout();syncUi();}',
     'function render(){syncSelection();m2RenderSelectionOnly();syncUi();}');
-  return addGroupPlacementWorker(reduceFreeLayoutWork(retainSelectionPreview(retainLayoutEdits(html))));
+  return addCanvasLayoutTrial(addGroupPlacementWorker(reduceFreeLayoutWork(retainSelectionPreview(retainLayoutEdits(html)))));
+}
+
+export function addCanvasLayoutTrial(html){
+  const at=html.lastIndexOf('</body>');
+  if(at<0)throw Error('Canvas trial body missing');
+  const runtime=fs.readFileSync(new URL('./canvas-layout-trial.js',import.meta.url),'utf8');
+  return html.slice(0,at)+'<script data-canvas-layout-trial>'+runtime+'</script>'+html.slice(at);
 }
 
 export function addGroupPlacementWorker(html){
