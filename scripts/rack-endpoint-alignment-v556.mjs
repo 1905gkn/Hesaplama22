@@ -4,9 +4,11 @@ export function rackEnds556(r,x=r.x,y=r.y){
  return [[-w/2,-h/2],[w/2,-h/2],[w/2,h/2],[-w/2,h/2]].map(([dx,dy],i)=>({x:cx+dx*c-dy*s,y:cy+dx*s+dy*c,rackId:r.id,end:i}));
 }
 export function groupEnds556(racks,origins,joined){
- const all=origins.flatMap(o=>{const r=racks.find(r=>Number(r.id)===Number(o.id));return r?rackEnds556(r,o.x,o.y):[];});
+ const byId=origins.length>1?new Map(racks.map(r=>[Number(r.id),r])):null;
+ const find=id=>byId?byId.get(Number(id)):racks.find(r=>Number(r.id)===Number(id));
+ const all=origins.flatMap(o=>{const r=find(o.id);return r?rackEnds556(r,o.x,o.y):[];});
  if(!joined||origins.length<2||!all.length)return all;
- const r=racks.find(r=>Number(r.id)===Number(origins[0].id)),a=(Number(r.angle)||0)*Math.PI/180,c=Math.cos(a),s=Math.sin(a),project=all.map(p=>({p,u:p.x*c+p.y*s,v:-p.x*s+p.y*c}));
+ const r=find(origins[0].id),a=(Number(r?.angle)||0)*Math.PI/180,c=Math.cos(a),s=Math.sin(a),project=all.map(p=>({p,u:p.x*c+p.y*s,v:-p.x*s+p.y*c}));
  const minU=Math.min(...project.map(p=>p.u)),maxU=Math.max(...project.map(p=>p.u)),minV=Math.min(...project.map(p=>p.v)),maxV=Math.max(...project.map(p=>p.v));
  return project.filter(p=>(Math.abs(p.u-minU)<.001||Math.abs(p.u-maxU)<.001)&&(Math.abs(p.v-minV)<.001||Math.abs(p.v-maxV)<.001)).map(p=>p.p);
 }

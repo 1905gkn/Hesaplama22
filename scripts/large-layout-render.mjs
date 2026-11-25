@@ -55,6 +55,226 @@ export function optimizeLargeLayout(html) {
     'if(ids.size){const existing=new Set(racks().map(r=>r.id));ids=new Set([...ids].filter(id=>existing.has(id)));}');
   replace('function render(){syncSelection();m2RenderLayout();syncUi();}',
     'function render(){syncSelection();m2RenderSelectionOnly();syncUi();}');
+  return retainLayoutEdits(html);
+}
+
+export function retainLayoutEdits(html) {
+  if (html.includes('function m2SyncEditingIndex()')) return html;
+  const replace=(before,after)=>{
+    if(!html.includes(before))throw Error('Retained layout anchor missing: '+before);
+    html=html.replace(before,()=>after);
+  };
+  const start=html.indexOf('      function m2PerfBuildSpatialTable(){');
+  const end=html.indexOf('      function m2PerfCollisionCandidates(',start);
+  if(start<0||end<0)throw Error('Missing spatial index');
+  html=html.slice(0,start)+`      const m2EditingIndex={records:new Map(),revision:0,rows:new Map(),columns:new Map(),racks:null,symbolRevision:''};
+      function m2EditBuckets(map,from,to,id,add){
+        for(let bucket=Math.floor(from/25);bucket<=Math.floor(to/25);bucket++){
+          let ids=map.get(bucket);
+          if(add){if(!ids)map.set(bucket,ids=new Set());ids.add(id);}
+          else if(ids?.delete(id)&&!ids.size)map.delete(bucket);
+        }
+      }
+      function m2IndexRack(rack,add){
+        const table=m2PerfSpatialTable,id=rack.id;
+        const bounds=add?m2RackBounds(rack):m2EditingIndex.records.get(id).bounds;
+        const gap=add?m2GapBoundsV346(rack):m2EditingIndex.records.get(id).gap;
+        const angle=(Number(rack.angle)||0)*Math.PI/180;
+        const halfW=(Math.abs(Math.cos(angle))*rack.w+Math.abs(Math.sin(angle))*rack.h)/2;
+        const halfH=(Math.abs(Math.sin(angle))*rack.w+Math.abs(Math.cos(angle))*rack.h)/2;
+        const hit=add?{left:Math.min(bounds.left,bounds.cx-halfW),right:Math.max(bounds.right,bounds.cx+halfW),
+          top:Math.min(bounds.top,bounds.cy-halfH),bottom:Math.max(bounds.bottom,bounds.cy+halfH)}:m2EditingIndex.records.get(id).hit;
+        const cell=table.cellSize;
+        for(let x=Math.floor(hit.left/cell);x<=Math.floor(hit.right/cell);x++)
+          for(let y=Math.floor(hit.top/cell);y<=Math.floor(hit.bottom/cell);y++){
+            const key=x+':'+y;
+            let ids=table.grid.get(key);
+            if(add){if(!ids)table.grid.set(key,ids=new Set());ids.add(id);}
+            else if(ids?.delete(id)&&!ids.size)table.grid.delete(key);
+          }
+        m2EditBuckets(m2EditingIndex.rows,Math.min(gap.top,bounds.top),Math.max(gap.bottom,bounds.bottom),id,add);
+        m2EditBuckets(m2EditingIndex.columns,Math.min(gap.left,bounds.left),Math.max(gap.right,bounds.right),id,add);
+        if(add){
+          table.rackById.set(id,rack);
+          m2EditingIndex.records.set(id,{rack,bounds,gap,hit,key:m2EditingRackKey(rack)});
+        }else{
+          table.rackById.delete(id);
+          m2EditingIndex.records.delete(id);
+        }
+      }
+      function m2EditingRackKey(rack){
+        const layout=rack.b2bLayout;
+        return [m2PerfRackGeometryKey(rack),rack.staged,rack.joinGroup,m2LayoutState.rackGapBasis,
+          rack.railLength,layout?.rowCount,layout?.palletOverhang,layout?.frameDepth,layout?.palletDepth,layout?.rowGap].join('|');
+      }
+      function m2UpdateIndexedRack(rack){
+        const previous=m2EditingIndex.records.get(rack.id);
+        if(previous?.rack===rack&&previous.key===m2EditingRackKey(rack))return false;
+        if(previous)m2IndexRack(previous.rack,false);
+        m2IndexRack(rack,true);
+        m2EditingIndex.records.get(rack.id).order=previous?.order;
+        m2EditingIndex.revision++;
+        return true;
+      }
+      function m2SyncEditingIndex(){
+        const racks=m2LayoutState.racks,live=new Set();
+        m2EditingIndex.racks=racks;
+        racks.forEach((rack,order)=>{live.add(rack.id);m2UpdateIndexedRack(rack);m2EditingIndex.records.get(rack.id).order=order;});
+        for(const [id,record] of m2EditingIndex.records)if(!live.has(id)){m2IndexRack(record.rack,false);m2EditingIndex.revision++;}
+        const symbolRevision=JSON.stringify(m2LayoutSymbols.map(s=>[s.id,s.type,s.x,s.y,s.w,s.h,s.angle,s.blocking]));
+        if(symbolRevision!==m2EditingIndex.symbolRevision){
+          m2EditingIndex.symbolRevision=symbolRevision;
+          m2EditingIndex.revision++;
+        }
+      }
+      function m2PerfBuildSpatialTable(){
+        const scope=m2LayoutState.drag||m2CopyCollisionScope;
+        if(!scope)return null;
+        if(m2PerfSpatialTable.drag!==scope){
+          const racks=m2LayoutState.racks;
+          if(m2EditingIndex.racks!==racks||m2EditingIndex.records.size!==racks.length)m2SyncEditingIndex();
+          m2PerfSpatialTable.drag=scope;
+        }
+        return m2PerfSpatialTable;
+      }
+      function m2IndexedGapCandidates(bounds,racks){
+        const ids=new Set();
+        for(let y=Math.floor(bounds.top/25);y<=Math.floor(bounds.bottom/25);y++)for(const id of m2EditingIndex.rows.get(y)||[])ids.add(id);
+        for(let x=Math.floor(bounds.left/25);x<=Math.floor(bounds.right/25);x++)for(const id of m2EditingIndex.columns.get(x)||[])ids.add(id);
+        if(m2EditingIndex.records.size!==racks.length)return racks;
+        return Array.from(ids,id=>m2EditingIndex.records.get(id)).sort((a,b)=>a.order-b.order).map(entry=>entry.rack);
+      }
+`+html.slice(end);
+  replace('const visibleV248=window.rafexViewportV248?.prepare();',
+    'if(!m2LayoutState.drag&&!window.rafexViewportV248?.viewportOnly)m2SyncEditingIndex();\n        const visibleV248=window.rafexViewportV248?.prepare();');
+  replace("const p=m2SvgPoint(event),racks=m2LayoutState.racks;",
+    `const p=m2SvgPoint(event),entries=m2EditingIndex.records,cell=m2PerfSpatialTable.cellSize;
+    const ids=m2PerfSpatialTable.grid.get(Math.floor(p.x/cell)+':'+Math.floor(p.y/cell));
+    const racks=entries.size===m2LayoutState.racks.length&&!m2LayoutState.drag
+      ? Array.from(ids||[],id=>entries.get(id)).sort((a,b)=>a.order-b.order).map(entry=>entry.rack)
+      : m2LayoutState.racks;`);
+  replace('nearest=rackGapSearchV148(rack,a,table.racks,','nearest=rackGapSearchV148(rack,a,m2LayoutState.drag?table.racks:m2IndexedGapCandidates(a,table.racks),');
+  replace('return rackGapSearchV148(owner,m2CombinedGapBoundsV346(owner),table.racks,',
+    'const bounds=m2CombinedGapBoundsV346(owner);return rackGapSearchV148(owner,bounds,m2LayoutState.drag?table.racks:m2IndexedGapCandidates(bounds,table.racks),');
+  replace('function m2RenderSelectionOnly(){\n        const previous=',
+    `let m2SelectionDetailsFrame=0;
+      function m2RenderSelectionOnly(){
+        const layer=$("m2LayoutContent"),id=m2LayoutState.selected;
+        if(layer?.isConnected&&(!id||m2PerfRackDomTable.get(Number(id))?.node?.isConnected)&&!m2LayoutState.drag&&!Object.keys(m2PinnedDimensionsByRack||{}).length){
+          m2PaintSelectionV148(id);
+          const selected=new Set([...m2MultiSelect.symbolIds].map(String));
+          if(m2SelectedSymbolId!=null)selected.add(String(m2SelectedSymbolId));
+          layer.querySelectorAll('.m2-layout-symbol.selected').forEach(node=>node.classList.toggle('selected',selected.has(node.dataset.layoutSymbol)));
+          for(const symbol of selected)m2PerfSymbolDomTable.get(symbol)?.node?.classList.add('selected');
+          cancelAnimationFrame(m2SelectionDetailsFrame);
+          m2SelectionDetailsFrame=requestAnimationFrame(()=>setTimeout(()=>{
+            if(id!==m2LayoutState.selected||m2LayoutState.drag||layer!==$("m2LayoutContent"))return;
+            const rack=m2SelectedRack();
+            layer.querySelectorAll('.m2-wall-guide[data-wall-rack],.m2-distance-guide[data-rack-gap]').forEach(node=>node.remove());
+            layer.querySelectorAll('[data-dimension-key^="column-gap:"]').forEach(node=>node.closest('.m2-distance-guide')?.remove());
+            if(rack){
+              const overlay=m2PerfEnsureDragOverlay(layer,id);
+              overlay.innerHTML=m2WallDistanceGuides(rack,{left:true,right:true,top:true,bottom:true,gap:true})+m2RackDistanceGuide(rack)+m2ColumnDistanceGuide(rack);
+              window.rafexDimensionLayoutV499?.(overlay);
+            }
+            m2PerfRefreshStaticSelectionUi(id);
+          },0));
+          return;
+        }
+        const previous=`);
+  replace('if(Number(group?.dataset.rack)!==Number(rackId))paint(group,false)});paint(layer.querySelector(\'[data-rack="\'+rackId+\'"]\'),true);',
+    'if(!selected.has(Number(group?.dataset.rack)))paint(group,false)});for(const id of selected)paint(m2PerfRackDomTable.get(id)?.node,true);');
+  replace('if(layer){const changedV148=new Set();',
+    'if(layer){const selected=new Set([...m2MultiSelect.rackIds].map(Number));if(rackId!=null)selected.add(Number(rackId));const changedV148=new Set();');
+  replace('const pendingV148=!selectionGroup&&!rack.freePlacement',
+    'const pendingV148=!rack.freePlacement');
+  replace("||m2LayoutSymbols.some(s=>!['uaks','uakz','column'].includes(s.type)))return false;",
+    `||Object.keys(m2PinnedDimensionsByRack||{}).length)return false;
+        const barrierDependsOnMovement=m2LayoutSymbols.some(symbol=>{
+          if(symbol.type!=='barrier')return false;
+          const {cx,cy}=m2SymbolBounds(symbol);
+          return members.some((member,i)=>{
+            const old=origins[i];
+            const includes=box=>cx>=box.left&&cx<=box.right&&cy>=box.top&&cy<=box.bottom;
+            return includes(m2RackBounds(member))||includes(m2RackBounds(member,old.x??drag.originX,old.y??drag.originY));
+          });
+        });
+        if(barrierDependsOnMovement)return false;`);
+  replace('(drag.perfSharedFootEntries||[]).forEach(rebase);',
+    `(drag.perfSharedFootEntries||[]).forEach(rebase);
+        for(const member of members)m2UpdateIndexedRack(member);`);
+  replace('function m2PerfDistancePrepareBaseV104(){\n        const table=m2PerfDistanceIndex;if(table.activeComputes>0)return table;const signature=m2PerfDistanceSignature();',
+    'function m2PerfDistancePrepareBaseV104(){\n        const table=m2PerfDistanceIndex;if(table.activeComputes>0)return table;const signature=m2LayoutState.drag?m2PerfDistanceSignature():JSON.stringify([m2EditingIndex.revision,m2LayoutState.points,m2LayoutState.pathBreaks,m2LayoutState.closed,m2LayoutState.openFinished,m2LayoutState.cadElements,m2LayoutState.scale,m2LayoutState.rackGapBasis]);');
+  replace('function refreshV428(){\n  refreshFrameV428=0;syncV428();m2RenderLayoutProductList();draw();',
+    'let refreshedRevision=m2EditingIndex.revision;\n function refreshV428(){\n  refreshFrameV428=0;const revision=m2EditingIndex.revision;if(revision===refreshedRevision)return;refreshedRevision=revision;syncV428();m2RenderLayoutProductList();draw();');
+  replace('refs=m2LayoutState.racks.filter(r=>!ids.has(Number(r.id))&&!r.staged).flatMap(r=>rackEnds556(r));return drag.endpointsV556={origins,anchors,index:{x:index(refs,\'x\'),y:index(refs,\'y\')},x:null,y:null,version};',
+    `refs=()=>Array.from(m2EditingIndex.records.values(),entry=>entry.rack).filter(r=>!r.staged).flatMap(r=>rackEnds556(r));
+    m2PerfBuildSpatialTable();
+    if(endpointIndexRevision!==m2EditingIndex.revision){
+      const points=refs();endpointIndex={x:index(points,'x'),y:index(points,'y')};endpointIndexRevision=m2EditingIndex.revision;
+    }
+    return drag.endpointsV556={origins,anchors,index:endpointIndex,ids,x:null,y:null,version};`);
+  replace(' function context(drag,rack){if(drag.endpointsV556)',
+    ' let endpointIndexRevision=-1,endpointIndex=null;\n function context(drag,rack){if(drag.endpointsV556)');
+  replace("nearestEnds556(ctx.index.x,ctx.anchors,raw,'x',scale,ctx.x,nearest),y=nearestEnds556(ctx.index.y,ctx.anchors,raw,'y',scale,ctx.y,nearest)",
+    "nearestEnds556(ctx.index.x,ctx.anchors,raw,'x',scale,ctx.x,(g,p,a,s)=>nearest(g,p,a,s,null,ctx.ids)),y=nearestEnds556(ctx.index.y,ctx.anchors,raw,'y',scale,ctx.y,(g,p,a,s)=>nearest(g,p,a,s,null,ctx.ids))");
+  replace('function nearest(groups,p,axis,scale,old){const cross=',
+    'function nearest(groups,p,axis,scale,old,excluded){const cross=');
+  replace('for(const ref of g.items){const apart=Math.abs(ref[cross]-p[cross])*scale;',
+    'for(const ref of g.items){if(excluded?.has(Number(ref.rackId)))continue;const apart=Math.abs(ref[cross]-p[cross])*scale;');
+  replace('i=Math.max(0,lo-8);i<Math.min(groups.length,lo+8);i++',
+    'i=lo>0?lowerEndpoint(groups,p[axis]-ENTER/scale):0;i<groups.length&&groups[i].value<=p[axis]+ENTER/scale;i++');
+  replace(' function index(refs,axis){',
+    ' function lowerEndpoint(groups,value){let lo=0,hi=groups.length;while(lo<hi){const mid=(lo+hi)>>>1;if(groups[mid].value<value)lo=mid+1;else hi=mid;}return lo;}\n function index(refs,axis){');
+  replace('  function duplicateSelectedGroup(){\n    var ids=selectionIds();',
+    '  let copySearchRunning=false;\n  function duplicateSelectedGroup(){\n    if(copySearchRunning)return true;\n    var ids=selectionIds();');
+  const searchStart=html.indexOf('    if(!offset){const points=m2LayoutState.points');
+  const searchEnd=html.indexOf('    copies.forEach(function(copy,index){copy.x=',searchStart);
+  if(searchStart<0||searchEnd<0)throw Error('Missing copy placement search');
+  html=html.slice(0,searchStart)+`    if(!offset){
+      const state=m2LayoutState,points=state.points,xs=points.map(p=>p.x),ys=points.map(p=>p.y);
+      const left=xs.length?Math.min(...xs):0,right=(xs.length?Math.max(...xs):1000)-bounds.width;
+      const bottom=(ys.length?Math.max(...ys):650)-bounds.height;
+      let x=left,y=ys.length?Math.min(...ys):0;
+      const selection=ids.join(','),undo=m2UndoHistory.at(-1),revision=m2EditingIndex.revision;
+      const status=$("m2FloorStatus"),scope=m2CopyCollisionScope;
+      copySearchRunning=true;
+      status.textContent="Kopya için boş yer aranıyor…";
+      function search(){
+        if(m2LayoutState!==state||state.drag||m2UndoHistory.at(-1)!==undo||selectionIds().join(',')!==selection||m2EditingIndex.revision!==revision){
+          copySearchRunning=false;
+          if(status.textContent==="Kopya için boş yer aranıyor…")status.textContent="Yerleşim değiştiği için kopyalama durduruldu.";
+          return;
+        }
+        const deadline=performance.now()+6;
+        m2CopyCollisionScope=scope;
+        try{
+          while(y<=bottom&&left<=right&&!offset&&performance.now()<deadline){
+            const dx=x-bounds.left,dy=y-bounds.top;
+            if(valid(dx,dy))offset={dx,dy};
+            x+=10;if(x>right){x=left;y+=10;}
+          }
+        }finally{m2CopyCollisionScope=null;}
+        if(!offset&&y<=bottom&&left<=right){setTimeout(search,0);return;}
+        copySearchRunning=false;
+        if(offset)commit();
+        else status.textContent="Seçili blokların toplu kopyası için çakışmasız boş alan bulunamadı.";
+      }
+      setTimeout(search,0);return true;
+    }
+    commit();return true;
+    function commit(){
+`+html.slice(searchEnd);
+  replace('m2PushUndo("Toplu blok çoğaltma");m2LayoutState.racks.push.apply(m2LayoutState.racks,copies);',
+    'm2UndoHistory.push({label:"Toplu blok çoğaltma",copyIds:new Set(copies.map(r=>r.id)),copySymbolIds:symbolIds});if(m2UndoHistory.length>30)m2UndoHistory.shift();m2UpdateUndoButton();m2LayoutState.racks.push.apply(m2LayoutState.racks,copies);');
+  replace('blok, konumları korunarak topluca çoğaltıldı.";m2RenderLayout();return true;\n  }',
+    'blok, konumları korunarak topluca çoğaltıldı.";m2RenderLayout();\n    }\n  }');
+  replace('        if(snapshot.fastDrag){',`        if(snapshot.copyIds){
+          m2LayoutState.racks=m2LayoutState.racks.filter(r=>!snapshot.copyIds.has(r.id));
+          m2LayoutSymbols=m2LayoutSymbols.filter(s=>!snapshot.copySymbolIds.has(s.id));
+          m2ClearMultiSelection();m2ClearAllSelections(snapshot.label+" geri alındı.");m2UpdateUndoButton();return;
+        }
+        if(snapshot.fastDrag){`);
   return html;
 }
 
