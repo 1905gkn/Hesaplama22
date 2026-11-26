@@ -41,6 +41,10 @@ export function independentProject(record, uuid, timestamp) {
     rack.id = mapped(rackIds, rack.id);
     for (const key of ['sharedFootWith', 'rackId', 'tunnelRackId']) if (key in rack) rack[key] = mapped(rackIds, rack[key]);
     for (const key of ['rackTypeId', 'savedTypeId']) if (key in rack) rack[key] = typeIdFor(rack, rack[key]);
+    for (const tie of rack.manualStraightTies || []) {
+      tie.ownerId = mapped(rackIds, tie.ownerId);
+      tie.peerId = mapped(rackIds, tie.peerId);
+    }
     remapCatalogKey(rack);
     if ('joinGroup' in rack) rack.joinGroup = named(groups, rack.joinGroup, 'group');
     if (rack.independentBlockId) rack.independentBlockId = uuid + ':block:' + rack.id;

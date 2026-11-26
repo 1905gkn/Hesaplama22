@@ -525,5 +525,6 @@ node scripts/verify-rack-record-consistency.mjs dist/index.html
 node scripts/verify-project-products-v372.mjs dist/index.html
 node scripts/drive-frame-capacity.mjs
 node scripts/verify-drive-frame-capacity.mjs dist/index.html
+node scripts/manual-straight-ties.mjs
 node scripts/large-layout-render.mjs
 node scripts/verify-group-placement-worker.mjs
