@@ -11,12 +11,13 @@ export function verifyMekikEntryFacing(post,beam){
   const posts=placements.filter(p=>p.name==='mekikPost'),beams=placements.filter(p=>p.name==='mekikBeam');
   assert(posts.length&&beams.length);
   for(const p of posts){
-   assert.equal(p.ry,Math.PI,'Perforated CAD web faces the plan entry');
-   assert([.05-r.depth/2,1-r.depth/2].some(z=>Math.abs(p.z-.04-z)<1e-6),'Profile rotation keeps the original frame station and rear support');
+   const rear=p.z>0;
+   assert.equal(p.ry||0,rear?0:Math.PI,'Paired profiles open toward each other');
+   assert.ok(Math.abs(p.z-(rear?1-r.depth/2:.05-r.depth/2+.04))<1e-6,'Rotation keeps the original frame stations');
   }
   for(const p of beams){
-   const contact=p.z-beam.connectorContactZ+.0002;
-   const supports=posts.filter(q=>Math.abs(q.z-post.frontHoleFace-contact)<1e-6&&Math.abs(Math.abs(q.x-p.x)-(r.width-r.foot)/r.bays/2)<1e-6);
+   const direction=Math.cos(p.ry||0),contact=p.z+direction*(beam.connectorContactZ-.0002);
+   const supports=posts.filter(q=>Math.abs(q.z+Math.cos(q.ry||0)*post.frontHoleFace-contact)<1e-6&&Math.abs(Math.abs(q.x-p.x)-(r.width-r.foot)/r.bays/2)<1e-6);
    assert.equal(supports.length,2,'Both connector plates stay on the actual rotated upright webs');
   }
   for(const degrees of [0,90,180,270]){
@@ -24,7 +25,7 @@ export function verifyMekikEntryFacing(post,beam){
    const snap=layoutSnapshot({scale:1,racks:[{id:1,rafexSystem:'mekik2',x:0,y:0,w:3000,h:1100,angle:degrees}]});
    const world=new T.Matrix4().makeRotationY(JSON.parse(JSON.stringify(snap)).racks[0].angle);
    const arrow=new T.Vector3(Math.sin(a),0,-Math.cos(a));
-   for(const p of posts){const web=new T.Vector3(0,0,1).applyAxisAngle(new T.Vector3(0,1,0),p.ry).transformDirection(world);assert(web.dot(arrow)>.999999,'3D front agrees with the rotated plan entry at '+degrees+' degrees');}
+   for(const p of posts){const web=new T.Vector3(0,0,1).applyAxisAngle(new T.Vector3(0,1,0),p.ry||0).transformDirection(world);assert(web.dot(arrow)*(p.z>0?-1:1)>.999999,'3D front agrees with the rotated plan entry at '+degrees+' degrees');}
   }
  }
  console.log('PASS actual shuttle CAD: plan entry matches 3D front at 0/90/180/270°, legacy/stepped frames, unchanged stations and both connector contacts.');

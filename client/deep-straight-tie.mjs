@@ -52,7 +52,7 @@ export function deepStraightTiePlacements(r,posts,template,tieHeight){
     if(floor.runs&&!floor.runs.some(run=>run.firstFrame<=i&&(run.lastFrame>i||i===frames.length-1&&terminal.length>frames.length&&run.lastFrame===i)))continue;
     const y=Math.max(0,floor.y/1000-.2-tieHeight/2);
     if(seen.has(y))continue;seen.add(y);
-    items.push({name:'deepStraightTie',color:'galvanized',x,y,z:(back.max+front.min)/2,sx:1,sy:1,sz:1,tieSpan:front.min-back.max});
+    items.push({name:'deepStraightTie',color:/^(pgv|galvanized)$/i.test(r.footColor)?(r.beamColor||'ral1007'):'ral5010',x,y,z:(back.max+front.min)/2,sx:1,sy:1,sz:1,tieSpan:front.min-back.max});
    }
   }
  }
