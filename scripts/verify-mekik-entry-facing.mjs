@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import * as T from 'three';
+import {rackParts} from '../client/layout-3d-geometry.mjs';
+import {mekikBraceSeats} from '../client/mekik-entry-facing.mjs';
 import {cadPlacements} from '../client/layout-3d-cad.mjs';
 import {layoutSnapshot} from '../client/layout-3d-data.mjs';
 
@@ -14,6 +16,16 @@ export function verifyMekikEntryFacing(post,beam){
    const rear=p.z>0;
    assert.equal(p.ry||0,rear?0:Math.PI,'Paired profiles open toward each other');
    assert.ok(Math.abs(p.z-(rear?1-r.depth/2:.05-r.depth/2+.04))<1e-6,'Rotation keeps the original frame stations');
+  }
+  const seats=mekikBraceSeats(post),profile=post.geometries.find(g=>g.userData.uprightCandidate594).boundingBox;
+  const front=posts.find(p=>(p.ry||0)===Math.PI),rear=posts.find(p=>!p.ry);
+  const innerFront=front.z-profile.min.z,innerRear=rear.z+profile.min.z;
+  const braces=rackParts({...rack,showPallets:false,positions:[],palletHeights:[]},{cad:true,braceSeats:seats}).filter(p=>p.kind==="brace"||p.kind==="tie");
+  assert.ok(braces.length);
+  for(const p of braces){
+   const reach=p.kind==="tie"?p.d/2:Math.abs(Math.sin(p.rx))*p.h/2;
+   assert.ok(Math.abs(p.z-reach-(innerFront-.004))<1e-6,"Front brace end seats against actual CAD upright");
+   assert.ok(Math.abs(p.z+reach-(innerRear+.004))<1e-6,"Rear brace end seats against actual CAD upright");
   }
   for(const p of beams){
    const direction=Math.cos(p.ry||0),contact=p.z+direction*(beam.connectorContactZ-.0002);

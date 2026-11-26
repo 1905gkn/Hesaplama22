@@ -1,4 +1,4 @@
-// The plan's first pallet / FILO entry is at local -Z. The imported shuttle
+// The plan's first pallet / FILO entry is at local -Z.
 // The two webs face outwards so the open profiles face into the frame.
 export function faceMekikCadToPlan(placements,r,templates){
  if(r.system!=='mekik2')return placements;
@@ -23,4 +23,15 @@ export function faceMekikCadToPlan(placements,r,templates){
   }
  }
  return placements;
+}
+
+export function mekikBraceSeats(template){
+ const profile=template?.geometries?.find(g=>g.userData.uprightCandidate594);
+ if(!profile)return null;
+ if(!profile.boundingBox)profile.computeBoundingBox();
+ const {min,max}=profile.boundingBox;
+ // Use the post section, excluding the wider base plate. A small overlap
+ // seats cut brace ends into the lip instead of leaving a visible hairline.
+ const overlap=.004;
+ return {front:max.z-overlap,rear:min.z+overlap};
 }

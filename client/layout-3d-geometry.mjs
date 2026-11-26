@@ -2,14 +2,14 @@ import {isSharedDepthMember} from './depth-shared-support.mjs';
 import {upgradeMekikStepped} from './mekik-stepped.mjs';
 import {b2bFrameLayout} from './layout-3d-b2b-placement.mjs';
 // System-specific local geometry in metres. The viewer applies world placement.
-export function rackParts(r,{cad=false,driveConsole=false,driveRail=false,driveVisualLevel=y=>y,railSeats=null,railBearings=null,railScaleX=null,postDepth=null,nativeAccessories=false,simple=false,palletInstances=false}={}){
+export function rackParts(r,{cad=false,driveConsole=false,driveRail=false,driveVisualLevel=y=>y,railSeats=null,railBearings=null,railScaleX=null,braceSeats=null,nativeAccessories=false,simple=false,palletInstances=false}={}){
  r=upgradeMekikStepped(r);
  const parts=[];
  const box=(kind,x,y,z,w,h,d,rx=0,rz=0)=>{if([x,y,z,w,h,d].every(Number.isFinite)&&w>0&&h>0&&d>0)parts.push({kind,x,y,z,w,h,d,rx,rz});};
  const post=(x,z,h=r.height)=>{if(!cad||!['b2b','mekik2','drive'].includes(r.system))box('foot',x,h/2,z,r.foot,h,r.foot)};
  function brace(x,z,depth,h){box('foot',x,h/2,z,.035,Math.hypot(depth,h),.035,Math.atan2(depth,h));}
  function panelBracing(x,z1,z2,h,horizontalTies=true){
-  if(!horizontalTies){const inward=(postDepth||r.foot)/2;z1+=inward;z2-=inward;}
+  if(!horizontalTies){z1+=braceSeats?.front??r.foot/2;z2+=braceSeats?.rear??-r.foot/2;}
   const span=z2-z1;if(span<=0)return;let y=.15,index=0;
   if(!horizontalTies&&h>.3)for(const y of [.15,h-.15])box('tie',x,y,(z1+z2)/2,.03,.04,span);
   if(simple){box('brace',x,h/2,(z1+z2)/2,.03,Math.hypot(h,span),.025,Math.atan2(span,h));return;}
