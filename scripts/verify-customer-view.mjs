@@ -19,6 +19,9 @@ const {chooseDetailRack,createDetailController}=await import('../client/customer
 assert.equal(chooseDetailRack([{id:1}],()=>({pixels:100,x:0,y:0,z:0})),null);
 assert.equal(chooseDetailRack([{id:1}],()=>({pixels:400,x:0,y:0,z:0})).id,1);
 const lodRuntime=fs.readFileSync('client/layout-3d.entry.js','utf8');
+assert.ok(runtime.includes('let pendingMode=null,fastOverview=false;'),'Customer shares must open with full CAD detail by default');
+assert.ok(runtime.includes('pendingMode=null;fastOverview=false;'),'Unlocking a share must restore full CAD detail');
+assert.ok(!runtime.includes('fastOverview=true'),'Lightweight geometry must never be selected automatically');
 assert.ok(!lodRuntime.includes('return makeViewer(host,data,{},new Map(),options)'),'Customer links must retain the full CAD scene at every distance');
 assert.ok(lodRuntime.includes('const templates=await loadViewerCad(data),parts=await loadPreparedAccessories(data.racks,templates)')&&lodRuntime.includes('Promise.all([loadLayoutCad(data.racks),loadProtectionCad(data.symbols),loadBackMeshCad(data.racks)])'),'Load all original rack/accessory details together with protection CAD');
 assert.ok(lodRuntime.includes('options.customerFastOverview?customerOverviewParts(r):rackParts(r,{cad:true,'));assert.ok(runtime.includes('customerFastOverview:fastOverview'));assert.ok(runtime.includes('qualityButton.onclick'));
