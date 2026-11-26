@@ -1,4 +1,5 @@
 import {consoleBearing608} from './drive-console-seat-v608.mjs';
+import {faceMekikCadToPlan} from './mekik-entry-facing.mjs';
 import {classifyDepthPosts605} from './inner-post-v605.mjs';
 import {planeHoles597,repeatingHoles597,connectorPhase597} from './hook-hole-joint-v597.mjs';
 import {flatConnectorGeometry596} from './connector-contact-v596.mjs';
@@ -154,5 +155,5 @@ export function cadPlacements(r,templates){
    }
   }
  }
- return classifyDepthPosts605(out.filter(p=>!(['mekikPost','drivePost'].includes(p.name)&&isSharedDepthMember(r,p.x,p.z))),templates,r.system);
+ return classifyDepthPosts605(faceMekikCadToPlan(out.filter(p=>!(['mekikPost','drivePost'].includes(p.name)&&isSharedDepthMember(r,p.x,p.z))),r,templates),templates,r.system);
 }
