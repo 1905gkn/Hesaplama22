@@ -70,5 +70,5 @@ export function uprightPitchGeometry597(source,scale,axis='y'){
 }
 const templateCache=new WeakMap();
 export function uprightTemplate597(template,scale){
- if(Math.abs(scale-1)<1e-8)return template;let variants=templateCache.get(template);if(!variants){variants=new Map();templateCache.set(template,variants);}const key=scale.toFixed(9);if(!variants.has(key))variants.set(key,{...template,geometries:template.geometries.map(g=>g.userData.uprightCandidate594?uprightPitchGeometry597(g,scale,'y'):g)});return variants.get(key);
+ if(Math.abs(scale-1)<1e-8)return template;let variants=templateCache.get(template);if(!variants){variants=new Map();templateCache.set(template,variants);}const key=scale.toFixed(9);if(!variants.has(key))variants.set(key,{...template,geometries:template.geometries.map(g=>g.userData.uprightCandidate594&&!g.userData.innerPost605?uprightPitchGeometry597(g,scale,'y'):g)});return variants.get(key);
 }

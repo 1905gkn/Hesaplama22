@@ -107,7 +107,7 @@ export function transform(html) {
   ',rafexCollectionOnlyRack=record=>('+collectionOnlyRack.toString()+')(record,window.rafexReadRackDetailV135,window.rafexRackDetailSignatureV135)'+
   ',rafexRestoreMissingRackDetails='+restoreMissingRackDetails.toString()+
   ',rafexB2BTraverseProducts='+b2bTraverseProducts.toString()+';</script>';
- return (html.slice(0,at)+runtime+html.slice(at)).replace(/\/(layout-3d|customer-view|customer-share-capture)\.js\?v=[\w.-]+/g,'/$1.js?v=record-615');
+ return (html.slice(0,at)+runtime+html.slice(at)).replace(/\/(layout-3d|customer-view|customer-share-capture)\.js\?v=[\w.-]+/g,'/$1.js?v=record-616');
 }
 
 if(process.argv[1]&&pathToFileURL(process.argv[1]).href===import.meta.url) {

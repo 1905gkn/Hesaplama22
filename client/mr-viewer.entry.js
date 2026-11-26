@@ -6,6 +6,8 @@ import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 
+import {solidInnerPost605} from "./inner-post-v605.mjs";
+
 const PARTS = { upright: "/mr-ayak-top.glb", traverse: "/mr-zs-travers.glb", tray: "/mr-tava.glb" };
 const FINISHES = {
   ral5010: { color: 0x004f7c, metalness: 0.42, roughness: 0.32 },
@@ -215,7 +217,7 @@ class MRViewer {
     return [...Array(full).fill(trayWidth), ...(remainder >= 50 ? [remainder] : [])];
   }
 
-  async build(config = {}) {
+  async build(config = {}, layoutOnly = false) {
     if(this.canvas?.id==='mrCanvas')config=window.rafexCopiedDetailV135?.('mr')||config;
     this.config = this.cleanConfig(config);
     const signature = JSON.stringify(this.config);
@@ -240,6 +242,15 @@ class MRViewer {
         const instance = upright.object.clone(true);
         instance.scale.copy(uprightScale);
         instance.position.x = frame * framePitch;
+        if(layoutOnly&&frame>0&&frame<modules){
+          instance.updateMatrixWorld(true);
+          instance.traverse(mesh=>{
+            if(!mesh.isMesh||!/MRD\d/i.test(mesh.name))return;
+            const direction=new THREE.Vector3(0,1,0).transformDirection(mesh.matrixWorld.clone().invert());
+            const axis=["x","y","z"].sort((a,b)=>Math.abs(direction[b])-Math.abs(direction[a]))[0];
+            mesh.geometry=solidInnerPost605(mesh.geometry,axis);
+          });
+        }
         this.root.add(instance);
       }
       const beamDepth = Math.max(1, traverse.size.z);
@@ -422,7 +433,7 @@ let active = null;
 window.RafexMRViewer = {
   async layoutAccessoryGeometry(config){
     const model=Object.create(MRViewer.prototype);let failure=null;Object.assign(model,{canvas:{id:'layout-accessories',dispatchEvent(e){if(e.type==='mr-viewer-error')failure=e.detail?.message;}},root:new THREE.Group(),bounds:new THREE.Box3(),center:new THREE.Vector3(),size:new THREE.Vector3(),loadToken:0,configSignature:'',destroyed:false,grid:{scale:{setScalar(){}}},ground:{scale:{set(){}}},disposeDimensions(){},addDimensions(){},setView(){}});
-    await model.build(config);if(failure)throw Error(failure);const result=nativeInstanceSnapshot(model.root);for(const part of result){if(!/MRD\d/i.test(part.name))continue;const prepared=await prepareCadRenderCopy({cadKind:'mrPost',geometries:[part.geometry]});part.geometry=prepared.geometries[0];}model.root.clear();return result;
+    await model.build(config,true);if(failure)throw Error(failure);const result=nativeInstanceSnapshot(model.root);for(const part of result){if(!/MRD\d/i.test(part.name))continue;const prepared=await prepareCadRenderCopy({cadKind:'mrPost',geometries:[part.geometry]});part.geometry=prepared.geometries[0];}model.root.clear();return result;
   },
 
   getSavedDetail() { return active?.canvas?.id === 'mrCanvas' ? JSON.parse(JSON.stringify(active.config)) : null; },

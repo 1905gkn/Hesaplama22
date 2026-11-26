@@ -155,5 +155,5 @@ export function cadPlacements(r,templates){
    }
   }
  }
- return classifyDepthPosts605(faceMekikCadToPlan(out.filter(p=>!(['mekikPost','drivePost'].includes(p.name)&&isSharedDepthMember(r,p.x,p.z))),r,templates),templates,r.system);
+ return classifyDepthPosts605(faceMekikCadToPlan(out.filter(p=>!(['mekikPost','drivePost'].includes(p.name)&&isSharedDepthMember(r,p.x,p.z))),r,templates),templates,r.system,true);
 }
