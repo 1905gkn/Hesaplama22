@@ -1,3 +1,4 @@
+import {straightTieTemplate} from './deep-straight-tie.mjs';
 
 import {addPalletWeights599,disposePalletWeights599} from './pallet-weight-labels-v599.mjs';
 import {innerPostTemplate605} from './inner-post-v605.mjs';
@@ -69,10 +70,11 @@ async function makeViewer(host,data,templates,accessoryGeometries=new Map(),opti
  for(const r of options.customerFastOverview?[]:data.racks){if(['mr','konsol'].includes(r.system)&&accessoryGeometries.has(String(r.id)))continue;parent.position.set(r.x,0,r.z);parent.rotation.set(0,r.angle,0);parent.updateMatrix();const geometryKey=geometryKeyFor(r);if(!placementCache.has(geometryKey))placementCache.set(geometryKey,cadPlacements(r,templates));for(const p of placementCache.get(geometryKey)){
   if((++preparedParts&255)===0){const pending=budget.checkpoint();if(pending)await pending;}
   const deepPost=['mekikPost','drivePost'].includes(p.name);
-  const key=[p.innerPosts605||'outer',p.name,p.color,deepPost?p.sy:'',p.connectorDy||0,p.consoleSpan||0,p.profileHeight598||0].join(':');
+  const key=[p.innerPosts605||'outer',p.name,p.color,deepPost?p.sy:'',p.connectorDy||0,p.consoleSpan||0,p.profileHeight598||0,p.tieSpan?.toFixed(6)||0].join(':');
   if(!cadGroups.has(key)){
    let template=innerPostTemplate605(templates[p.name],p.innerPosts605);
    if(deepPost)template=uprightTemplate597(template,p.sy);
+   else if(p.name==='deepStraightTie')template=straightTieTemplate(template,p.tieSpan);
    else if(p.name==='driveConsole')template=driveConsoleTemplate597(template,p.consoleSpan);
    else if(p.name==='mekikBeam')template=connectorTemplate597(template,0,p.profileHeight598);
    cadGroups.set(key,{template,connectorOffset:p.name==='mekikBeam'?p.connectorDy||0:0,color:p.color,matrices:[]});

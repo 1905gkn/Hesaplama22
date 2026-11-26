@@ -1,3 +1,4 @@
+import {straightTieTemplate} from './deep-straight-tie.mjs';
 import {driveConsoleTemplate597} from './hook-hole-joint-v597.mjs';
 import {innerPostTemplate605} from './inner-post-v605.mjs';
 import {fixedGalvanizedMaterial593,isGalvanizedColor593} from './galvanized-material-v593.mjs';
@@ -22,7 +23,7 @@ export async function loadCustomerRackDetail(r){
  }
  const cadGroups=new Map();
  for(const r of data.racks){if(['mr','konsol'].includes(r.system)&&accessoryGeometries.has(String(r.id)))continue;parent.position.set(r.x,0,r.z);parent.rotation.set(0,r.angle,0);parent.updateMatrix();for(const p of cadPlacements(r,templates)){
-  const key=(p.innerPosts605||'outer')+':'+p.name+':'+p.color;if(!cadGroups.has(key))cadGroups.set(key,{template:p.name==='driveConsole'?driveConsoleTemplate597(templates[p.name],p.consoleSpan):innerPostTemplate605(templates[p.name],p.innerPosts605),color:p.color,matrices:[]});dummy.position.set(p.x,p.y,p.z);dummy.rotation.set(0,p.ry||0,0);dummy.scale.set(p.sx,p.sy,p.sz);dummy.updateMatrix();cadGroups.get(key).matrices.push(new THREE.Matrix4().multiplyMatrices(parent.matrix,dummy.matrix));
+  const key=(p.innerPosts605||'outer')+':'+p.name+':'+p.color+':'+(p.tieSpan?.toFixed(6)||0);if(!cadGroups.has(key))cadGroups.set(key,{template:p.name==='deepStraightTie'?straightTieTemplate(templates[p.name],p.tieSpan):p.name==='driveConsole'?driveConsoleTemplate597(templates[p.name],p.consoleSpan):innerPostTemplate605(templates[p.name],p.innerPosts605),color:p.color,matrices:[]});dummy.position.set(p.x,p.y,p.z);dummy.rotation.set(0,p.ry||0,0);dummy.scale.set(p.sx,p.sy,p.sz);dummy.updateMatrix();cadGroups.get(key).matrices.push(new THREE.Matrix4().multiplyMatrices(parent.matrix,dummy.matrix));
  }}
  const shared605=new Map();for(const {template,color,matrices} of cadGroups.values())for(const [index,geometry] of template.geometries.entries()){const tint=template.finishes?.[index]==='galvanized'?colors.galvanized:(colors[color]||'#005078'),key=geometry.uuid+':'+tint;if(!shared605.has(key))shared605.set(key,{geometry,tint,matrices:[]});shared605.get(key).matrices.push(...matrices);}
  for(const {geometry,tint,matrices} of shared605.values()){const material=new Surface({color:tint});materials.push(material);const mesh=new THREE.InstancedMesh(geometry,material,matrices.length);matrices.forEach((matrix,i)=>mesh.setMatrixAt(i,matrix));scene.add(mesh);}

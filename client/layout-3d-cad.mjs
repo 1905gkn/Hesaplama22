@@ -1,3 +1,4 @@
+import {deepStraightTiePlacements} from './deep-straight-tie.mjs';
 import {consoleBearing608} from './drive-console-seat-v608.mjs';
 import {faceMekikCadToPlan} from './mekik-entry-facing.mjs';
 import {classifyDepthPosts605} from './inner-post-v605.mjs';
@@ -16,11 +17,11 @@ function cadLoader(){
  return sharedLoader;
 }
 export async function loadLayoutCad(racks){
- const names=new Set();for(const r of racks){if(r.system==='b2b'){names.add('b2bFrame');names.add('b2bBeam');}if(r.system==='mr')names.add('mrBeam');if(r.system==='mekik2'){names.add('mekikPost');names.add('mekikBeam')}if(r.system==='drive'){names.add('drivePost');names.add('b2bBeam');names.add('driveConsole');names.add('driveRail')}}
+ const names=new Set();for(const r of racks){if(['mekik2','drive'].includes(r.system))names.add('deepStraightTie');if(r.system==='b2b'){names.add('b2bFrame');names.add('b2bBeam');}if(r.system==='mr')names.add('mrBeam');if(r.system==='mekik2'){names.add('mekikPost');names.add('mekikBeam')}if(r.system==='drive'){names.add('drivePost');names.add('b2bBeam');names.add('driveConsole');names.add('driveRail')}}
  return Object.fromEntries(await Promise.all([...names].map(async name=>{
   if(!cache.has(name))cache.set(name,(async()=>{
    const loader=cadLoader();
-   const paths={b2bFrame:'/b2b-ayak.glb',b2bBeam:'/b2b-travers.glb',mrBeam:'/mr-zs-travers.glb',drivePost:'/drive-in/drive-in-ayak-top.glb',driveConsole:'/drive-in/drive-in-konsol.glb',driveRail:'/drive-in/drive-in-ray.glb',mekikPost:'/layout-mekik-post.glb',mekikBeam:'/mekik-front-travers.glb'};
+   const paths={deepStraightTie:'/deep-straight-tie.glb',b2bFrame:'/b2b-ayak.glb',b2bBeam:'/b2b-travers.glb',mrBeam:'/mr-zs-travers.glb',drivePost:'/drive-in/drive-in-ayak-top.glb',driveConsole:'/drive-in/drive-in-konsol.glb',driveRail:'/drive-in/drive-in-ray.glb',mekikPost:'/layout-mekik-post.glb',mekikBeam:'/mekik-front-travers.glb'};
    const gltf=await loader.loadAsync(paths[name]+'?v=layout445');return prepareCad(gltf.scene,name);
   })().catch(e=>{cache.delete(name);throw e}));return [name,await cache.get(name)];
  })));
@@ -42,7 +43,7 @@ export function deepBeamScale(r,post,beam){if(r.system==='mekik2'&&beam?.hookHal
 export function prepareCad(scene,name){
  scene.updateMatrixWorld(true);const axis=name==='mrBeam'?new THREE.Matrix4().makeBasis(new THREE.Vector3(0,0,1),new THREE.Vector3(1,0,0),new THREE.Vector3(0,-1,0)):new THREE.Matrix4().makeRotationX(name.startsWith('b2b')?Math.PI/2:-Math.PI/2),source=[],names=[],finishes=[],profileBounds=new THREE.Box3();
  if(name==='drivePost')axis.multiply(new THREE.Matrix4().makeRotationY(Math.PI));
- scene.traverse(mesh=>{if(!mesh.isMesh)return;const geometry=(/KONNEKT|BRAKET|KONSOL/i.test(mesh.name||'')?flatConnectorGeometry596(mesh.geometry):mesh.geometry).clone();geometry.userData.cadPartName=mesh.name||'';geometry.userData.uprightCandidate594=/MRD\d|AYAK(?:[_\s]+\d+)*[_\s]*-\d+/i.test(mesh.name||'');geometry.applyMatrix4(new THREE.Matrix4().multiplyMatrices(axis,mesh.matrixWorld));if(axis.determinant()<0&&geometry.index){const indices=geometry.index.array;for(let i=0;i<indices.length;i+=3){const v=indices[i+1];indices[i+1]=indices[i+2];indices[i+2]=v;}geometry.index.needsUpdate=true;}geometry.computeBoundingBox();if(name==='b2bBeam'&&!/KONNEKT/i.test(mesh.name))profileBounds.union(geometry.boundingBox);source.push(geometry);names.push(String(mesh.name).toLocaleUpperCase('tr-TR'));finishes.push(/DİAGONEL|DIAGONEL|ÇAĞRAZ|ÇAPRAZ/.test(String(mesh.name).toLocaleUpperCase('tr-TR'))?'galvanized':null)});
+ scene.traverse(mesh=>{if(!mesh.isMesh)return;const geometry=(/KONNEKT|BRAKET|KONSOL/i.test(mesh.name||'')?flatConnectorGeometry596(mesh.geometry):mesh.geometry).clone();geometry.userData.cadPartName=mesh.name||'';geometry.userData.uprightCandidate594=/MRD\d|AYAK(?:[_\s]+\d+)*[_\s]*-\d+/i.test(mesh.name||'');geometry.applyMatrix4(new THREE.Matrix4().multiplyMatrices(axis,mesh.matrixWorld));if(axis.determinant()<0&&geometry.index){const indices=geometry.index.array;for(let i=0;i<indices.length;i+=3){const v=indices[i+1];indices[i+1]=indices[i+2];indices[i+2]=v;}geometry.index.needsUpdate=true;}geometry.computeBoundingBox();if(name==='b2bBeam'&&!/KONNEKT/i.test(mesh.name))profileBounds.union(geometry.boundingBox);source.push(geometry);names.push(String(mesh.name).toLocaleUpperCase('tr-TR'));finishes.push(name==='deepStraightTie'||/DİAGONEL|DIAGONEL|ÇAĞRAZ|ÇAPRAZ/.test(String(mesh.name).toLocaleUpperCase('tr-TR'))?'galvanized':null)});
  const bounds=new THREE.Box3();source.forEach(g=>bounds.union(g.boundingBox));const center=bounds.getCenter(new THREE.Vector3()),size=bounds.getSize(new THREE.Vector3());
  const originY=name==='b2bBeam'&&!profileBounds.isEmpty()?profileBounds.min.y:name==='mekikBeam'||name==='mrBeam'?bounds.max.y:bounds.min.y;
  source.forEach(g=>{g.translate(-center.x,-originY,-center.z);g.scale(.001,.001,.001);g.computeBoundingBox();g.computeBoundingSphere()});
@@ -155,5 +156,11 @@ export function cadPlacements(r,templates){
    }
   }
  }
- return classifyDepthPosts605(faceMekikCadToPlan(out.filter(p=>!(['mekikPost','drivePost'].includes(p.name)&&isSharedDepthMember(r,p.x,p.z))),r,templates),templates,r.system,true);
+ const visible=out.filter(p=>!(['mekikPost','drivePost'].includes(p.name)&&isSharedDepthMember(r,p.x,p.z)));
+ const oriented=faceMekikCadToPlan(out,r,templates);
+ if(templates.deepStraightTie&&['mekik2','drive'].includes(r.system)){
+  const postName=r.system==='drive'?'drivePost':'mekikPost';
+  visible.push(...deepStraightTiePlacements(r,oriented.filter(p=>p.name===postName),templates[postName],templates.deepStraightTie.height));
+ }
+ return classifyDepthPosts605(visible,templates,r.system,true);
 }
