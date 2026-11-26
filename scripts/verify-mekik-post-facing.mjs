@@ -37,4 +37,5 @@ for(const depth of [3,8]){
 const viewer=fs.readFileSync('client/layout-3d.entry.js','utf8');
 assert(!viewer.includes('innerPostTemplate605('),'Detailed scene must preserve perforations on intermediate posts too');
 assert(viewer.includes('screenLod:!protectedLod,protectedLod:false'),'Protected uprights and connectors must retain full geometry at every camera distance');
+assert(fs.readFileSync('client/customer-view.entry.js','utf8').includes('api.createSession(host,{customerPerformance:fastOverview,'),'Detailed customer view uses the original metal materials instead of the flat fast-mode shader');
 console.log('PASS front/rear web orientation, unchanged frame envelope, connector seating, stepped/legacy parity and full protected detail at every distance.');
