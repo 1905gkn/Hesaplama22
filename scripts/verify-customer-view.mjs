@@ -52,3 +52,5 @@ await import('./verify-customer-distance.mjs');
 
 
 await import('./verify-static-3d-labels.mjs');
+
+await import('./verify-customer-cad-quality.mjs');
