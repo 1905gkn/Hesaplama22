@@ -1,9 +1,10 @@
 (function(){
- const api=window.RafexDeep598,states={mekik2:[],drive:[]},configs={};let dialog=null,rows=[],system='mekik2';const el=id=>document.getElementById(id),clone=v=>JSON.parse(JSON.stringify(v)),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const api=window.RafexDeep598,states={mekik2:[],drive:[]},configs={drive:{groundPallet:true}};let dialog=null,rows=[],system='mekik2';const el=id=>document.getElementById(id),clone=v=>JSON.parse(JSON.stringify(v)),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const active=()=>typeof m2ActiveModule!=='undefined'&&['mekik2','drive'].includes(m2ActiveModule)?m2ActiveModule:null;
  window.rafexDeepSpecs598=()=>states[active()]||[];
- window.rafexDeepRestore598=d=>{const key=d?.rafexSystem==='drive'||d?.systemType==='drive'?'drive':'mekik2';configs[key]=clone((key==='drive'?d?.driveCustomizationV521:d?.mekikCustomizationV514)||{});states[key]=clone(configs[key].levelSpecs||[]);};
- window.rafexDeepMetrics598=r=>active()?api.deepLevelModel598({...r,rafexSystem:active()},states[active()]):null;
+ window.rafexDeepRestore598=d=>{const key=d?.rafexSystem==='drive'||d?.systemType==='drive'?'drive':'mekik2';configs[key]=clone((key==='drive'?d?.driveCustomizationV521:d?.mekikCustomizationV514)||{});if(key==="drive"&&configs[key].groundPallet==null)configs[key].groundPallet=false;states[key]=clone(configs[key].levelSpecs||[]);};
+ window.rafexDriveFirstRailHeight=(value,palletHeight,railHeight)=>active()==="drive"?Math.max(value,api.driveGroundClearance({...configs.drive,levelSpecs:states.drive},palletHeight,railHeight)):value;
+ window.rafexDeepMetrics598=r=>active()?api.deepLevelModel598({...r,rafexSystem:active(),driveCustomizationV521:active()==="drive"?{...configs.drive,levelSpecs:states.drive}:undefined},states[active()]):null;
  window.rafexDeepDrawing598=()=>active()&&(states[active()].length||Object.keys(configs[active()]||{}).length)?{[active()==='drive'?'driveCustomizationV521':'mekikCustomizationV514']:{heightMode:'auto',...configs[active()],levelSpecs:clone(states[active()]),...(active()==='mekik2'?{heightMode:window.rafexMekikHeightV421?.snapshot?.().mekikUprightMode||'auto',uprightHeight:window.rafexMekikHeightV421?.snapshot?.().mekikManualUprightHeight}:{} )}}:{};
  function read(){return [...dialog.querySelectorAll('[data-level598]')].map(node=>({palletWeight:Number(node.querySelector('[data-weight]').value),palletHeight:Number(node.querySelector('[data-pallet]').value),height:node.querySelector('[data-height]').value===''?null:Number(node.querySelector('[data-height]').value),selectionMode:node.querySelector('[data-mode]').value,traverseType:node.querySelector('[data-traverse]').value}));}
  function refresh(){rows=read();const d=m2LastDrawing,model=api.deepLevelModel598({...d,rafexSystem:system},rows);dialog.querySelectorAll('[data-level598]').forEach((node,i)=>{const f=model.floors[i],select=node.querySelector('[data-traverse]'),manual=rows[i].selectionMode==='manual',choices=manual?api.deepTraverseCatalog598:api.deepTraverseCatalog598.filter(t=>f.choices.includes(t.grade+'|'+t.profile));select.innerHTML=choices.map(t=>'<option value="'+esc(t.grade+'|'+t.profile)+'">'+esc(t.profile+' '+t.grade)+' · '+t.capacity+' kg</option>').join('');select.value=f.traverseType;select.disabled=!manual;node.querySelector('[data-height]').placeholder=String(Math.round(f.y));node.querySelector('small').textContent='K'+(i+1)+' · Travers başına '+Math.ceil(f.load)+' kg · '+(f.traverseType?f.traverseType.replace('|',' '):'Katalogda uygun profil yok');});dialog.querySelector('[role=alert]').textContent=model.errors.join(' ');}
@@ -22,7 +23,7 @@
   const checkbox=el("driveGroundPallet"),note=el("driveGroundPalletNote");if(!checkbox||!note)return;
   checkbox.checked=configs.drive?.groundPallet===true;
   const height=groundHeight(m2LastDrawing);
-  note.textContent=checkbox.checked&&Number(first.value)<height+Number(m2LastDrawing?.railHeight||150)?"Zemin paletinin sığması için ilk kat yüksekliğini artırın.":"";
+  note.textContent=checkbox.checked&&Number(first.value)<api.driveGroundClearance({...configs.drive,groundPalletHeight:height},height,m2LastDrawing?.railHeight)?"Zemin paleti için ilk ray kotu otomatik yükseltilir.":"";
  }
  function groundHeight(d){return Number(configs.drive?.groundPalletHeight??states.drive[0]?.palletHeight??d?.palletHeight??1200);}
  function groundField(d){

@@ -275,6 +275,15 @@ export function cacheLayoutInventory(html){
     'if(!interactiveRender&&!window.rafexViewportV248?.viewportOnly&&!m2LargeSelectionRender&&!m2SameInventoryInputs(m2LastLayoutInventoryInputs,m2InventoryInputs())){m2RenderLayoutProductList();const placingRack=m2LayoutState.racks.some((rack)=>rack?.staged||rack?.freePlacement);if(!placingRack){m2LastLayoutInventoryInputs=m2InventoryInputs();m2ScheduleReportRefresh(650);}}');
   replace('let m2LayoutTotals=null,m2InventoryRevision=0;',
     'let m2LayoutTotals=null,m2LastLayoutInventoryInputs=null,m2InventoryRevision=0;');
+  replace('if(!interactiveRender&&!window.rafexViewportV248?.viewportOnly)m2RenderSelectedRackInfo();',
+    `if(!window.rafexViewportV248?.viewportOnly){
+          if(!interactiveRender)m2RenderSelectedRackInfo();
+          else if(!m2SameInventoryInputs(m2LayoutTotals?.inputs,m2InventoryInputs())){
+            const total=$("m2SelectedRackInfo")?.querySelector(".m2-selected-pallet-total strong");
+            if(total)total.textContent=fmt(m2ReadLayoutTotals().pallets);
+            else m2RenderSelectedRackInfo();
+          }
+        }`);
   return html;
 }
 

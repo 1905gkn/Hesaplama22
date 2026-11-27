@@ -1,4 +1,4 @@
-import {deepLevelModel598} from './deep-levels-v598.mjs';
+import {deepLevelModel598,driveGroundClearance} from './deep-levels-v598.mjs';
 import {mekikStepped} from './mekik-stepped.mjs';
 
 // Shared rear-anchored placement, with Drive-In height and product rules.
@@ -8,8 +8,11 @@ export function driveStepped(r){
  if(!r.plan?.feet?.length)throw Error('Drive-In ayak yerleşimi eksik.');
  const n=(v,f=0)=>v!==null&&v!==''&&Number.isFinite(Number(v))?Number(v):f;
  const ceil=v=>Math.ceil(v/50)*50;
- const base=mekikStepped({...r,mekikCustomizationV514:{...c,heightMode:'auto',frameHeights:[]}});
- const manual598=deepLevelModel598({...r,rafexSystem:'drive'},c.levelSpecs),ph=n(r.palletHeight,1200),cols=Math.max(1,n(r.bays,1))+1,bays=cols-1;
+ const clearance=driveGroundClearance(c,r.palletHeight,r.railHeight);
+ const firstRailHeight=Math.max(n(r.firstRailHeight,430),clearance);
+ const specs=c.levelSpecs?.map((spec,i)=>i===0&&clearance&&spec.height!=null?{...spec,height:Math.max(clearance,n(spec.height,clearance))}:spec);
+ const base=mekikStepped({...r,firstRailHeight,mekikCustomizationV514:{...c,levelSpecs:specs,heightMode:'auto',frameHeights:[]}});
+ const manual598=deepLevelModel598({...r,firstRailHeight,rafexSystem:'drive'},specs),ph=n(r.palletHeight,1200),cols=Math.max(1,n(r.bays,1))+1,bays=cols-1;
  const minimum=manual598?.automatic??ceil(base.floors.at(-1).y+ph+220),height=c.heightMode==='manual'?ceil(n(c.uprightHeight)):minimum;
  const errors=base.errors.filter(e=>!e.startsWith('Ayak boyu'));
  if(height<minimum)errors.push('Drive-In ayak boyu üst palet kotu ve 220 mm üst bağlantı payından ('+minimum+' mm) kısa olamaz.');

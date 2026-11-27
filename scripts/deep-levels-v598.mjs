@@ -1,7 +1,10 @@
 import fs from'node:fs';import vm from'node:vm';import {build}from'esbuild';
-const built=await build({stdin:{contents:"export {deepLevelModel598,deepTraverseCatalog598} from './client/deep-levels-v598.mjs';export {mekikStepped} from './client/mekik-stepped.mjs';export {driveStepped} from './client/drive-stepped.mjs';",resolveDir:process.cwd()},bundle:true,format:'iife',globalName:'RafexDeep598',minify:true,write:false});
+const built=await build({stdin:{contents:"export {deepLevelModel598,deepTraverseCatalog598,driveGroundClearance} from './client/deep-levels-v598.mjs';export {mekikStepped} from './client/mekik-stepped.mjs';export {driveStepped} from './client/drive-stepped.mjs';",resolveDir:process.cwd()},bundle:true,format:'iife',globalName:'RafexDeep598',minify:true,write:false});
 export function transform(html){if(html.includes('data-deep-levels="v598"'))return html;const replace=(a,b)=>{if(!html.includes(a))throw Error('v598 anchor missing '+a.slice(0,90));html=html.replace(a,b);};
  replace('function m2PrepareSavedFootProfile(drawing) {','function m2PrepareSavedFootProfile(drawing) {window.rafexDeepRestore598?.(drawing);');
+ const railLine=html.match(/^          firstRailHeight = (.+),$/m);
+ if(!railLine)throw Error('Drive-In first rail height anchor missing');
+ replace(railLine[0],'          firstRailHeight = window.rafexDriveFirstRailHeight?.(('+railLine[1]+'),palletHeight,railHeight) ?? ('+railLine[1]+'),');
  const totalLine=html.match(/^          totalRackHeight = (.+),$/m),sideLine=html.match(/^          sideUprightHeight = (.+),$/m);if(!totalLine||!sideLine)throw Error('v598 height calculation missing');
  replace(totalLine[0],'          deep598 = window.rafexDeepMetrics598?.({levels,depth,palletHeight,palletWeight,firstRailHeight,levelH,railHeight}),\n          totalRackHeight = deep598?.topLoad ?? '+totalLine[1]+',');
  replace(sideLine[0],'          sideUprightHeight = deep598 ? (m2ActiveModule==="mekik2"?window.rafexMekikHeightV421.resolve(deep598.automatic,m2ActiveModule,deep598.minimum):deep598.automatic) : '+sideLine[1]+',');
