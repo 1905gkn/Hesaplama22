@@ -38,5 +38,8 @@ export function driveStepped(r){
  add('Forklift stoperi',cols);add('Giriş konsolu',cols*base.floors.reduce((sum,l)=>sum+l.runs.length,0));
  add('Yatay çapraz seti',bays*Math.floor(base.levels/2));
  if(r.hasExtra)add('Ayak Profili',cols-Number(shared.extra),'L '+fmt(Math.max(height,...base.frames.map(f=>f.height)))+' mm');
- return {...base,version:521,system:'drive',rows,height:Math.max(height,...base.frames.map(f=>f.height)),automatic:minimum,minimum,errors};
+ const first=base.floors[0],groundHeight=first?.palletHeight??ph;
+ const groundPallet=c.groundPallet===true&&first&&first.y-n(r.railHeight,150)>=groundHeight
+  ?{height:groundHeight,weight:first.palletWeight??r.palletWeight??null,position:first.positions[0]??0}:null;
+ return {...base,groundPallet,version:521,system:'drive',rows,height:Math.max(height,...base.frames.map(f=>f.height)),automatic:minimum,minimum,errors};
 }

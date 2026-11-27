@@ -305,6 +305,13 @@ class DriveInFrontViewer {
         if(!stepped)this.addPart(this.models.arabag, arabagScale, new THREE.Vector3(x, frontY - ayakSize.y - arabagSize.y / 2, supportZ + arabagSize.z / 2), technicalMaterials.arabag);else if(level%2===0)for(const run of runs)for(let fi=run.firstFrame;fi<run.lastFrame;fi++){const a=stepped.frames[fi].end,b=stepped.frames[fi+1].start;if(b>a)this.addPart(this.models.arabag,new THREE.Vector3(uprightWidth/arabagSize.x,(b-a)/arabagSize.y,1),new THREE.Vector3(x,frontY-(a+b)/2,supportZ+arabagSize.z/2),technicalMaterials.arabag);}
       }
     }
+    const groundPallet=stepped?.groundPallet;
+    if(groundPallet&&c.showPallets){
+      const x=uprightWidth+bayClear/2,y=frontY-groundPallet.position-c.palletDepth/2-40;
+      this.addPart(this.models.palet,paletScale,new THREE.Vector3(x,y,palletThickness/2),technicalMaterials.palet,{rotateY:false,rotationZ:-Math.PI/2});
+      const height=groundPallet.height-palletThickness;
+      if(height>0)this.addLoadBox(new THREE.Vector3(c.palletWidth*.94,c.palletDepth*.94,height),new THREE.Vector3(x,y,palletThickness+height/2),groundPallet.weight);
+    }
     addPalletWeights599(this.root,nativeWeightBoxes599(this.root),{endOnly:true});
     this.nativeFacing=createDriveNativeFacing(this.root);
     this.staticBatches=batchDriveStaticParts(this.root);

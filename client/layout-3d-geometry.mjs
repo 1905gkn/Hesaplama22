@@ -44,6 +44,10 @@ export function rackParts(r,{cad=false,driveConsole=false,driveRail=false,driveV
   }
  }else if(r.system==='drive'&&r.driveStepped){
   const s=r.driveStepped,pitch=(r.width-r.foot)/r.bays;
+  if(s.groundPallet){
+   const g=s.groundPallet,x=-r.width/2+r.foot/2+pitch/2,z=g.position/1000+r.palletDepth/2-r.depth/2;
+   pallet(x,0,z,Math.min(r.palletWidth,pitch-r.foot-.06),r.palletDepth,g.height/1000,g.weight);
+  }
   for(let lane=0;lane<=r.bays;lane++)for(const f of s.frames){const x=-r.width/2+r.foot/2+lane*pitch,z1=Math.max(r.foot/2,f.start/1000)-r.depth/2,z2=Math.min(r.depth-r.foot/2,f.end/1000)-r.depth/2;post(x,z1,f.height/1000);post(x,z2,f.height/1000);if(!cad&&f.levels>0)panelBracing(x,z1,z2,f.height/1000,false);}
   for(let lane=0;lane<r.bays;lane++){const x=-r.width/2+r.foot/2+(lane+.5)*pitch;
    for(const floor of s.floors){const y=driveVisualLevel(floor.y/1000);for(const run of floor.runs){const z=(run.start+run.end)/2000-r.depth/2,d=(run.end-run.start)/1000;

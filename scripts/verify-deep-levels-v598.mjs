@@ -13,3 +13,13 @@ for(const railHeight of [150,170]){
 if(fs.existsSync('dist/index.html')){const h=fs.readFileSync('dist/index.html','utf8');assert(h.includes('data-deep-levels="v598"'));assert.equal(transform(h),h);for(const m of h.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g))if(!/src=|application\/json/.test(m[1]))new vm.Script(m[2]);}
 console.log('PASS both deep systems: distinct level heights/weights/types, catalogue limits, manual capacity guard, collisions, 50mm uprights, 3D snapshot, BOM, pallet report and JSON roundtrip.');
 
+const groundRack={...base,id:2,rafexSystem:'drive',systemType:'drive',firstRailHeight:1600,driveCustomizationV521:{groundPallet:true,levelSpecs:[{palletHeight:1050}]}};
+const groundModel=driveStepped(JSON.parse(JSON.stringify(groundRack)));
+assert.equal(groundModel.groundPallet.height,1050);
+assert.equal(driveStepped({...groundRack,firstRailHeight:1150}).groundPallet,null);
+const groundSnap=layoutSnapshot({scale:1,racks:[groundRack]}).racks[0];
+const groundParts=rackParts(groundSnap,{cad:true,palletInstances:true});
+assert.equal(groundParts.filter(p=>p.kind==='palletTimber'&&p.y===0).length,1);
+assert.equal(groundParts.filter(p=>p.kind==='load').length,rackParts({...groundSnap,driveStepped:{...groundSnap.driveStepped,groundPallet:null}},{cad:true,palletInstances:true}).filter(p=>p.kind==='load').length+1);
+assert.equal(rackParts({...groundSnap,showPallets:false},{cad:true,palletInstances:true}).filter(p=>p.kind==='palletTimber').length,0);
+console.log('PASS one optional Drive-In floor pallet, existing pallet height, clearance, visibility toggle and saved data.');
