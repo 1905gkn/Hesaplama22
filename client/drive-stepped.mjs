@@ -7,6 +7,7 @@ export function driveStepped(r){
  const saved=r?.driveCustomizationV521;
  if(!saved&&(!r?.plan?.feet?.length||(r.rafexSystem!=="drive"&&r.systemType!=="drive")))return null;
  const c={groundPallet:true,...saved};
+ if(!r.depth&&r.palletPositions?.length)r={...r,depth:r.palletPositions.length};
  if(!r.plan?.feet?.length)throw Error('Drive-In ayak yerleşimi eksik.');
  const n=(v,f=0)=>v!==null&&v!==''&&Number.isFinite(Number(v))?Number(v):f;
  const ceil=v=>Math.ceil(v/50)*50;
