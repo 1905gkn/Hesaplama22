@@ -4,7 +4,7 @@ import {driveStepped} from '../client/drive-stepped.mjs';
 export function transform(html){
  if(html.includes('data-drive-stepped="v521"'))return html;
  const replace=(a,b)=>{if(!html.includes(a))throw Error('v521 anchor missing: '+a.slice(0,110));html=html.replaceAll(a,b);};
- replace('function rafexPalletCapacity(drawing){','function rafexPalletCapacity(drawing){if(drawing?.driveCustomizationV521)return window.rafexDriveSteppedV521(drawing).capacity;');
+ replace('function rafexPalletCapacity(drawing){','function rafexPalletCapacity(drawing){const drive=window.rafexDriveSteppedV521?.(drawing);if(drive)return drive.capacity;');
  replace('const rack = { id, typeName, mekikCustomizationV514:', 'const rack = { id, typeName, driveCustomizationV521:source.driveCustomizationV521?structuredClone(source.driveCustomizationV521):undefined, mekikCustomizationV514:');
  replace('if(rack.mekikCustomizationV514){','if(rack.driveCustomizationV521){window.rafexDriveSteppedV521(rack).rows.forEach(row=>add(row.name,row.qty,row.spec,row.unit));return;}if(rack.mekikCustomizationV514){');
  replace('if(drawing.mekikCustomizationV514){','if(drawing.driveCustomizationV521){window.rafexDriveSteppedV521(drawing).rows.forEach(row=>add(row.name,row.spec,row.qty*multiplier));return result;}if(drawing.mekikCustomizationV514){');
@@ -15,7 +15,7 @@ export function transform(html){
  for(const name of ['drawing','m2LastDrawing','d']){
   const optional=name==='d'?'': '?';
   const old=name+optional+'.mekikCustomizationV514?window.rafexMekikSteppedV514('+name+'):null';
-  if(html.includes(old))replace(old,name+optional+'.driveCustomizationV521?window.rafexDriveSteppedV521('+name+'):'+old);
+  if(html.includes(old))replace(old,'window.rafexDriveSteppedV521?.('+name+')??('+old+')');
  }
  replace("    return c;\n  }\n  function standalone(svg,host,language){","    if(system==='drive')c.driveStepped=window.rafexDriveSteppedV521(d);return c;\n  }\n  function standalone(svg,host,language){");
  replace('const rackH=c.firstLevelHeight+Math.max(0,c.levels-1)*c.levelSpacing+c.palletHeight+220;', 'const rackH=window.rafexDriveInUprightHeight(c);');
