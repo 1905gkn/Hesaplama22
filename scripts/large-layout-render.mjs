@@ -279,9 +279,10 @@ export function cacheLayoutInventory(html){
     `if(!window.rafexViewportV248?.viewportOnly){
           if(!interactiveRender)m2RenderSelectedRackInfo();
           else if(!m2SameInventoryInputs(m2LayoutTotals?.inputs,m2InventoryInputs())){
-            const total=$("m2SelectedRackInfo")?.querySelector(".m2-selected-pallet-total strong");
-            if(total)total.textContent=fmt(m2ReadLayoutTotals().pallets);
-            else m2RenderSelectedRackInfo();
+            const count=fmt(m2ReadLayoutTotals().pallets);
+            for(const total of document.querySelectorAll("#rafexLayoutPalletTotalV342 strong, #m2SelectedRackInfo .m2-selected-pallet-total strong")){
+              if(total.textContent!==count)total.textContent=count;
+            }
           }
         }`);
   return html;
