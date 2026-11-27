@@ -13,10 +13,12 @@ for(const railHeight of [150,170]){
 if(fs.existsSync('dist/index.html')){const h=fs.readFileSync('dist/index.html','utf8');assert(h.includes('data-deep-levels="v598"'));assert.equal(transform(h),h);for(const m of h.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g))if(!/src=|application\/json/.test(m[1]))new vm.Script(m[2]);}
 console.log('PASS both deep systems: distinct level heights/weights/types, catalogue limits, manual capacity guard, collisions, 50mm uprights, 3D snapshot, BOM, pallet report and JSON roundtrip.');
 
-const groundRack={...base,id:2,rafexSystem:'drive',systemType:'drive',firstRailHeight:1600,driveCustomizationV521:{groundPallet:true,levelSpecs:[{palletHeight:1050}]}};
+const groundRack={...base,id:2,rafexSystem:'drive',systemType:'drive',firstRailHeight:1600,driveCustomizationV521:{groundPallet:true,groundPalletHeight:900,levelSpecs:[{palletHeight:1050}]}};
 const groundModel=driveStepped(JSON.parse(JSON.stringify(groundRack)));
-assert.equal(groundModel.groundPallet.height,1050);
-assert.equal(driveStepped({...groundRack,firstRailHeight:1150}).groundPallet,null);
+assert.equal(groundModel.groundPallet.height,900);
+assert.equal(groundModel.floors[0].palletHeight,1050);
+assert.equal(groundModel.capacity,driveStepped({...groundRack,driveCustomizationV521:{...groundRack.driveCustomizationV521,groundPallet:false}}).capacity+1);
+assert.equal(driveStepped({...groundRack,firstRailHeight:1000}).groundPallet,null);
 const groundSnap=layoutSnapshot({scale:1,racks:[groundRack]}).racks[0];
 const groundParts=rackParts(groundSnap,{cad:true,palletInstances:true});
 assert.equal(groundParts.filter(p=>p.kind==='palletTimber'&&p.y===0).length,1);
