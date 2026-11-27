@@ -528,3 +528,4 @@ node scripts/verify-drive-frame-capacity.mjs dist/index.html
 node scripts/manual-straight-ties.mjs
 node scripts/large-layout-render.mjs
 node scripts/verify-group-placement-worker.mjs
+node scripts/split-login-entry.mjs

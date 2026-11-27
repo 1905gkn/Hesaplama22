@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#173b2b">
+  <title>RAFEX</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:20px;background:#f0f4f1;color:#18382a;font:16px system-ui,sans-serif}
+    main{width:min(100%,420px);padding:28px;background:#fff;border:1px solid #d6e2da;border-radius:16px}
+    img{display:block;width:116px;height:auto;margin-bottom:22px}
+    h1{font-size:24px;margin:16px 0}
+    form,label{display:grid;gap:8px}
+    form{gap:14px}
+    input,select,button{min-height:44px;padding:9px 12px;border:1px solid #aec2b4;border-radius:8px;font:inherit}
+    input,select{color:inherit;background:#fff;width:100%}
+    button{background:#194a35;color:#fff;font-weight:650;cursor:pointer}
+    button:disabled{opacity:.65;cursor:wait}
+    [hidden]{display:none!important}
+    #message{min-height:1.5em;margin:0;color:#8a2535}
+  </style>
+</head>
+<body>
+<main>
+  <img src="/rafex-logo.png" width="116" alt="RAFEX" loading="lazy">
+  <label><span id="language-label">Program dili</span>
+    <select id="language"><option value="tr">Türkçe</option><option value="en">English</option><option value="fr">Français</option></select>
+  </label>
+  <h1 id="title">Giriş Yap</h1>
+  <form id="login" action="/api/login" method="post">
+    <label id="full-name-field" hidden><span id="full-name-label">Ad Soyad</span><input id="full-name" autocomplete="name"></label>
+    <label><span id="username-label">Kullanıcı adı</span><input id="username" autocomplete="username" required></label>
+    <label><span id="password-label">Şifre</span><input id="password" type="password" autocomplete="current-password" minlength="8" required></label>
+    <button id="submit" type="submit">Giriş Yap</button>
+    <p id="message" role="status" aria-live="polite"></p>
+  </form>
+  <noscript>Giriş yapmak için JavaScript’i etkinleştirin.</noscript>
+</main>
+<script>
+(() => {
+  const translations = {
+    tr: ['Program dili', 'Giriş Yap', 'İlk Kurulum', 'Süper Kullanıcı Oluştur', 'Ad Soyad', 'Kullanıcı adı', 'Şifre', 'Kullanıcı oluşturuldu. Şimdi giriş yapın.', 'Kullanıcı adı veya şifre hatalı.', 'Bağlantı kurulamadı. Tekrar deneyin.'],
+    en: ['Language', 'Sign in', 'Initial setup', 'Create administrator', 'Full name', 'Username', 'Password', 'Account created. You can now sign in.', 'Incorrect username or password.', 'Unable to connect. Try again.'],
+    fr: ['Langue', 'Se connecter', 'Configuration initiale', 'Créer un administrateur', 'Nom complet', 'Identifiant', 'Mot de passe', 'Compte créé. Vous pouvez vous connecter.', 'Identifiant ou mot de passe incorrect.', 'Connexion impossible. Réessayez.']
+  };
+  const el = id => document.getElementById(id);
+  const language = el('language');
+  const form = el('login');
+  const button = el('submit');
+  const password = el('password');
+  const message = el('message');
+  let needsSetup = false;
+  let languageCode = 'tr';
+  try { languageCode = localStorage.getItem('rafexProgramLanguage') || 'tr'; } catch {}
+  language.value = Object.hasOwn(translations, languageCode) ? languageCode : 'tr';
+
+  function render() {
+    const [lang, signIn, setupTitle, create, fullName, username, pass] = translations[language.value];
+    document.documentElement.lang = language.value;
+    el('language-label').textContent = lang;
+    el('title').textContent = needsSetup ? setupTitle : signIn;
+    button.textContent = needsSetup ? create : signIn;
+    el('full-name-label').textContent = fullName;
+    el('username-label').textContent = username;
+    el('password-label').textContent = pass;
+    el('full-name-field').hidden = !needsSetup;
+    el('full-name').required = needsSetup;
+    password.autocomplete = needsSetup ? 'new-password' : 'current-password';
+  }
+
+  function openWorkspace() {
+    location.replace('/workspace.html' + location.search + location.hash);
+  }
+
+  function checkSetup() {
+    return fetch('/api/bootstrap', {cache:'no-store'}).then(async response => {
+      if (!response.ok) throw new Error();
+      needsSetup = (await response.json()).needsSetup === true;
+      render();
+      return true;
+    }).catch(() => false);
+  }
+
+  language.addEventListener('change', () => {
+    try { localStorage.setItem('rafexProgramLanguage', language.value); } catch {}
+    message.textContent = '';
+    render();
+  });
+  render();
+
+  const session = fetch('/api/me', {cache:'no-store'})
+    .then(async response => response.ok && Boolean((await response.json()).user))
+    .catch(() => false);
+  const setup = checkSetup();
+  session.then(active => { if (active) openWorkspace(); });
+
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (button.disabled) return;
+    button.disabled = true;
+    message.textContent = '';
+    const wasSetup = needsSetup;
+    try {
+      if (!await setup && !await checkSetup()) throw new Error();
+      if (!wasSetup && needsSetup) {
+        el('full-name').focus();
+        return;
+      }
+      const response = await fetch(needsSetup ? '/api/setup' : '/api/login', {
+        method:'POST',
+        headers:{'content-type':'application/json'},
+        body:JSON.stringify({
+          username:el('username').value,
+          password:password.value,
+          fullName:el('full-name').value,
+          defaultLanguage:language.value
+        })
+      });
+      const result = await response.json();
+      const words = translations[language.value];
+      if (response.status === 401) {
+        message.textContent = words[8];
+      } else if (!response.ok) {
+        message.textContent = result.error || words[9];
+      } else if (needsSetup) {
+        needsSetup = false;
+        password.value = '';
+        render();
+        message.textContent = words[7];
+      } else if (result.user) {
+        password.value = '';
+        openWorkspace();
+        return;
+      } else {
+        throw new Error();
+      }
+    } catch {
+      message.textContent = translations[language.value][9];
+    } finally {
+      button.disabled = false;
+    }
+  });
+})();
+</script>
+</body>
+</html>
