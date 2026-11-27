@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "bash scripts/vercel-git-build.sh && bash scripts/vercel-post-build.sh",
+  "buildCommand": "bash scripts/vercel-git-build.sh && bash scripts/vercel-post-build.sh && node scripts/optimize-dist-html-v1.mjs",
   "installCommand": "npm ci",
   "outputDirectory": "dist",
   "framework": null,
@@ -19,7 +19,7 @@
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "no-store"
+          "value": "public, max-age=0, must-revalidate"
         }
       ]
     },
@@ -28,7 +28,7 @@
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "no-store"
+          "value": "public, max-age=0, must-revalidate"
         }
       ]
     },
@@ -92,12 +92,6 @@
     {
       "source": "/(.*)",
       "destination": "/api/index"
-    }
-  ],
-  "crons": [
-    {
-      "path": "/api/push/dispatch",
-      "schedule": "* * * * *"
     }
   ],
   "regions": [

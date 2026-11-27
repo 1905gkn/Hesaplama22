@@ -84,6 +84,18 @@ export async function createFacingBatch(scene,geometry,material,matrices,budget,
  const lod=options.screenLod&&!material.map&&!material.vertexColors&&(repeatedHeavy||triangles>=50000)?await prepareScreenLod(geometry,budget,{allowProtected:!!options.protectedLod}):null;
  const lods=lod?[lod]:[];
  if(options.screenLod&&!material.map&&!material.vertexColors&&(repeatedHeavy||triangles>=50000))for(const tolerance of [.02,.08]){const previous=lods.at(-1);if(previous&&previous.geometry.index.count<3000)break;const next=await prepareScreenLod(previous?.geometry||geometry,budget,{tolerance,allowProtected:!!options.protectedLod});if(next){const error=next.error+(previous?.error||0);lods.push({...next,error});}}
+ // fast-v1: en kaba seviye olarak parçanın sınır kutusu (12 üçgen). Yalnızca
+ // ekrandaki hata bütçesi izin verdiğinde (uzak/küçük görünen parçalar) seçilir;
+ // yakın görünümde orijinal CAD aynen çizilir. Kaydedilen veriler değişmez.
+ if(options.screenLod&&!material.map&&!material.vertexColors&&(repeatedHeavy||triangles>=50000)){
+  if(!geometry.boundingBox)geometry.computeBoundingBox();
+  const bb=geometry.boundingBox,size=bb.getSize(new THREE.Vector3()),center=bb.getCenter(new THREE.Vector3());
+  const axes=['x','y','z'].sort((a,b)=>size[a]-size[b]).slice(0,2);
+  const box=new THREE.BoxGeometry(Math.max(size.x,1e-6),Math.max(size.y,1e-6),Math.max(size.z,1e-6));box.translate(center.x,center.y,center.z);box.computeBoundingBox();box.computeBoundingSphere();
+  const previous=lods.at(-1),error=Math.max(Math.hypot(...axes.map(k=>size[k])),(previous?.error||0)*1.0001)+1e-6;
+  if(box.index.count<(lods.at(-1)?.geometry.index.count??(geometry.index?.count??Infinity)))lods.push({geometry:box,error,errorAxes:axes});
+  else box.dispose();
+ }
  const inverse=matrices.map(m=>m.determinant()>0?m.clone().invert():null),cameraPoints=inverse.map(()=>new THREE.Vector3()),meshes=[];
  if(!geometry.boundingBox)geometry.computeBoundingBox();
  const worldBounds=matrices.map(m=>geometry.boundingBox.clone().applyMatrix4(m)),inView=new Uint8Array(matrices.length),lastPlanes=new Float64Array(24).fill(Infinity);
