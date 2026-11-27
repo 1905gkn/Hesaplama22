@@ -23,11 +23,13 @@
         }
         return null;
       }
+      function m2PlanMaximumDepth(){return typeof m2ActiveModule!=="undefined"&&m2ActiveModule==="drive"?1050:1200;}
       const m2PlanCacheV247=new Map();
       function m2Plan(railLength, hasExtra) {
-        const key=railLength+'|'+Boolean(hasExtra);
+        const maximum=m2PlanMaximumDepth(),key=railLength+'|'+Boolean(hasExtra)+'|'+maximum;
         if(!m2PlanCacheV247.has(key)){
-          const plan=m2PlanWithLengths(railLength,hasExtra,m2StandardLengths,m2StandardLengths,false)||m2PlanWithLengths(railLength,hasExtra,m2StandardLengths,m2FineLengths,true,'brace')||m2PlanWithLengths(railLength,hasExtra,m2FineLengths,m2FineLengths,true,'both');
+          const standard=m2StandardLengths.filter(n=>n<=maximum),fine=m2FineLengths.filter(n=>n<=maximum);
+          const plan=m2PlanWithLengths(railLength,hasExtra,standard,standard,false)||m2PlanWithLengths(railLength,hasExtra,standard,fine,true,'brace')||m2PlanWithLengths(railLength,hasExtra,fine,fine,true,'both');
           if(m2PlanCacheV247.size>=128)m2PlanCacheV247.delete(m2PlanCacheV247.keys().next().value);
           m2PlanCacheV247.set(key,plan);
         }
